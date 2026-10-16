@@ -14,9 +14,12 @@ function normalizeWords(text) {
     .replace(/œ/g, 'oe')
     .replace(/æ/g, 'ae')
     .replace(/ß/g, 'ss')
-    .normalize('NFD')
+    .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
     .replace(/&/g, ' et ')
+    // « C++ », « C# » et « C » doivent rester distincts.
+    .replace(/\+/g, ' plus ')
+    .replace(/#/g, ' sharp ')
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
   if (!cleaned) return [];

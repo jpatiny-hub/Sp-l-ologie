@@ -11,7 +11,8 @@ le **centre de la Terre**.
 - Podium hebdomadaire (somme des forages du lundi au dimanche, heure de Bruxelles).
 - Mode entraînement illimité (thèmes au hasard, ne compte pas).
 - Tolérance orthographique (accents, majuscules, articles, pluriels, fautes de frappe).
-- 46 thèmes, plus de 10 000 réponses, avec une difficulté estimée pour un public belge.
+- 75 thèmes (culture générale, sciences, cinéma, musique, littérature, Belgique…), près de
+  20 000 réponses, avec une difficulté estimée pour un public belge.
 
 Aucune dépendance externe : Node.js ≥ 22.13 suffit (base SQLite intégrée à Node).
 

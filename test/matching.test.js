@@ -53,3 +53,10 @@ test('réponse hors thème refusée', () => {
   assert.equal(matchAnswer(theme, ''), null);
   assert.equal(matchAnswer(theme, '???'), null);
 });
+
+test('symboles : C, C++ et C# restent distincts, les exposants sont lus', () => {
+  assert.notEqual(toKey('C'), toKey('C++'));
+  assert.notEqual(toKey('C'), toKey('C#'));
+  assert.equal(toKey('C sharp'), toKey('C#'));
+  assert.equal(toKey('E=mc²'), toKey('Emc2'));
+});
