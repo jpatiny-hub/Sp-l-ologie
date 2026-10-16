@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1b1410">
+  <title>Spéléologie</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="logo">Spéléologie</h1>
+    <nav class="topnav" id="topnav" hidden>
+      <span class="who" id="who"></span>
+      <button class="link" id="btn-logout" type="button">Déconnexion</button>
+    </nav>
+  </header>
+
+  <main class="layout">
+    <section class="stage" id="stage">
+      <div class="stage-frame">
+        <canvas id="scene" width="160" height="200" aria-label="Coupe du terrain et foreuse"></canvas>
+        <div class="hud" id="hud">
+          <span id="hud-depth">0 cm</span>
+          <span id="hud-zone">Terre végétale</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel-area">
+      <!-- Connexion / inscription -->
+      <div class="view" id="view-auth" hidden>
+        <div class="card">
+          <p class="tagline">Creuse jusqu'au noyau de la Terre… avec les réponses les plus improbables.</p>
+          <div class="tabs" role="tablist">
+            <button class="tab active" data-tab="login" type="button" role="tab">Connexion</button>
+            <button class="tab" data-tab="signup" type="button" role="tab">Créer un compte</button>
+          </div>
+
+          <form id="form-login" class="form" data-pane="login" autocomplete="on">
+            <label>Identifiant <input name="username" autocomplete="username" required autocapitalize="off" spellcheck="false"></label>
+            <label>Mot de passe <input name="password" type="password" autocomplete="current-password" required></label>
+            <p class="error" role="alert"></p>
+            <button class="btn" type="submit">Se connecter</button>
+            <button class="link" type="button" data-tab-link="recover">Mot de passe oublié ?</button>
+          </form>
+
+          <form id="form-signup" class="form" data-pane="signup" hidden>
+            <label>Identifiant <input name="username" autocomplete="username" required minlength="3" maxlength="20" autocapitalize="off" spellcheck="false"></label>
+            <label>Mot de passe <input name="password" type="password" autocomplete="new-password" required minlength="6"></label>
+            <label>Confirmer le mot de passe <input name="confirm" type="password" autocomplete="new-password" required minlength="6"></label>
+            <p class="hint">3 à 20 caractères : lettres, chiffres, « _ », « - » ou « . ».</p>
+            <p class="error" role="alert"></p>
+            <button class="btn" type="submit">Créer mon compte</button>
+          </form>
+
+          <form id="form-recover" class="form" data-pane="recover" hidden>
+            <p class="hint">Saisis le code de récupération reçu à l'inscription pour choisir un nouveau mot de passe.</p>
+            <label>Identifiant <input name="username" autocomplete="username" required autocapitalize="off" spellcheck="false"></label>
+            <label>Code de récupération <input name="recoveryCode" required placeholder="XXXX-XXXX-XXXX" autocapitalize="characters" spellcheck="false"></label>
+            <label>Nouveau mot de passe <input name="newPassword" type="password" autocomplete="new-password" required minlength="6"></label>
+            <p class="error" role="alert"></p>
+            <button class="btn" type="submit">Changer mon mot de passe</button>
+            <button class="link" type="button" data-tab-link="login">Retour à la connexion</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Code de récupération affiché une seule fois -->
+      <div class="view" id="view-recovery" hidden>
+        <div class="card">
+          <h2>Ton code de récupération</h2>
+          <p>Note-le précieusement : c'est le seul moyen de retrouver ton compte si tu oublies ton mot de passe.</p>
+          <p class="code" id="recovery-code"></p>
+          <button class="btn secondary" id="btn-copy-code" type="button">Copier le code</button>
+          <button class="btn" id="btn-recovery-done" type="button">C'est noté, on creuse !</button>
+        </div>
+      </div>
+
+      <!-- Accueil -->
+      <div class="view" id="view-home" hidden>
+        <div class="card">
+          <h2>Forage du jour</h2>
+          <p class="muted" id="today-date"></p>
+          <div id="today-status"></div>
+          <button class="btn" id="btn-daily" type="button">Commencer le forage</button>
+          <p class="muted small" id="next-reset"></p>
+        </div>
+        <div class="card">
+          <h2>Podium de la semaine</h2>
+          <ol class="mini-podium" id="mini-podium"></ol>
+          <button class="btn secondary" id="btn-podium" type="button">Voir le classement</button>
+        </div>
+        <div class="card">
+          <h2>Entraînement</h2>
+          <p>Des thèmes au hasard, autant que tu veux. Ça ne compte pas pour le podium.</p>
+          <button class="btn secondary" id="btn-training" type="button">S'entraîner</button>
+        </div>
+        <details class="card rules">
+          <summary>Règles du jeu</summary>
+          <ul>
+            <li>Chaque jour, <strong>7 thèmes</strong>, les mêmes pour tout le monde.</li>
+            <li>Pour chaque thème, tu as <strong><span class="timer-seconds">30</span> secondes</strong> pour donner une réponse qui y correspond.</li>
+            <li>Plus ta réponse est <strong>improbable</strong>, plus tu marques : de 10 points (évident) à 90 (très rare).</li>
+            <li>Une réponse très rare que <strong>personne n'avait encore trouvée</strong> est une pépite : 100 points.</li>
+            <li>Les petites fautes d'orthographe sont tolérées. Si ta réponse n'est pas reconnue, tu peux réessayer tant que le chrono tourne.</li>
+            <li>Chaque point fait creuser ta foreuse. <strong>700 points = le centre de la Terre.</strong></li>
+            <li>Le podium additionne tes forages du lundi au dimanche.</li>
+          </ul>
+        </details>
+      </div>
+
+      <!-- Partie -->
+      <div class="view" id="view-game" hidden>
+        <div class="card game-head">
+          <span id="game-mode"></span>
+          <span id="game-progress"></span>
+          <span id="game-score"></span>
+        </div>
+
+        <div class="card" id="pane-ready" hidden>
+          <h2 id="ready-title"></h2>
+          <p>Tu auras <span class="timer-seconds">30</span> secondes. Vise la réponse la plus improbable !</p>
+          <button class="btn" id="btn-reveal" type="button">Révéler le thème</button>
+        </div>
+
+        <div class="card" id="pane-prompt" hidden>
+          <p class="muted" id="prompt-index"></p>
+          <h2 class="theme-title" id="prompt-title"></h2>
+          <div class="timer"><div class="timer-bar" id="timer-bar"></div></div>
+          <form id="form-answer" class="form answer-form" autocomplete="off">
+            <input id="answer-input" name="text" maxlength="80" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Ta réponse…" aria-label="Ta réponse">
+            <p class="error" id="answer-error" role="alert"></p>
+            <div class="row">
+              <button class="btn" type="submit">Valider</button>
+              <button class="btn ghost" id="btn-skip" type="button">Passer</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card" id="pane-feedback" hidden>
+          <p class="muted" id="feedback-theme"></p>
+          <p class="feedback-points" id="feedback-points"></p>
+          <p class="feedback-tier" id="feedback-tier"></p>
+          <p id="feedback-answer"></p>
+          <p class="muted" id="feedback-odds"></p>
+          <button class="btn" id="btn-next" type="button">Thème suivant</button>
+        </div>
+      </div>
+
+      <!-- Résultats -->
+      <div class="view" id="view-results" hidden>
+        <div class="card">
+          <h2 id="results-title">Forage terminé !</h2>
+          <p class="big" id="results-score"></p>
+          <p id="results-depth"></p>
+          <ul class="zones" id="results-zones"></ul>
+        </div>
+        <div class="card">
+          <h2>Tes réponses</h2>
+          <ol class="answers" id="results-answers"></ol>
+        </div>
+        <div class="card">
+          <button class="btn" id="btn-share" type="button">Partager mon résultat</button>
+          <p class="muted small" id="share-status" role="status"></p>
+          <button class="btn secondary" id="btn-results-podium" type="button">Voir le podium</button>
+          <button class="btn ghost" id="btn-results-home" type="button">Retour à l'accueil</button>
+        </div>
+      </div>
+
+      <!-- Podium -->
+      <div class="view" id="view-podium" hidden>
+        <div class="card">
+          <div class="week-nav">
+            <button class="btn ghost small-btn" id="btn-week-prev" type="button" aria-label="Semaine précédente">◀</button>
+            <h2 id="week-label"></h2>
+            <button class="btn ghost small-btn" id="btn-week-next" type="button" aria-label="Semaine suivante">▶</button>
+          </div>
+          <div class="podium" id="podium"></div>
+          <ol class="ranking" id="ranking"></ol>
+          <p class="muted" id="my-rank"></p>
+        </div>
+        <button class="btn ghost" id="btn-podium-home" type="button">Retour à l'accueil</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="pixel.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

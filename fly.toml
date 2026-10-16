@@ -1,0 +1,26 @@
+# Déploiement sur Fly.io : voir README.md (« Mise en ligne »).
+# Remplace « speleologie » par un nom d'application libre.
+app = "speleologie"
+primary_region = "cdg"
+
+[build]
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8080"
+  DATA_DIR = "/data"
+
+[[mounts]]
+  source = "speleologie_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

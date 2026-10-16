@@ -1,0 +1,6 @@
+titre: Un élément chimique
+1: Oxygène; Hydrogène; Carbone; Fer; Or; Azote; Argent; Cuivre; Hélium; Sodium
+2: Calcium; Uranium; Plomb; Mercure; Zinc; Aluminium; Chlore; Soufre; Potassium; Magnésium; Phosphore; Silicium; Néon; Titane; Platine; Nickel; Lithium; Fluor; Iode; Plutonium; Étain; Chrome
+3: Argon; Cobalt; Manganèse; Bore; Béryllium; Arsenic; Radium; Radon; Krypton; Xénon; Tungstène; Brome; Baryum; Césium; Strontium; Palladium; Rhodium; Iridium; Osmium; Tantale; Vanadium; Molybdène; Sélénium; Germanium; Gallium; Indium; Cadmium; Antimoine; Bismuth; Thorium; Polonium; Francium; Rubidium; Zirconium; Néodyme; Américium; Einsteinium; Mendélévium; Nobélium; Curium; Fermium; Californium; Tellure
+4: Scandium; Yttrium; Lanthane; Cérium; Praséodyme; Prométhium; Samarium; Europium; Gadolinium; Terbium; Dysprosium; Holmium; Erbium; Thulium; Ytterbium; Lutécium; Hafnium; Rhénium; Ruthénium; Technétium; Niobium; Thallium; Astate; Actinium; Protactinium; Neptunium; Berkélium; Lawrencium
+5: Rutherfordium; Dubnium; Seaborgium; Bohrium; Hassium; Meitnérium; Darmstadtium; Roentgenium; Copernicium; Nihonium; Flérovium; Moscovium = Ununpentium; Livermorium; Tennesse; Oganesson = Ununoctium
