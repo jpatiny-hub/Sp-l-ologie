@@ -81,24 +81,33 @@ fréquente que son niveau ne le laisse penser peut descendre d'un niveau.
   `npm run password:reset -- <identifiant>` affiche un mot de passe temporaire et un nouveau code.
 - **Durée du chrono** : variable d'environnement `TIMER_SECONDS` (30 par défaut).
 
-## Mise en ligne (Fly.io)
+## Mise en ligne (Railway)
 
-Le jeu tient en une seule application avec un petit disque pour la base SQLite. Avec
-[Fly.io](https://fly.io) (quelques euros par mois au plus pour un usage entre amis) :
+Le jeu tient en une seule application avec un petit disque pour la base SQLite. Le fichier
+`railway.json` contient déjà la configuration de construction et de démarrage.
 
-```bash
-fly launch --no-deploy        # choisir un nom d'application, garder le fly.toml existant
-fly volumes create speleologie_data --size 1 --region cdg
-fly deploy
-```
+1. Sur [railway.com](https://railway.com), se connecter avec GitHub et prendre la formule
+   *Hobby* (un seul abonnement pour toutes vos applications).
+2. **New Project** → **Deploy from GitHub repo** → choisir `Sp-l-ologie`.
+3. Dans le service : **Settings** → **Source** → vérifier que la branche est `main`.
+4. Ajouter un **volume** au service (clic droit sur le service → *Attach volume*, ou
+   **Command Palette** → *Volume*) avec le chemin de montage **`/data`**.
+   Indispensable : c'est là que sont gardés les comptes et les scores.
+5. **Settings** → **Networking** → **Generate Domain**. L'adresse obtenue est le lien à partager.
 
-L'adresse obtenue (`https://<nom>.fly.dev`) est le lien à partager. Le site n'est pas référencé
-par les moteurs de recherche, et il faut se connecter pour jouer.
+Les variables `NODE_ENV=production` et `DATA_DIR=/data` sont déjà définies dans le `Dockerfile` ;
+Railway fournit lui-même `PORT`. Chaque modification poussée sur `main` est redéployée
+automatiquement (le jeu est indisponible quelques secondes pendant la mise à jour).
 
-Le `Dockerfile` permet aussi de l'héberger ailleurs (Railway, Render avec disque persistant,
-petit serveur) : il suffit d'un volume monté sur `/data`.
+Pour lancer un script d'administration (rapport des réponses, réinitialisation d'un mot de
+passe), ouvrir un terminal sur le service avec la [CLI Railway](https://docs.railway.com/guides/cli)
+(`railway ssh`), puis par exemple `npm run answers:report`.
+Pensez à activer les **sauvegardes du volume** dans ses réglages.
 
-Pour sauvegarder les données : `fly ssh sftp get /data/speleologie.sqlite`.
+Le `Dockerfile` permet aussi d'héberger le jeu ailleurs (Fly.io avec le `fly.toml` fourni,
+Render avec disque persistant, petit serveur avec Coolify) : il suffit d'un volume monté sur `/data`.
+
+Le site n'est pas référencé par les moteurs de recherche, et il faut se connecter pour jouer.
 
 ## Organisation du code
 

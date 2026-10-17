@@ -216,6 +216,12 @@ function createApp({ db, themes, now = Date.now, secureCookies = false, publicDi
       json(res, 200, { user: userView(user), recoveryCode: nextCode }, { 'Set-Cookie': createSession(user.id) });
     },
 
+    // Vérification de bon fonctionnement utilisée par l'hébergeur.
+    'GET /api/health': async (req, res) => {
+      db.prepare('SELECT 1').get();
+      json(res, 200, { ok: true });
+    },
+
     'GET /api/me': async (req, res) => {
       const user = currentUser(req, res);
       if (!user) return json(res, 200, { user: null });

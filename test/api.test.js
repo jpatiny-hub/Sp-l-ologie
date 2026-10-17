@@ -198,3 +198,14 @@ test("l'entraînement ne compte ni pour le podium ni pour les statistiques", asy
     await app.close();
   }
 });
+
+test('point de contrôle pour l’hébergeur', async () => {
+  const app = await startServer();
+  try {
+    const res = await fetch(`${app.base}/api/health`);
+    assert.equal(res.status, 200);
+    assert.deepEqual(await res.json(), { ok: true });
+  } finally {
+    await app.close();
+  }
+});
