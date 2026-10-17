@@ -109,6 +109,24 @@ Render avec disque persistant, petit serveur avec Coolify) : il suffit d'un volu
 
 Le site n'est pas référencé par les moteurs de recherche, et il faut se connecter pour jouer.
 
+## Mise en ligne sur un serveur personnel (Coolify)
+
+1. Dans Coolify : **+ New** → **Resource** → **Public Repository** (ou **Private Repository
+   (with GitHub App)** si le dépôt devient privé), adresse
+   `https://github.com/jpatiny-hub/Sp-l-ologie`, branche `main`.
+2. **Build Pack** : `Dockerfile`. **Ports Exposes** : `8080`.
+3. **Persistent Storage** → ajouter un volume avec le chemin de destination **`/data`**
+   (indispensable : comptes et scores y sont conservés).
+4. **Health check** (facultatif) : chemin `/api/health`.
+5. **Domains** : indiquer l'adresse choisie (par exemple `https://jeu.mondomaine.be`, ou celle
+   fournie par le tunnel Cloudflare), puis **Deploy**.
+6. Activer le déploiement automatique (webhook GitHub) pour que chaque modification sur `main`
+   soit mise en ligne.
+
+Scripts d'administration : ouvrir le **Terminal** du conteneur dans Coolify, puis par exemple
+`npm run answers:report`. Sauvegarde : copier régulièrement `/data/speleologie.sqlite`
+(sauvegardes planifiées du volume ou script `sqlite3 … ".backup …"`).
+
 ## Organisation du code
 
 | Fichier | Rôle |
