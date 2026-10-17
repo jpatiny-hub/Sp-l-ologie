@@ -117,9 +117,13 @@ Le site n'est pas référencé par les moteurs de recherche, et il faut se conne
 2. **Build Pack** : `Dockerfile`. **Ports Exposes** : `8080`.
 3. **Persistent Storage** → ajouter un volume avec le chemin de destination **`/data`**
    (indispensable : comptes et scores y sont conservés).
-4. **Health check** (facultatif) : chemin `/api/health`.
-5. **Domains** : indiquer l'adresse choisie (par exemple `https://jeu.mondomaine.be`, ou celle
-   fournie par le tunnel Cloudflare), puis **Deploy**.
+4. **Health check** : le laisser désactivé. Coolify l'exécute avec `curl` ou `wget` dans le
+   conteneur, et l'image `node:22-slim` ne contient ni l'un ni l'autre : activé, le contrôle
+   échouerait et le déploiement serait annulé. L'adresse `/api/health` reste utilisable par une
+   surveillance externe (UptimeRobot…).
+5. **Domains** : indiquer l'adresse choisie, puis **Deploy**. Derrière un tunnel Cloudflare, qui
+   assure déjà le HTTPS, l'écrire en `http://` (par exemple `http://jeu.mondomaine.be`) : en
+   `https://`, le proxy de Coolify redirigerait en boucle.
 6. Activer le déploiement automatique (webhook GitHub) pour que chaque modification sur `main`
    soit mise en ligne.
 

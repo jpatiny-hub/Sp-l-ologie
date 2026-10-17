@@ -51,6 +51,9 @@ function createApp({ db, themes, now = Date.now, secureCookies = false, publicDi
 
   function clientIp(req) {
     return (
+      // Derrière un tunnel Cloudflare puis le proxy de Coolify, X-Forwarded-For peut ne contenir
+      // que l'adresse du tunnel : tous les joueurs partageraient alors les mêmes limites.
+      req.headers['cf-connecting-ip'] ||
       req.headers['fly-client-ip'] ||
       String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
       req.socket.remoteAddress ||

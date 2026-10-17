@@ -199,6 +199,23 @@ test("l'entraînement ne compte ni pour le podium ni pour les statistiques", asy
   }
 });
 
+test('derrière Cloudflare, la limite d’inscriptions vaut par joueur et non pour tout le proxy', async () => {
+  const app = await startServer();
+  const signup = (n, ip) =>
+    fetch(`${app.base}/api/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': '10.0.0.1', 'CF-Connecting-IP': ip },
+      body: JSON.stringify({ username: `joueur${n}`, password: 'secret123' }),
+    });
+  try {
+    for (let n = 0; n < 11; n++) assert.equal((await signup(n, `203.0.113.${n}`)).status, 201);
+    for (let n = 11; n < 21; n++) assert.equal((await signup(n, '198.51.100.7')).status, 201);
+    assert.equal((await signup(21, '198.51.100.7')).status, 429);
+  } finally {
+    await app.close();
+  }
+});
+
 test('point de contrôle pour l’hébergeur', async () => {
   const app = await startServer();
   try {
