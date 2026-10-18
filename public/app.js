@@ -10,6 +10,8 @@
     timer: null,
     busy: false,
     podium: null,
+    profile: null,
+    skin: { body: 'classique', bit: 'standard' },
     meLoadedAt: 0,
     // Proposition de correction en attente de confirmation : { text, suggestion }.
     pending: null,
@@ -139,7 +141,8 @@
 
   function show(view) {
     document.querySelectorAll('.view').forEach((v) => (v.hidden = v.id !== `view-${view}`));
-    $('stage').hidden = view === 'podium' && window.innerWidth < 860;
+    $('stage').hidden = (view === 'podium' || view === 'profile') && window.innerWidth < 860;
+    if (view === 'profile') startPreview();
     $('who').hidden = !app.me;
     $('settings-account').hidden = !app.me;
     fitCanvas();
@@ -279,12 +282,27 @@
     app.me = me;
     app.meLoadedAt = Date.now();
     app.game = null;
+    app.skin = me.skin;
+    scene.setSkin(me.skin);
     setTimerSeconds(app.me.timerSeconds);
     $('who').textContent = app.me.user.username;
     $('settings-user').textContent = app.me.user.username;
     renderHome();
     show('home');
     loadMiniPodium();
+    loadCarnetSummary();
+  }
+
+  async function loadCarnetSummary() {
+    $('carnet-dot').hidden = !app.me.unseenBadges;
+    try {
+      const profile = await api('/api/profile');
+      const earned = profile.badges.filter((b) => b.count).length;
+      const streak = profile.stats.currentStreak;
+      $('carnet-summary').textContent = `${streak ? `Série en cours : ${plural(streak, 'jour', 'jours')}` : 'Pas de série en cours'} · ${plural(earned, 'badge', 'badges')} sur ${profile.badges.length}`;
+    } catch {
+      /* résumé facultatif */
+    }
   }
 
   function renderHome() {
@@ -573,7 +591,23 @@
     scene.tour();
     renderResults(state);
     $('share-status').textContent = '';
+    $('results-badges').hidden = true;
     show('results');
+    if (state.mode === 'daily') showNewBadges();
+  }
+
+  async function showNewBadges() {
+    try {
+      const profile = await api('/api/profile');
+      const fresh = profile.badges.filter((b) => b.isNew);
+      if (!fresh.length || $('view-results').hidden) return;
+      app.profile = profile;
+      $('results-badge-list').replaceChildren(...fresh.map(badgeItem));
+      $('results-badges').hidden = false;
+      Sound.badge();
+    } catch {
+      /* les badges restent visibles dans le carnet */
+    }
   }
 
   function renderResults(state) {
@@ -793,6 +827,165 @@
   });
   $('btn-results-home').addEventListener('click', () => goHome());
   $('btn-results-podium').addEventListener('click', () => openPodium('week', null));
+
+  // ---------- Carnet : badges et atelier ----------
+  const CATEGORIES = [
+    ['exploit', 'Exploits'], ['serie', 'Séries de forages'], ['profondeur', 'Profondeur'], ['pepites', 'Pépites'], ['podium', 'Podiums'], ['calendrier', 'Jours particuliers'],
+  ];
+
+  function longDay(day) {
+    return formatDay(day, { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  function unlockName(unlock) {
+    const list = app.profile ? (unlock.type === 'body' ? app.profile.bodies : app.profile.bits) : [];
+    const skin = list.find((s) => s.id === unlock.id);
+    return skin ? `${unlock.type === 'body' ? 'carrosserie' : 'foret'} « ${skin.name} »` : '';
+  }
+
+  function badgeItem(b) {
+    const locked = !b.count;
+    const icon = el('canvas', { class: 'badge-icon', width: '16', height: '16' });
+    Icons.drawBadge(icon, { icon: b.icon, category: b.category, label: b.label, locked });
+    let meta = null;
+    if (!locked) {
+      if (b.years) meta = b.years.length > 1 ? `Années : ${b.years.join(', ')}` : `Le ${longDay(b.lastOn)}`;
+      else if (b.count > 1) meta = `${b.count} fois · dernière le ${longDay(b.lastOn)}`;
+      else meta = `Obtenu le ${longDay(b.firstOn)}`;
+    }
+    const unlock = b.unlock ? unlockName(b.unlock) : '';
+    return el(
+      'div',
+      { class: `badge${locked ? ' locked' : ''}${b.isNew ? ' new' : ''}` },
+      icon,
+      el(
+        'div',
+        { class: 'badge-text' },
+        el('strong', {}, b.name, b.isNew ? el('span', { class: 'new-dot' }, 'nouveau') : null),
+        el('span', {}, b.description),
+        meta ? el('span', { class: 'muted' }, meta) : null,
+        unlock ? el('span', { class: 'unlock' }, `${locked ? 'Débloquera' : 'A débloqué'} : ${unlock}`) : null,
+      ),
+    );
+  }
+
+  async function openProfile() {
+    stopTimer();
+    try {
+      const profile = await api('/api/profile');
+      app.profile = profile;
+      app.skin = profile.skin;
+      renderProfile(profile);
+      show('profile');
+      if (profile.badges.some((b) => b.isNew)) {
+        api('/api/profile/seen', {}).catch(() => {});
+        if (app.me) app.me.unseenBadges = 0;
+      }
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
+  function renderProfile(profile) {
+    const st = profile.stats;
+    const stats = [
+      ['Série en cours', plural(st.currentStreak, 'jour', 'jours')],
+      ['Meilleure série', plural(st.bestStreak, 'jour', 'jours')],
+      ['Jours forés', String(st.daysPlayed)],
+      ['Pépites trouvées', String(st.pepites)],
+      ['Meilleur forage', pts(st.bestScore)],
+    ];
+    $('profile-stats').replaceChildren(...stats.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]));
+    const sections = $('badge-sections');
+    sections.replaceChildren();
+    CATEGORIES.forEach(([id, title]) => {
+      const list = profile.badges.filter((b) => b.category === id);
+      if (!list.length) return;
+      const earned = list.filter((b) => b.count).length;
+      sections.append(
+        el('h3', {}, title, el('span', { class: 'muted small' }, ` ${earned}/${list.length}`)),
+        el('div', { class: 'badge-list' }, ...list.map(badgeItem)),
+      );
+    });
+    renderWorkshop();
+  }
+
+  function drawSkin(canvas, skin, time, drilling) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    Pixel.drawDrill(ctx, skin, Math.floor(canvas.width / 2) - 8, canvas.height - 2, time, drilling);
+  }
+
+  function renderWorkshop() {
+    const grid = (type, list, target) => {
+      const current = type === 'body' ? app.skin.body : app.skin.bit;
+      target.replaceChildren(
+        ...list.map((s) => {
+          const thumb = el('canvas', { class: 'skin-thumb', width: '22', height: '30' });
+          drawSkin(thumb, type === 'body' ? { body: s.id, bit: app.skin.bit } : { body: app.skin.body, bit: s.id }, 0, false);
+          const selected = s.id === current;
+          const button = el(
+            'button',
+            { type: 'button', class: `skin${s.unlocked ? '' : ' locked'}${selected ? ' selected' : ''}`, 'aria-pressed': String(selected), title: s.unlocked ? s.name : s.hint },
+            thumb,
+            el('span', {}, s.unlocked ? s.name : `🔒 ${s.name}`),
+          );
+          button.addEventListener('click', () => chooseSkin(type, s));
+          return button;
+        }),
+      );
+    };
+    grid('body', app.profile.bodies, $('skin-bodies'));
+    grid('bit', app.profile.bits, $('skin-bits'));
+  }
+
+  async function chooseSkin(type, s) {
+    const status = $('skin-status');
+    if (!s.unlocked) {
+      status.textContent = `${s.name} : ${s.hint}`;
+      return;
+    }
+    const next = { ...app.skin, [type]: s.id };
+    try {
+      const res = await api('/api/profile/skin', next);
+      app.skin = res.skin;
+      app.profile.skin = res.skin;
+      scene.setSkin(res.skin);
+      status.textContent = `C'est monté : ${s.name}.`;
+      Sound.reveal();
+      renderWorkshop();
+    } catch (err) {
+      status.textContent = err.message;
+    }
+  }
+
+  // Aperçu animé de la foreuse, tant que le carnet est affiché.
+  let previewRunning = false;
+  function startPreview() {
+    if (previewRunning) return;
+    previewRunning = true;
+    const canvas = $('skin-preview');
+    const ctx = canvas.getContext('2d');
+    const loop = (t) => {
+      if ($('view-profile').hidden) {
+        previewRunning = false;
+        return;
+      }
+      const time = t / 1000;
+      ctx.fillStyle = '#3a2414';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#24160c';
+      ctx.fillRect(7, 0, 18, canvas.height);
+      const shake = Math.round(Math.sin(time * 60));
+      Pixel.drawDrill(ctx, app.skin, 8 + shake, canvas.height - 3, time, true);
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  }
+
+  $('btn-carnet').addEventListener('click', () => openProfile());
+  $('btn-results-carnet').addEventListener('click', () => openProfile());
+  $('btn-profile-home').addEventListener('click', () => goHome());
 
   // ---------- Podium ----------
   async function openPodium(period, date) {

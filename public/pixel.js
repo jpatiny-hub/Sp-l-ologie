@@ -492,6 +492,163 @@
     ['....kssSssSk....', '....kSssSssk....', '.....kssSsk.....', '.....kSssSk.....', '......kSsk......', '......kssk......', '.......kk.......'],
   ];
 
+  const BIT_PALETTE = { c: '#9fe8ff', r: '#b07a43' };
+
+  // Forets : 3 images d'animation chacun.
+  function auger(frame) {
+    const rows = [];
+    for (let r = 0; r < 8; r++) {
+      const half = Math.max(1, 5 - Math.floor(r / 2));
+      const flight = (r + frame) % 2 === 0;
+      const w = flight ? half + 1 : 1;
+      rows.push(`${'.'.repeat(8 - w - 1)}k${(flight ? 'S' : 's').repeat(w * 2)}k${'.'.repeat(8 - w - 1)}`);
+    }
+    rows.push('.......kk.......');
+    return rows;
+  }
+  const BITS = {
+    standard: DRILL_BITS,
+    tariere: [auger(0), auger(1), auger(2)],
+    tricone: [0, 1, 2].map((f) => {
+      const t = (i) => ((i + f) % 3 === 0 ? 'S' : 's');
+      return [
+        '...kssssssssk...',
+        `..k${t(0)}${t(1)}${t(2)}${t(0)}${t(1)}${t(2)}${t(0)}${t(1)}${t(2)}${t(0)}k..`,
+        `..k${t(1)}${t(2)}k${t(0)}${t(1)}${t(2)}${t(0)}k${t(1)}${t(2)}k..`,
+        `..k${t(2)}k.k${t(0)}${t(1)}k.k${t(2)}k..`,
+        '...k...kk...k...',
+      ];
+    }),
+    diamant: [0, 1, 2].map((f) => {
+      const w = (i) => (i === f ? 'w' : 'c');
+      return ['....kssssssk....', `....kc${w(0)}cccck....`, `.....kcc${w(1)}ck.....`, `.....kc${w(2)}cck.....`, '......kcck......', `......k${w(0)}ck......`, '.......kk.......'];
+    }),
+    carotteuse: [0, 1, 2].map((f) => {
+      const t = (i) => ((i + f) % 2 === 0 ? 'S' : 's');
+      return ['....kssssssk....', `....k${t(0)}k..k${t(1)}k....`, `....k${t(1)}k..k${t(0)}k....`, `....k${t(0)}krrk${t(1)}k....`, `....k${t(1)}krrk${t(0)}k....`, `....k${t(0)}k..k${t(1)}k....`, `....k.k..k.k....`];
+    }),
+  };
+
+  // Carrosseries : palette, forme propre (citrouille, spectre) et accessoires posés par-dessus.
+  const PUMPKIN = [
+    '..h....nn....h..',
+    '..hh..nn....hh..',
+    '...kkkkkkkkkk...',
+    '..kyydyyyydyyk..',
+    '.kyyydyyyydyyyk.',
+    '.kyyeyyyyyyeyyk.',
+    '.kyeeeyyyyeeeyk.',
+    '.kyyyyyeeyyyyyk.',
+    '.kyeyyyyyyyyeyk.',
+    '.kyyeeeeeeeeyyk.',
+    '.kyyyeyyeyyeyyk.',
+    '..kkkkkkkkkkkk..',
+    '...kssssssssk...',
+    '...kkkkkkkkkk...',
+  ];
+  const GHOST = [
+    '................',
+    '.....kkkkkk.....',
+    '...kkyyyyyykk...',
+    '..kyyyyyyyyyyk..',
+    '.kyyyyyyyyyyyyk.',
+    '.kyykkyyyykkyyk.',
+    '.kyykkyyyykkyyk.',
+    '.kyyyyyyyyyyyyk.',
+    '.kyyyyykkyyyyyk.',
+    '.kyyyyyyyyyyyyk.',
+    '.kyyyyyyyyyyyyk.',
+    '.kykykykykykykk.',
+    '...kssssssssk...',
+    '...kkkkkkkkkk...',
+  ];
+  // Bandes noire, jaune et rouge, en épargnant le hublot.
+  const TRICOLORE = [];
+  for (let r = 3; r <= 8; r++) {
+    let row = '';
+    for (let c = 2; c <= 13; c++) {
+      const hublot = r >= 4 && r <= 7 && c >= 4 && c <= 8;
+      row += hublot ? '.' : c <= 5 ? 'n' : c <= 9 ? 'j' : 'r';
+    }
+    TRICOLORE.push(row);
+  }
+  const SKINS = {
+    classique: {},
+    acier: { pal: { y: '#9aaabb', d: '#5d6f82' } },
+    cuivre: { pal: { y: '#d0803e', d: '#8a4a22' } },
+    emeraude: { pal: { y: '#3fbf7f', d: '#23784f' } },
+    obsidienne: { pal: { y: '#3a2f57', d: '#1f1830', b: '#b28cff', w: '#efe2ff', o: '#b28cff' } },
+    or: { pal: { y: '#ffd34d', d: '#c99a26' }, sparkle: '#fff6cc' },
+    diamant: { pal: { y: '#c8f2ff', d: '#79c5e3' }, sparkle: '#ffffff' },
+    cordee: { pal: { y: '#d9342b', d: '#8f1f19' } },
+    expedition: { pal: { y: '#2f5fd0', d: '#1d3b85', o: '#f2c230' } },
+    legende: { pal: { y: '#7b3fbf', d: '#f2c230' }, sparkle: '#f2c230' },
+    'feu-artifice': { pal: { y: '#f2c230', d: '#7b3fbf' }, fireworks: true },
+    cupidon: { pal: { y: '#f28bb3', d: '#c2577f' }, overlay: { dx: 10, dy: 7, rows: ['h.h', 'hhh', '.h.'], pal: { h: '#e0245e' } } },
+    globe: {
+      pal: { y: '#2f7fd0', d: '#1d5a99' },
+      overlay: { dx: 1, dy: 3, rows: ['.gg......gg..', '.g........gg.', '..........g..', '.........g...', '..g.....gg...', '.ggg.......g.'], pal: { g: '#4caf50' } },
+    },
+    oeuf: { pal: { y: '#f6e7a8', d: '#9fd3e8' }, overlay: { dx: 1, dy: 3, rows: ['.z.z.z.z.z.z.', 'z.z.z.z.z.z.z'], pal: { z: '#e88bb3' } } },
+    tricolore: { overlay: { dx: 2, dy: 3, rows: TRICOLORE, pal: { n: '#1b1b1f', j: '#f6d32d', r: '#e22b2b' } } },
+    taupe: { pal: { y: '#5a4e4e', d: '#3b3333' }, overlay: { dx: 11, dy: 4, rows: ['k...', '....', '..pp', '..pp'], pal: { k: '#000000', p: '#f0a3a3' } } },
+    citrouille: { rows: PUMPKIN, pal: { y: '#f07a1a', d: '#c25410', e: '#ffe14d', n: '#4c7a34', h: '#b3121b', k: '#2a1206' } },
+    spectre: { rows: GHOST, pal: { y: '#e8eef5', k: '#3b4252' }, alpha: 0.85 },
+    casque: {
+      pal: { y: '#3b5ea8', d: '#26407a' },
+      overlay: { dx: 2, dy: -3, rows: ['...hhhhhh...', '..hhhhhhhh..', '..hhhwwhhh..', 'kkkkkkkkkkkk'], pal: { h: '#f2c230', w: '#fff6b0', k: '#1b1b1f' } },
+    },
+    mitre: { pal: { y: '#b3121b', d: '#f2c230' }, overlay: { dx: 4, dy: -4, rows: ['...gg...', '..rggr..', '.rrggrr.', '.rrggrr.', 'gggggggg'], pal: { r: '#b3121b', g: '#f2c230' } } },
+    noel: {
+      pal: { y: '#c8102e', d: '#f4f4f4' },
+      overlay: { dx: 2, dy: -3, rows: ['......e.....', '.....eee....', '......e.....', '............', '............', 'wwwwwwwwwwww', 'w..w...w..w.'], pal: { e: '#ffd84a', w: '#ffffff' } },
+    },
+    'chat-noir': {
+      pal: { y: '#25252b', d: '#18181c', k: '#000000' },
+      overlay: { dx: 1, dy: 0, rows: ['.k.........k..', '.kk.......kk..', '..............', '..............', '..............', '.........e.e..'], pal: { k: '#000000', e: '#ffd84a' } },
+    },
+  };
+
+  /**
+   * Dessine la foreuse (carrosserie + foret) dont la pointe est en (x0 + 8, tip).
+   * Renvoie l'ordonnée du haut de la carrosserie (pour accrocher le câble).
+   */
+  function drawDrill(ctx, skin, x0, tip, time, drilling) {
+    const body = SKINS[skin && skin.body] || SKINS.classique;
+    const frames = BITS[skin && skin.bit] || BITS.standard;
+    const bit = drilling ? frames[Math.floor(time * 14) % 3] : frames[0];
+    const rows = body.rows || DRILL_BODY;
+    const bodyTop = tip - bit.length - rows.length;
+    const palette = { ...DRILL_PALETTE, ...BIT_PALETTE, ...body.pal };
+    ctx.save();
+    if (body.alpha) ctx.globalAlpha = body.alpha;
+    drawPattern(ctx, rows, x0, bodyTop, palette);
+    if (body.overlay) drawPattern(ctx, body.overlay.rows, x0 + body.overlay.dx, bodyTop + body.overlay.dy, body.overlay.pal);
+    ctx.restore();
+    drawPattern(ctx, bit, x0, tip - bit.length, palette);
+    if (!body.rows && Math.floor(time * 3) % 2 === 0) {
+      ctx.fillStyle = '#ffd36b';
+      ctx.fillRect(x0 + 12, bodyTop + 5, 1, 1);
+    }
+    if (body.sparkle) {
+      const k = Math.floor(time * 4);
+      if (hash(k, 1, 80) > 0.5) {
+        ctx.fillStyle = body.sparkle;
+        ctx.fillRect(x0 + 2 + Math.floor(hash(k, 2, 81) * 12), bodyTop + 3 + Math.floor(hash(k, 3, 82) * 7), 1, 1);
+      }
+    }
+    if (body.fireworks) {
+      const colors = ['#ff5e5e', '#5ee0ff', '#ffe14d', '#b28cff', '#7fcf5a'];
+      for (let i = 0; i < 6; i++) {
+        const k = Math.floor(time * 5) + i * 7;
+        if (hash(k, i, 83) < 0.45) continue;
+        ctx.fillStyle = colors[(k + i) % colors.length];
+        ctx.fillRect(x0 - 3 + Math.floor(hash(k, 4, 84) * 22), bodyTop - 4 + Math.floor(hash(k, 5, 85) * 12), 1, 1);
+      }
+    }
+    return bodyTop;
+  }
+
   const DIGITS = {
     0: ['111', '101', '101', '101', '111'], 1: ['010', '110', '010', '010', '111'], 2: ['111', '001', '111', '100', '111'],
     3: ['111', '001', '111', '001', '111'], 4: ['101', '101', '111', '001', '001'], 5: ['111', '100', '111', '001', '111'],
@@ -527,6 +684,7 @@
       this.h = H;
       this.world = buildWorld();
       this.layers = [];
+      this.skin = { body: 'classique', bit: 'standard' };
       this.depth = 0;
       this.target = 0;
       this.camY = 0;
@@ -556,6 +714,10 @@
         this.zone = zoneIndex(this.depth);
       }
       this.emitDepth();
+    }
+
+    setSkin(skin) {
+      this.skin = { body: 'classique', bit: 'standard', ...skin };
     }
 
     /** Hauteur visible (en pixels du jeu) : réduite sur petit écran pour garder de gros pixels. */
@@ -718,21 +880,15 @@
         drawDigit(ctx, i + 1, SHAFT_X + SHAFT_W + 4 + stagger * 5, y - 3, '#fff');
       });
 
-      // Câble depuis la poulie du chevalement.
-      const bodyTop = tip - DRILL_BITS[0].length - DRILL_BODY.length;
+      // Câble depuis la poulie du chevalement, puis la foreuse.
+      const shake = this.drilling ? Math.round(Math.sin(time * 60)) : 0;
+      const x0 = W / 2 - 8 + shake;
+      const frames = BITS[this.skin.bit] || BITS.standard;
+      const rows = (SKINS[this.skin.body] || {}).rows || DRILL_BODY;
+      const bodyTop = tip - frames[0].length - rows.length;
       ctx.fillStyle = '#26262c';
       ctx.fillRect(W / 2, SKY - 38, 1, Math.max(0, bodyTop - (SKY - 38)));
-
-      // Foreuse.
-      const shake = this.drilling ? Math.round(Math.sin(time * 60)) : 0;
-      const bit = this.drilling ? DRILL_BITS[Math.floor(time * 14) % 3] : DRILL_BITS[0];
-      const x0 = W / 2 - 8 + shake;
-      drawPattern(ctx, DRILL_BODY, x0, bodyTop, DRILL_PALETTE);
-      drawPattern(ctx, bit, x0, tip - bit.length, DRILL_PALETTE);
-      if (Math.floor(time * 3) % 2 === 0) {
-        ctx.fillStyle = '#ffd36b';
-        ctx.fillRect(x0 + 12, bodyTop + 5, 1, 1);
-      }
+      drawDrill(ctx, this.skin, x0, tip, time, this.drilling);
 
       for (const p of this.particles) {
         ctx.fillStyle = p.color;
@@ -760,6 +916,6 @@
   }
 
   global.Pixel = {
-    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, WIDTH: W, HEIGHT: H,
+    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, drawDrill, WIDTH: W, HEIGHT: H,
   };
 })(window);

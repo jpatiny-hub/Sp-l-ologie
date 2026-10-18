@@ -6,6 +6,7 @@ const { dayKey, addDays, weekStart, monthStart, addMonths, monthEnd } = require(
 const { transaction } = require('./db');
 const { matchAnswer, toKey } = require('./matching');
 const { scoreAnswer, probabilities, pointsFor, tierFor } = require('./scoring');
+const { BadgeService } = require('./badges');
 
 const PERIODS = ['day', 'week', 'month'];
 
@@ -31,6 +32,7 @@ class GameService {
     this.themes = themes;
     this.now = now;
     this.timerMs = TIMER_SECONDS * 1000;
+    this.badges = new BadgeService(db, now);
   }
 
   today() {
@@ -117,7 +119,7 @@ class GameService {
   }
 
   finishRound(game, round, { outcome, points, input = null, answer = null, probability = null }) {
-    transaction(this.db, () => {
+    const finished = transaction(this.db, () => {
       const now = this.now();
       const { changes } = this.db
         .prepare(
@@ -125,7 +127,7 @@ class GameService {
            WHERE game_id = ? AND slot = ? AND answered_at IS NULL`,
         )
         .run(now, outcome, points, input, answer ? answer.key : null, answer ? answer.label : null, probability, game.id, round.slot);
-      if (!changes) return;
+      if (!changes) return false;
       if (answer && game.mode === 'daily') {
         this.db
           .prepare(
@@ -140,7 +142,9 @@ class GameService {
       this.db
         .prepare('UPDATE games SET score = score + ?, finished_at = ? WHERE id = ?')
         .run(points, remaining === 0 ? now : null, game.id);
+      return remaining === 0;
     });
+    if (finished) this.badges.awardForGame(game.id);
   }
 
   roundView(round, game) {

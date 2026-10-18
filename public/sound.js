@@ -180,6 +180,12 @@
       tone(urgent ? 1320 : 990, { dur: 0.04, type: 'square', gain: 0.05 });
     },
 
+    /** Nouveau badge : petite fanfare. */
+    badge() {
+      if (!ready()) return;
+      [523, 659, 784, 1047].forEach((f, i) => tone(f, { at: 0.3 + i * 0.1, dur: i === 3 ? 0.4 : 0.12, type: 'square', gain: 0.09 }));
+    },
+
     /** Révélation d'un thème. */
     reveal() {
       if (!ready()) return;

@@ -16,6 +16,9 @@ le **centre de la Terre**.
 - Fin de partie : position parmi les joueurs du jour, carnet de forage, nombre de joueurs ayant
   donné la même réponse et, pour chaque thème, toutes les réponses classées par rareté.
 - Bruitages synthétisés (sans fichier son), taille du texte réglable, mode daltonien.
+- Badges (séries de jours, profondeur, pépites, exploits, premières places des podiums, jours
+  particuliers comme Halloween, la Sainte-Barbe ou le passage à la nouvelle année) qui débloquent
+  des carrosseries et des forets pour la foreuse, choisis dans l'atelier (`src/badges.js`).
 - 75 thèmes (culture générale, sciences, cinéma, musique, littérature, Belgique…), près de
   20 000 réponses, avec une difficulté estimée pour un public belge.
 
@@ -149,6 +152,8 @@ Le site n'est pas référencé par les moteurs de recherche, et il faut se conne
 | `src/auth.js` | Mots de passe (scrypt), codes de récupération, limitation des tentatives |
 | `public/pixel.js` | Rendu pixel art de la coupe de terrain, de son décor et de la foreuse |
 | `public/sound.js` | Bruitages (Web Audio) |
+| `public/icons.js` | Icônes des badges |
+| `src/badges.js` | Badges, calendrier des jours particuliers, apparences débloquées |
 | `public/app.js` | Interface du jeu |
 
 Polices : *Press Start 2P* et *VT323* (licence SIL OFL, fichiers dans `public/fonts/`).
