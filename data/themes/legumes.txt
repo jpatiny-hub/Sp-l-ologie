@@ -1,5 +1,5 @@
 titre: Un légume
-1: Carotte; Tomate; Pomme de terre = Patate; Salade = Laitue; Haricot = Haricot vert; Poireau; Courgette; Oignon; Chou-fleur; Brocoli
+1: Carotte; Tomate; Pomme de terre = Patate; Salade = Laitue; Haricot; Haricot vert; Poireau; Courgette; Oignon; Chou-fleur; Brocoli
 2: Chicon = Endive = Witloof; Épinard; Concombre; Poivron; Aubergine; Petit pois = Pois; Chou de Bruxelles; Céleri; Navet; Radis; Betterave; Chou; Asperge; Champignon; Ail; Potiron; Maïs; Artichaut; Fenouil
 3: Potimarron; Butternut; Panais; Topinambour; Rutabaga; Chou rouge; Chou frisé = Chou kale = Kale; Céleri-rave; Échalote; Cornichon; Mâche; Roquette; Cresson; Blette = Bette = Poirée; Salsifis; Courge; Patate douce; Fève; Pois chiche; Lentille; Haricot blanc; Haricot rouge; Chou-rave; Pak choï = Bok choy; Chou chinois; Scarole; Frisée; Radicchio = Trévise; Chicorée; Pourpier; Oseille; Rhubarbe; Gingembre; Piment
 4: Crosne; Cerfeuil tubéreux; Persil tubéreux; Scorsonère; Oca du Pérou = Oca; Igname; Manioc; Taro; Christophine = Chayote = Chouchou; Gombo; Pâtisson; Romanesco = Chou romanesco; Edamame; Mange-tout; Pois gourmand; Haricot coco; Flageolet; Cardon; Tétragone; Arroche; Pissenlit; Ortie; Jet de houblon = Jets de houblon; Asperge sauvage; Salicorne; Christe-marine; Raifort; Wasabi; Daikon; Radis noir

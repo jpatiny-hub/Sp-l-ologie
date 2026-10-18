@@ -1,5 +1,5 @@
 titre: Un pays d'Europe
-1: France; Allemagne; Espagne; Italie; Pays-Bas = Hollande; Belgique; Luxembourg; Portugal; Royaume-Uni = Angleterre = Grande-Bretagne; Suisse
+1: France; Allemagne; Espagne; Italie; Pays-Bas = Hollande; Belgique; Luxembourg; Portugal; Royaume-Uni = Grande-Bretagne; Angleterre; Suisse
 2: Autriche; Grèce; Pologne; Suède; Norvège; Danemark; Irlande; Finlande; Russie; Ukraine; Croatie; Roumanie
 3: Hongrie; Tchéquie = République tchèque; Bulgarie; Serbie; Slovaquie; Slovénie; Islande; Turquie; Albanie; Bosnie-Herzégovine = Bosnie; Monaco; Malte; Chypre; Écosse; Pays de Galles; Lituanie; Lettonie; Estonie; Biélorussie = Bélarus
 4: Moldavie; Monténégro; Macédoine du Nord = Macédoine; Kosovo; Andorre; Saint-Marin; Liechtenstein; Vatican = Cité du Vatican; Irlande du Nord; Géorgie; Arménie; Azerbaïdjan
