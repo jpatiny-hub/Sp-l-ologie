@@ -27,6 +27,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Debug secrets
+        shell: bash
+        env:
+          CREDS: ${{ secrets.OPNSENSE_CREDENTIALS }}
+          ENDPOINT: ${{ secrets.OPNSENSE_ENDPOINT }}
+          RULE_ID: ${{ secrets.OPNSENSE_RULE_ID }}
+        run: |
+          for n in CREDS ENDPOINT RULE_ID; do
+            v="${!n}"
+            echo "$n len=${#v} tail=$(printf '%s' "${v: -3}" | od -c | head -1)"
+          done
+
       - name: Open SSH port
         uses: ./.github/actions/firewall
         with:
