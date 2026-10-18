@@ -1,4 +1,5 @@
 titre: Une maladie causée par un virus (humaine, animale ou végétale)
+actif: non
 1: Grippe; Covid = Covid-19 = Coronavirus; Rougeole; Varicelle; Sida = VIH; Rhume; Herpès
 2: Hépatite A; Hépatite B; Hépatite C; Rage; Oreillons; Rubéole; Zona; Ebola; Dengue; Fièvre jaune; Zika; Chikungunya; Poliomyélite = Polio; Variole; Mononucléose; Verrue; Gastro-entérite à rotavirus = Rotavirus; Bronchiolite; Mpox = Variole du singe; SRAS
 3: MERS; Fièvre de Marburg = Marburg; Fièvre de Lassa = Lassa; Encéphalite à tiques; Fièvre du Nil occidental = West Nile; Hantavirus = Néphropathie épidémique; Roséole = Exanthème subit; Cinquième maladie = Mégalérythème épidémique; Syndrome pied-main-bouche = Pied-main-bouche; Molluscum contagiosum; Hépatite D; Hépatite E; Cytomégalovirus = CMV; Grippe aviaire; Grippe espagnole; Bouton de fièvre = Herpès labial; Myxomatose; Fièvre aphteuse; Peste porcine africaine; Maladie de Carré; Encéphalite japonaise; Infection à papillomavirus = Papillomavirus = HPV; Gastro-entérite à norovirus = Norovirus; Grippe porcine = Grippe A H1N1 = H1N1

@@ -1,4 +1,5 @@
 titre: Un mammifère
+actif: non
 1: Chien; Chat; Lion; Éléphant; Vache; Cheval; Tigre; Singe; Girafe; Ours; Lapin; Souris
 2: Cochon = Porc; Mouton; Chèvre; Loup; Renard; Zèbre; Hippopotame; Rhinocéros; Kangourou; Dauphin; Baleine; Gorille; Chimpanzé; Écureuil; Hérisson; Panda; Koala; Cerf; Sanglier; Âne; Rat; Chauve-souris; Léopard; Guépard; Hamster; Cochon d'Inde = Cobaye; Biche; Taureau
 3: Blaireau; Castor; Loutre; Phoque; Morse; Otarie; Chameau; Dromadaire; Lama; Alpaga; Bison; Élan; Renne = Caribou; Chevreuil; Lynx; Jaguar; Puma = Couguar; Panthère; Hyène; Suricate; Orang-outan; Babouin; Lémurien; Paresseux; Tatou; Fourmilier; Ornithorynque; Taupe; Musaraigne; Belette; Fouine; Putois; Furet; Hermine; Martre; Marmotte; Chinchilla; Gerbille; Lièvre; Orque; Narval; Lamantin; Daim; Mouflon; Bouquetin; Chamois; Yack = Yak; Buffle; Gnou; Gazelle; Antilope; Okapi; Raton laveur; Mangouste; Wombat; Opossum; Porc-épic; Ours polaire; Mulot; Loir; Campagnol; Mammouth

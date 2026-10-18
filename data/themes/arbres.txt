@@ -1,4 +1,5 @@
 titre: Un arbre
+actif: non
 1: Chêne; Sapin; Pommier; Bouleau; Palmier; Hêtre; Saule; Saule pleureur; Érable; Peuplier; Pin
 2: Platane; Tilleul; Marronnier; Châtaignier; Cerisier; Poirier; Noyer; Olivier; Frêne; Charme; Cèdre; Épicéa; Baobab; Séquoia; Eucalyptus; Acacia = Robinier; Orme; If; Mélèze; Magnolia; Prunier; Figuier; Oranger; Citronnier; Cocotier; Noisetier
 3: Aulne; Sorbier; Houx; Aubépine; Sureau; Cornouiller; Fusain; Merisier; Pêcher; Abricotier; Amandier; Cognassier; Néflier; Mûrier; Ginkgo; Cyprès; Thuya; Genévrier; Pin parasol; Pin sylvestre; Douglas; Araucaria = Désespoir des singes; Cèdre du Liban; Saule marsault; Peuplier tremble = Tremble; Catalpa; Paulownia; Tulipier; Févier; Arbre de Judée; Mimosa; Laurier; Arbousier; Chêne-liège; Chêne vert; Pistachier; Caroubier; Dattier; Bananier; Manguier; Avocatier; Cacaoyer; Caféier; Hévéa; Teck; Ébène = Ébénier; Acajou; Bambou; Banian; Flamboyant; Jacaranda; Kapokier = Fromager; Arbre à pain; Arbre du voyageur

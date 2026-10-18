@@ -1,4 +1,5 @@
 titre: Une fleur
+actif: non
 1: Rose; Tulipe; Marguerite; Tournesol; Coquelicot; Orchidée; Lys; Pissenlit; Jonquille = Narcisse; Lavande
 2: Violette; Pâquerette; Muguet; Jacinthe; Œillet; Hortensia; Pivoine; Géranium; Iris; Glaïeul; Chrysanthème; Bleuet; Myosotis; Lilas; Jasmin; Mimosa; Camélia; Magnolia; Dahlia; Bégonia; Pétunia; Pensée; Crocus; Perce-neige; Primevère; Renoncule = Bouton d'or; Gerbera; Lotus; Nénuphar
 3: Anémone; Azalée; Rhododendron; Bougainvillier = Bougainvillée; Fuchsia; Capucine; Souci; Œillet d'Inde; Zinnia; Cosmos; Aster; Lupin; Digitale; Delphinium = Pied-d'alouette; Gueule-de-loup = Muflier; Rose trémière; Pois de senteur; Clématite; Glycine; Chèvrefeuille; Gardénia; Freesia; Amaryllis; Anthurium; Hibiscus; Frangipanier; Oiseau de paradis = Strelitzia; Protea; Edelweiss; Gentiane; Bruyère; Ajonc; Genêt; Trèfle; Chardon; Ancolie; Campanule; Cyclamen; Hellébore = Rose de Noël; Agapanthe; Allium; Callas = Arum; Gypsophile; Statice; Immortelle; Lisianthus; Ficoïde; Pourpier; Verveine; Sauge; Belle-de-nuit; Volubilis = Ipomée; Passiflore = Fleur de la passion; Cerisier du Japon = Sakura; Fleur d'oranger; Coucou

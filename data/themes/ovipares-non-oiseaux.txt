@@ -1,4 +1,5 @@
 titre: Un animal qui pond des œufs mais n'est pas un oiseau
+actif: non
 # Les noms de groupes (Serpent, Poisson…) sont acceptés quand la plupart de leurs représentants pondent.
 1: Ornithorynque; Tortue; Crocodile; Serpent; Grenouille; Poisson; Lézard; Araignée; Fourmi; Abeille; Papillon; Saumon
 2: Échidné; Alligator; Caïman; Python; Iguane; Gecko; Caméléon; Crapaud; Triton; Escargot; Limace; Pieuvre = Poulpe; Calmar; Seiche; Moustique; Mouche; Coccinelle; Guêpe; Termite; Criquet = Sauterelle; Cafard = Blatte; Truite; Carpe; Thon; Morue = Cabillaud; Hareng; Esturgeon; Oursin; Étoile de mer; Homard; Crabe; Crevette; Écrevisse; Moule; Huître; Dragon de Komodo; Dinosaure

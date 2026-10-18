@@ -1,4 +1,5 @@
 titre: Un mammifère qui vit dans l'eau ou en dépend (marin ou d'eau douce)
+actif: non
 1: Baleine; Dauphin; Orque = Épaulard; Phoque; Otarie; Morse; Loutre; Castor; Cachalot
 2: Lamantin; Dugong; Narval; Béluga; Baleine bleue = Rorqual bleu; Baleine à bosse = Mégaptère; Marsouin; Ornithorynque; Hippopotame; Ragondin; Rat musqué; Vison; Éléphant de mer; Lion de mer; Loutre de mer; Ours polaire = Ours blanc; Rorqual; Grand dauphin; Phoque gris; Phoque veau-marin = Veau marin
 3: Léopard de mer; Phoque moine; Baleine franche; Baleine grise; Baleine boréale; Rorqual commun; Petit rorqual = Baleine de Minke; Globicéphale; Dauphin de l'Amazone = Boto = Dauphin rose; Dauphin du Gange; Vaquita = Marsouin du Pacifique; Baleine à bec de Cuvier; Hyperoodon; Cachalot nain; Dauphin de Risso; Dauphin commun; Dauphin tacheté; Capybara; Desman; Musaraigne aquatique; Campagnol amphibie; Otarie à fourrure; Phoque du Groenland; Phoque annelé; Phoque barbu; Phoque à capuchon; Phoque de Weddell; Phoque crabier; Loutre géante; Vison d'Europe; Rorqual boréal; Rorqual de Bryde; Lagénorhynque; Dauphin de Commerson; Fausse orque; Dauphin bleu et blanc
