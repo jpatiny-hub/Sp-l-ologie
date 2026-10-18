@@ -1,6 +1,7 @@
 'use strict';
 
 const http = require('node:http');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const config = require('./src/config');
@@ -35,6 +36,23 @@ const SECURITY_HEADERS = {
     "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
 };
 
+/**
+ * Empreinte de l'interface (fichiers de public/) : change à chaque mise à jour de la page,
+ * pour que les navigateurs ouverts proposent de recharger.
+ */
+function interfaceVersion(dir) {
+  const hash = crypto.createHash('sha256');
+  const walk = (d) => {
+    for (const entry of fs.readdirSync(d, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+      const full = path.join(d, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else hash.update(entry.name).update(fs.readFileSync(full));
+    }
+  };
+  walk(dir);
+  return hash.digest('hex').slice(0, 12);
+}
+
 function createApp({
   db,
   themes,
@@ -42,6 +60,7 @@ function createApp({
   secureCookies = false,
   publicDir = config.PUBLIC_DIR,
   clientIpHeader = config.CLIENT_IP_HEADER,
+  version = interfaceVersion(publicDir),
 }) {
   const game = new GameService(db, themes, now);
   game.badges.backfill();
@@ -49,7 +68,7 @@ function createApp({
   const signupLimiter = new auth.RateLimiter(10, 60 * 60 * 1000);
 
   function send(res, status, body, headers = {}) {
-    res.writeHead(status, { ...SECURITY_HEADERS, 'Cache-Control': 'no-store', ...headers });
+    res.writeHead(status, { ...SECURITY_HEADERS, 'Cache-Control': 'no-store', 'X-App-Version': version, ...headers });
     res.end(body);
   }
 
@@ -375,9 +394,26 @@ function main() {
   const db = openDb(path.join(config.DATA_DIR, 'speleologie.sqlite'));
   const handler = createApp({ db, themes, secureCookies: process.env.NODE_ENV === 'production' });
   // HOST=127.0.0.1 : seul le proxy de la machine peut joindre le jeu.
-  http.createServer(handler).listen(config.PORT, config.HOST, () => {
+  const server = http.createServer(handler).listen(config.PORT, config.HOST, () => {
     console.log(`${config.GAME_NAME} : ${themes.size} thèmes chargés, écoute sur ${config.HOST || '*'}:${config.PORT}`);
   });
+
+  // Arrêt propre (redémarrage lors d'une mise à jour) : plus de nouvelles connexions, mais les
+  // requêtes en cours (une réponse en train d'être notée…) vont jusqu'au bout avant l'arrêt.
+  let stopping = false;
+  const stop = (signal) => {
+    if (stopping) return;
+    stopping = true;
+    console.log(`${signal} reçu : arrêt après les requêtes en cours.`);
+    server.close(() => {
+      db.close();
+      process.exit(0);
+    });
+    server.closeIdleConnections();
+    setTimeout(() => process.exit(0), 5000).unref();
+  };
+  process.on('SIGTERM', () => stop('SIGTERM'));
+  process.on('SIGINT', () => stop('SIGINT'));
 }
 
 if (require.main === module) main();

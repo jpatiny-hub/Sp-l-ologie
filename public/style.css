@@ -484,3 +484,34 @@ h3 .small { font-family: 'VT323', monospace; font-size: calc(18px * var(--fs)); 
   .skin-preview { position: static; }
   .workshop-choices { width: 100%; }
 }
+
+/* ---------- Retour à l'accueil, nouvelle version, messages ---------- */
+.back-btn { width: auto; align-self: flex-start; margin: 4px; padding: 10px 14px; }
+.update-banner {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 16px;
+  background: #3a2c22;
+  color: var(--ink);
+  box-shadow: 0 4px 0 0 var(--line);
+}
+.update-banner .btn { margin: 0; }
+.notice {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 30;
+  max-width: calc(100vw - 32px);
+  margin: 0;
+  padding: 10px 14px;
+  background: #120d0a;
+  color: var(--ink);
+  box-shadow: 0 0 0 4px var(--danger);
+}

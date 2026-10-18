@@ -54,6 +54,12 @@
     </form>
   </dialog>
 
+  <div class="update-banner" id="update-banner" role="status" hidden>
+    <span>Une nouvelle version du jeu est disponible.</span>
+    <button class="btn small-btn" id="btn-reload" type="button">Recharger</button>
+  </div>
+  <p class="notice" id="notice" role="alert" hidden></p>
+
   <main class="layout">
     <section class="stage" id="stage">
       <div class="stage-frame">
@@ -233,6 +239,7 @@
 
       <!-- Carnet : badges et atelier -->
       <div class="view" id="view-profile" hidden>
+        <button class="btn ghost back-btn" id="btn-profile-home" type="button">◀ Retour à l'accueil</button>
         <div class="card">
           <h2>Ton carnet de spéléo</h2>
           <dl class="stats" id="profile-stats"></dl>
@@ -254,11 +261,11 @@
           <h2>Badges</h2>
           <div id="badge-sections"></div>
         </div>
-        <button class="btn ghost" id="btn-profile-home" type="button">Retour à l'accueil</button>
       </div>
 
       <!-- Podium -->
       <div class="view" id="view-podium" hidden>
+        <button class="btn ghost back-btn" id="btn-podium-home" type="button">◀ Retour à l'accueil</button>
         <div class="card">
           <div class="tabs" role="tablist" id="period-tabs">
             <button class="tab" data-period="day" type="button" role="tab">Jour</button>
@@ -274,7 +281,6 @@
           <ol class="ranking" id="ranking"></ol>
           <p class="muted" id="my-rank"></p>
         </div>
-        <button class="btn ghost" id="btn-podium-home" type="button">Retour à l'accueil</button>
       </div>
     </section>
   </main>

@@ -117,6 +117,11 @@
   window.addEventListener('resize', fitCanvas);
 
   // ---------- Utilitaires ----------
+  // Serveur momentanément injoignable (redémarrage lors d'une mise à jour) : on réessaie en
+  // silence pendant une dizaine de secondes avant d'afficher une erreur.
+  const RETRY_DELAYS = [500, 1000, 1500, 2000, 2500, 3000];
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
   async function api(path, body) {
     const opts = { credentials: 'same-origin', headers: {} };
     if (body !== undefined) {
@@ -124,7 +129,24 @@
       opts.headers['Content-Type'] = 'application/json';
       opts.body = JSON.stringify(body);
     }
-    const res = await fetch(path, opts);
+    let res = null;
+    for (let attempt = 0; ; attempt++) {
+      try {
+        res = await fetch(path, opts);
+        // 502 à 504 : le proxy répond mais le jeu redémarre.
+        if (res.status < 502 || res.status > 504) break;
+      } catch {
+        res = null;
+      }
+      if (attempt >= RETRY_DELAYS.length) break;
+      await sleep(RETRY_DELAYS[attempt]);
+    }
+    if (!res || (res.status >= 502 && res.status <= 504)) {
+      const err = new Error('Le serveur ne répond pas pour le moment. Réessaie dans un instant.');
+      err.status = 0;
+      throw err;
+    }
+    noteVersion(res.headers.get('X-App-Version'));
     let data = null;
     try {
       data = await res.json();
@@ -132,17 +154,57 @@
       /* réponse vide */
     }
     if (!res.ok) {
-      const err = new Error((data && data.error) || 'Erreur réseau, réessaie.');
+      const err = new Error((data && data.error) || 'Erreur inattendue, réessaie.');
       err.status = res.status;
       throw err;
     }
     return data;
   }
 
+  // Message passager (remplace les fenêtres d'alerte, qui bloquent la page).
+  let noticeTimer = null;
+  function showNotice(text) {
+    const box = $('notice');
+    box.textContent = text;
+    box.hidden = false;
+    clearTimeout(noticeTimer);
+    noticeTimer = setTimeout(() => (box.hidden = true), 6000);
+  }
+
+  // ---------- Nouvelle version ----------
+  let loadedVersion = null;
+  let newVersion = false;
+
+  function noteVersion(version) {
+    if (!version) return;
+    if (!loadedVersion) loadedVersion = version;
+    else if (version !== loadedVersion && !newVersion) {
+      newVersion = true;
+      updateBanner();
+    }
+  }
+
+  /** Le bandeau n'apparaît jamais pendant une manche : seulement entre deux thèmes ou hors partie. */
+  function updateBanner() {
+    const playing = !$('view-game').hidden && !$('pane-prompt').hidden;
+    $('update-banner').hidden = !newVersion || playing;
+  }
+  $('btn-reload').addEventListener('click', () => location.reload());
+
+  // Vérification régulière, même sans action du joueur.
+  setInterval(() => {
+    if (document.visibilityState === 'visible') {
+      fetch('/api/health', { credentials: 'same-origin' })
+        .then((res) => noteVersion(res.headers.get('X-App-Version')))
+        .catch(() => {});
+    }
+  }, 5 * 60 * 1000);
+
   function show(view) {
     document.querySelectorAll('.view').forEach((v) => (v.hidden = v.id !== `view-${view}`));
     $('stage').hidden = (view === 'podium' || view === 'profile') && window.innerWidth < 860;
     if (view === 'profile') startPreview();
+    updateBanner();
     $('who').hidden = !app.me;
     $('settings-account').hidden = !app.me;
     fitCanvas();
@@ -370,7 +432,7 @@
       const state = await api('/api/game/start', { mode });
       enterGame(state);
     } catch (err) {
-      alert(err.message);
+      showNotice(err.message);
     }
   }
 
@@ -408,7 +470,7 @@
       Sound.reveal();
       renderGame();
     } catch (err) {
-      alert(err.message);
+      showNotice(err.message);
     } finally {
       app.busy = false;
     }
@@ -417,6 +479,7 @@
   function showPrompt(round, remainingMs) {
     $('pane-ready').hidden = true;
     $('pane-prompt').hidden = false;
+    updateBanner();
     $('prompt-index').textContent = `Thème ${round.slot + 1} sur ${ROUNDS}`;
     $('prompt-title').textContent = round.title;
     $('answer-error').textContent = '';
@@ -492,9 +555,30 @@
         roundFinished(res);
       }
     } catch (err) {
+      // La réponse a pu être notée juste avant une coupure : on reprend l'état du serveur.
+      if (err.status === 409 && (await resync())) return;
       $('answer-error').textContent = err.message;
     } finally {
       app.busy = false;
+    }
+  }
+
+  /** Recharge la partie depuis le serveur après un imprévu. Renvoie true si l'affichage a changé. */
+  async function resync() {
+    try {
+      const state = await api(`/api/game/${app.game.id}`);
+      const before = app.game.rounds.filter((r) => r.status === 'done').length;
+      const after = state.rounds.filter((r) => r.status === 'done').length;
+      app.game = state;
+      if (after === before) return false;
+      stopTimer();
+      clearPending();
+      scene.setLayers(layersOf(state), true);
+      if (state.finished) showResults(state);
+      else renderGame();
+      return true;
+    } catch {
+      return false;
     }
   }
 
@@ -530,10 +614,11 @@
       // La manche a pu être clôturée côté serveur entre-temps : on resynchronise.
       try {
         app.game = await api(`/api/game/${app.game.id}`);
+        scene.setLayers(layersOf(app.game), false);
         if (app.game.finished) showResults(app.game);
         else renderGame();
       } catch {
-        alert(err.message);
+        showNotice(err.message);
       }
     } finally {
       app.busy = false;
@@ -547,6 +632,7 @@
     $('pane-prompt').hidden = true;
     $('pane-ready').hidden = true;
     $('pane-feedback').hidden = false;
+    updateBanner();
     $('game-score').textContent = pts(state.score);
 
     $('feedback-theme').textContent = round.title;
@@ -882,7 +968,7 @@
         if (app.me) app.me.unseenBadges = 0;
       }
     } catch (err) {
-      alert(err.message);
+      showNotice(err.message);
     }
   }
 
@@ -998,7 +1084,7 @@
       renderPodium(board);
       show('podium');
     } catch (err) {
-      alert(err.message);
+      showNotice(err.message);
     }
   }
 
