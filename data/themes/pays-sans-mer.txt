@@ -1,0 +1,6 @@
+titre: Un pays sans accès à la mer
+# Pays enclavés reconnus par l'ONU (la mer Caspienne étant un lac).
+1: Suisse; Luxembourg; Autriche; Tchéquie = République tchèque; Hongrie; Bolivie
+2: Slovaquie; Serbie; Liechtenstein; Andorre; Saint-Marin; Vatican; Paraguay; Mongolie; Népal; Afghanistan; Mali; Niger; Tchad; Biélorussie = Bélarus; Moldavie; Macédoine du Nord = Macédoine; Kazakhstan; Rwanda; Ouganda; Éthiopie; Zambie; Zimbabwe; Botswana
+3: Kosovo; Arménie; Azerbaïdjan; Ouzbékistan; Bhoutan; Laos; Burkina Faso; Centrafrique = République centrafricaine; Soudan du Sud; Lesotho
+4: Kirghizistan; Tadjikistan; Turkménistan; Burundi; Malawi; Eswatini = Swaziland

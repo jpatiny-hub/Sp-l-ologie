@@ -1,0 +1,7 @@
+titre: Un élément chimique nommé d'après un lieu, une personne, un astre ou une figure mythologique
+# Lieux (Polonium, Ytterbium…), scientifiques (Curium…), astres (Uranium, Hélium = Soleil, Sélénium = Lune, Tellure = Terre, Cérium = Cérès, Palladium = Pallas), mythologie et folklore (Titane, Thorium, Cobalt = kobold…).
+1: Polonium; Francium; Einsteinium; Curium; Germanium; Américium
+2: Uranium; Plutonium; Neptunium; Europium; Gallium; Mendélévium; Nobélium; Hélium; Californium; Sélénium
+3: Scandium; Titane; Thorium; Cérium; Palladium; Tellure; Magnésium; Ruthénium; Berkélium; Fermium; Rutherfordium; Bohrium; Copernicium; Prométhium; Lutécium = Lutétium; Strontium; Cuivre
+4: Yttrium; Ytterbium; Terbium; Erbium; Holmium; Hafnium; Thulium; Rhénium; Gadolinium; Samarium; Seaborgium; Meitnérium; Lawrencium; Roentgenium; Darmstadtium; Hassium; Dubnium; Vanadium; Niobium; Tantale; Moscovium; Tennessine; Nihonium; Livermorium; Flérovium; Oganesson
+5: Cobalt; Nickel
