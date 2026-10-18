@@ -19,8 +19,9 @@ le **centre de la Terre**.
 - Badges (séries de jours, profondeur, pépites, exploits, premières places des podiums, jours
   particuliers comme Halloween, la Sainte-Barbe ou le passage à la nouvelle année) qui débloquent
   des carrosseries et des forets pour la foreuse, choisis dans l'atelier (`src/badges.js`).
-- 75 thèmes (culture générale, sciences, cinéma, musique, littérature, Belgique…), près de
-  20 000 réponses, avec une difficulté estimée pour un public belge.
+- 123 thèmes, des plus larges (« Un fromage ») aux plus précis (« Un animal qui pond des œufs mais
+  n'est pas un oiseau ») : culture générale, sciences, cinéma, musique, littérature, sport…
+  Plus de 26 000 réponses, avec une difficulté estimée pour un public belge.
 
 Aucune dépendance externe : Node.js ≥ 22.13 suffit (base SQLite intégrée à Node).
 

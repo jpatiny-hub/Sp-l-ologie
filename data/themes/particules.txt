@@ -1,0 +1,6 @@
+titre: Une particule (élémentaire, composite, hypothétique ou quasi-particule)
+1: Électron; Proton; Neutron; Photon; Quark; Neutrino; Boson de Higgs = Higgs
+2: Positon = Positron; Muon; Gluon; Boson W; Boson Z; Graviton; Particule alpha; Antiproton; Tau = Tauon; Lepton; Hadron; Fermion; Boson; Pion = Méson pi; Méson; Baryon; Quark top; Quark up; Quark down; Antiquark
+3: Quark strange = Quark étrange; Quark charm = Quark charmé; Quark bottom = Quark beauté; Kaon = Méson K; Antineutron; Deutéron = Deuton; Tachyon; Neutrino électronique; Neutrino muonique; Neutrino tauique; Particule bêta; Hypéron; Baryon lambda = Lambda; Baryon sigma = Sigma; Baryon xi = Xi; Baryon oméga = Oméga; Axion; WIMP; Monopole magnétique; Antimuon; Triton; Phonon; Paire de Cooper
+4: J/psi = Méson J/psi; Upsilon; Méson êta = Êta; Méson rho; Méson D; Méson B; Baryon delta = Delta; Tétraquark; Pentaquark; Boule de glu = Glueball; Neutralino; Gravitino; Hélion; Exciton; Polariton; Magnon; Plasmon; Polaron; Roton; Anyon; Fermion de Majorana; Positronium; Neutrino stérile
+5: Squark; Sélectron; Photino; Wino; Higgsino; Inflaton; Dilaton; Leptoquark; Boson de Goldstone; Skyrmion; Méson phi; Charmonium; Bottomonium; Muonium; Trou (quasi-particule) = Trou; Holon; Spinon; Orbiton; Fluxon

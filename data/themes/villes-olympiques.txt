@@ -1,0 +1,5 @@
+titre: Une ville ayant accueilli les Jeux olympiques (été ou hiver)
+1: Paris; Londres; Athènes; Pékin = Beijing; Los Angeles; Rio de Janeiro = Rio; Barcelone; Tokyo
+2: Anvers; Sydney; Atlanta; Moscou; Montréal; Munich; Berlin; Rome; Séoul; Mexico; Amsterdam; Stockholm; Grenoble; Albertville; Sotchi; Vancouver; Turin; Salt Lake City
+3: Helsinki; Melbourne; Saint-Louis; Chamonix; Lillehammer; Nagano; Sarajevo; Calgary; Innsbruck; Lake Placid; Sapporo; Pyeongchang; Cortina d'Ampezzo = Cortina; Milan; Oslo; Saint-Moritz
+4: Garmisch-Partenkirchen; Squaw Valley = Palisades Tahoe
