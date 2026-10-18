@@ -261,6 +261,8 @@ test('point de contrôle pour l’hébergeur', async () => {
   try {
     const res = await fetch(`${app.base}/api/health`);
     assert.equal(res.status, 200);
+    // Empreinte de l'interface, pour que les pages ouvertes repèrent une mise à jour.
+    assert.match(res.headers.get('x-app-version'), /^[0-9a-f]{12}$/);
     assert.deepEqual(await res.json(), { ok: true });
   } finally {
     await app.close();
