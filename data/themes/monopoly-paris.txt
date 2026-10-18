@@ -1,0 +1,6 @@
+titre: Une case du Monopoly (édition française classique, rues de Paris)
+# Les 40 cases du plateau classique : 22 rues, 4 gares, 2 compagnies, 2 taxes et les cases spéciales.
+1: Rue de la Paix; Avenue des Champs-Élysées = Champs-Élysées; Gare Montparnasse = Montparnasse; Gare de Lyon; Gare du Nord; Gare Saint-Lazare = Saint-Lazare; Prison = Simple visite; Départ = Case départ; Allez en prison = Aller en prison; Parc gratuit = Parking gratuit; Chance; Caisse de communauté
+2: Boulevard de Belleville = Belleville; Rue Lecourbe = Lecourbe; Avenue Foch = Foch; Place Pigalle = Pigalle; Boulevard Saint-Michel = Saint-Michel; Avenue Mozart = Mozart; Rue de Vaugirard = Vaugirard; Impôts sur le revenu = Impôt sur le revenu; Taxe de luxe; Boulevard des Capucines = Capucines; Faubourg Saint-Honoré = Rue du Faubourg Saint-Honoré
+3: Boulevard de la Villette = Villette; Avenue de Neuilly = Neuilly; Rue de Paradis = Paradis; Avenue Matignon = Matignon; Boulevard Malesherbes = Malesherbes; Place de la Bourse = Bourse; Rue La Fayette = Rue Lafayette = La Fayette; Avenue de la République = République
+4: Rue de Courcelles = Courcelles; Avenue Henri-Martin = Henri-Martin; Avenue de Breteuil = Breteuil; Compagnie de distribution d'électricité = Compagnie d'électricité = Électricité; Compagnie de distribution des eaux = Compagnie des eaux = Eaux

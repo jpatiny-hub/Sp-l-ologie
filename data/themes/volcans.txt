@@ -1,4 +1,5 @@
 titre: Un volcan (sur Terre ou ailleurs)
+actif: non
 1: Etna; Vésuve; Stromboli; Fuji = Mont Fuji; Kilimandjaro; Piton de la Fournaise; Krakatoa = Krakatau
 2: Mont Saint Helens = Saint Helens; Eyjafjallajökull; Pinatubo; Mauna Loa; Kilauea; Popocatépetl; Teide; Hekla; Erebus = Mont Erebus; Nyiragongo; Montagne Pelée; Puy de Dôme; Tambora; Yellowstone; Santorin; Olympus Mons; Mauna Kea; Chimborazo; Cotopaxi
 3: Vulcano; Soufrière; Mont Rainier; Elbrouz; Ararat = Mont Ararat; Damavand; Ojos del Salado; Paricutín; Merapi; Bromo; Agung; Sakurajima; Ruapehu; Taranaki = Mont Egmont; Tongariro; Villarrica; Laki; Grímsvötn; Katla; Surtsey; Fagradalsfjall; Mont Cameroun; Ol Doinyo Lengai; Erta Ale; Piton des Neiges; Karthala; Hunga Tonga; Champs Phlégréens = Campi Flegrei; Mayon; Taal; Mont Hood; Mont Shasta; Puy de Pariou; Nyamuragira; Cumbre Vieja

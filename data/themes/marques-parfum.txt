@@ -1,4 +1,5 @@
 titre: Une marque ou une maison de parfum
+actif: non
 1: Chanel; Dior = Christian Dior; Guerlain; Yves Saint Laurent = YSL; Hermès; Lancôme; Givenchy; Paco Rabanne = Rabanne; Jean Paul Gaultier = Gaultier; Calvin Klein
 2: Hugo Boss = Boss; Armani = Giorgio Armani; Gucci; Prada; Versace; Dolce & Gabbana = D&G; Mugler = Thierry Mugler; Kenzo; Cacharel; Nina Ricci; Lolita Lempicka; Azzaro; Davidoff; Lacoste; Burberry; Chloé; Carolina Herrera; Valentino; Viktor & Rolf; Tom Ford; Bvlgari = Bulgari; Cartier; Issey Miyake; Estée Lauder; Ralph Lauren; Hollister; Yves Rocher; L'Occitane
 3: Marc Jacobs; Jo Malone; Diptyque; Le Labo; Byredo; Creed; Serge Lutens; L'Artisan Parfumeur; Annick Goutal = Goutal; Frédéric Malle = Éditions de parfums Frédéric Malle; Maison Francis Kurkdjian = Kurkdjian; Acqua di Parma; Van Cleef & Arpels; Montblanc; Elizabeth Arden; Lalique; Rochas; Balenciaga; Narciso Rodriguez; Tommy Hilfiger; DKNY = Donna Karan; Moschino; Abercrombie & Fitch; Fragonard; Molinard; Clinique; Jil Sander; Joop!; Boucheron; Chopard; Lanvin; Jean Patou = Patou; Caron; Zadig & Voltaire

@@ -1,0 +1,8 @@
+titre: Une sonde spatiale ayant survolé une autre planète que la Terre, tourné autour ou s'y étant posée
+# De Mercure à Neptune, jusqu'à fin 2025, échecs compris dès lors que l'engin a atteint les abords de la planète (Mars Climate Orbiter, Beagle 2…).
+# Atterrisseurs et rovers comptent à part. La Lune, Titan et les astéroïdes ne sont pas des planètes, mais les engins qui ont aussi croisé une planète en route comptent.
+1: Curiosity; Perseverance = Mars 2020; Voyager 1; Voyager 2; Cassini = Cassini-Huygens; Juno; Opportunity; Spirit
+2: Viking 1; Viking 2; Galileo; New Horizons; Pioneer 10; Pioneer 11; Mars Express; Ingenuity; InSight; Mars Pathfinder = Pathfinder; Sojourner; Huygens; Venus Express; Messenger; BepiColombo = Bepi Colombo = Mio = MPO
+3: Mariner 2; Mariner 4; Mariner 9; Mariner 10; Magellan; Venera 7; Venera 9; Venera 13; Mars Reconnaissance Orbiter = MRO; Mars Global Surveyor = MGS; Mars Odyssey = 2001 Mars Odyssey; Phoenix; MAVEN; Mars Climate Orbiter; Beagle 2; Schiaparelli; ExoMars Trace Gas Orbiter = Trace Gas Orbiter = TGO; Tianwen-1; Zhurong; Mangalyaan = Mars Orbiter Mission; Hope = Al-Amal = Emirates Mars Mission; Akatsuki = Planet-C; Rosetta; Parker Solar Probe = Parker; Solar Orbiter; JUICE; Ulysses = Ulysse; Dawn; Europa Clipper; Hera; Mars 3
+4: Venera 1; Venera 2; Venera 3; Venera 4; Venera 5; Venera 6; Venera 8; Venera 10; Venera 11; Venera 12; Venera 14; Venera 15; Venera 16; Vega 1; Vega 2; Pioneer Venus 1 = Pioneer Venus Orbiter = Pioneer 12; Pioneer Venus 2 = Pioneer Venus Multiprobe = Pioneer 13; Mariner 5; Mariner 6; Mariner 7; Mars 2; Mars Polar Lander; Mars Observer; Nozomi = Planet-B; Phobos 2; MarCO = MarCO-A = MarCO-B
+5: Mars 1; Mars 4; Mars 5; Mars 6; Mars 7; Zond 1; Zond 2; Deep Space 2; IKAROS

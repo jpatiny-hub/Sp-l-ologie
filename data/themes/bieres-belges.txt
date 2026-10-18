@@ -1,4 +1,5 @@
 titre: Une bière belge
+actif: non
 # Marques, brasseries ou styles typiquement belges.
 1: Jupiler; Leffe; Chimay; Duvel; Stella Artois = Stella; Orval; Westmalle; Hoegaarden; Kwak = Pauwel Kwak; Chouffe = La Chouffe
 2: Grimbergen; Maredsous; Rochefort; Karmeliet = Tripel Karmeliet; Delirium = Delirium Tremens; Kriek; Affligem; Maes; Cara = Cara Pils; Westvleteren; Gueuze = Geuze; Brugse Zot; Mort Subite; Corsendonk; Piedboeuf; Vedett; Lindemans; Rodenbach; Saison Dupont; Saint-Feuillien; Floreffe; Val-Dieu; Barbar; Kasteel; Carolus = Gouden Carolus; Palm; Lambic = Lambiek

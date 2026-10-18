@@ -1,4 +1,5 @@
 titre: Une marque de voiture
+actif: non
 1: Renault; Peugeot; Volkswagen = VW; BMW; Mercedes = Mercedes-Benz; Audi; Citroën; Toyota; Ferrari; Fiat
 2: Opel; Ford; Tesla; Volvo; Porsche; Skoda; Seat; Kia; Hyundai; Nissan; Dacia; Mazda; Honda; Lamborghini; Mini; Jeep; Land Rover; Range Rover; Suzuki; Alfa Romeo; Maserati; Jaguar; Lexus; Mitsubishi; Smart; Bugatti; Aston Martin; Rolls-Royce; Bentley; Cupra
 3: Subaru; Chevrolet; Cadillac; Dodge; Chrysler; Lancia; DS; Saab; Lotus; McLaren; Alpine; MG; Polestar; BYD; Infiniti; Lynk & Co; Abarth; Daihatsu; Isuzu; SsangYong; Lada; Trabant; Pagani; Koenigsegg; Rover; Austin; Hummer; Buick; Lincoln; Pontiac; Genesis; Simca; Talbot; Matra; Facel Vega; Panhard; DeLorean; Morgan; Mahindra; Tata; Proton; Geely; Chery; Nio; Xpeng; Aiways; Rivian; Lucid; Fisker; Ora; Leapmotor

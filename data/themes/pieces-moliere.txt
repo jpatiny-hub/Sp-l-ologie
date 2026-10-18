@@ -1,0 +1,6 @@
+titre: Une pièce de Molière
+1: Le Malade imaginaire; L'Avare; Le Bourgeois gentilhomme; Tartuffe = Tartuffe ou l'Imposteur; Le Misanthrope; Les Fourberies de Scapin
+2: Dom Juan = Don Juan = Dom Juan ou le Festin de pierre; Les Femmes savantes; L'École des femmes; Le Médecin malgré lui; Les Précieuses ridicules; George Dandin = George Dandin ou le Mari confondu
+3: Amphitryon; L'École des maris; Le Médecin volant; Monsieur de Pourceaugnac; Le Mariage forcé; L'Amour médecin; Sganarelle ou le Cocu imaginaire = Sganarelle = Le Cocu imaginaire; La Critique de l'École des femmes; L'Impromptu de Versailles; Les Fâcheux; L'Étourdi = L'Étourdi ou les Contretemps; La Jalousie du Barbouillé
+4: Le Dépit amoureux; Dom Garcie de Navarre = Dom Garcie de Navarre ou le Prince jaloux; La Princesse d'Élide; Le Sicilien = Le Sicilien ou l'Amour peintre; La Comtesse d'Escarbagnas; Psyché; Les Amants magnifiques
+5: Mélicerte; Pastorale comique; Les Plaisirs de l'île enchantée

@@ -1,4 +1,5 @@
 titre: Une mission spatiale, une sonde, un télescope spatial ou une station spatiale
+actif: non
 1: Apollo; Spoutnik; Hubble; James Webb = JWST; ISS = Station spatiale internationale; Voyager; Curiosity; Rosetta
 2: Perseverance; Cassini = Cassini-Huygens; Mir; Philae; Artemis; Vostok; Soyouz; Pioneer; New Horizons; Juno; Galileo; Spirit; Opportunity; Challenger; Columbia; Skylab; Gemini; Mercury; Viking; Gaia; Kepler; Ingenuity; Discovery; Atlantis; Endeavour
 3: Sojourner = Mars Pathfinder; Mariner; Huygens; Planck; Herschel; TESS; Chandra; Spitzer; BepiColombo; Juice; Euclid; Saliout = Salyut; Tiangong; Chang'e; Chandrayaan; Hayabusa; Luna; Lunokhod; Venera; Mars Express; Venus Express; Giotto; Ulysses; SOHO; Parker Solar Probe; Solar Orbiter; DART; Hera; OSIRIS-REx; Dawn; InSight; Phoenix; Messenger; Magellan; Lucy; Proba; Envisat; Sentinel; Landsat; Hipparcos; Mangalyaan = Mars Orbiter Mission; Tianwen; Zhurong; Yutu; Smart-1; Bourane; Psyche; Deep Impact; Stardust; MAVEN; Mars Reconnaissance Orbiter = MRO; ExoMars = Trace Gas Orbiter; Corot

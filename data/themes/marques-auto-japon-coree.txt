@@ -1,0 +1,7 @@
+titre: Une marque automobile japonaise ou sud-coréenne (actuelle ou disparue)
+# Marques de voitures (et de véhicules utilitaires issus de ces groupes) du Japon et de Corée du Sud.
+1: Toyota; Honda; Nissan; Mazda; Hyundai; Kia; Suzuki; Mitsubishi; Subaru; Lexus
+2: Daihatsu; Isuzu; Infiniti; Datsun; Genesis; SsangYong = KG Mobility = KGM; Daewoo; Acura
+3: Scion; Mitsuoka; Hino; Samsung Motors = Renault Samsung = Renault Samsung Motors = Renault Korea; Prince = Prince Motor; Asia Motors
+4: Eunos; Autozam; Efini; Toyopet; Mitsubishi Fuso = Fuso; UD Trucks = Nissan Diesel; Afeela = Sony Honda Mobility
+5: Ohta; Hope = Hopestar; Tama; Kurogane; Aichi; Shinjin; Saehan; Aspark; GLM; Dome; Tommykaira

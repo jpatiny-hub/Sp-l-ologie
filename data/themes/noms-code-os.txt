@@ -1,4 +1,5 @@
 titre: Un nom de version de système d'exploitation (macOS, Android, Ubuntu, Debian, Windows…)
+actif: non
 # Noms de code ou noms commerciaux de versions, pas les numéros.
 1: Lion; Snow Leopard; Mountain Lion; Yosemite; Vista; XP = Windows XP; KitKat; Lollipop
 2: Leopard; Tiger; Mavericks; El Capitan; Sierra; High Sierra; Mojave; Catalina; Big Sur; Monterey; Ventura; Sonoma; Sequoia; Marshmallow; Nougat; Oreo; Jelly Bean; Ice Cream Sandwich; Gingerbread; Cupcake; Donut; Eclair; Froyo; Honeycomb; Pie; Windows Millennium = Millennium = Windows Me

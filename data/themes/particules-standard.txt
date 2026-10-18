@@ -1,0 +1,6 @@
+titre: Une particule élémentaire du Modèle standard ou son antiparticule
+# 6 quarks, 6 leptons, 4 bosons de jauge, le boson de Higgs, et leurs antiparticules (plus les noms génériques quark, neutrino…).
+1: Électron; Photon; Quark; Neutrino; Boson de Higgs = Higgs; Positron = Positon = Antiélectron
+2: Gluon; Muon; Tau = Tauon; Boson W = W; Boson Z = Z; Quark up = Up; Quark down = Down; Quark top = Top = Quark vérité; Antiquark; Antineutrino
+3: Quark strange = Strange = Quark étrange; Quark charm = Charm = Quark charmé = Quark charme; Quark bottom = Bottom = Quark beauté = Quark b; Neutrino électronique; Neutrino muonique; Neutrino tauique = Neutrino tau; Antimuon; Antitau = Antitauon
+4: Antineutrino électronique; Antineutrino muonique; Antineutrino tauique = Antineutrino tau; Antiquark up; Antiquark down; Antiquark strange = Antiquark étrange; Antiquark charm = Antiquark charmé; Antiquark bottom = Antiquark beauté; Antiquark top

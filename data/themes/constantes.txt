@@ -1,4 +1,5 @@
 titre: Une constante physique ou mathématique
+actif: non
 1: Pi; Vitesse de la lumière = c; Nombre d'or = Phi; Nombre e = e = Constante de Néper; Constante de Planck = h; Constante gravitationnelle = G = Constante de gravitation; Nombre d'Avogadro = Constante d'Avogadro
 2: Constante de Boltzmann = kB; Charge élémentaire; Constante des gaz parfaits = R; Accélération de la pesanteur = Pesanteur terrestre = g0; Racine de 2 = Constante de Pythagore; Constante de Faraday; Masse de l'électron; Masse du proton; Constante de Hubble; Constante cosmologique = Lambda; Constante de structure fine = Alpha
 3: Constante de Stefan-Boltzmann; Constante de Rydberg; Permittivité du vide = Constante électrique = Epsilon zéro; Perméabilité du vide = Constante magnétique = Mu zéro; Constante d'Euler-Mascheroni = Gamma; Constante de Coulomb; Constante de Planck réduite = h barre; Rayon de Bohr; Constante de Wien; Constante solaire; Logarithme de 2 = ln 2; Racine de 3 = Constante de Théodore; Unité de masse atomique = Dalton; Masse du neutron; Magnéton de Bohr

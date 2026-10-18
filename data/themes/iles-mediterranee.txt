@@ -1,4 +1,5 @@
 titre: Une île de la Méditerranée (mers Égée, Adriatique, Tyrrhénienne… comprises)
+actif: non
 1: Corse; Sicile; Sardaigne; Crète; Chypre; Malte; Majorque; Ibiza
 2: Minorque; Formentera; Rhodes; Corfou; Santorin; Mykonos; Capri; Elbe = Île d'Elbe; Djerba; Gozo; Ischia; Lesbos; Naxos; Kos; Porquerolles; Lampedusa; Stromboli; Céphalonie; Zante = Zakynthos; Ithaque; Paros
 3: Samos; Chios; Eubée; Lefkada = Leucade; Égine; Hydra; Délos; Milos; Ios; Patmos; Karpathos; Lipari; Vulcano; Pantelleria; Port-Cros; Île du Levant = Levant; Sainte-Marguerite; Saint-Honorat; Hvar; Brač; Korčula; Krk; Vis; Mljet; Comino; Procida; Giglio; Montecristo; Salina; Favignana; Skiathos; Skopelos; Thassos; Samothrace; Lemnos; Andros; Tinos; Syros; Cythère; Spetses; Poros; Sifnos; Amorgos; Folégandros; Kerkennah

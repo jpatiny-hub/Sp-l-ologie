@@ -1,0 +1,6 @@
+titre: Un lanthanide ou un actinide
+# Lanthanides : du lanthane au lutécium (57 à 71). Actinides : de l'actinium au lawrencium (89 à 103).
+1: Uranium = U; Plutonium = Pu; Thorium = Th
+2: Néodyme = Nd; Cérium = Ce; Lanthane = La; Europium = Eu; Américium = Am; Curium = Cm; Einsteinium = Es; Neptunium = Np
+3: Gadolinium = Gd; Samarium = Sm; Prométhium = Pm; Erbium = Er; Ytterbium = Yb; Terbium = Tb; Actinium = Ac; Californium = Cf; Fermium = Fm; Mendélévium = Md; Nobélium = No; Berkélium = Bk
+4: Praséodyme = Pr; Dysprosium = Dy; Holmium = Ho; Thulium = Tm; Lutécium = Lutétium = Lu; Protactinium = Pa; Lawrencium = Lr

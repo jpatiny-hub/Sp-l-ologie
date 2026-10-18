@@ -1,0 +1,6 @@
+titre: Une unité du Système international (unité de base ou unité dérivée ayant un nom spécial)
+# Les 7 unités de base et les 22 unités dérivées à nom spécial (brochure du SI, 9e édition). Pas les multiples (kilomètre…) ni les unités hors SI (litre, bar…).
+1: Mètre; Kilogramme = Kilo; Seconde; Ampère; Kelvin; Volt; Watt; Newton
+2: Mole; Candela; Joule; Pascal; Hertz; Ohm; Degré Celsius = Celsius; Coulomb
+3: Tesla; Farad; Becquerel; Lux; Lumen; Radian; Siemens; Henry; Weber; Gray; Sievert
+4: Stéradian; Katal

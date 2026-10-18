@@ -1,4 +1,5 @@
 titre: Un fromage
+actif: non
 # Niveaux : 1 = évident, 2 = courant, 3 = connu mais moins spontané, 4 = rare, 5 = très obscur.
 # Variantes séparées par « = », réponses séparées par « ; ».
 1: Camembert; Brie; Gouda; Emmental = Emmenthal; Mozzarella; Herve = Fromage de Herve; Parmesan = Parmigiano = Parmigiano Reggiano; Comté; Roquefort; Cheddar

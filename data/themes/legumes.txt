@@ -1,4 +1,5 @@
 titre: Un légume
+actif: non
 1: Carotte; Tomate; Pomme de terre = Patate; Salade = Laitue; Haricot; Haricot vert; Poireau; Courgette; Oignon; Chou-fleur; Brocoli
 2: Chicon = Endive = Witloof; Épinard; Concombre; Poivron; Aubergine; Petit pois = Pois; Chou de Bruxelles; Céleri; Navet; Radis; Betterave; Chou; Asperge; Champignon; Ail; Potiron; Maïs; Artichaut; Fenouil
 3: Potimarron; Butternut; Panais; Topinambour; Rutabaga; Chou rouge; Chou frisé = Chou kale = Kale; Céleri-rave; Échalote; Cornichon; Mâche; Roquette; Cresson; Blette = Bette = Poirée; Salsifis; Courge; Patate douce; Fève; Pois chiche; Lentille; Haricot blanc; Haricot rouge; Chou-rave; Pak choï = Bok choy; Chou chinois; Scarole; Frisée; Radicchio = Trévise; Chicorée; Pourpier; Oseille; Rhubarbe; Gingembre; Piment

@@ -1,0 +1,6 @@
+titre: Un astronaute des missions Apollo ayant voyagé jusqu'à la Lune
+# Les 24 hommes d'Apollo 8 et 10 à 17 (marcheurs lunaires et membres d'équipage restés en orbite ou en survol).
+1: Neil Armstrong = Armstrong; Buzz Aldrin = Aldrin = Edwin Aldrin; Michael Collins = Collins
+2: Jim Lovell = Lovell = James Lovell; Gene Cernan = Cernan = Eugene Cernan; Alan Shepard = Shepard; John Young = Young; Pete Conrad = Conrad = Charles Conrad; Fred Haise = Haise; Jack Swigert = Swigert = John Swigert
+3: Frank Borman = Borman; Bill Anders = Anders = William Anders; Harrison Schmitt = Schmitt = Jack Schmitt; Charlie Duke = Duke = Charles Duke; David Scott = Scott = Dave Scott; Alan Bean = Bean; Edgar Mitchell = Mitchell; James Irwin = Irwin = Jim Irwin; Tom Stafford = Stafford = Thomas Stafford
+4: Richard Gordon = Gordon = Dick Gordon; Stuart Roosa = Roosa; Al Worden = Worden = Alfred Worden; Ken Mattingly = Mattingly = Thomas Mattingly; Ronald Evans = Evans = Ron Evans

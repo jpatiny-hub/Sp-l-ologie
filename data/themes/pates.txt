@@ -1,4 +1,5 @@
 titre: Une sorte ou une forme de pâtes (ou de nouilles)
+actif: non
 1: Spaghetti; Tagliatelle; Penne; Fusilli = Torsades = Spirales; Lasagne; Macaroni; Farfalle = Papillons; Ravioli; Tortellini; Coquillettes
 2: Linguine; Rigatoni; Gnocchi; Cannelloni; Conchiglie = Coquilles; Orecchiette; Pappardelle; Fettuccine; Vermicelles; Capellini = Cheveux d'ange; Udon; Ramen; Soba; Nouilles de riz; Spätzle; Alphabet = Pâtes alphabet = Lettres
 3: Tortiglioni; Bucatini; Ditalini; Orzo = Risoni; Cavatappi; Gemelli; Radiatori; Rotelle = Roues; Mafalde = Mafaldine; Paccheri; Strozzapreti; Trofie; Maltagliati; Tagliolini; Fregola; Anelli; Campanelle; Casarecce; Cavatelli; Pici = Pinci; Bigoli; Garganelli; Ziti; Agnolotti; Cappelletti; Stelline = Étoiles; Mezze maniche; Lumaconi; Fideos; Pastina; Sedanini; Tortelloni; Conchiglioni; Fusilli lunghi; Spaghettoni; Vermicelles de riz; Nouilles aux œufs

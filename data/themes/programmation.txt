@@ -1,4 +1,5 @@
 titre: Un langage de programmation
+actif: non
 1: Python; Java; C; C++; JavaScript; HTML; R; PHP
 2: C#; SQL; MATLAB; Fortran; Pascal; Basic; Visual Basic = VB; Ruby; Swift; Kotlin; Go; Rust; TypeScript; Perl; Bash; Assembleur; Cobol; Julia; LaTeX; Scratch; CSS; Excel = Formules Excel; Delphi; Objective-C
 3: Haskell; Lisp; Scheme; Prolog; OCaml; Scala; Erlang; Elixir; Clojure; F#; Lua; Dart; Groovy; Ada; Smalltalk; Simula; Logo; Algol; APL; Mathematica = Wolfram Language; Maple; SAS; Stata; SPSS; IDL; LabVIEW; Verilog; VHDL; PowerShell; Awk; Sed; Tcl; ActionScript; CoffeeScript; Elm; Zig; Nim; Crystal; D; Solidity; Arduino; Processing; Octave; Scilab; Maxima; Forth; PostScript; Batch; XML; GLSL; CUDA; OpenCL; Cython; Mojo; Racket; Common Lisp; Emacs Lisp = Elisp; Vim script = VimL; AutoHotkey; AppleScript; ABAP; RPG; PL/SQL; PL/I; Modula-2; Oberon; Eiffel; Coq = Rocq; Agda; Idris; Lean; Isabelle; Standard ML = SML; Miranda; Clean; Gleam; Raku = Perl 6; Hack; Haxe; Vala; Pony; Red; Rebol; Factor; Io; Self; Squeak; Pharo; VBA

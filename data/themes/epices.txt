@@ -1,4 +1,5 @@
 titre: Une épice ou une herbe aromatique
+actif: non
 1: Poivre; Cannelle; Paprika; Curry; Basilic; Persil; Thym; Menthe; Muscade = Noix de muscade
 2: Romarin; Origan; Ciboulette; Coriandre; Laurier; Safran; Cumin; Curcuma; Gingembre; Clou de girofle = Girofle; Vanille; Piment; Piment d'Espelette; Estragon; Aneth; Sauge; Cerfeuil; Herbes de Provence; Ail; Échalote; Moutarde; Sarriette; Marjolaine
 3: Cardamome; Anis étoilé = Badiane; Anis vert = Anis; Fenouil; Graines de fenouil; Carvi; Fenugrec; Sumac; Za'atar; Ras el hanout; Garam masala; Cinq-épices = Cinq épices; Quatre-épices; Piment de Cayenne = Cayenne; Chili; Harissa; Wasabi; Raifort; Citronnelle; Livèche = Céleri perpétuel; Mélisse; Verveine; Câpres; Baies roses; Poivre de Sichuan = Poivre du Sichuan; Poivre long; Poivre de Timut; Genièvre = Baies de genièvre; Graines de moutarde; Nigelle; Sésame; Pavot; Ail des ours; Oseille; Hysope; Lavande; Bourrache; Shiso; Kaffir = Combava; Galanga; Tamarin; Amchoor; Asa-fœtida; Cannelle de Ceylan; Fleur de sel

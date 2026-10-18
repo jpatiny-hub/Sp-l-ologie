@@ -1,4 +1,5 @@
 titre: Une couleur
+actif: non
 1: Rouge; Bleu; Vert; Jaune; Noir; Blanc; Orange; Rose; Violet; Gris
 2: Marron = Brun; Beige; Turquoise; Bordeaux; Doré = Or; Argenté = Argent; Mauve; Kaki; Bleu marine = Marine; Bleu ciel; Fuchsia; Lilas; Saumon; Crème; Écru; Corail; Prune; Framboise; Pêche
 3: Indigo; Cyan; Magenta; Pourpre; Écarlate; Vermillon; Carmin; Grenat; Cramoisi; Rubis; Cerise; Amarante; Lavande; Parme; Ocre; Sépia; Taupe; Caramel; Chocolat; Châtain; Auburn; Acajou; Cuivre; Bronze; Rouille; Terracotta; Brique; Sable; Ivoire; Nacre; Anthracite; Ardoise; Perle; Émeraude; Jade; Olive; Menthe; Pistache; Vert pomme; Vert sapin; Vert bouteille; Céladon; Azur; Cobalt; Outremer; Bleu roi; Bleu canard; Bleu pétrole; Bleu nuit; Pervenche; Améthyste; Aubergine; Lie-de-vin; Citron; Moutarde; Safran; Canari; Paille; Vanille; Abricot; Mandarine; Rose poudré; Rose bonbon; Vieux rose

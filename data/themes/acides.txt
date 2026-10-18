@@ -1,4 +1,5 @@
 titre: Un acide (nom commençant par « acide »)
+actif: non
 # On peut répondre avec ou sans le mot « acide ».
 1: Acide chlorhydrique = chlorhydrique = HCl = Acide muriatique; Acide sulfurique = sulfurique = H2SO4; Acide acétique = acétique; Acide citrique = citrique; Acide nitrique = nitrique; Acide ascorbique = ascorbique = Vitamine C; Acide désoxyribonucléique = désoxyribonucléique = ADN
 2: Acide phosphorique = phosphorique; Acide lactique = lactique; Acide formique = formique; Acide fluorhydrique = fluorhydrique; Acide acétylsalicylique = acétylsalicylique = Aspirine; Acide salicylique = salicylique; Acide carbonique = carbonique; Acide borique = borique; Acide cyanhydrique = cyanhydrique; Acide folique = folique = Vitamine B9; Acide urique = urique; Acide aminé = aminé; Acide gras = gras; Acide ribonucléique = ribonucléique = ARN; Acide oxalique = oxalique; Acide tartrique = tartrique; Acide malique = malique; Acide hyaluronique = hyaluronique

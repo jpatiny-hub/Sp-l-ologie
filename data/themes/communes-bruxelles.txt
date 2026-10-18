@@ -1,0 +1,6 @@
+titre: Une commune de la Région bruxelloise (les 19, plus Laeken, Haren et Neder-Over-Heembeek, fusionnées en 1921)
+1: Bruxelles-Ville = Bruxelles = Ville de Bruxelles = Brussel; Ixelles = Elsene; Uccle = Ukkel; Anderlecht; Schaerbeek = Schaarbeek; Molenbeek-Saint-Jean = Molenbeek = Sint-Jans-Molenbeek
+2: Etterbeek; Saint-Gilles = Sint-Gillis; Woluwe-Saint-Lambert = Sint-Lambrechts-Woluwe; Woluwe-Saint-Pierre = Sint-Pieters-Woluwe; Forest = Vorst; Jette; Laeken = Laken
+3: Auderghem = Oudergem; Watermael-Boitsfort = Boitsfort = Watermael = Watermaal-Bosvoorde = Bosvoorde; Evere; Saint-Josse-ten-Noode = Saint-Josse = Sint-Joost-ten-Node; Koekelberg; Ganshoren
+4: Berchem-Sainte-Agathe = Sint-Agatha-Berchem; Haren
+5: Neder-Over-Heembeek
