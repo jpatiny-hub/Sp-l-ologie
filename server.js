@@ -35,7 +35,14 @@ const SECURITY_HEADERS = {
     "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
 };
 
-function createApp({ db, themes, now = Date.now, secureCookies = false, publicDir = config.PUBLIC_DIR }) {
+function createApp({
+  db,
+  themes,
+  now = Date.now,
+  secureCookies = false,
+  publicDir = config.PUBLIC_DIR,
+  clientIpHeader = config.CLIENT_IP_HEADER,
+}) {
   const game = new GameService(db, themes, now);
   const loginLimiter = new auth.RateLimiter(10, 15 * 60 * 1000);
   const signupLimiter = new auth.RateLimiter(10, 60 * 60 * 1000);
@@ -49,12 +56,20 @@ function createApp({ db, themes, now = Date.now, secureCookies = false, publicDi
     send(res, status, JSON.stringify(data), { 'Content-Type': 'application/json; charset=utf-8', ...headers });
   }
 
-  // Derrière le proxy, la dernière adresse de X-Forwarded-For est celle qu'il a ajoutée lui-même :
-  // contrairement aux précédentes, le visiteur ne peut pas l'inventer.
+  // Adresse du visiteur, pour limiter les tentatives de connexion et d'inscription.
+  // - Derrière un tunnel Cloudflare, X-Forwarded-For peut ne contenir que l'adresse du tunnel :
+  //   CLIENT_IP_HEADER=cf-connecting-ip fait lire l'en-tête posé par Cloudflare. À ne régler que
+  //   si Cloudflare est bien devant le serveur, sinon n'importe quel visiteur pourrait l'inventer.
+  // - Sinon, la dernière adresse de X-Forwarded-For est celle ajoutée par le proxy : contrairement
+  //   aux précédentes, le visiteur ne peut pas l'inventer.
   function clientIp(req) {
+    if (clientIpHeader) {
+      const direct = String(req.headers[clientIpHeader] || '').trim();
+      if (direct) return direct;
+    }
     const forwarded = String(req.headers['x-forwarded-for'] || '')
       .split(',')
-      .map((s) => s.trim())
+      .map((v) => v.trim())
       .filter(Boolean);
     return forwarded[forwarded.length - 1] || req.socket.remoteAddress || 'inconnu';
   }

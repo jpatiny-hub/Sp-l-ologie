@@ -117,6 +117,9 @@ Secrets attendus dans l'environnement GitHub `prod` : `OPNSENSE_CREDENTIALS`,
   en production, le cookie de session n'est envoyé qu'en connexion sécurisée. Le proxy doit
   ajouter l'adresse du visiteur dans `X-Forwarded-For` (le jeu en lit la dernière valeur pour
   limiter les tentatives de connexion).
+- **Derrière un tunnel Cloudflare** seulement : ajouter `Environment=CLIENT_IP_HEADER=cf-connecting-ip`
+  au service, pour que le jeu lise l'adresse réelle des joueurs dans l'en-tête posé par Cloudflare.
+  Sans Cloudflare devant le serveur, ne pas le régler : un visiteur pourrait inventer cet en-tête.
 - **Des sauvegardes** de `DATA_DIR/speleologie.sqlite`, par exemple chaque nuit :
   `sqlite3 speleologie.sqlite ".backup sauvegarde.sqlite"`.
 

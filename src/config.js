@@ -17,6 +17,8 @@ module.exports = {
   PORT: Number(process.env.PORT) || 3000,
   // Interface d'écoute (toutes par défaut ; 127.0.0.1 derrière un proxy).
   HOST: process.env.HOST || undefined,
+  // En-tête donnant l'adresse du visiteur, posé par un proxy de confiance (ex. cf-connecting-ip).
+  CLIENT_IP_HEADER: (process.env.CLIENT_IP_HEADER || '').trim().toLowerCase() || null,
   DATA_DIR: process.env.DATA_DIR || path.join(ROOT, 'var'),
   THEMES_DIR: process.env.THEMES_DIR || path.join(ROOT, 'data', 'themes'),
   PUBLIC_DIR: path.join(ROOT, 'public'),
