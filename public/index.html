@@ -130,6 +130,11 @@
           <button class="btn secondary" id="btn-podium" type="button">Voir le classement</button>
         </div>
         <div class="card">
+          <h2>Ton carnet <span class="new-dot" id="carnet-dot" hidden>nouveau !</span></h2>
+          <p id="carnet-summary" class="muted">Badges, séries de forages et apparences de ta foreuse.</p>
+          <button class="btn secondary" id="btn-carnet" type="button">Badges et atelier</button>
+        </div>
+        <div class="card">
           <h2>Entraînement</h2>
           <p>Des thèmes au hasard, autant que tu veux. Ça ne compte pas pour le podium.</p>
           <button class="btn secondary" id="btn-training" type="button">S'entraîner</button>
@@ -213,12 +218,43 @@
           <h2>Ta récolte <span class="muted small">touche un thème pour voir toutes les réponses</span></h2>
           <ol class="catch" id="results-answers"></ol>
         </div>
+        <div class="card" id="results-badges" hidden>
+          <h2>Nouveaux badges !</h2>
+          <div class="badge-list" id="results-badge-list"></div>
+          <button class="btn secondary" id="btn-results-carnet" type="button">Voir mon carnet</button>
+        </div>
         <div class="card">
           <button class="btn" id="btn-share" type="button">Partager mon résultat</button>
           <p class="muted small" id="share-status" role="status"></p>
           <button class="btn secondary" id="btn-results-podium" type="button">Voir le podium</button>
           <button class="btn ghost" id="btn-results-home" type="button">Retour à l'accueil</button>
         </div>
+      </div>
+
+      <!-- Carnet : badges et atelier -->
+      <div class="view" id="view-profile" hidden>
+        <div class="card">
+          <h2>Ton carnet de spéléo</h2>
+          <dl class="stats" id="profile-stats"></dl>
+        </div>
+        <div class="card">
+          <h2>Atelier <span class="muted small">l'apparence de ta foreuse, sur tous tes appareils</span></h2>
+          <div class="workshop">
+            <canvas class="skin-preview" id="skin-preview" width="32" height="40" aria-label="Aperçu de ta foreuse"></canvas>
+            <div class="workshop-choices">
+              <h3>Carrosserie</h3>
+              <div class="skin-grid" id="skin-bodies"></div>
+              <h3>Foret</h3>
+              <div class="skin-grid" id="skin-bits"></div>
+            </div>
+          </div>
+          <p class="muted small" id="skin-status" role="status"></p>
+        </div>
+        <div class="card">
+          <h2>Badges</h2>
+          <div id="badge-sections"></div>
+        </div>
+        <button class="btn ghost" id="btn-profile-home" type="button">Retour à l'accueil</button>
       </div>
 
       <!-- Podium -->
@@ -245,6 +281,7 @@
 
   <script src="sound.js"></script>
   <script src="pixel.js"></script>
+  <script src="icons.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

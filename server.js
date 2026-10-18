@@ -44,6 +44,7 @@ function createApp({
   clientIpHeader = config.CLIENT_IP_HEADER,
 }) {
   const game = new GameService(db, themes, now);
+  game.badges.backfill();
   const loginLimiter = new auth.RateLimiter(10, 15 * 60 * 1000);
   const signupLimiter = new auth.RateLimiter(10, 60 * 60 * 1000);
 
@@ -241,12 +242,36 @@ function createApp({
     'GET /api/me': async (req, res) => {
       const user = currentUser(req, res);
       if (!user) return json(res, 200, { user: null });
+      game.badges.awardPodiums(game.today());
+      const row = db.prepare('SELECT skin_body, skin_bit FROM users WHERE id = ?').get(user.id);
       json(res, 200, {
         user: userView(user),
+        skin: game.badges.skinOf(row),
+        unseenBadges: game.badges.unseenCount(user.id),
         today: game.todaySummary(user.id),
         nextResetMs: msUntilNextDay(now()),
         timerSeconds: config.TIMER_SECONDS,
       });
+    },
+
+    // Carnet du joueur : badges, statistiques et apparences de la foreuse.
+    'GET /api/profile': async (req, res) => {
+      const user = requireUser(req, res);
+      json(res, 200, game.badges.profile(user.id, game.today()));
+    },
+
+    'POST /api/profile/seen': async (req, res) => {
+      const user = requireUser(req, res);
+      await readJson(req);
+      game.badges.markSeen(user.id);
+      json(res, 200, { ok: true });
+    },
+
+    'POST /api/profile/skin': async (req, res) => {
+      const user = requireUser(req, res);
+      const { body, bit } = await readJson(req);
+      if (!game.badges.setSkin(user.id, game.today(), { body, bit })) throw new HttpError(403, 'Cette apparence n\'est pas encore débloquée.');
+      json(res, 200, { skin: { body, bit } });
     },
 
     'POST /api/game/start': async (req, res) => {

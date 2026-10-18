@@ -73,13 +73,34 @@ CREATE TABLE IF NOT EXISTS unknown_answers (
   last_at   INTEGER NOT NULL,
   PRIMARY KEY (theme_id, input_key)
 );
+
+-- Badges obtenus. Un même badge peut être gagné plusieurs fois (instance : jour, période, année…).
+CREATE TABLE IF NOT EXISTS badges (
+  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind       TEXT NOT NULL,
+  instance   TEXT NOT NULL,
+  earned_on  TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  seen_at    INTEGER,
+  PRIMARY KEY (user_id, kind, instance)
+);
 `;
+
+// Colonnes ajoutées après la mise en ligne : créées si la base est plus ancienne.
+const MIGRATIONS = [
+  ['users', 'skin_body', 'TEXT'],
+  ['users', 'skin_bit', 'TEXT'],
+];
 
 function openDb(file) {
   if (file !== ':memory:') fs.mkdirSync(path.dirname(file), { recursive: true });
   const db = new DatabaseSync(file);
   db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;');
   db.exec(SCHEMA);
+  for (const [table, column, type] of MIGRATIONS) {
+    const exists = db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === column);
+    if (!exists) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+  }
   return db;
 }
 
