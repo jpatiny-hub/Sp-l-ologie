@@ -1,0 +1,5 @@
+titre: Un pilote champion du monde de Formule 1 (1950-2025)
+1: Michael Schumacher = Schumacher; Ayrton Senna = Senna; Lewis Hamilton = Hamilton; Max Verstappen = Verstappen; Alain Prost = Prost; Fernando Alonso = Alonso; Sebastian Vettel = Vettel; Niki Lauda = Lauda
+2: Kimi Räikkönen = Räikkönen = Raikkonen; Nigel Mansell = Mansell; Mika Häkkinen = Häkkinen = Hakkinen; Jacques Villeneuve = Villeneuve; Damon Hill; Nico Rosberg; Jenson Button = Button; Juan Manuel Fangio = Fangio; Nelson Piquet = Piquet; James Hunt = Hunt; Lando Norris = Norris
+3: Jackie Stewart = Stewart; Jim Clark = Clark; Emerson Fittipaldi = Fittipaldi; Graham Hill; Keke Rosberg; Mario Andretti = Andretti; Jack Brabham = Brabham; Alberto Ascari = Ascari; Jochen Rindt = Rindt; Jody Scheckter = Scheckter; Alan Jones
+4: Giuseppe Farina = Nino Farina = Farina; Mike Hawthorn = Hawthorn; Phil Hill; John Surtees = Surtees; Denny Hulme = Hulme
