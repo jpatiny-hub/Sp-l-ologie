@@ -35,7 +35,14 @@ const SECURITY_HEADERS = {
     "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
 };
 
-function createApp({ db, themes, now = Date.now, secureCookies = false, publicDir = config.PUBLIC_DIR }) {
+function createApp({
+  db,
+  themes,
+  now = Date.now,
+  secureCookies = false,
+  publicDir = config.PUBLIC_DIR,
+  clientIpHeader = config.CLIENT_IP_HEADER,
+}) {
   const game = new GameService(db, themes, now);
   const loginLimiter = new auth.RateLimiter(10, 15 * 60 * 1000);
   const signupLimiter = new auth.RateLimiter(10, 60 * 60 * 1000);
@@ -49,16 +56,22 @@ function createApp({ db, themes, now = Date.now, secureCookies = false, publicDi
     send(res, status, JSON.stringify(data), { 'Content-Type': 'application/json; charset=utf-8', ...headers });
   }
 
+  // Adresse du visiteur, pour limiter les tentatives de connexion et d'inscription.
+  // - Derrière un tunnel Cloudflare, X-Forwarded-For peut ne contenir que l'adresse du tunnel :
+  //   CLIENT_IP_HEADER=cf-connecting-ip fait lire l'en-tête posé par Cloudflare. À ne régler que
+  //   si Cloudflare est bien devant le serveur, sinon n'importe quel visiteur pourrait l'inventer.
+  // - Sinon, la dernière adresse de X-Forwarded-For est celle ajoutée par le proxy : contrairement
+  //   aux précédentes, le visiteur ne peut pas l'inventer.
   function clientIp(req) {
-    return (
-      // Derrière un tunnel Cloudflare puis le proxy de Coolify, X-Forwarded-For peut ne contenir
-      // que l'adresse du tunnel : tous les joueurs partageraient alors les mêmes limites.
-      req.headers['cf-connecting-ip'] ||
-      req.headers['fly-client-ip'] ||
-      String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() ||
-      req.socket.remoteAddress ||
-      'inconnu'
-    );
+    if (clientIpHeader) {
+      const direct = String(req.headers[clientIpHeader] || '').trim();
+      if (direct) return direct;
+    }
+    const forwarded = String(req.headers['x-forwarded-for'] || '')
+      .split(',')
+      .map((v) => v.trim())
+      .filter(Boolean);
+    return forwarded[forwarded.length - 1] || req.socket.remoteAddress || 'inconnu';
   }
 
   function parseCookies(req) {
@@ -318,14 +331,21 @@ function createApp({ db, themes, now = Date.now, secureCookies = false, publicDi
 }
 
 function main() {
+  // En production, la base doit vivre hors du dossier de l'application : celui-ci est remplacé
+  // à chaque déploiement et les anciennes versions sont supprimées.
+  if (process.env.NODE_ENV === 'production' && !process.env.DATA_DIR) {
+    console.error('DATA_DIR doit indiquer un dossier permanent pour la base de données (production).');
+    process.exit(1);
+  }
   const themes = loadThemes(config.THEMES_DIR);
   for (const theme of themes.values()) {
     for (const warning of theme.warnings) console.warn(`[thème ${theme.id}] ${warning}`);
   }
   const db = openDb(path.join(config.DATA_DIR, 'speleologie.sqlite'));
   const handler = createApp({ db, themes, secureCookies: process.env.NODE_ENV === 'production' });
-  http.createServer(handler).listen(config.PORT, () => {
-    console.log(`${config.GAME_NAME} : ${themes.size} thèmes chargés, écoute sur http://localhost:${config.PORT}`);
+  // HOST=127.0.0.1 : seul le proxy de la machine peut joindre le jeu.
+  http.createServer(handler).listen(config.PORT, config.HOST, () => {
+    console.log(`${config.GAME_NAME} : ${themes.size} thèmes chargés, écoute sur ${config.HOST || '*'}:${config.PORT}`);
   });
 }
 

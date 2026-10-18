@@ -11,10 +11,10 @@ const { loadThemes } = require('../src/themes');
 const THEMES = loadThemes(path.join(__dirname, '..', 'data', 'themes'));
 
 /** Démarre l'application sur un port libre, avec une horloge contrôlable. */
-async function startServer() {
+async function startServer(options = {}) {
   const clock = { now: Date.UTC(2026, 9, 14, 10, 0) }; // mercredi 14 octobre 2026
   const db = openDb(':memory:');
-  const server = http.createServer(createApp({ db, themes: THEMES, now: () => clock.now }));
+  const server = http.createServer(createApp({ db, themes: THEMES, now: () => clock.now, ...options }));
   await new Promise((resolve) => server.listen(0, resolve));
   const base = `http://127.0.0.1:${server.address().port}`;
   return { clock, db, base, close: () => new Promise((r) => server.close(r)) };
@@ -200,7 +200,7 @@ test("l'entraînement ne compte ni pour le podium ni pour les statistiques", asy
 });
 
 test('derrière Cloudflare, la limite d’inscriptions vaut par joueur et non pour tout le proxy', async () => {
-  const app = await startServer();
+  const app = await startServer({ clientIpHeader: 'cf-connecting-ip' });
   const signup = (n, ip) =>
     fetch(`${app.base}/api/signup`, {
       method: 'POST',
@@ -211,6 +211,26 @@ test('derrière Cloudflare, la limite d’inscriptions vaut par joueur et non po
     for (let n = 0; n < 11; n++) assert.equal((await signup(n, `203.0.113.${n}`)).status, 201);
     for (let n = 11; n < 21; n++) assert.equal((await signup(n, '198.51.100.7')).status, 201);
     assert.equal((await signup(21, '198.51.100.7')).status, 429);
+  } finally {
+    await app.close();
+  }
+});
+
+test('sans Cloudflare, un en-tête inventé ne contourne pas la limite ; seule la dernière adresse du proxy compte', async () => {
+  const app = await startServer();
+  const signup = (n, headers) =>
+    fetch(`${app.base}/api/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify({ username: `visiteur${n}`, password: 'secret123' }),
+    });
+  try {
+    // Le visiteur invente CF-Connecting-IP et le début de X-Forwarded-For ; le proxy ajoute 198.51.100.9.
+    for (let n = 0; n < 10; n++) {
+      const res = await signup(n, { 'CF-Connecting-IP': `203.0.113.${n}`, 'X-Forwarded-For': `192.0.2.${n}, 198.51.100.9` });
+      assert.equal(res.status, 201);
+    }
+    assert.equal((await signup(10, { 'CF-Connecting-IP': '203.0.113.99', 'X-Forwarded-For': '192.0.2.99, 198.51.100.9' })).status, 429);
   } finally {
     await app.close();
   }
