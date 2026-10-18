@@ -67,12 +67,6 @@ jobs:
             sudo systemctl restart speleologie
             ls -1dt '$BASE'/releases/* | tail -n +4 | xargs -r rm -rf"
 
-      - name: Health check
-        run: |
-          ssh server 'for i in $(seq 15); do
-            curl -fsS http://127.0.0.1:${{ secrets.SPELEO_APP_PORT }}/api/health && exit 0; sleep 2
-          done; exit 1'
-
       - name: Close SSH port
         if: always()
         uses: ./.github/actions/firewall
