@@ -9,9 +9,41 @@
     game: null,
     timer: null,
     busy: false,
-    podiumWeek: null,
+    podium: null,
     meLoadedAt: 0,
+    // Proposition de correction en attente de confirmation : { text, suggestion }.
+    pending: null,
   };
+
+  // ---------- Paramètres (propres à l'appareil) ----------
+  const SETTINGS_KEY = 'speleologie.settings';
+  const settings = { text: 'normal', sound: true, volume: 60, colorblind: false };
+  try {
+    Object.assign(settings, JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {});
+  } catch {
+    /* stockage indisponible : réglages par défaut */
+  }
+
+  function saveSettings() {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    } catch {
+      /* stockage indisponible : les réglages valent pour cette visite */
+    }
+  }
+
+  function applySettings() {
+    const root = document.documentElement;
+    if (settings.text === 'normal') delete root.dataset.text;
+    else root.dataset.text = settings.text;
+    Sound.configure({ enabled: settings.sound, volume: settings.volume / 100 });
+    Pixel.setColorblind(settings.colorblind);
+    root.classList.toggle('colorblind', settings.colorblind);
+    const button = $('btn-sound');
+    button.setAttribute('aria-pressed', String(settings.sound));
+    button.setAttribute('aria-label', settings.sound ? 'Couper le son' : 'Activer le son');
+    button.classList.toggle('muted', !settings.sound);
+  }
 
   // ---------- Scène pixel art ----------
   const scene = new Pixel.DrillScene($('scene'));
@@ -19,7 +51,51 @@
     $('hud-depth').textContent = Pixel.formatDepth(points);
     $('hud-zone').textContent = Pixel.zoneName(points);
   };
+  scene.onDrill = (on, zone) => Sound.drill(on, zone);
+  scene.onZone = (zone) => {
+    Sound.layer(zone);
+    Sound.drill(true, zone);
+  };
   scene.setLayers([], false);
+  applySettings();
+
+  $('btn-sound').addEventListener('click', () => {
+    settings.sound = !settings.sound;
+    applySettings();
+    saveSettings();
+    if (settings.sound) Sound.reveal();
+  });
+
+  const settingsForm = $('form-settings');
+  $('btn-settings').addEventListener('click', () => {
+    settingsForm.elements.text.value = settings.text;
+    settingsForm.elements.sound.checked = settings.sound;
+    settingsForm.elements.volume.value = settings.volume;
+    settingsForm.elements.colorblind.checked = settings.colorblind;
+    $('settings').showModal();
+  });
+  settingsForm.addEventListener('input', () => {
+    const colorblind = settings.colorblind;
+    settings.text = settingsForm.elements.text.value || 'normal';
+    settings.sound = settingsForm.elements.sound.checked;
+    settings.volume = Number(settingsForm.elements.volume.value);
+    settings.colorblind = settingsForm.elements.colorblind.checked;
+    applySettings();
+    saveSettings();
+    fitCanvas();
+    if (colorblind !== settings.colorblind) refreshColors();
+  });
+  // Un clic en dehors de la fenêtre la ferme.
+  $('settings').addEventListener('click', (event) => {
+    if (event.target === $('settings')) $('settings').close();
+  });
+
+  /** Redessine ce qui dépend de la palette des raretés. */
+  function refreshColors() {
+    if (!$('view-results').hidden && app.game) renderResults(app.game);
+    const tier = $('feedback-tier');
+    if (tier.dataset.tier) tier.style.color = Pixel.TIER_COLORS[tier.dataset.tier];
+  }
 
   // Agrandissement entier (pixels nets). Sur téléphone, on garde au moins un facteur 2
   // et on réduit plutôt la hauteur visible de la coupe.
@@ -64,7 +140,8 @@
   function show(view) {
     document.querySelectorAll('.view').forEach((v) => (v.hidden = v.id !== `view-${view}`));
     $('stage').hidden = view === 'podium' && window.innerWidth < 860;
-    $('topnav').hidden = !app.me;
+    $('who').hidden = !app.me;
+    $('settings-account').hidden = !app.me;
     fitCanvas();
     window.scrollTo(0, 0);
   }
@@ -96,6 +173,23 @@
 
   function layersOf(state) {
     return state.rounds.filter((r) => r.status === 'done').map((r) => ({ points: r.points, tier: r.tier.id }));
+  }
+
+  function plural(n, one, many) {
+    return `${n.toLocaleString('fr-BE')}\u00a0${n > 1 ? many : one}`;
+  }
+
+  function othersText(n) {
+    if (n == null) return '';
+    return n === 0 ? 'Personne d\'autre ne l\'a encore donnée.' : `Déjà donnée par ${plural(n, 'autre joueur', 'autres joueurs')}.`;
+  }
+
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  function svg(tag, attrs = {}, text) {
+    const node = document.createElementNS(SVG_NS, tag);
+    for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
+    if (text != null) node.textContent = text;
+    return node;
   }
 
   function setTimerSeconds(seconds) {
@@ -163,6 +257,7 @@
   $('btn-recovery-done').addEventListener('click', () => goHome());
 
   $('btn-logout').addEventListener('click', async () => {
+    $('settings').close();
     stopTimer();
     await api('/api/logout', {}).catch(() => {});
     app.me = null;
@@ -186,6 +281,7 @@
     app.game = null;
     setTimerSeconds(app.me.timerSeconds);
     $('who').textContent = app.me.user.username;
+    $('settings-user').textContent = app.me.user.username;
     renderHome();
     show('home');
     loadMiniPodium();
@@ -232,7 +328,7 @@
 
   $('btn-daily').addEventListener('click', () => startGame('daily'));
   $('btn-training').addEventListener('click', () => startGame('training'));
-  $('btn-podium').addEventListener('click', () => openPodium(null));
+  $('btn-podium').addEventListener('click', () => openPodium('week', null));
 
   async function loadMiniPodium() {
     const list = $('mini-podium');
@@ -291,6 +387,7 @@
     app.busy = true;
     try {
       app.game = await api(`/api/game/${app.game.id}/reveal`, {});
+      Sound.reveal();
       renderGame();
     } catch (err) {
       alert(err.message);
@@ -305,6 +402,7 @@
     $('prompt-index').textContent = `Thème ${round.slot + 1} sur ${ROUNDS}`;
     $('prompt-title').textContent = round.title;
     $('answer-error').textContent = '';
+    clearPending();
     const input = $('answer-input');
     input.value = '';
     input.focus();
@@ -316,8 +414,12 @@
     const total = app.game.timerSeconds * 1000;
     const deadline = performance.now() + remainingMs;
     const bar = $('timer-bar');
+    let lastSecond = null;
     const tick = () => {
       const left = deadline - performance.now();
+      const second = Math.ceil(left / 1000);
+      if (second <= 5 && second > 0 && second !== lastSecond) Sound.tick(second <= 3);
+      lastSecond = second;
       const ratio = Math.max(0, Math.min(1, left / total));
       bar.style.width = `${ratio * 100}%`;
       bar.classList.toggle('warn', left < 15000 && left >= 7000);
@@ -336,22 +438,39 @@
     app.timer = null;
   }
 
-  $('form-answer').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const input = $('answer-input');
-    const text = input.value.trim();
-    if (!text || app.busy) return;
+  function clearPending() {
+    app.pending = null;
+    $('answer-confirm').hidden = true;
+    $('answer-actions').hidden = false;
+  }
+
+  async function sendAnswer(text, extra = {}) {
+    if (app.busy) return;
     app.busy = true;
+    const input = $('answer-input');
     try {
-      const res = await api(`/api/game/${app.game.id}/answer`, { text });
-      if (res.result === 'unknown') {
-        $('answer-error').textContent = `« ${text} » ne fait pas partie des réponses connues pour ce thème. Essaie autre chose !`;
+      const res = await api(`/api/game/${app.game.id}/answer`, { text, ...extra });
+      if (res.result === 'confirm') {
+        app.game = res.state;
+        app.pending = { text, suggestion: res.suggestion };
+        $('confirm-suggestion').textContent = `« ${res.suggestion} »`;
+        $('answer-confirm').hidden = false;
+        $('answer-actions').hidden = true;
+        $('answer-error').textContent = '';
+        Sound.ask();
+      } else if (res.result === 'unknown') {
+        clearPending();
+        $('answer-error').textContent = extra.reject
+          ? 'D\'accord, essaie autre chose !'
+          : `« ${text} » ne fait pas partie des réponses connues pour ce thème. Essaie autre chose !`;
         input.classList.remove('shake');
         void input.offsetWidth;
         input.classList.add('shake');
         input.select();
         app.game = res.state;
+        Sound.wrong();
       } else {
+        clearPending();
         roundFinished(res);
       }
     } catch (err) {
@@ -359,6 +478,25 @@
     } finally {
       app.busy = false;
     }
+  }
+
+  $('form-answer').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const text = $('answer-input').value.trim();
+    if (!text) return;
+    // Entrée sans rien changer : on accepte la proposition affichée.
+    if (app.pending && app.pending.text === text) sendAnswer(text, { accept: app.pending.suggestion });
+    else sendAnswer(text);
+  });
+  $('answer-input').addEventListener('input', () => {
+    if (app.pending && $('answer-input').value.trim() !== app.pending.text) clearPending();
+  });
+  $('btn-confirm-yes').addEventListener('click', () => {
+    if (app.pending) sendAnswer(app.pending.text, { accept: app.pending.suggestion });
+  });
+  $('btn-confirm-no').addEventListener('click', () => {
+    if (app.pending) sendAnswer(app.pending.text, { reject: true });
+    $('answer-input').focus();
   });
 
   $('btn-skip').addEventListener('click', () => skipRound());
@@ -367,6 +505,7 @@
     if (app.busy || !app.game) return;
     app.busy = true;
     stopTimer();
+    clearPending();
     try {
       roundFinished(await api(`/api/game/${app.game.id}/skip`, {}));
     } catch (err) {
@@ -396,7 +535,9 @@
     $('feedback-points').textContent = `+${round.points}`;
     const tier = $('feedback-tier');
     tier.textContent = round.tier.label;
+    tier.dataset.tier = round.tier.id;
     tier.style.color = Pixel.TIER_COLORS[round.tier.id];
+    Sound.tier(round.tier.id);
     const answer = $('feedback-answer');
     const odds = $('feedback-odds');
     if (round.outcome === 'answer') {
@@ -406,9 +547,11 @@
       odds.textContent = round.tier.id === 'pepite'
         ? 'Personne ne l\'avait encore trouvée !'
         : `Environ 1 joueur sur ${oneIn.toLocaleString('fr-BE')} y pense.`;
+      $('feedback-others').textContent = othersText(round.othersCount);
     } else {
       answer.textContent = round.outcome === 'timeout' ? 'Le chrono est arrivé à zéro.' : 'Tu as passé ce thème.';
       odds.textContent = '';
+      $('feedback-others').textContent = '';
     }
     $('btn-next').textContent = state.finished ? 'Voir mon forage' : 'Thème suivant';
     $('btn-next').focus();
@@ -420,39 +563,212 @@
   });
 
   // ---------- Résultats ----------
+  const TIER_ORDER = ['pepite', 'tres_rare', 'rare', 'original', 'courant', 'evident'];
+  const TIER_LABELS = { pepite: 'Pépite', tres_rare: 'Très rare', rare: 'Rare', original: 'Original', courant: 'Courant', evident: 'Évident' };
+
   function showResults(state) {
     stopTimer();
     app.game = state;
     scene.setLayers(layersOf(state), false);
     scene.tour();
-    $('results-title').textContent = state.mode === 'daily' ? 'Forage terminé !' : 'Entraînement terminé !';
-    $('results-score').textContent = pts(state.score);
+    renderResults(state);
+    $('share-status').textContent = '';
+    show('results');
+  }
+
+  function renderResults(state) {
+    $('results-title').textContent = state.mode === 'daily' ? `Forage du ${formatDay(state.day, { day: 'numeric', month: 'long' })} terminé` : 'Entraînement terminé';
+    $('results-score').textContent = state.score;
     const centre = state.score >= Pixel.MAX_POINTS;
-    $('results-depth').textContent = centre
-      ? 'Tu as atteint le centre de la Terre ! 6 371 km'
-      : `Profondeur atteinte : ${Pixel.formatDepth(state.score)} · ${Pixel.zoneName(state.score)}`;
+    $('results-depth').textContent = centre ? '−6 371 km' : `−${Pixel.formatDepth(state.score)}`;
+    $('results-zone').textContent = centre ? 'Tu as atteint le centre de la Terre !' : `Ta foreuse s'est arrêtée dans : ${Pixel.zoneName(state.score)}`;
+    renderDistribution(state);
+    renderDiveLog(state);
+    renderCatch(state);
+  }
 
-    const zones = $('results-zones');
-    zones.replaceChildren();
-    Pixel.ZONES.forEach((z) => zones.append(el('li', { class: state.score >= z.from ? 'reached' : '' }, z.name)));
-    zones.append(el('li', { class: centre ? 'reached' : '' }, 'Centre de la Terre'));
+  /** Courbe des scores du jour (estimation par noyau) et position du joueur. */
+  function renderDistribution(state) {
+    const scores = state.dayScores || [];
+    const box = $('results-distribution');
+    box.hidden = scores.length < 2;
+    if (box.hidden) return;
+    const chart = $('distribution-chart');
+    chart.replaceChildren();
+    const W = 320;
+    const left = 8;
+    const right = W - 8;
+    const base = 96;
+    const top = 14;
+    const max = 700;
+    const x = (v) => left + (Math.min(max, v) / max) * (right - left);
+    const n = scores.length;
+    const mean = scores.reduce((a, b) => a + b, 0) / n;
+    const sd = Math.sqrt(scores.reduce((a, b) => a + (b - mean) ** 2, 0) / n) || 30;
+    const bw = Math.max(20, 1.06 * sd * n ** -0.2);
+    const density = (v) => scores.reduce((sum, s) => sum + Math.exp(-0.5 * ((v - s) / bw) ** 2), 0);
+    const points = [];
+    let peak = 0;
+    for (let v = 0; v <= max; v += 5) {
+      const d = density(v);
+      points.push([v, d]);
+      if (d > peak) peak = d;
+    }
+    const y = (d) => base - (d / peak) * (base - top);
+    const line = points.map(([v, d], i) => `${i ? 'L' : 'M'}${x(v).toFixed(1)},${y(d).toFixed(1)}`).join('');
+    chart.append(
+      svg('path', { d: `${line}L${right},${base}L${left},${base}Z`, class: 'area' }),
+      svg('path', { d: line, class: 'curve' }),
+      svg('line', { x1: left, y1: base, x2: right, y2: base, class: 'axis' }),
+    );
+    for (let v = 0; v <= max; v += 100) {
+      chart.append(svg('line', { x1: x(v), y1: base, x2: x(v), y2: base + 3, class: 'axis' }), svg('text', { x: x(v), y: base + 14, class: 'tick' }, v));
+    }
+    scores.forEach((sc) => chart.append(svg('rect', { x: x(sc) - 1, y: base - 3, width: 2, height: 3, class: 'dot' })));
+    const me = x(state.score);
+    chart.append(
+      svg('line', { x1: me, y1: y(density(state.score)), x2: me, y2: base, class: 'me' }),
+      svg('rect', { x: me - 3, y: y(density(state.score)) - 3, width: 6, height: 6, class: 'me-dot' }),
+      svg('text', { x: me, y: y(density(state.score)) - 8, class: 'me-label' }, 'TOI'),
+    );
+    const others = n - 1;
+    const below = scores.filter((sc) => sc < state.score).length;
+    const pct = Math.round((below / others) * 100);
+    chart.setAttribute('aria-label', `Répartition des ${n} scores du jour`);
+    $('results-percentile').textContent = `Mieux que ${pct}\u00a0% des joueurs du jour (${plural(n, 'forage', 'forages')} aujourd'hui)`;
+  }
 
+  /** Carnet de forage : une colonne par thème, d'autant plus profonde que la réponse est rare. */
+  function renderDiveLog(state) {
+    const chart = $('divelog-chart');
+    chart.replaceChildren();
+    const left = 74;
+    const right = 312;
+    const top = 8;
+    const bottom = 172;
+    const core = bottom + 14;
+    const y = (p) => top + (Math.max(0, Math.min(100, p)) / 100) * (bottom - top);
+    // Bandes de rareté, colorées comme des couches de plus en plus profondes ; la pépite tout au fond.
+    const bands = [
+      [top, y(20), 'evident', '#4a2f1a'],
+      [y(20), y(40), 'courant', '#8e5f31'],
+      [y(40), y(60), 'original', '#64717e'],
+      [y(60), y(80), 'rare', '#2a2a31'],
+      [y(80), bottom, 'tres_rare', '#5e2013'],
+      [bottom, core, 'pepite', '#b5561a'],
+    ];
+    bands.forEach(([y0, y1, id, fill]) => {
+      chart.append(
+        svg('rect', { x: left, y: y0, width: right - left, height: y1 - y0, fill, class: 'band' }),
+        svg('text', { x: left - 6, y: (y0 + y1) / 2 + 4, class: 'band-label' }, TIER_LABELS[id]),
+      );
+    });
+    const step = (right - left) / state.rounds.length;
+    state.rounds.forEach((r, i) => {
+      const cx = left + step * (i + 0.5);
+      chart.append(svg('text', { x: cx, y: core + 16, class: 'tick' }, i + 1));
+      if (r.status !== 'done') return;
+      const tierId = r.tier ? r.tier.id : 'skip';
+      const color = Pixel.TIER_COLORS[tierId];
+      const depth = r.outcome === 'answer' ? r.points : 0;
+      const end = depth >= 100 ? (bottom + core) / 2 : y(depth);
+      chart.append(svg('line', { x1: cx, y1: top, x2: cx, y2: end, stroke: color, class: 'shaft' }));
+      chart.append(svg('rect', { x: cx - 6, y: end - 6, width: 12, height: 12, fill: color, class: 'marker' }));
+      if (settings.colorblind && Pixel.TIER_SYMBOLS[tierId]) chart.append(svg('text', { x: cx, y: end + 4, class: 'glyph' }, Pixel.TIER_SYMBOLS[tierId]));
+    });
+  }
+
+  function swatch(tierId) {
+    const node = el('span', { class: 'swatch', style: { background: Pixel.TIER_COLORS[tierId] } });
+    if (settings.colorblind) node.textContent = Pixel.TIER_SYMBOLS[tierId] || '';
+    return node;
+  }
+
+  /** Liste des réponses du joueur ; un appui sur un thème dévoile toutes ses réponses. */
+  function renderCatch(state) {
     const list = $('results-answers');
     list.replaceChildren();
     state.rounds.forEach((r) => {
+      const tierId = r.tier ? r.tier.id : 'skip';
       const label = r.outcome === 'answer' ? r.answer : r.tier ? r.tier.label : '—';
-      list.append(
+      const details = el('div', { class: 'theme-answers', hidden: '' });
+      const button = el(
+        'button',
+        { class: 'catch-row', type: 'button', 'aria-expanded': 'false' },
+        el('span', { class: 'num' }, String(r.slot + 1)),
+        swatch(tierId),
         el(
-          'li',
-          {},
-          el('span', { class: 'swatch', style: { background: Pixel.TIER_COLORS[r.tier ? r.tier.id : 'skip'] } }),
-          el('span', {}, el('span', { class: 'theme' }, r.title || `Thème ${r.slot + 1}`), label),
-          el('span', { class: 'pts' }, r.points != null ? `${r.points}` : '–'),
+          'span',
+          { class: 'what' },
+          el('span', { class: 'theme' }, r.title || `Thème ${r.slot + 1}`),
+          el('span', { class: 'answer' }, label),
+          r.outcome === 'answer' ? el('span', { class: 'others' }, othersText(r.othersCount)) : null,
         ),
+        el('span', { class: 'pts', style: { color: Pixel.TIER_COLORS[tierId] } }, r.points != null ? String(r.points) : '–'),
       );
+      button.addEventListener('click', () => toggleThemeAnswers(state, r, button, details));
+      list.append(el('li', {}, button, details));
     });
-    $('share-status').textContent = '';
-    show('results');
+  }
+
+  async function toggleThemeAnswers(state, round, button, details) {
+    const open = details.hidden;
+    details.hidden = !open;
+    button.setAttribute('aria-expanded', String(open));
+    if (!open || details.dataset.loaded) return;
+    details.replaceChildren(el('p', { class: 'muted' }, 'Chargement des réponses…'));
+    try {
+      const data = await api(`/api/game/${state.id}/answers?slot=${round.slot}`);
+      details.dataset.loaded = '1';
+      renderThemeAnswers(details, data);
+    } catch (err) {
+      details.replaceChildren(el('p', { class: 'error' }, err.message));
+    }
+  }
+
+  function renderThemeAnswers(details, data) {
+    const counts = {};
+    data.answers.forEach((a) => (counts[a.tier] = (counts[a.tier] || 0) + 1));
+    const chips = el('div', { class: 'chips' });
+    const list = el('ul', { class: 'answer-list' });
+    let filter = 'all';
+    const draw = () => {
+      list.replaceChildren();
+      data.answers
+        .filter((a) => filter === 'all' || a.tier === filter)
+        .slice()
+        .reverse()
+        .forEach((a) => {
+          list.append(
+            el(
+              'li',
+              { class: a.mine ? 'mine' : '' },
+              swatch(a.tier),
+              el('span', {}, a.label, a.mine ? el('span', { class: 'you' }, ' ← toi') : null),
+              el('span', { class: 'muted' }, a.count ? `×${a.count}` : ''),
+              el('span', { class: 'pts', style: { color: Pixel.TIER_COLORS[a.tier] } }, String(a.points)),
+            ),
+          );
+        });
+      chips.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b.dataset.filter === filter));
+    };
+    const chip = (id, text, n) => {
+      const b = el('button', { class: `chip${id === 'all' ? '' : ` t-${id}`}`, type: 'button', 'data-filter': id }, text, el('span', { class: 'n' }, ` ${n}`));
+      if (id !== 'all') b.style.color = Pixel.TIER_COLORS[id];
+      b.addEventListener('click', () => {
+        filter = id;
+        draw();
+      });
+      chips.append(b);
+    };
+    chip('all', 'Toutes', data.answers.length);
+    TIER_ORDER.forEach((id) => counts[id] && chip(id, TIER_LABELS[id], counts[id]));
+    details.replaceChildren(
+      el('p', { class: 'muted small' }, 'De la plus rare à la plus évidente, avec les points qu\'elle rapporterait aujourd\'hui et le nombre de fois qu\'elle a été donnée.'),
+      chips,
+      list,
+    );
+    draw();
   }
 
   function shareText(state) {
@@ -476,14 +792,16 @@
     }
   });
   $('btn-results-home').addEventListener('click', () => goHome());
-  $('btn-results-podium').addEventListener('click', () => openPodium(null));
+  $('btn-results-podium').addEventListener('click', () => openPodium('week', null));
 
   // ---------- Podium ----------
-  async function openPodium(week) {
+  async function openPodium(period, date) {
     stopTimer();
     try {
-      const board = await api(`/api/leaderboard${week ? `?week=${week}` : ''}`);
-      app.podiumWeek = board;
+      const params = new URLSearchParams({ period });
+      if (date) params.set('date', date);
+      const board = await api(`/api/leaderboard?${params}`);
+      app.podium = board;
       renderPodium(board);
       show('podium');
     } catch (err) {
@@ -491,11 +809,24 @@
     }
   }
 
+  function periodLabel(board) {
+    if (board.period === 'day') {
+      const day = formatDay(board.start, { weekday: 'long', day: 'numeric', month: 'long' });
+      return board.isCurrent ? `Aujourd'hui · ${day}` : day;
+    }
+    if (board.period === 'month') {
+      const month = formatDay(board.start, { month: 'long', year: 'numeric' });
+      return board.isCurrent ? `Ce mois-ci · ${month}` : month;
+    }
+    const start = formatDay(board.start, { day: 'numeric', month: 'long' });
+    const end = formatDay(board.end, { day: 'numeric', month: 'long' });
+    return `${board.isCurrent ? 'Cette semaine' : 'Semaine'} · du ${start} au ${end}`;
+  }
+
   function renderPodium(board) {
-    const start = formatDay(board.weekStart, { day: 'numeric', month: 'long' });
-    const end = formatDay(board.weekEnd, { day: 'numeric', month: 'long' });
-    $('week-label').textContent = `${board.isCurrent ? 'Cette semaine' : 'Semaine'} · du ${start} au ${end}`;
-    $('btn-week-next').disabled = !board.hasNext;
+    document.querySelectorAll('#period-tabs .tab').forEach((t) => t.classList.toggle('active', t.dataset.period === board.period));
+    $('week-label').textContent = periodLabel(board);
+    $('btn-week-next').disabled = !board.next;
 
     const podium = $('podium');
     podium.replaceChildren();
@@ -518,24 +849,21 @@
           'li',
           { class: e.me ? 'me' : '' },
           el('span', {}, `${e.rank}.`),
-          el('span', {}, e.username, ' ', el('span', { class: 'days' }, `(${e.days} j)`)),
+          el('span', {}, e.username, board.period === 'day' ? null : el('span', { class: 'days' }, ` (${e.days} j)`)),
           el('span', {}, pts(e.score)),
         ),
       );
     });
-    if (!board.entries.length) ranking.append(el('li', {}, el('span', {}, ''), el('span', {}, 'Aucun forage cette semaine.'), el('span', {}, '')));
+    if (!board.entries.length) ranking.append(el('li', {}, el('span', {}, ''), el('span', {}, 'Aucun forage sur cette période.'), el('span', {}, '')));
+    const when = { day: 'ce jour-là', week: 'cette semaine', month: 'ce mois-ci' }[board.period];
     $('my-rank').textContent = board.me
       ? `Ton rang : ${board.me.rank === 1 ? '1er' : `${board.me.rank}e`} sur ${board.entries.length} · ${pts(board.me.score)}`
-      : 'Tu n\'as pas encore joué cette semaine.';
+      : `Tu n'as pas joué ${when}.`;
   }
 
-  function shiftWeek(days) {
-    const d = new Date(`${app.podiumWeek.weekStart}T12:00:00Z`);
-    d.setUTCDate(d.getUTCDate() + days);
-    openPodium(d.toISOString().slice(0, 10));
-  }
-  $('btn-week-prev').addEventListener('click', () => shiftWeek(-7));
-  $('btn-week-next').addEventListener('click', () => shiftWeek(7));
+  document.querySelectorAll('#period-tabs .tab').forEach((t) => t.addEventListener('click', () => openPodium(t.dataset.period, null)));
+  $('btn-week-prev').addEventListener('click', () => openPodium(app.podium.period, app.podium.prev));
+  $('btn-week-next').addEventListener('click', () => app.podium.next && openPodium(app.podium.period, app.podium.next));
   $('btn-podium-home').addEventListener('click', () => goHome());
 
   // ---------- Démarrage ----------

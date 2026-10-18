@@ -69,14 +69,16 @@ function editDistance(a, b, max) {
 
 /**
  * Cherche la réponse du thème correspondant à la saisie.
- * Retourne { answer, distance } ou null si rien ne correspond.
+ * Retourne { answer, distance, approximate } ou null si rien ne correspond.
+ * `approximate` : la saisie n'est pas le nom affiché de la réponse (faute de frappe ou variante),
+ * le joueur doit alors confirmer la proposition.
  * En cas d'égalité entre deux réponses, la plus courante l'emporte (pas de points offerts par une faute).
  */
 function matchAnswer(theme, input) {
   const key = toKey(input);
   if (!key) return null;
   const exact = theme.index.get(key);
-  if (exact) return { answer: exact, distance: 0 };
+  if (exact) return { answer: exact, distance: 0, approximate: key !== exact.key };
 
   const max = maxEdits(key.length);
   if (max === 0) return null;
@@ -92,7 +94,7 @@ function matchAnswer(theme, input) {
       bestDistance = d;
     }
   }
-  return best ? { answer: best, distance: bestDistance } : null;
+  return best ? { answer: best, distance: bestDistance, approximate: true } : null;
 }
 
 module.exports = { normalizeWords, toKey, maxEdits, editDistance, matchAnswer };

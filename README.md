@@ -8,9 +8,14 @@ le **centre de la Terre**.
 
 - Comptes avec identifiant + mot de passe, session conservée 90 jours sur l'appareil.
 - Code de récupération remis à l'inscription (mot de passe oublié).
-- Podium hebdomadaire (somme des forages du lundi au dimanche, heure de Bruxelles).
+- Podiums du jour, de la semaine (lundi → dimanche) et du mois, à l'heure de Bruxelles.
 - Mode entraînement illimité (thèmes au hasard, ne compte pas).
-- Tolérance orthographique (accents, majuscules, articles, pluriels, fautes de frappe).
+- Tolérance orthographique (accents, majuscules, articles, pluriels, fautes de frappe) : quand la
+  saisie n'est pas exactement le nom d'une réponse (faute de frappe, variante), le jeu propose la
+  réponse reconnue et le joueur valide ou refuse.
+- Fin de partie : position parmi les joueurs du jour, carnet de forage, nombre de joueurs ayant
+  donné la même réponse et, pour chaque thème, toutes les réponses classées par rareté.
+- Bruitages synthétisés (sans fichier son), taille du texte réglable, mode daltonien.
 - 75 thèmes (culture générale, sciences, cinéma, musique, littérature, Belgique…), près de
   20 000 réponses, avec une difficulté estimée pour un public belge.
 
@@ -142,7 +147,8 @@ Le site n'est pas référencé par les moteurs de recherche, et il faut se conne
 | `src/matching.js` | Normalisation et tolérance orthographique |
 | `src/themes.js` | Lecture des fichiers de thèmes |
 | `src/auth.js` | Mots de passe (scrypt), codes de récupération, limitation des tentatives |
-| `public/pixel.js` | Rendu pixel art de la coupe de terrain et de la foreuse |
+| `public/pixel.js` | Rendu pixel art de la coupe de terrain, de son décor et de la foreuse |
+| `public/sound.js` | Bruitages (Web Audio) |
 | `public/app.js` | Interface du jeu |
 
 Polices : *Press Start 2P* et *VT323* (licence SIL OFL, fichiers dans `public/fonts/`).

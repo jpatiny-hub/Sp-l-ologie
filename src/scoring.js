@@ -72,16 +72,19 @@ function probabilities(theme, counts) {
   return { probs, pMax, total };
 }
 
+/** Points d'une réponse de probabilité `p` (`pMax` : celle de la réponse la plus attendue). */
+function pointsFor(p, pMax, alreadyGiven) {
+  const t = Math.min(1, Math.max(0, Math.log(pMax / p) / SCALE));
+  return t >= PEPITE_THRESHOLD && !alreadyGiven ? 100 : Math.round(10 + 80 * t);
+}
+
 /** Points rapportés par `answerKey` pour le thème, compte tenu des réponses déjà données. */
 function scoreAnswer(theme, counts, answerKey) {
   const { probs, pMax } = probabilities(theme, counts);
   const p = probs.get(answerKey);
   if (p === undefined) throw new Error(`Réponse inconnue pour le thème ${theme.id} : ${answerKey}`);
-  const t = Math.min(1, Math.max(0, Math.log(pMax / p) / SCALE));
-  const alreadyGiven = (counts.get(answerKey) || 0) > 0;
-  const pepite = t >= PEPITE_THRESHOLD && !alreadyGiven;
-  const points = pepite ? 100 : Math.round(10 + 80 * t);
-  return { points, probability: p, pepite, tier: tierFor(points, 'answer') };
+  const points = pointsFor(p, pMax, (counts.get(answerKey) || 0) > 0);
+  return { points, probability: p, pepite: points === 100, tier: tierFor(points, 'answer') };
 }
 
-module.exports = { LEVEL_WEIGHTS, PRIOR_STRENGTH, SCALE, TIERS, tierFor, probabilities, scoreAnswer };
+module.exports = { LEVEL_WEIGHTS, PRIOR_STRENGTH, SCALE, TIERS, tierFor, probabilities, pointsFor, scoreAnswer };

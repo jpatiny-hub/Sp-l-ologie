@@ -12,11 +12,47 @@
 <body>
   <header class="topbar">
     <h1 class="logo">Spéléologie</h1>
-    <nav class="topnav" id="topnav" hidden>
-      <span class="who" id="who"></span>
-      <button class="link" id="btn-logout" type="button">Déconnexion</button>
+    <nav class="topnav">
+      <span class="who" id="who" hidden></span>
+      <button class="icon-btn" id="btn-sound" type="button" aria-pressed="true" aria-label="Couper le son" title="Son">
+        <svg viewBox="0 0 12 12" aria-hidden="true"><path class="on" d="M1 4h2v4H1zM3 3h1v6H3zM4 2h1v8H4zM5 1h1v10H5zM8 3h1v1H8zM9 4h1v4H9zM8 8h1v1H8zM10 2h1v1h-1zM11 3h1v6h-1zM10 9h1v1h-1z"/><path class="off" d="M1 4h2v4H1zM3 3h1v6H3zM4 2h1v8H4zM5 1h1v10H5zM8 4h1v1H8zM9 5h1v2H9zM10 4h1v1h-1zM10 7h1v1h-1zM8 7h1v1H8z"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-settings" type="button" aria-label="Paramètres" title="Paramètres">
+        <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M5 0h2v2H5zM5 10h2v2H5zM0 5h2v2H0zM10 5h2v2h-2zM2 1h2v2H2zM8 1h2v2H8zM2 9h2v2H2zM8 9h2v2H8zM3 3h6v6H3z"/><path class="hole" d="M5 5h2v2H5z"/></svg>
+      </button>
     </nav>
   </header>
+
+  <dialog class="card settings" id="settings">
+    <form method="dialog" class="form" id="form-settings">
+      <h2>Paramètres</h2>
+      <fieldset>
+        <legend>Taille du texte</legend>
+        <div class="choices">
+          <label><input type="radio" name="text" value="petit"> Petite</label>
+          <label><input type="radio" name="text" value="normal"> Normale</label>
+          <label><input type="radio" name="text" value="grand"> Grande</label>
+          <label><input type="radio" name="text" value="tres-grand"> Très grande</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Son</legend>
+        <label class="check"><input type="checkbox" name="sound"> Bruitages</label>
+        <label>Volume <input type="range" name="volume" min="0" max="100" step="5"></label>
+      </fieldset>
+      <fieldset>
+        <legend>Couleurs</legend>
+        <label class="check"><input type="checkbox" name="colorblind"> Mode daltonien</label>
+        <p class="hint">Couleurs distinguables quel que soit le type de daltonisme, et un symbole propre à chaque niveau de rareté.</p>
+      </fieldset>
+      <p class="hint">Ces réglages sont propres à cet appareil.</p>
+      <button class="btn" value="close">Fermer</button>
+      <div class="account" id="settings-account" hidden>
+        <p class="muted">Connecté avec l'identifiant <strong id="settings-user"></strong></p>
+        <button class="btn ghost" id="btn-logout" type="button">Se déconnecter</button>
+      </div>
+    </form>
+  </dialog>
 
   <main class="layout">
     <section class="stage" id="stage">
@@ -105,9 +141,9 @@
             <li>Pour chaque thème, tu as <strong><span class="timer-seconds">30</span> secondes</strong> pour donner une réponse qui y correspond.</li>
             <li>Plus ta réponse est <strong>improbable</strong>, plus tu marques : de 10 points (évident) à 90 (très rare).</li>
             <li>Une réponse très rare que <strong>personne n'avait encore trouvée</strong> est une pépite : 100 points.</li>
-            <li>Les petites fautes d'orthographe sont tolérées. Si ta réponse n'est pas reconnue, tu peux réessayer tant que le chrono tourne.</li>
+            <li>Les petites fautes d'orthographe sont tolérées : si ta saisie ressemble à une réponse connue, le jeu te la propose et c'est toi qui valides. Si ta réponse n'est pas reconnue, tu peux réessayer tant que le chrono tourne.</li>
             <li>Chaque point fait creuser ta foreuse. <strong>700 points = le centre de la Terre.</strong></li>
-            <li>Le podium additionne tes forages du lundi au dimanche.</li>
+            <li>Les podiums additionnent tes forages du jour, de la semaine (lundi → dimanche) ou du mois.</li>
           </ul>
         </details>
       </div>
@@ -133,7 +169,14 @@
           <form id="form-answer" class="form answer-form" autocomplete="off">
             <input id="answer-input" name="text" maxlength="80" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Ta réponse…" aria-label="Ta réponse">
             <p class="error" id="answer-error" role="alert"></p>
-            <div class="row">
+            <div class="confirm" id="answer-confirm" hidden>
+              <p>Tu voulais dire <strong id="confirm-suggestion"></strong> ?</p>
+              <div class="row">
+                <button class="btn" id="btn-confirm-yes" type="button">Oui, valider</button>
+                <button class="btn ghost" id="btn-confirm-no" type="button">Non</button>
+              </div>
+            </div>
+            <div class="row" id="answer-actions">
               <button class="btn" type="submit">Valider</button>
               <button class="btn ghost" id="btn-skip" type="button">Passer</button>
             </div>
@@ -146,21 +189,29 @@
           <p class="feedback-tier" id="feedback-tier"></p>
           <p id="feedback-answer"></p>
           <p class="muted" id="feedback-odds"></p>
+          <p class="muted" id="feedback-others"></p>
           <button class="btn" id="btn-next" type="button">Thème suivant</button>
         </div>
       </div>
 
       <!-- Résultats -->
       <div class="view" id="view-results" hidden>
-        <div class="card">
-          <h2 id="results-title">Forage terminé !</h2>
-          <p class="big" id="results-score"></p>
-          <p id="results-depth"></p>
-          <ul class="zones" id="results-zones"></ul>
+        <div class="card results-head">
+          <p class="muted" id="results-title">Forage terminé !</p>
+          <p class="results-score"><span id="results-score"></span><span class="results-depth" id="results-depth"></span></p>
+          <p id="results-zone"></p>
+          <div id="results-distribution" hidden>
+            <svg class="chart distribution" id="distribution-chart" viewBox="0 0 320 120" role="img"></svg>
+            <p class="accent" id="results-percentile"></p>
+          </div>
         </div>
         <div class="card">
-          <h2>Tes réponses</h2>
-          <ol class="answers" id="results-answers"></ol>
+          <h2>Carnet de forage <span class="muted small">plus c'est profond, plus c'est rare</span></h2>
+          <svg class="chart divelog" id="divelog-chart" viewBox="0 0 320 206" role="img" aria-label="Profondeur atteinte à chaque thème"></svg>
+        </div>
+        <div class="card">
+          <h2>Ta récolte <span class="muted small">touche un thème pour voir toutes les réponses</span></h2>
+          <ol class="catch" id="results-answers"></ol>
         </div>
         <div class="card">
           <button class="btn" id="btn-share" type="button">Partager mon résultat</button>
@@ -173,10 +224,15 @@
       <!-- Podium -->
       <div class="view" id="view-podium" hidden>
         <div class="card">
+          <div class="tabs" role="tablist" id="period-tabs">
+            <button class="tab" data-period="day" type="button" role="tab">Jour</button>
+            <button class="tab active" data-period="week" type="button" role="tab">Semaine</button>
+            <button class="tab" data-period="month" type="button" role="tab">Mois</button>
+          </div>
           <div class="week-nav">
-            <button class="btn ghost small-btn" id="btn-week-prev" type="button" aria-label="Semaine précédente">◀</button>
+            <button class="btn ghost small-btn" id="btn-week-prev" type="button" aria-label="Période précédente">◀</button>
             <h2 id="week-label"></h2>
-            <button class="btn ghost small-btn" id="btn-week-next" type="button" aria-label="Semaine suivante">▶</button>
+            <button class="btn ghost small-btn" id="btn-week-next" type="button" aria-label="Période suivante">▶</button>
           </div>
           <div class="podium" id="podium"></div>
           <ol class="ranking" id="ranking"></ol>
@@ -187,6 +243,7 @@
     </section>
   </main>
 
+  <script src="sound.js"></script>
   <script src="pixel.js"></script>
   <script src="app.js"></script>
 </body>

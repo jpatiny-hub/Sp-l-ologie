@@ -2,10 +2,12 @@
 
 const crypto = require('node:crypto');
 const { ROUNDS_PER_GAME, TIMER_SECONDS, TIMER_GRACE_MS } = require('./config');
-const { dayKey, addDays, weekStart } = require('./dates');
+const { dayKey, addDays, weekStart, monthStart, addMonths, monthEnd } = require('./dates');
 const { transaction } = require('./db');
 const { matchAnswer, toKey } = require('./matching');
-const { scoreAnswer, tierFor } = require('./scoring');
+const { scoreAnswer, probabilities, pointsFor, tierFor } = require('./scoring');
+
+const PERIODS = ['day', 'week', 'month'];
 
 class HttpError extends Error {
   constructor(status, message) {
@@ -141,7 +143,7 @@ class GameService {
     });
   }
 
-  roundView(round) {
+  roundView(round, game) {
     const theme = this.themes.get(round.theme_id);
     const served = round.served_at != null;
     const done = round.answered_at != null;
@@ -155,21 +157,41 @@ class GameService {
       outcome: done ? round.outcome : null,
       probability: done ? round.probability : null,
       tier: done ? tierFor(round.points, round.outcome) : null,
+      othersCount: done && game && round.answer_key ? this.othersCount(game, round) : null,
     };
+  }
+
+  /** Nombre d'autres joueurs ayant donné la même réponse en partie quotidienne. */
+  othersCount(game, round) {
+    const row = this.db
+      .prepare('SELECT n FROM answer_counts WHERE theme_id = ? AND answer_key = ?')
+      .get(round.theme_id, round.answer_key);
+    const n = row ? row.n : 0;
+    return Math.max(0, game.mode === 'daily' ? n - 1 : n);
+  }
+
+  /** Scores des forages quotidiens terminés ce jour-là (anonymes), pour situer le joueur. */
+  dayScores(day) {
+    return this.db
+      .prepare("SELECT score FROM games WHERE mode = 'daily' AND day = ? AND finished_at IS NOT NULL ORDER BY score")
+      .all(day)
+      .map((r) => r.score);
   }
 
   state(gameId, userId) {
     let { game, rounds } = this.loadGame(gameId, userId);
     if (this.expireIfNeeded(game, rounds)) ({ game, rounds } = this.loadGame(gameId, userId));
     const current = rounds.find((r) => r.answered_at == null && r.served_at != null);
+    const finished = game.finished_at != null;
     return {
       id: game.id,
       mode: game.mode,
       day: game.day,
       score: game.score,
-      finished: game.finished_at != null,
+      finished,
       timerSeconds: TIMER_SECONDS,
-      rounds: rounds.map((r) => this.roundView(r)),
+      rounds: rounds.map((r) => this.roundView(r, game)),
+      dayScores: finished && game.mode === 'daily' ? this.dayScores(game.day) : null,
       current: current
         ? { slot: current.slot, remainingMs: Math.max(0, current.served_at + this.timerMs - this.now()) }
         : null,
@@ -195,13 +217,18 @@ class GameService {
     return { game, round };
   }
 
-  answer(gameId, userId, text) {
+  /**
+   * Réponse du joueur. Si la saisie ne correspond qu'approximativement (faute de frappe, variante),
+   * le jeu propose la réponse reconnue (`confirm`) : le joueur la renvoie dans `accept` pour valider,
+   * ou envoie `reject` pour la refuser et tenter autre chose.
+   */
+  answer(gameId, userId, text, { accept = null, reject = false } = {}) {
     const input = typeof text === 'string' ? text.trim().slice(0, 80) : '';
     if (!input) throw new HttpError(400, 'Réponse vide.');
     const { game, round } = this.activeRound(gameId, userId);
     const resultFor = (result) => ({
       result,
-      round: this.roundView(this.db.prepare('SELECT * FROM rounds WHERE game_id = ? AND slot = ?').get(game.id, round.slot)),
+      round: this.roundView(this.db.prepare('SELECT * FROM rounds WHERE game_id = ? AND slot = ?').get(game.id, round.slot), game),
       state: this.state(gameId, userId),
     });
 
@@ -212,9 +239,12 @@ class GameService {
 
     const theme = this.themes.get(round.theme_id);
     const match = theme ? matchAnswer(theme, input) : null;
-    if (!match) {
+    if (!match || (match.approximate && reject)) {
       if (game.mode === 'daily' && theme) this.recordUnknown(theme.id, input);
       return { result: 'unknown', input, state: this.state(gameId, userId) };
+    }
+    if (match.approximate && accept !== match.answer.label) {
+      return { result: 'confirm', input, suggestion: match.answer.label, state: this.state(gameId, userId) };
     }
 
     const counts = new Map(
@@ -231,13 +261,35 @@ class GameService {
     return resultFor('ok');
   }
 
+  /** Toutes les réponses d'un thème déjà joué, avec leur rareté actuelle. */
+  themeAnswers(gameId, userId, slot) {
+    const { game, rounds } = this.loadGame(gameId, userId);
+    if (game.finished_at == null) throw new HttpError(409, 'Termine ta partie pour voir les réponses.');
+    const round = rounds.find((r) => r.slot === slot);
+    if (!round) throw new HttpError(404, 'Thème introuvable.');
+    const theme = this.themes.get(round.theme_id);
+    if (!theme) throw new HttpError(404, 'Ce thème n\'existe plus.');
+    const counts = new Map(
+      this.db.prepare('SELECT answer_key, n FROM answer_counts WHERE theme_id = ?').all(theme.id).map((r) => [r.answer_key, r.n]),
+    );
+    const { probs, pMax } = probabilities(theme, counts);
+    const answers = theme.answers
+      .map((a) => {
+        const count = counts.get(a.key) || 0;
+        const points = pointsFor(probs.get(a.key), pMax, count > 0);
+        return { label: a.label, points, tier: tierFor(points, 'answer').id, count, mine: a.key === round.answer_key };
+      })
+      .sort((a, b) => a.points - b.points || b.count - a.count || a.label.localeCompare(b.label, 'fr'));
+    return { slot, title: theme.title, answers };
+  }
+
   skip(gameId, userId) {
     const { game, round } = this.activeRound(gameId, userId);
     const expired = this.now() >= round.served_at + this.timerMs;
     this.finishRound(game, round, { outcome: expired ? 'timeout' : 'skip', points: 0 });
     return {
       result: expired ? 'timeout' : 'skip',
-      round: this.roundView(this.db.prepare('SELECT * FROM rounds WHERE game_id = ? AND slot = ?').get(game.id, round.slot)),
+      round: this.roundView(this.db.prepare('SELECT * FROM rounds WHERE game_id = ? AND slot = ?').get(game.id, round.slot), game),
       state: this.state(gameId, userId),
     };
   }
@@ -263,10 +315,21 @@ class GameService {
     return { day, gameId: game.id, score: game.score, finished: game.finished_at != null, roundsDone };
   }
 
-  /** Classement de la semaine (lundi → dimanche) contenant `day`. */
-  leaderboard(day, userId) {
+  /** Début, fin et voisins de la période (jour, semaine lundi → dimanche, mois) contenant `day`. */
+  periodRange(period, day) {
+    if (period === 'day') return { start: day, end: day, prev: addDays(day, -1), next: addDays(day, 1) };
+    if (period === 'month') {
+      const start = monthStart(day);
+      return { start, end: monthEnd(day), prev: addMonths(start, -1), next: addMonths(start, 1) };
+    }
     const start = weekStart(day);
-    const end = addDays(start, 6);
+    return { start, end: addDays(start, 6), prev: addDays(start, -7), next: addDays(start, 7) };
+  }
+
+  /** Classement des forages quotidiens sur la période contenant `day`. */
+  leaderboard(day, userId, period = 'week') {
+    if (!PERIODS.includes(period)) throw new HttpError(400, 'Période inconnue.');
+    const { start, end, prev, next } = this.periodRange(period, day);
     const rows = this.db
       .prepare(
         `SELECT u.id AS userId, u.username, SUM(g.score) AS score, COUNT(*) AS days
@@ -287,10 +350,12 @@ class GameService {
     });
     const today = this.today();
     return {
-      weekStart: start,
-      weekEnd: end,
-      isCurrent: start === weekStart(today),
-      hasNext: start < weekStart(today),
+      period,
+      start,
+      end,
+      prev,
+      next: next <= today ? next : null,
+      isCurrent: start <= today && today <= end,
       entries: entries.slice(0, 50),
       me: entries.find((e) => e.me) || null,
     };

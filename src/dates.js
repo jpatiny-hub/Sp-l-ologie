@@ -31,6 +31,23 @@ function weekStart(day) {
   return addDays(day, -((d.getUTCDay() + 6) % 7));
 }
 
+/** Premier jour du mois contenant `day`. */
+function monthStart(day) {
+  return `${day.slice(0, 7)}-01`;
+}
+
+/** Même jour décalé de `n` mois, ramené au 1er du mois. */
+function addMonths(day, n) {
+  const d = new Date(`${monthStart(day)}T12:00:00Z`);
+  d.setUTCMonth(d.getUTCMonth() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Dernier jour du mois contenant `day`. */
+function monthEnd(day) {
+  return addDays(addMonths(day, 1), -1);
+}
+
 /** Millisecondes avant le prochain changement de jour à Bruxelles. */
 function msUntilNextDay(ms) {
   const today = dayKey(ms);
@@ -49,4 +66,4 @@ function isDay(value) {
   return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T12:00:00Z`));
 }
 
-module.exports = { dayKey, addDays, weekStart, msUntilNextDay, isDay };
+module.exports = { dayKey, addDays, weekStart, monthStart, addMonths, monthEnd, msUntilNextDay, isDay };

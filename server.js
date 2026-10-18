@@ -268,8 +268,8 @@ function createApp({
 
     'POST /api/game/:id/answer': async (req, res, id) => {
       const user = requireUser(req, res);
-      const { text } = await readJson(req);
-      json(res, 200, game.answer(id, user.id, text));
+      const { text, accept, reject } = await readJson(req);
+      json(res, 200, game.answer(id, user.id, text, { accept: typeof accept === 'string' ? accept : null, reject: reject === true }));
     },
 
     'POST /api/game/:id/skip': async (req, res, id) => {
@@ -278,10 +278,16 @@ function createApp({
       json(res, 200, game.skip(id, user.id));
     },
 
+    'GET /api/game/:id/answers': async (req, res, id, url) => {
+      const user = requireUser(req, res);
+      json(res, 200, game.themeAnswers(id, user.id, Number(url.searchParams.get('slot'))));
+    },
+
+    // ?period=day|week|month (semaine par défaut) & date=AAAA-MM-JJ (un jour de la période voulue).
     'GET /api/leaderboard': async (req, res, _id, url) => {
       const user = requireUser(req, res);
-      const week = url.searchParams.get('week');
-      json(res, 200, game.leaderboard(isDay(week) ? week : game.today(), user.id));
+      const date = url.searchParams.get('date') || url.searchParams.get('week');
+      json(res, 200, game.leaderboard(isDay(date) ? date : game.today(), user.id, url.searchParams.get('period') || 'week'));
     },
   };
 
