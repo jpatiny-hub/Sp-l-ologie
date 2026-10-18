@@ -90,15 +90,17 @@ Le jeu est hébergé sur un serveur personnel. Chaque fusion sur `main` lance le
 2. le port SSH du serveur est ouvert le temps du déploiement (action `.github/actions/firewall`,
    pare-feu OPNsense), puis refermé à la fin, même en cas d'échec ;
 3. la nouvelle version est copiée dans `$SPELEO_DEPLOY_PATH/releases/<commit>`, le lien
-   `current` bascule dessus d'un coup et le service `speleologie` redémarre ;
-4. le workflow vérifie que `http://127.0.0.1:$SPELEO_APP_PORT/api/health` répond.
+   `current` bascule dessus d'un coup et le service `speleologie` redémarre.
+
+Le workflow ne vérifie pas que le jeu a bien redémarré : `GET /api/health` (qui répond
+`{"ok":true}` quand le jeu et sa base fonctionnent) peut servir à une surveillance côté serveur.
 
 Les deux versions précédentes restent sur le serveur pour un retour en arrière (refaire pointer
 `current` vers l'une d'elles, puis redémarrer le service).
 
 Secrets attendus dans l'environnement GitHub `prod` : `OPNSENSE_CREDENTIALS`,
 `OPNSENSE_ENDPOINT`, `OPNSENSE_RULE_ID`, `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`, `DEPLOY_HOST`,
-`DEPLOY_USER`, `SPELEO_DEPLOY_PATH`, `SPELEO_APP_PORT`.
+`DEPLOY_USER`, `SPELEO_DEPLOY_PATH`.
 
 ### À préparer une fois sur le serveur
 
@@ -109,7 +111,7 @@ Secrets attendus dans l'environnement GitHub `prod` : `OPNSENSE_CREDENTIALS`,
     En production, le jeu refuse de démarrer sans cette variable, pour ne jamais ranger la base
     dans un dossier de version qui sera supprimé.
   - `HOST=127.0.0.1` : le jeu n'écoute que localement, derrière le proxy.
-  - `PORT` : la même valeur que le secret `SPELEO_APP_PORT`.
+  - `PORT` : le port vers lequel pointe le proxy HTTPS.
 - **Le droit de redémarrer le service** pour l'utilisateur de déploiement, par exemple dans
   `/etc/sudoers.d/speleologie` :
   `deploy ALL=(root) NOPASSWD: /usr/bin/systemctl restart speleologie`.

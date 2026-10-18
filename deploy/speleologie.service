@@ -1,6 +1,6 @@
 # Modèle de service systemd pour le jeu (à copier dans /etc/systemd/system/speleologie.service).
 # Remplacer /srv/speleologie par la valeur du secret SPELEO_DEPLOY_PATH,
-# 3000 par celle de SPELEO_APP_PORT, et l'utilisateur par celui qui fait tourner le jeu.
+# 3000 par le port vers lequel pointe le proxy HTTPS, et l'utilisateur par celui qui fait tourner le jeu.
 # Puis : systemctl daemon-reload && systemctl enable --now speleologie
 
 [Unit]

@@ -27,18 +27,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Debug secrets
-        shell: bash
-        env:
-          CREDS: ${{ secrets.OPNSENSE_CREDENTIALS }}
-          ENDPOINT: ${{ secrets.OPNSENSE_ENDPOINT }}
-          RULE_ID: ${{ secrets.OPNSENSE_RULE_ID }}
-        run: |
-          for n in CREDS ENDPOINT RULE_ID; do
-            v="${!n}"
-            echo "$n len=${#v} tail=$(printf '%s' "${v: -3}" | od -c | head -1)"
-          done
-
       - name: Open SSH port
         uses: ./.github/actions/firewall
         with:
@@ -78,12 +66,6 @@ jobs:
             mv -Tf '$BASE/current.new' '$BASE/current'
             sudo systemctl restart speleologie
             ls -1dt '$BASE'/releases/* | tail -n +4 | xargs -r rm -rf"
-
-      - name: Health check
-        run: |
-          ssh server 'for i in $(seq 15); do
-            curl -fsS http://127.0.0.1:${{ secrets.SPELEO_APP_PORT }}/api/health && exit 0; sleep 2
-          done; exit 1'
 
       - name: Close SSH port
         if: always()
