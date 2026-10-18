@@ -81,51 +81,51 @@ fréquente que son niveau ne le laisse penser peut descendre d'un niveau.
   `npm run password:reset -- <identifiant>` affiche un mot de passe temporaire et un nouveau code.
 - **Durée du chrono** : variable d'environnement `TIMER_SECONDS` (30 par défaut).
 
-## Mise en ligne (Railway)
+## Mise en ligne
 
-Le jeu tient en une seule application avec un petit disque pour la base SQLite. Le fichier
-`railway.json` contient déjà la configuration de construction et de démarrage.
+Le jeu est hébergé sur un serveur personnel. Chaque fusion sur `main` lance le workflow
+`.github/workflows/deploy.yml` :
 
-1. Sur [railway.com](https://railway.com), se connecter avec GitHub et prendre la formule
-   *Hobby* (un seul abonnement pour toutes vos applications).
-2. **New Project** → **Deploy from GitHub repo** → choisir `Sp-l-ologie`.
-3. Dans le service : **Settings** → **Source** → vérifier que la branche est `main`.
-4. Ajouter un **volume** au service (clic droit sur le service → *Attach volume*, ou
-   **Command Palette** → *Volume*) avec le chemin de montage **`/data`**.
-   Indispensable : c'est là que sont gardés les comptes et les scores.
-5. **Settings** → **Networking** → **Generate Domain**. L'adresse obtenue est le lien à partager.
+1. les tests sont exécutés (rien n'est déployé s'ils échouent) ;
+2. le port SSH du serveur est ouvert le temps du déploiement (action `.github/actions/firewall`,
+   pare-feu OPNsense), puis refermé à la fin, même en cas d'échec ;
+3. la nouvelle version est copiée dans `$SPELEO_DEPLOY_PATH/releases/<commit>`, le lien
+   `current` bascule dessus d'un coup et le service `speleologie` redémarre ;
+4. le workflow vérifie que `http://127.0.0.1:$SPELEO_APP_PORT/api/health` répond.
 
-Les variables `NODE_ENV=production` et `DATA_DIR=/data` sont déjà définies dans le `Dockerfile` ;
-Railway fournit lui-même `PORT`. Chaque modification poussée sur `main` est redéployée
-automatiquement (le jeu est indisponible quelques secondes pendant la mise à jour).
+Les deux versions précédentes restent sur le serveur pour un retour en arrière (refaire pointer
+`current` vers l'une d'elles, puis redémarrer le service).
 
-Pour lancer un script d'administration (rapport des réponses, réinitialisation d'un mot de
-passe), ouvrir un terminal sur le service avec la [CLI Railway](https://docs.railway.com/guides/cli)
-(`railway ssh`), puis par exemple `npm run answers:report`.
-Pensez à activer les **sauvegardes du volume** dans ses réglages.
+Secrets attendus dans l'environnement GitHub `prod` : `OPNSENSE_CREDENTIALS`,
+`OPNSENSE_ENDPOINT`, `OPNSENSE_RULE_ID`, `DEPLOY_SSH_KEY`, `DEPLOY_KNOWN_HOSTS`, `DEPLOY_HOST`,
+`DEPLOY_USER`, `SPELEO_DEPLOY_PATH`, `SPELEO_APP_PORT`.
 
-Le `Dockerfile` permet aussi d'héberger le jeu ailleurs (Fly.io avec le `fly.toml` fourni,
-Render avec disque persistant, petit serveur avec Coolify) : il suffit d'un volume monté sur `/data`.
+### À préparer une fois sur le serveur
+
+- **Node.js ≥ 22.13** (aucune dépendance npm à installer).
+- **Le service** : modèle dans [`deploy/speleologie.service`](deploy/speleologie.service), à adapter
+  (chemins, port, utilisateur). Variables importantes :
+  - `DATA_DIR` : dossier **permanent hors des versions**, qui contiendra `speleologie.sqlite`.
+    En production, le jeu refuse de démarrer sans cette variable, pour ne jamais ranger la base
+    dans un dossier de version qui sera supprimé.
+  - `HOST=127.0.0.1` : le jeu n'écoute que localement, derrière le proxy.
+  - `PORT` : la même valeur que le secret `SPELEO_APP_PORT`.
+- **Le droit de redémarrer le service** pour l'utilisateur de déploiement, par exemple dans
+  `/etc/sudoers.d/speleologie` :
+  `deploy ALL=(root) NOPASSWD: /usr/bin/systemctl restart speleologie`.
+- **Un proxy HTTPS** (nginx, Caddy, Traefik…) vers `127.0.0.1:<port>`. HTTPS est obligatoire :
+  en production, le cookie de session n'est envoyé qu'en connexion sécurisée. Le proxy doit
+  ajouter l'adresse du visiteur dans `X-Forwarded-For` (le jeu en lit la dernière valeur pour
+  limiter les tentatives de connexion).
+- **Des sauvegardes** de `DATA_DIR/speleologie.sqlite`, par exemple chaque nuit :
+  `sqlite3 speleologie.sqlite ".backup sauvegarde.sqlite"`.
+
+Scripts d'administration sur le serveur, depuis le dossier `current` et avec les mêmes variables
+que le service : `DATA_DIR=… npm run answers:report`, `DATA_DIR=… npm run password:reset -- <identifiant>`.
+
+Le `Dockerfile` reste disponible pour un hébergement en conteneur (volume monté sur `/data`).
 
 Le site n'est pas référencé par les moteurs de recherche, et il faut se connecter pour jouer.
-
-## Mise en ligne sur un serveur personnel (Coolify)
-
-1. Dans Coolify : **+ New** → **Resource** → **Public Repository** (ou **Private Repository
-   (with GitHub App)** si le dépôt devient privé), adresse
-   `https://github.com/jpatiny-hub/Sp-l-ologie`, branche `main`.
-2. **Build Pack** : `Dockerfile`. **Ports Exposes** : `8080`.
-3. **Persistent Storage** → ajouter un volume avec le chemin de destination **`/data`**
-   (indispensable : comptes et scores y sont conservés).
-4. **Health check** (facultatif) : chemin `/api/health`.
-5. **Domains** : indiquer l'adresse choisie (par exemple `https://jeu.mondomaine.be`, ou celle
-   fournie par le tunnel Cloudflare), puis **Deploy**.
-6. Activer le déploiement automatique (webhook GitHub) pour que chaque modification sur `main`
-   soit mise en ligne.
-
-Scripts d'administration : ouvrir le **Terminal** du conteneur dans Coolify, puis par exemple
-`npm run answers:report`. Sauvegarde : copier régulièrement `/data/speleologie.sqlite`
-(sauvegardes planifiées du volume ou script `sqlite3 … ".backup …"`).
 
 ## Organisation du code
 

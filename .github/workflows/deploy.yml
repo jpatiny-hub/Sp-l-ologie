@@ -1,0 +1,83 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Deux déploiements ne doivent jamais se chevaucher : le second fermerait le port SSH du premier.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+      - run: npm test
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Open SSH port
+        uses: ./.github/actions/firewall
+        with:
+          enabled: '1'
+          credentials: ${{ secrets.OPNSENSE_CREDENTIALS }}
+          endpoint: ${{ secrets.OPNSENSE_ENDPOINT }}
+          rule_id: ${{ secrets.OPNSENSE_RULE_ID }}
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          echo "${{ secrets.DEPLOY_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host server
+            HostName ${{ secrets.DEPLOY_HOST }}
+            User ${{ secrets.DEPLOY_USER }}
+            IdentityFile ~/.ssh/deploy_key
+            ConnectTimeout 30
+            ServerAliveInterval 60
+          EOF
+
+      # Each release lands in its own folder and `current` switches over in one move: the running
+      # game never sees a half-copied tree, and the previous two releases stay for a rollback.
+      - name: Deploy
+        env:
+          BASE: ${{ secrets.SPELEO_DEPLOY_PATH }}
+        run: |
+          : "${BASE:?SPELEO_DEPLOY_PATH is not set}"
+          RELEASE="$BASE/releases/$GITHUB_SHA"
+          tar -czf - package.json server.js src public data scripts | ssh server "
+            set -e
+            rm -rf '$RELEASE' && mkdir -p '$RELEASE'
+            tar -xzf - -C '$RELEASE'
+            ln -sfn '$RELEASE' '$BASE/current.new'
+            mv -Tf '$BASE/current.new' '$BASE/current'
+            sudo systemctl restart speleologie
+            ls -1dt '$BASE'/releases/* | tail -n +4 | xargs -r rm -rf"
+
+      - name: Health check
+        run: |
+          ssh server 'for i in $(seq 15); do
+            curl -fsS http://127.0.0.1:${{ secrets.SPELEO_APP_PORT }}/api/health && exit 0; sleep 2
+          done; exit 1'
+
+      - name: Close SSH port
+        if: always()
+        uses: ./.github/actions/firewall
+        with:
+          enabled: '0'
+          credentials: ${{ secrets.OPNSENSE_CREDENTIALS }}
+          endpoint: ${{ secrets.OPNSENSE_ENDPOINT }}
+          rule_id: ${{ secrets.OPNSENSE_RULE_ID }}

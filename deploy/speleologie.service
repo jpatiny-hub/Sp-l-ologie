@@ -1,0 +1,43 @@
+# Modèle de service systemd pour le jeu (à copier dans /etc/systemd/system/speleologie.service).
+# Remplacer /srv/speleologie par la valeur du secret SPELEO_DEPLOY_PATH,
+# 3000 par celle de SPELEO_APP_PORT, et l'utilisateur par celui qui fait tourner le jeu.
+# Puis : systemctl daemon-reload && systemctl enable --now speleologie
+
+[Unit]
+Description=Spéléologie (jeu quotidien)
+After=network.target
+
+[Service]
+Type=simple
+User=speleologie
+Group=speleologie
+# Lien vers la version en cours, basculé par le workflow de déploiement.
+WorkingDirectory=/srv/speleologie/current
+ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning server.js
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=3000
+# Dossier permanent, hors des versions (qui sont supprimées au fil des déploiements).
+Environment=DATA_DIR=/srv/speleologie/data
+Restart=on-failure
+RestartSec=5
+
+# Durcissement : le jeu ne peut écrire que dans son dossier de données.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ReadWritePaths=/srv/speleologie/data
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictNamespaces=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+CapabilityBoundingSet=
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

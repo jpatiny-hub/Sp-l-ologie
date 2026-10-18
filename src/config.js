@@ -15,6 +15,8 @@ module.exports = {
   TIMER_GRACE_MS: 2500,
   SESSION_DAYS: 90,
   PORT: Number(process.env.PORT) || 3000,
+  // Interface d'écoute (toutes par défaut ; 127.0.0.1 derrière un proxy).
+  HOST: process.env.HOST || undefined,
   DATA_DIR: process.env.DATA_DIR || path.join(ROOT, 'var'),
   THEMES_DIR: process.env.THEMES_DIR || path.join(ROOT, 'data', 'themes'),
   PUBLIC_DIR: path.join(ROOT, 'public'),
