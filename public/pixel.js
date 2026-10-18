@@ -34,10 +34,36 @@
     [0, 0], [6, 0.0005], [24, 0.02], [44, 0.4], [58, 1.2], [110, 35], [260, 660], [500, 2890], [650, 5150], [700, 6371],
   ];
 
-  const TIER_COLORS = {
-    invalid: '#4a4a4a', timeout: '#4a4a4a', skip: '#4a4a4a',
-    evident: '#8b5a2b', courant: '#e8c547', original: '#f08a24', rare: '#d9342b', tres_rare: '#9b4dca', pepite: '#5ee0ff',
+  const PALETTES = {
+    normal: {
+      invalid: '#4a4a4a', timeout: '#4a4a4a', skip: '#4a4a4a',
+      evident: '#8b5a2b', courant: '#e8c547', original: '#f08a24', rare: '#d9342b', tres_rare: '#9b4dca', pepite: '#5ee0ff',
+    },
+    // Mode daltonien : palette d'Okabe et Ito, distinguable pour toutes les formes de daltonisme.
+    colorblind: {
+      invalid: '#4a4a4a', timeout: '#4a4a4a', skip: '#4a4a4a',
+      evident: '#cfc3a6', courant: '#f0e442', original: '#e69f00', rare: '#56b4e9', tres_rare: '#0072b2', pepite: '#f5f5f5',
+    },
   };
+  // Objet partagé avec l'interface : son contenu change avec le mode daltonien.
+  const TIER_COLORS = { ...PALETTES.normal };
+
+  // Symbole propre à chaque rareté (mode daltonien) : texte et motif 5 × 5 pour les repères du puits.
+  const TIER_SYMBOLS = { evident: '·', courant: '–', original: '+', rare: '×', tres_rare: '=', pepite: '◆', skip: '', timeout: '', invalid: '' };
+  const TIER_GLYPHS = {
+    evident: ['.....', '.....', '..#..', '.....', '.....'],
+    courant: ['.....', '.....', '.###.', '.....', '.....'],
+    original: ['.....', '..#..', '.###.', '..#..', '.....'],
+    rare: ['.....', '.#.#.', '..#..', '.#.#.', '.....'],
+    tres_rare: ['.....', '.###.', '.....', '.###.', '.....'],
+    pepite: ['..#..', '.#.#.', '#...#', '.#.#.', '..#..'],
+  };
+  let colorblind = false;
+
+  function setColorblind(on) {
+    colorblind = Boolean(on);
+    Object.assign(TIER_COLORS, colorblind ? PALETTES.colorblind : PALETTES.normal);
+  }
 
   function depthKm(points) {
     const p = Math.max(0, Math.min(MAX_POINTS, points));
@@ -160,6 +186,18 @@
   const AMMONITE = ['.###.', '#...#', '#.#.#', '#..##', '.##..'];
   const BONE = ['##...##', '.#####.', '##...##'];
   const DIAMOND = ['.c.', 'cwc', '.c.'];
+  const TRILOBITE = ['.aaa.', 'abxba', '.bxb.', 'abxba', '.bxb.', 'abxba', '..x..'];
+  const AMPHORA = ['.###.', '..#..', '#.#.#', '#####', '.###.', '.###.', '..#..'];
+  const MOLE = ['..###..', '.#####.', '#######p', '.#.#.#.'];
+  const WORM = ['.pp...', 'p..p.p', '....p.'];
+  // Squelette humain allongé (sépulture ancienne), tête à gauche.
+  const SKELETON = [
+    '.##............',
+    '#..#.#.#.#.....',
+    '#..##########..',
+    '.##..#.#.#.#.##',
+    '.............#.#',
+  ];
 
   function stamp(set, pattern, x0, y0, colors) {
     pattern.forEach((row, dy) => {
@@ -246,29 +284,186 @@
       if (hash(x, 1, 9) > 0.65) set(x, SKY - 2, '#6dbb45');
     }
 
-    // Fossiles, os, pépites d'or et diamants, à l'écart du puits.
-    const sideX = (i, s) => {
-      const left = hash(i, s, 21) < 0.5;
-      const span = SHAFT_X - 14;
-      return left ? 4 + Math.floor(hash(i, s, 22) * span) : SHAFT_X + SHAFT_W + 6 + Math.floor(hash(i, s, 22) * span);
-    };
-    for (let i = 0; i < 5; i++) {
-      stamp(set, AMMONITE, sideX(i, 1), SKY + 26 * PPP + Math.floor(hash(i, 2, 23) * 14 * PPP), { '#': '#d9d2c3' });
-    }
-    stamp(set, BONE, sideX(1, 5), SKY + 14 * PPP, { '#': '#ece4cf' });
-    for (let i = 0; i < 6; i++) {
-      const gx = sideX(i, 7);
-      const gy = SKY + 65 * PPP + Math.floor(hash(i, 8, 24) * 40 * PPP);
-      set(gx, gy, '#f5c542');
-      set(gx + 1, gy, '#ffe48a');
-      set(gx, gy + 1, '#c99a26');
-    }
-    for (let i = 0; i < 7; i++) {
-      stamp(set, DIAMOND, sideX(i, 9), SKY + 150 * PPP + Math.floor(hash(i, 10, 25) * 70 * PPP), { c: '#9fe8ff', w: '#ffffff' });
-    }
-
+    decorate(set);
     ctx.putImageData(img, 0, 0);
     return canvas;
+  }
+
+  // Éléments animés du décor, repérés pendant la construction du monde.
+  const twinkles = [];
+  const bubbles = [];
+
+  function line(set, x0, y0, x1, y1, color) {
+    const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0), 1);
+    for (let i = 0; i <= n; i++) set(Math.round(x0 + ((x1 - x0) * i) / n), Math.round(y0 + ((y1 - y0) * i) / n), color);
+  }
+
+  /** Appelle fn(x, y, r) pour chaque pixel d'une ellipse (r : distance normalisée au centre, 0 → 1). */
+  function ellipse(cx, cy, rx, ry, fn, rough = 0) {
+    for (let y = -ry - 1; y <= ry + 1; y++) {
+      for (let x = -rx - 1; x <= rx + 1; x++) {
+        const r = Math.sqrt((x / rx) ** 2 + (y / ry) ** 2);
+        if (r <= 1 + (hash(cx + x, cy + y, 31) - 0.5) * rough) fn(cx + x, cy + y, r, x, y);
+      }
+    }
+  }
+
+  // Profondeur (en pixels sous la surface) → ordonnée dans le monde.
+  const at = (d) => SKY + d;
+
+  // Fossiles, squelettes, poche de pétrole, galerie de mine… couche par couche, à l'écart du puits.
+  function decorate(set) {
+    // Terre végétale : racines et ver de terre.
+    [8, 23, 41, 57, 104, 118, 133, 150].forEach((x, i) => {
+      let px = x;
+      for (let y = 1; y < 6 + (i % 3) * 2; y++) {
+        if (hash(x, y, 40) < 0.3) px += hash(x, y, 41) < 0.5 ? -1 : 1;
+        set(px, at(y), '#8a6a3f');
+      }
+    });
+    stamp(set, WORM, 30, at(6), { p: '#d98a8a' });
+
+    // Limon : sépulture ancienne, amphore, taupe dans sa galerie, os.
+    stamp(set, SKELETON, 8, at(30), { '#': '#ece4cf' });
+    stamp(set, AMPHORA, 134, at(18), { '#': '#b5603b' });
+    stamp(set, BONE, 44, at(20), { '#': '#ece4cf' });
+    for (let x = 98; x < 126; x++) {
+      const y = at(38) + Math.round(Math.sin(x * 0.35) * 1.5);
+      set(x, y, '#5e3c1f');
+      set(x, y + 1, '#5e3c1f');
+      set(x, y + 2, '#6b4627');
+    }
+    stamp(set, MOLE, 118, at(35), { '#': '#3b3533', p: '#f0a3a3' });
+
+    // Calcaire : grotte à concrétions (clin d'œil aux grottes de Han), fossiles, poche de pétrole.
+    ellipse(24, at(62), 18, 6, (x, y) => set(x, y, '#141a21'), 0.35);
+    for (let x = 9; x < 40; x += 3) {
+      const len = 1 + Math.floor(hash(x, 1, 42) * 4);
+      const top = at(57) + Math.round(hash(x, 2, 43) * 2);
+      for (let k = 0; k < len; k++) set(x, top + k, k === len - 1 ? '#c9d2da' : '#9aa6b2');
+      const floor = at(67) - Math.round(hash(x, 3, 44) * 2);
+      for (let k = 0; k < Math.floor(hash(x, 4, 45) * 3); k++) set(x + 1, floor - k, '#9aa6b2');
+    }
+    for (let x = 18; x < 30; x++) set(x, at(67), '#3b6e8f');
+    twinkles.push({ x: 26, y: at(66), color: '#bfe6f3' });
+    [[50, 54], [12, 76], [148, 52], [102, 52], [62, 80]].forEach(([x, d]) => stamp(set, AMMONITE, x, at(d), { '#': '#d9d2c3' }));
+    stamp(set, TRILOBITE, 36, at(73), { a: '#bfb39a', b: '#a89c84', x: '#8c826e' });
+    [[56, 60], [150, 64]].forEach(([x, d]) => {
+      for (let k = 0; k < 8; k += 2) set(x, at(d + k), '#cfc8b8');
+    });
+    // Piège pétrolier : gaz au sommet du dôme, pétrole dessous, couverture d'argile.
+    ellipse(122, at(77), 22, 7, (x, y, r, dx, dy) => {
+      if (r > 0.86) set(x, y, '#6f6250');
+      else if (dy < -2) set(x, y, '#a9b6c0');
+      else set(x, y, hash(x, y, 46) < 0.05 ? '#4a3a63' : hash(x, y, 47) < 0.06 ? '#5b4a2a' : '#0f0b07');
+    });
+    twinkles.push({ x: 116, y: at(78), color: '#7b6aa0' }, { x: 131, y: at(80), color: '#8a7442' });
+
+    // Houille : squelette d'iguanodon (découvert dans un charbonnage de Bernissart en 1878)
+    // et galerie de mine avec étançons, rails et berline.
+    const yb = at(110);
+    const bone = '#d9cfb8';
+    const spine = [[4, yb - 3], [12, yb - 6], [20, yb - 9], [27, yb - 11], [34, yb - 11], [40, yb - 10], [45, yb - 13], [48, yb - 15]];
+    for (let i = 1; i < spine.length; i++) line(set, ...spine[i - 1], ...spine[i], bone);
+    // Épines des vertèbres, juste au-dessus de la colonne.
+    const spineY = (x) => {
+      for (let i = 1; i < spine.length; i++) {
+        const [x0, y0] = spine[i - 1];
+        const [x1, y1] = spine[i];
+        if (x <= x1) return Math.round(y0 + ((x - x0) / (x1 - x0)) * (y1 - y0));
+      }
+      return spine[spine.length - 1][1];
+    };
+    for (let x = 8; x < 44; x += 2) set(x, spineY(x) - 1, bone);
+    for (let x = 28; x <= 39; x += 2) line(set, x, yb - 10, x - 1, yb - 10 + 4 + ((x * 7) % 3), bone);
+    ['.####..', '#.#####', '.######', '..##.#.'].forEach((row, dy) => {
+      [...row].forEach((ch, dx) => ch === '#' && set(47 + dx, yb - 18 + dy, bone));
+    });
+    line(set, 26, yb - 11, 29, yb - 5, bone);
+    line(set, 29, yb - 5, 25, yb - 1, bone);
+    line(set, 23, yb, 28, yb, bone);
+    line(set, 38, yb - 9, 41, yb - 5, bone);
+    line(set, 41, yb - 5, 40, yb - 3, bone);
+    set(42, yb - 6, bone);
+    set(43, yb - 7, bone);
+    const gTop = at(96);
+    for (let y = gTop; y < gTop + 10; y++) for (let x = 94; x < 154; x++) set(x, y, y === gTop ? '#2a221b' : '#3a2c20');
+    for (let x = 96; x < 154; x += 12) {
+      line(set, x, gTop + 1, x, gTop + 8, '#8a5a2b');
+      line(set, x - 2, gTop + 1, x + 2, gTop + 1, '#a06d3a');
+    }
+    for (let x = 94; x < 154; x++) {
+      set(x, gTop + 8, x % 3 === 0 ? '#5a3a20' : '#3a2c20');
+      set(x, gTop + 9, '#7d7d86');
+    }
+    ['k.kkk.k', 'gggggggg', 'gggggggg', '.w....w.'].forEach((row, dy) => {
+      [...row].forEach((ch, dx) => {
+        if (ch !== '.') set(124 + dx, gTop + 4 + dy, { k: '#111114', g: '#6b6f78', w: '#222226' }[ch]);
+      });
+    });
+    set(110, gTop + 2, '#3a3a44');
+    set(110, gTop + 3, '#ffd36b');
+    twinkles.push({ x: 110, y: gTop + 3, color: '#fff1a8', steady: true });
+
+    // Croûte : géode d'améthyste, filons de quartz, pépites d'or.
+    ellipse(22, at(160), 8, 7, (x, y, r, dx, dy) => {
+      if (r > 0.82) set(x, y, '#8e8a99');
+      else if (r > 0.3) {
+        const facet = Math.floor((Math.atan2(dy, dx) + Math.PI) * 2.5) % 3;
+        set(x, y, ['#9b59b6', '#c39be0', '#6c3483'][facet]);
+      } else set(x, y, '#2a1838');
+    });
+    twinkles.push({ x: 19, y: at(158), color: '#f1e1ff' }, { x: 25, y: at(163), color: '#f1e1ff' });
+    [[100, 130, 122, 146], [128, 170, 150, 160], [40, 196, 60, 206]].forEach(([x0, d0, x1, d1]) => line(set, x0, at(d0), x1, at(d1), '#e9e4dc'));
+    [[44, 132], [110, 140], [140, 178], [8, 184], [58, 150], [100, 204]].forEach(([gx, d]) => {
+      set(gx, at(d), '#f5c542');
+      set(gx + 1, at(d), '#ffe48a');
+      set(gx, at(d) + 1, '#c99a26');
+      twinkles.push({ x: gx + 1, y: at(d), color: '#ffffff' });
+    });
+
+    // Manteau supérieur : olivine, diamonds, poches de magma.
+    for (let i = 0; i < 26; i++) {
+      const x = sideX(i, 50);
+      const d = 226 + Math.floor(hash(i, 51, 52) * 280);
+      set(x, at(d), '#a5d16a');
+      set(x + 1, at(d), '#7fb24a');
+      set(x, at(d) + 1, '#7fb24a');
+    }
+    for (let i = 0; i < 7; i++) {
+      const x = sideX(i, 9);
+      const y = at(300 + Math.floor(hash(i, 10, 25) * 140));
+      stamp(set, DIAMOND, x, y, { c: '#9fe8ff', w: '#ffffff' });
+      twinkles.push({ x: x + 1, y: y + 1, color: '#ffffff' });
+    }
+    [[24, 270, 7], [130, 340, 8], [40, 420, 6], [118, 480, 9]].forEach(([x, d, r]) => magma(set, x, at(d), r));
+
+    // Manteau inférieur : plaque océanique plongeante, panache chaud, magma.
+    for (let k = 0; k < 220; k++) {
+      const x = Math.round(k * 0.28);
+      for (let w = 0; w < 5; w++) set(x, at(540 + k) + w, hash(x, k, 53) < 0.5 ? '#3a1a14' : '#451f17');
+    }
+    for (let d = 560; d < 990; d++) {
+      const cx = 140 + Math.round(Math.sin(d * 0.03) * 3);
+      const half = 3 + Math.round(Math.sin(d * 0.011) * 1.5);
+      for (let x = cx - half; x <= cx + half; x++) set(x, at(d), Math.abs(x - cx) < half - 1 ? '#b8532c' : '#9c4227');
+    }
+    [[30, 640, 8], [112, 760, 10], [50, 880, 7]].forEach(([x, d, r]) => magma(set, x, at(d), r));
+
+    // Noyau : quelques étincelles de fer en fusion.
+    for (let i = 0; i < 10; i++) twinkles.push({ x: sideX(i, 60), y: at(1010 + Math.floor(hash(i, 61, 62) * 380)), color: '#fff6cc' });
+  }
+
+  function magma(set, cx, cy, r) {
+    ellipse(cx, cy, r, Math.ceil(r / 2), (x, y, d) => set(x, y, d > 0.75 ? '#c4481f' : d > 0.4 ? '#e8742a' : '#ffd25a'), 0.3);
+    bubbles.push({ x: cx, y: cy, r });
+  }
+
+  // Abscisse au hasard de part et d'autre du puits.
+  function sideX(i, s) {
+    const left = hash(i, s, 21) < 0.5;
+    const span = SHAFT_X - 14;
+    return left ? 4 + Math.floor(hash(i, s, 22) * span) : SHAFT_X + SHAFT_W + 6 + Math.floor(hash(i, s, 22) * span);
   }
 
   // Foreuse : carrosserie + mèche animée (3 images).
@@ -340,6 +535,11 @@
       this.tourDir = 1;
       this.tourPause = 0;
       this.onDepth = null;
+      // Appelés pendant la descente animée : début/fin du forage, passage d'une couche.
+      this.onDrill = null;
+      this.onZone = null;
+      this.wasDrilling = false;
+      this.zone = 0;
       this.last = performance.now();
       this.frame = this.frame.bind(this);
       requestAnimationFrame(this.frame);
@@ -353,6 +553,7 @@
       if (!animate) {
         this.depth = this.target;
         this.camY = this.cameraTarget();
+        this.zone = zoneIndex(this.depth);
       }
       this.emitDepth();
     }
@@ -412,9 +613,17 @@
             color: colors[Math.floor(Math.random() * colors.length)],
           });
         }
+        const zone = zoneIndex(this.depth);
+        if (zone !== this.zone && this.onZone) this.onZone(zone);
+        this.zone = zone;
       } else if (this.depth > this.target) {
         this.depth = this.target;
+        this.zone = zoneIndex(this.depth);
         this.emitDepth();
+      }
+      if (this.drilling !== this.wasDrilling) {
+        this.wasDrilling = this.drilling;
+        if (this.onDrill) this.onDrill(this.wasDrilling, this.zone);
       }
       this.particles = this.particles.filter((p) => {
         p.life -= dt;
@@ -452,6 +661,25 @@
       ctx.save();
       ctx.translate(0, -cam);
 
+      // Décor animé : scintillements et bulles de magma.
+      const inView = (y) => y >= cam - 4 && y <= cam + this.h + 4;
+      twinkles.forEach((tw, i) => {
+        if (!inView(tw.y)) return;
+        const on = tw.steady ? Math.sin(time * 9 + i) > -0.6 : hash(i, Math.floor(time * 3 + i * 0.37), 70) > 0.8;
+        if (!on) return;
+        ctx.fillStyle = tw.color;
+        ctx.fillRect(tw.x, tw.y, 1, 1);
+      });
+      bubbles.forEach((b, i) => {
+        if (!inView(b.y)) return;
+        const span = Math.ceil(b.r / 2) * 2;
+        for (let k = 0; k < 2; k++) {
+          const phase = (time * 4 + i * 1.7 + k * span * 0.5) % span;
+          ctx.fillStyle = '#fff1a8';
+          ctx.fillRect(b.x - 2 + k * 4, Math.round(b.y + span / 2 - phase), 1, 1);
+        }
+      });
+
       // Puits creusé, coloré selon la roche traversée.
       const tip = Math.round(this.tipY());
       for (let zi = 0; zi < ZONES.length; zi++) {
@@ -486,6 +714,7 @@
         ctx.fillRect(fx - 1, y - 4, 7, 7);
         ctx.fillStyle = TIER_COLORS[layer.tier] || '#888';
         ctx.fillRect(fx, y - 3, 5, 5);
+        if (colorblind && TIER_GLYPHS[layer.tier]) drawPattern(ctx, TIER_GLYPHS[layer.tier], fx, y - 3, { '#': '#000' });
         drawDigit(ctx, i + 1, SHAFT_X + SHAFT_W + 4 + stagger * 5, y - 3, '#fff');
       });
 
@@ -530,5 +759,7 @@
     }
   }
 
-  global.Pixel = { DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, zoneName, TIER_COLORS, WIDTH: W, HEIGHT: H };
+  global.Pixel = {
+    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, WIDTH: W, HEIGHT: H,
+  };
 })(window);

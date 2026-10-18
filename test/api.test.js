@@ -7,6 +7,7 @@ const path = require('node:path');
 const { createApp } = require('../server');
 const { openDb } = require('../src/db');
 const { loadThemes } = require('../src/themes');
+const { matchAnswer } = require('../src/matching');
 
 const THEMES = loadThemes(path.join(__dirname, '..', 'data', 'themes'));
 
@@ -150,12 +151,25 @@ test('partie quotidienne complète, chrono, thèmes communs et podium', async ()
     const bobRes = await bob(`/api/game/${bobGame.id}/answer`, { text: again.rounds[0].answer });
     assert.ok(bobRes.data.round.points < firstPoints);
 
+    // Statistiques de fin de partie : scores du jour (anonymes) et réponses du thème.
+    const finished = (await alice(`/api/game/${game.id}`)).data;
+    assert.deepEqual(finished.dayScores, [firstPoints + 40]);
+    assert.equal(finished.rounds[0].othersCount, 1, 'Bob a donné la même réponse');
+    const answers = (await alice(`/api/game/${game.id}/answers?slot=0`)).data;
+    assert.equal(answers.title, finished.rounds[0].title);
+    const mine = answers.answers.find((a) => a.mine);
+    assert.equal(mine.label, finished.rounds[0].answer);
+    assert.equal(mine.count, 2);
+    assert.ok(answers.answers.every((a, i, all) => i === 0 || all[i - 1].points <= a.points), 'du plus évident au plus rare');
+    assert.equal((await bob(`/api/game/${bobGame.id}/answers?slot=0`)).status, 409, 'pas avant la fin de la partie');
+
     // Bob ne peut pas voir la partie d'Alice.
     assert.equal((await bob(`/api/game/${game.id}`)).status, 404);
 
     // Podium de la semaine.
     const board = (await bob('/api/leaderboard')).data;
-    assert.equal(board.weekStart, '2026-10-12');
+    assert.equal(board.start, '2026-10-12');
+    assert.equal(board.end, '2026-10-18');
     assert.equal(board.entries[0].username, 'alice');
     assert.equal(board.entries[0].score, firstPoints + 40);
     assert.equal(board.me.username, 'bob');
@@ -167,10 +181,20 @@ test('partie quotidienne complète, chrono, thèmes communs et podium', async ()
     assert.notEqual(tomorrow.id, game.id);
     app.clock.now += 6 * 24 * 3600 * 1000;
     const nextWeek = (await alice('/api/leaderboard')).data;
-    assert.equal(nextWeek.weekStart, '2026-10-19');
+    assert.equal(nextWeek.start, '2026-10-19');
     assert.equal(nextWeek.entries.length, 0);
     const lastWeek = (await alice('/api/leaderboard?week=2026-10-12')).data;
     assert.equal(lastWeek.entries[0].score, firstPoints + 40);
+
+    // Podiums du jour et du mois.
+    const day = (await alice('/api/leaderboard?period=day&date=2026-10-14')).data;
+    assert.equal(day.entries.length, 2);
+    assert.equal(day.prev, '2026-10-13');
+    assert.equal(day.next, '2026-10-15');
+    const month = (await alice('/api/leaderboard?period=month')).data;
+    assert.deepEqual([month.start, month.end, month.prev, month.next], ['2026-10-01', '2026-10-31', '2026-09-01', null]);
+    assert.equal(month.entries.find((e) => e.username === 'alice').score, firstPoints + 40);
+    assert.equal((await alice('/api/leaderboard?period=year')).status, 400);
   } finally {
     await app.close();
   }
@@ -231,6 +255,46 @@ test('sans Cloudflare, un en-tête inventé ne contourne pas la limite ; seule l
       assert.equal(res.status, 201);
     }
     assert.equal((await signup(10, { 'CF-Connecting-IP': '203.0.113.99', 'X-Forwarded-For': '192.0.2.99, 198.51.100.9' })).status, 429);
+  } finally {
+    await app.close();
+  }
+});
+
+test('une saisie approximative est proposée au joueur avant d’être validée', async () => {
+  const app = await startServer();
+  try {
+    const dan = client(app.base);
+    await dan('/api/signup', { username: 'dan', password: 'secret123' });
+    const { data: game } = await dan('/api/game/start', { mode: 'daily' });
+    await dan(`/api/game/${game.id}/reveal`, {});
+    const round = app.db.prepare('SELECT theme_id FROM rounds WHERE game_id = ? AND slot = 0').get(game.id);
+    const theme = THEMES.get(round.theme_id);
+    // Une lettre doublée : reconnu, mais seulement après confirmation.
+    const typoOf = (a) => `${a.label}${a.label.slice(-1)}`;
+    const target = theme.answers.find((a) => {
+      const m = a.key.length >= 9 && /^[a-z]+[^sx]$/.test(a.key) && matchAnswer(theme, typoOf(a));
+      return m && m.approximate && m.answer === a;
+    });
+    const typo = typoOf(target);
+
+    let res = await dan(`/api/game/${game.id}/answer`, { text: typo });
+    assert.equal(res.data.result, 'confirm');
+    assert.equal(res.data.suggestion, target.label);
+    assert.equal(res.data.state.rounds[0].status, 'active', 'rien n’est validé tant que le joueur n’a pas confirmé');
+
+    // Refusée : comptée comme réponse inconnue, le joueur peut réessayer.
+    res = await dan(`/api/game/${game.id}/answer`, { text: typo, reject: true });
+    assert.equal(res.data.result, 'unknown');
+    assert.equal(app.db.prepare('SELECT n FROM unknown_answers WHERE theme_id = ?').get(round.theme_id).n, 1);
+
+    // Une confirmation pour une autre réponse que celle proposée ne valide rien.
+    res = await dan(`/api/game/${game.id}/answer`, { text: typo, accept: 'autre chose' });
+    assert.equal(res.data.result, 'confirm');
+
+    res = await dan(`/api/game/${game.id}/answer`, { text: typo, accept: target.label });
+    assert.equal(res.data.result, 'ok');
+    assert.equal(res.data.round.answer, target.label);
+    assert.equal(res.data.round.input, typo);
   } finally {
     await app.close();
   }

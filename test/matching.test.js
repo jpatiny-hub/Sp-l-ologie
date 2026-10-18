@@ -37,6 +37,15 @@ test('correspondance exacte et via une variante', () => {
   assert.equal(matchAnswer(theme, 'st-feuillien').answer.label, 'Saint-Feuillien');
 });
 
+test('seules les saisies différentes du nom affiché demandent une confirmation', () => {
+  // Casse, accents, article : c'est bien la réponse affichée.
+  assert.equal(matchAnswer(theme, 'le gruyere').approximate, false);
+  assert.equal(matchAnswer(theme, 'st-feuillien').approximate, false);
+  // Variante ou faute de frappe : le joueur doit valider la proposition.
+  assert.equal(matchAnswer(theme, 'Fromage de Herve').approximate, true);
+  assert.equal(matchAnswer(theme, 'Camenbert').approximate, true);
+});
+
 test('tolérance orthographique proportionnelle à la longueur', () => {
   assert.equal(matchAnswer(theme, 'Talegio').answer.label, 'Taleggio');
   assert.equal(matchAnswer(theme, 'Camenbert').answer.label, 'Camembert');
