@@ -1,4 +1,5 @@
 titre: Une danse
+actif: non
 1: Valse; Tango; Salsa; Rock = Rock'n'roll; Hip-hop; Danse classique = Ballet; Slow; Disco
 2: Cha-cha = Cha-cha-cha; Rumba; Samba; Paso doble; Flamenco; Breakdance = Break; Twist; Madison; Zumba; Bachata; Kizomba; Country = Line dance; Claquettes; Jazz = Danse jazz; Moonwalk; Macarena; Lambada; Danse du ventre = Danse orientale; Polka; Charleston; Swing; Danse contemporaine = Contemporain; Pole dance; Tecktonik = Electro; Limbo
 3: Quickstep; Fox-trot; Valse viennoise; Lindy hop; Boogie-woogie; Jive; Mambo; Merengue; Zouk; Reggaeton; Dancehall; Kuduro; Coupé-décalé; Ndombolo; Afro = Afrobeat; Voguing = Vogue; Krump; Popping; Locking; House; Shuffle; Twerk; Sirtaki; Tarentelle; Farandole; Bourrée; Gigue; Menuet; Gavotte; Quadrille; Cancan = French cancan; Java; Musette; Mazurka; Scottish; Bossa nova; Forró; Capoeira; Haka; Hula; Bharatanatyam; Bollywood; Danse des canards; Gangnam style; Danse irlandaise; Square dance; Danse folklorique; Gilles = Danse des Gilles; Danse macabre; Danse de la pluie; Pogo; Headbang; Jerk; Hustle; Mashed potato; Locomotion; Dabke
