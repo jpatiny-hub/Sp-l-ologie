@@ -6,7 +6,7 @@ const { ROUNDS_PER_GAME } = require('./config');
 /*
  * Badges
  * ------
- * Gagnés en partie quotidienne uniquement (l'entraînement est illimité). Chaque badge ne se gagne
+ * Gagnés en partie quotidienne, sauf ceux des thèmes rencontrés (tous modes confondus). Chaque badge ne se gagne
  * qu'une fois ; son « instance » garde la trace de l'occasion (jour, période de podium, année). Certains débloquent une carrosserie ou un foret.
  */
 
@@ -34,6 +34,17 @@ const PEPITES = [
   [1, "Chercheur d'or", 'Trouver une première pépite'],
   [10, "Filon d'or", 'Trouver 10 pépites'],
   [50, "Mine d'or", 'Trouver 50 pépites'],
+];
+
+// Thèmes rencontrés, tous modes de jeu confondus (forage du jour et mode illimité).
+const THEMES = [
+  [25, 'Coup de sonde'],
+  [100, 'Carottier'],
+  [250, 'Géologue'],
+  [500, 'Chef de chantier'],
+  [1000, 'Maître mineur'],
+  [2500, 'Grand prospecteur'],
+  [5000, 'Mémoire de la Terre'],
 ];
 
 // Jours particuliers : il suffit de terminer le forage du jour ce jour-là.
@@ -157,6 +168,9 @@ PEPITES.forEach(([n, name, description]) => {
     unlock: PEPITE_BODIES[n] ? { type: 'body', id: PEPITE_BODIES[n] } : null,
   });
 });
+THEMES.forEach(([n, name]) => {
+  define(`themes-${n}`, { category: 'themes', name, description: () => `Rencontrer ${n} thèmes, tous modes de jeu confondus`, icon: 'carotte', label: String(n) });
+});
 define('sans-eboulement', { category: 'exploit', name: 'Sans éboulement', description: () => 'Répondre aux 7 thèmes du jour, sans en passer aucun', icon: 'bouclier' });
 define('diamantaire', { category: 'exploit', name: 'Diamantaire', description: () => 'Donner 7 réponses rares ou mieux (60 points ou plus) dans le même forage', icon: 'diamant' });
 define('sentier-battu', { category: 'exploit', name: 'Sentier battu', description: () => 'Donner 7 réponses communes (moins de 40 points) dans le même forage', icon: 'sentier' });
@@ -251,6 +265,21 @@ class BadgeService {
     calendarKinds(day).forEach((kind) => this.give(userId, kind, day.slice(0, 4), day));
   }
 
+  /** Nombre de thèmes rencontrés (forages du jour et mode illimité). */
+  themesSeen(userId) {
+    const daily = this.db
+      .prepare("SELECT COUNT(*) AS n FROM rounds r JOIN games g ON g.id = r.game_id WHERE g.user_id = ? AND g.mode = 'daily' AND r.answered_at IS NOT NULL")
+      .get(userId).n;
+    const training = this.db.prepare('SELECT themes FROM training_stats WHERE user_id = ?').get(userId);
+    return daily + (training ? training.themes : 0);
+  }
+
+  /** Badges des thèmes rencontrés, vérifiés après chaque thème terminé. */
+  awardThemes(userId, today) {
+    const seen = this.themesSeen(userId);
+    THEMES.forEach(([n]) => seen >= n && this.give(userId, `themes-${n}`, '1', today));
+  }
+
   /** Rattrape les badges des forages joués avant l'arrivée des badges (sans effet ensuite). */
   backfill() {
     // Badges gagnés plusieurs fois avant la règle « une seule fois » : on garde le premier.
@@ -259,6 +288,8 @@ class BadgeService {
       FROM badges b GROUP BY b.user_id, b.kind)`);
     const ids = this.db.prepare("SELECT id FROM games WHERE mode = 'daily' AND finished_at IS NOT NULL ORDER BY day").all();
     for (const { id } of ids) this.awardForGame(id);
+    const users = this.db.prepare('SELECT id FROM users').all();
+    for (const { id } of users) this.awardThemes(id, new Date(this.now()).toISOString().slice(0, 10));
   }
 
   /**

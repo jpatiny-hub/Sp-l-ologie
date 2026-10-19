@@ -16,6 +16,7 @@ le **centre de la Terre**.
 - Fin de partie : position parmi les joueurs du jour, carnet de forage, nombre de joueurs ayant
   donné la même réponse et, pour chaque thème, toutes les réponses classées par rareté.
 - Bruitages synthétisés (sans fichier son), taille du texte réglable, mode daltonien.
+- Statistiques du carnet (forages du jour et mode illimité), badges de thèmes rencontrés (tous modes) et comparaison thème par thème des réponses des joueurs (`/api/compare`, une fois son propre forage terminé).
 - Badges (séries de jours, profondeur, pépites, exploits, premières places des podiums, jours
   particuliers comme Halloween, la Sainte-Barbe ou le passage à la nouvelle année) qui débloquent
   des carrosseries et des forets pour la foreuse, choisis dans l'atelier (`src/badges.js`).

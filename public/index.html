@@ -241,6 +241,7 @@
           <button class="btn" id="btn-share" type="button">Partager mon résultat</button>
           <p class="muted small" id="share-status" role="status"></p>
           <button class="btn secondary" id="btn-results-podium" type="button">Voir le podium</button>
+          <button class="btn secondary" id="btn-results-compare" type="button" hidden>Comparer avec les autres</button>
           <button class="btn ghost" id="btn-results-home" type="button">Retour à l'accueil</button>
         </div>
       </div>
@@ -251,6 +252,10 @@
         <div class="card">
           <h2>Ton carnet de spéléo</h2>
           <dl class="stats" id="profile-stats"></dl>
+        </div>
+        <div class="card">
+          <h2>Statistiques <span class="muted small">forages du jour et mode illimité</span></h2>
+          <div id="player-stats"></div>
         </div>
         <div class="card">
           <h2>Atelier <span class="muted small">l'apparence de ta foreuse, sur tous tes appareils</span></h2>
@@ -321,6 +326,15 @@
           <div class="podium" id="podium"></div>
           <ol class="ranking" id="ranking"></ol>
           <p class="muted" id="my-rank"></p>
+          <button class="btn" id="btn-compare" type="button" hidden>Comparer les réponses de ce jour</button>
+        </div>
+      </div>
+
+      <div class="view" id="view-compare" hidden>
+        <button class="btn ghost back-btn" id="btn-compare-back" type="button">◀ Retour au podium</button>
+        <div class="card">
+          <h2 id="compare-title">Réponses des joueurs</h2>
+          <div id="compare-body"></div>
         </div>
       </div>
     </section>

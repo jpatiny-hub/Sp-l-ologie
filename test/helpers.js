@@ -49,8 +49,8 @@ function answerFor(db, gameId, level) {
 }
 
 /** Joue le forage du jour en entier, une réponse du niveau `level` à chaque thème. */
-async function playDaily(app, call, level = 1) {
-  const { data: game } = await call('/api/game/start', { mode: 'daily' });
+async function playDaily(app, call, level = 1, mode = 'daily') {
+  const { data: game } = await call('/api/game/start', { mode });
   let state = game;
   for (let i = 0; i < 7; i++) {
     await call(`/api/game/${game.id}/reveal`, {});
