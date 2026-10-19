@@ -260,6 +260,28 @@
           </div>
           <p class="muted small" id="skin-status" role="status"></p>
         </div>
+        <div class="card">
+          <h2>Proposer un thème <span class="muted small">une idée de liste à deviner ?</span></h2>
+          <form id="form-suggest" class="form">
+            <label for="suggest-title">Le thème</label>
+            <input id="suggest-title" type="text" maxlength="140" placeholder="Par exemple : un instrument à vent" autocomplete="off" required>
+            <label for="suggest-details">Précisions <span class="muted small">(facultatif : exemples de réponses, limites du thème)</span></label>
+            <textarea id="suggest-details" rows="3" maxlength="1500"></textarea>
+            <button class="btn" type="submit">Envoyer ma proposition</button>
+          </form>
+          <p class="muted small" id="suggest-status" role="status"></p>
+          <ul class="report-list" id="suggest-mine"></ul>
+        </div>
+        <div class="card" id="admin-suggestions" hidden>
+          <h2>Thèmes proposés <span class="muted small">réservé au responsable du jeu</span></h2>
+          <div class="tabs" role="tablist" id="suggestion-tabs">
+            <button class="tab active" data-suggestions="pending" type="button" role="tab">À traiter <span id="count-sug-pending"></span></button>
+            <button class="tab" data-suggestions="done" type="button" role="tab">Traités <span id="count-sug-done"></span></button>
+          </div>
+          <button class="btn secondary" id="btn-copy-suggestions" type="button">Copier les propositions à traiter</button>
+          <p class="muted small" id="suggestions-status" role="status"></p>
+          <ul class="report-list" id="suggestion-list"></ul>
+        </div>
         <div class="card" id="admin-reports" hidden>
           <h2>Réponses signalées <span class="muted small">réservé au responsable du jeu</span></h2>
           <p class="muted small">Réponses refusées que des joueurs pensent correctes. Transmets la liste pour qu'elles soient vérifiées et ajoutées aux thèmes.</p>
