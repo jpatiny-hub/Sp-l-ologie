@@ -1,4 +1,4 @@
-titre: Un arcane majeur du tarot (les 22 atouts du tarot de Marseille)
+titre: Un arcane majeur du tarot de Marseille
 # Noms du tarot de Marseille, avec les noms courants du tarot Rider-Waite en variantes.
 1: La Mort = L'Arcane sans nom = Arcane sans nom; Le Diable; Le Pendu; La Roue de Fortune = La Roue de la Fortune = La Roue; Le Soleil; La Lune; L'Étoile; Le Mat = Le Fou; L'Empereur; L'Impératrice
 2: Le Pape = Le Hiérophante; La Papesse = La Grande Prêtresse; Le Bateleur = Le Magicien; L'Amoureux = Les Amoureux; Le Chariot; La Justice; La Force

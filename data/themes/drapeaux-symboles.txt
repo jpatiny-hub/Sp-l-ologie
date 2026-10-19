@@ -1,4 +1,4 @@
-titre: Un symbole, sigle ou dessin visible sur un drapeau national (ou sur ses armoiries ou emblèmes) ; plus la description est précise, plus elle rapporte
+titre: Un symbole, sigle ou dessin visible sur un drapeau national ; plus la description est précise, plus elle rapporte
 # Les termes génériques (étoile, croissant, soleil, croix…) sont des évidences ; les formes précises (étoile à 14 branches, étoile de la Fédération, diamants, feuille d'érable, chakra…) rapportent plus. Drapeaux d'États souverains, quelques territoires connus compris.
 1: Étoile; Croissant; Soleil; Croix; Aigle; Lion; Lune; Cercle = Disque = Rond; Triangle; Arbre
 2: Dragon; Palmier; Épée; Bouclier; Couronne; Oiseau; Armoiries; Fleur; Feuille; Sautoir = Croix de Saint-André = Croix en X; Étoile à cinq branches = Pentagramme; Croix du Sud; Étoile à six branches; Montagne; Livre; Carte; Globe = Sphère

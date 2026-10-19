@@ -1,4 +1,4 @@
-titre: Une île de la Méditerranée d'au moins 100 km² (Égée, Adriatique, Ionienne… comprises)
+titre: Une île de la Méditerranée d'au moins 100 km²
 # Superficies d'après « List of islands in the Mediterranean » (Wikipédia en). Trop petites : Ischia, Capri, Santorin (76 km²), Mykonos, Formentera, Gozo, Pantelleria, Égine, Hydra, Patmos, Lampedusa, Porquerolles. Ithaque (96 à 118 km² selon les sources) est acceptée.
 1: Sicile; Sardaigne; Corse; Crète; Chypre; Majorque = Mallorca; Malte; Ibiza
 2: Minorque = Menorca; Rhodes; Corfou; Elbe = Île d'Elbe; Djerba; Lesbos; Naxos; Kos; Céphalonie = Kefalonia; Zante = Zakynthos; Paros

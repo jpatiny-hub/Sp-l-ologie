@@ -19,7 +19,7 @@ le **centre de la Terre**.
 - Badges (séries de jours, profondeur, pépites, exploits, premières places des podiums, jours
   particuliers comme Halloween, la Sainte-Barbe ou le passage à la nouvelle année) qui débloquent
   des carrosseries et des forets pour la foreuse, choisis dans l'atelier (`src/badges.js`).
-- Plus de 250 thèmes actifs, tous des listes fermées et complètes (« Un film avec Jim Carrey »,
+- Plus de 260 thèmes actifs, tous des listes fermées et complètes (« Un film avec Jim Carrey »,
   « Une fleur qui sent mauvais », « Un pays où l'on roule à gauche »…) : comme seules les réponses
   listées sont acceptées, un thème trop large refuserait de bonnes réponses. Plus de 15 000 réponses,
   avec une difficulté estimée pour un public belge.
@@ -75,6 +75,9 @@ titre: Un fromage
 - Un thème doit être une liste **fermée et complète** : toute bonne réponse qu'un joueur pourrait
   taper doit y figurer. Mieux vaut un critère qui restreint (« Un film réalisé par Alfred
   Hitchcock ») qu'une catégorie ouverte (« Un film »).
+- Pas d'exemples dans le titre (« Un agrume », pas « Un agrume (citron, orange…) »), sauf si le
+  thème est si précis que le titre serait flou sans eux (« Un pinnipède (animal proche du phoque) »).
+  Les dates de coupure (« jusqu'en 2025 ») et les définitions utiles restent.
 
 Lance ensuite `npm run themes:check` pour repérer les doublons.
 

@@ -1,4 +1,4 @@
-titre: Une fleur bleue ou bleu-violet, sauvage ou couramment cultivée en Europe (nom courant, genre ou espèce connue)
+titre: Une fleur bleue ou bleu-violet, sauvage ou couramment cultivée en Europe
 # Liste généreuse : fleurs bleues, bleu ciel ou bleu-violet ; niveaux 4-5 : couleur limite (lilas, violet) ou cultivars bleus de plantes multicolores.
 # Exclus : fleurs franchement jaunes, roses, rouges ou blanches (gentiane jaune, coquelicot…).
 1: Bleuet = Centaurea cyanus = Barbeau = Bleuet des champs = Centaurée bleuet; Myosotis = Ne-m'oubliez-pas = Oreille-de-souris; Pervenche = Vinca = Petite pervenche = Grande pervenche; Campanule = Campanula; Lavande = Lavandula = Lavande vraie; Iris; Hortensia = Hydrangea; Jacinthe = Hyacinthus = Jacinthe d'Orient; Violette = Viola; Muscari = Jacinthe à grappes = Jacinthe à toupet

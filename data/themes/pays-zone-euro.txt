@@ -1,4 +1,4 @@
-titre: Un pays qui utilise l'euro comme monnaie officielle (début 2026, avec ou sans accord avec l'Union européenne)
+titre: Un pays qui utilise l'euro comme monnaie officielle
 # 21 États de la zone euro (Bulgarie depuis le 1er janvier 2026) + Monaco, Saint-Marin, Vatican, Andorre, Monténégro et Kosovo.
 1: France; Allemagne; Italie; Espagne; Belgique; Pays-Bas = Hollande; Portugal; Irlande; Grèce; Autriche; Luxembourg
 2: Finlande; Slovaquie; Slovénie; Estonie; Lettonie; Lituanie; Chypre; Malte; Croatie; Bulgarie

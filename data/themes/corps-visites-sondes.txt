@@ -1,4 +1,4 @@
-titre: Une planète, une planète naine, un astéroïde ou une comète survolé(e) ou exploré(e) par une sonde spatiale (Terre et satellites des planètes exclus, jusqu'en 2025)
+titre: Une planète, une planète naine, un astéroïde ou une comète explorée par une sonde spatiale (hors Terre et satellites naturels, jusqu'en 2025)
 # Planètes, planètes naines, astéroïdes (y compris leurs petites lunes : Dactyl, Dimorphos, Selam) et comètes approchés par une sonde.
 1: Mars; Jupiter; Saturne; Vénus; Pluton; Mercure
 2: Uranus; Neptune; Cérès; Comète de Halley = Halley = 1P/Halley; Tchourioumov-Guérassimenko = Churyumov-Gerasimenko = Tchouri = 67P; Vesta

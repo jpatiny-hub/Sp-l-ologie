@@ -1,4 +1,4 @@
-titre: Une plante de la famille des Brassicacées (Crucifères) : légume, condiment, oléagineux, plante ornementale ou plante sauvage courante d'Europe
+titre: Une plante de la famille des Brassicacées (Crucifères)
 # Pièges exclus : câpre (Capparacées), mâche (Caprifoliacées), rhubarbe, épinard, betterave.
 1: Chou; Brocoli = Brocolis; Chou-fleur; Chou de Bruxelles = Choux de Bruxelles = Spruitjes; Radis; Navet; Moutarde; Roquette; Cresson; Colza
 2: Chou rouge; Chou blanc = Chou pommé = Chou cabus; Chou frisé = Chou kale = Kale; Chou de Milan = Chou de Savoie; Chou-rave; Chou chinois = Pé-tsaï = Chou de Pékin = Chou napa; Pak-choï = Bok choy = Pak choi = Chou pak-choï; Romanesco = Chou romanesco; Rutabaga = Chou-navet; Raifort = Cran de Bretagne = Armoracia = Raifort sauvage; Wasabi = Raifort japonais; Radis noir; Daikon = Radis blanc = Radis japonais = Radis chinois = Radis long; Cresson alénois = Passerage cultivée; Cresson de fontaine = Nasturtium officinale; Chou vert; Radis rose

@@ -1,4 +1,4 @@
-titre: Un pays ou territoire où l'on roule à gauche (États souverains, nations britanniques et territoires dépendants)
+titre: Un pays ou territoire où l'on roule à gauche
 # Situation actuelle. Le Samoa est passé à gauche en 2009. Exclus : Suède (à droite depuis 1967), Birmanie (depuis 1970), Vanuatu, Gibraltar.
 1: Royaume-Uni = Grande-Bretagne; Angleterre; Irlande; Japon; Inde; Australie; Afrique du Sud
 2: Nouvelle-Zélande; Malte; Chypre; Écosse; Pays de Galles; Irlande du Nord; Thaïlande; Pakistan; Indonésie; Singapour; Malaisie; Jamaïque; Kenya; Hong Kong

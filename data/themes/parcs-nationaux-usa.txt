@@ -1,4 +1,4 @@
-titre: Un parc national des États-Unis (les 63 parcs officiels du National Park Service, 2025)
+titre: Un parc national des États-Unis
 # Seuls les parcs dont le statut est « National Park » comptent (pas les monuments, mémoriaux ni réserves).
 1: Yellowstone; Yosemite; Grand Canyon; Zion; Everglades; Death Valley = Vallée de la Mort; Sequoia = Séquoia; Glacier; Rocky Mountain = Montagnes Rocheuses; Great Smoky Mountains = Smoky Mountains; Arches; Bryce Canyon
 2: Grand Teton; Joshua Tree; Yosemite Valley; Olympic; Denali; Acadia; Canyonlands; Mesa Verde; Badlands; Mount Rainier = Mont Rainier; Kings Canyon; Redwood; Carlsbad Caverns = Cavernes de Carlsbad; Shenandoah; Capitol Reef; Crater Lake = Lac du Cratère; Saguaro; Haleakalā = Haleakala; Hawaii Volcanoes = Hawaï Volcans = Volcans d'Hawaï; Glacier Bay; Petrified Forest = Forêt pétrifiée; Big Bend; White Sands; Hot Springs; Lassen Volcanic = Lassen; Channel Islands = Îles Anglo-Normandes de Californie; Mammoth Cave = Grotte Mammouth; Biscayne; Dry Tortugas

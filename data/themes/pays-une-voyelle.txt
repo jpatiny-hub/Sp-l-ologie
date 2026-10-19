@@ -1,4 +1,4 @@
-titre: Un pays dont le nom français ne contient qu'une seule voyelle différente, répétée ou non (Y ignoré, accents ignorés)
+titre: Un pays dont le nom français ne contient qu'une seule voyelle (répétée ou non, Y et accents ignorés)
 # Tchad = a ; Panama = a ; Congo = o ; Chili = i ; Chypre = e ; Égypte = e…
 1: Tchad; Canada; Panama; Ghana; Chili; Grèce
 2: Congo; Togo; Qatar; Bahamas; Kazakhstan; Madagascar; Rwanda; Myanmar; Égypte; Chypre; Fidji; Yémen

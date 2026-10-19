@@ -1,4 +1,4 @@
-titre: Un pays dont le drapeau comporte au moins quatre couleurs différentes (blanc et noir comptés comme des couleurs ; emblème compris, nuances ignorées)
+titre: Un pays dont le drapeau comporte au moins quatre couleurs différentes (emblème compris)
 1: Afrique du Sud; Brésil; Inde; Mexique; Kenya; Corée du Sud; Égypte; Espagne
 2: Zimbabwe; Cap-Vert; Émirats arabes unis = EAU; Koweït; Jordanie; Irak; Syrie; Libye; Soudan; Ghana; Éthiopie; Malaisie; Philippines; Sri Lanka; Croatie; Azerbaïdjan; Équateur; Bolivie; Haïti
 3: Palestine; Guinée équatoriale; Sao Tomé-et-Principe = Sao Tomé; Mozambique; Namibie; Seychelles; Maurice; Papouasie-Nouvelle-Guinée; Tanzanie; Ouganda; Zambie; Érythrée; Comores; Ouzbékistan; Lesotho

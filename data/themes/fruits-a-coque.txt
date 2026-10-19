@@ -1,4 +1,4 @@
-titre: Une noix ou un fruit à coque consommé en cuisine (sens culinaire : amande, cacahuète, noix de coco, châtaigne… compris)
+titre: Une noix ou un fruit à coque consommé en cuisine (sens culinaire)
 # Exclus : graines de tournesol, de courge, de sésame, de lin (graines, pas noix) ; noix vomique, marron d'Inde (non comestibles).
 1: Noix = Noix commune = Noix de Grenoble = Cerneau = Noix du Périgord; Noisette = Aveline; Amande; Cacahuète = Arachide = Cacahouète = Pistache de terre = Pinotte; Noix de cajou = Cajou = Noix d'acajou = Anacarde; Pistache; Châtaigne = Marron = Marron glacé; Noix de coco = Coco
 2: Noix de pécan = Pécan = Pacane = Noix de pacane; Noix du Brésil = Noix d'Amazonie = Châtaigne du Brésil = Noix du Para = Noix de Pará; Noix de macadamia = Macadamia = Noix du Queensland; Pignon de pin = Pignon = Pigne = Noix de pin; Noix de muscade = Muscade; Noix de cola = Cola = Kola = Noix de kola; Faine = Faîne = Fruit du hêtre

@@ -1,4 +1,4 @@
-titre: Un empereur romain (d'Auguste à 476, Occident et Orient)
+titre: Un empereur romain (d'Auguste à 476)
 # Jules César n'a jamais été empereur. Niveau 5 : usurpateurs et empereurs de l'Empire des Gaules.
 1: Auguste = Octave = Octavien; Néron; Caligula; Marc Aurèle; Constantin = Constantin le Grand; Hadrien; Tibère; Claude
 2: Trajan; Vespasien; Titus; Domitien; Commode; Dioclétien; Caracalla; Septime Sévère; Julien = Julien l'Apostat; Théodose = Théodose Ier; Romulus Augustule; Nerva; Antonin le Pieux = Antonin; Galba; Othon; Vitellius
