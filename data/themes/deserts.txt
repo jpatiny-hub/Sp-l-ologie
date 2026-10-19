@@ -1,0 +1,5 @@
+titre: Un désert (chaud, froid, de sable ou de pierre) nommé
+1: Sahara; Gobi; Kalahari; Namib; Atacama; Mojave; Sonora; Désert d'Arabie = Arabie; Antarctique; Arctique; Néguev = Négev; Thar; Karakoum = Karakum
+2: Taklamakan; Kyzylkoum = Kyzylkum; Ténéré; Désert libyen = Libyen; Rub al-Khali = Quart vide; Nefoud = Néfoud; Dasht-e Lut = Lut; Dasht-e Kavir = Grand Désert salé; Grand Désert de Victoria; Gibson; Simpson; Tanami; Grand désert de sable; Chihuahua; Grand Bassin; Désert du Colorado = Colorado; Patagonie; Danakil; Sinaï; Judée; Désert de Syrie = Syrie; Désert blanc; Désert noir; Nubie; Ordos; Tengger; Badain Jaran; Désert peint = Painted Desert
+3: Sechura; Monte; Karoo; Tabernas; Bardenas Reales; Registan; Thal; Cholistan; Désert d'Oman
+4: Dzoungarie; Qaidam; Lop; Ustyurt; Betpak-Dala; Mu Us; Kumtag; Ogaden

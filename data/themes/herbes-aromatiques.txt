@@ -1,0 +1,5 @@
+titre: Une herbe aromatique ou plante condimentaire (feuilles ou tiges fraîches ou séchées)
+1: Persil; Basilic; Ciboulette; Thym; Romarin; Laurier; Menthe; Coriandre; Sauge; Estragon; Aneth; Origan
+2: Cerfeuil; Marjolaine; Sarriette; Livèche; Mélisse; Verveine; Hysope; Bourrache; Oseille; Fenouil; Lavande; Citronnelle; Serpolet; Menthe poivrée; Menthe verte; Basilic thaï; Basilic pourpre; Persil plat; Persil frisé; Ciboule; Échalote; Ail des ours; Roquette; Cresson; Pimprenelle; Estragon russe; Thym citron; Romarin rampant; Sauge ananas; Moutarde; Capucine; Tanaisie; Camomille; Angélique; Cumin des prés
+3: Shiso = Périlla; Combava; Feuille de curry; Épazote; Coriandre vietnamienne; Basilic citron; Basilic sacré = Tulsi; Mitsuba; Menthe nana; Sauge sclarée; Mauve; Calament; Rue; Aurone; Cerfeuil tubéreux; Persil tubéreux; Sauge rouge
+4: Hoja santa; Papalo; Rau răm

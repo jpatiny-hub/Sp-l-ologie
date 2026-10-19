@@ -1,0 +1,5 @@
+titre: Un pays d'Asie (États souverains, Turquie, Russie asiatique et pays transcontinentaux exclus sauf Turquie, Kazakhstan, Azerbaïdjan, Géorgie, Arménie et Chypre)
+1: Chine; Inde; Japon; Corée du Sud; Corée du Nord; Thaïlande; Vietnam; Indonésie; Philippines; Turquie; Iran; Irak; Israël; Arabie saoudite
+2: Pakistan; Bangladesh; Malaisie; Singapour; Cambodge; Laos; Birmanie = Myanmar; Népal; Sri Lanka; Afghanistan; Syrie; Liban; Jordanie; Koweït; Qatar; Émirats arabes unis = EAU; Oman; Yémen; Kazakhstan; Ouzbékistan; Mongolie; Taïwan; Bhoutan
+3: Maldives; Brunei; Timor oriental = Timor-Leste; Bahreïn; Tadjikistan
+4: Kirghizistan; Turkménistan; Azerbaïdjan; Arménie; Géorgie; Chypre; Palestine

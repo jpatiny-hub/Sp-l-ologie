@@ -1,0 +1,5 @@
+titre: Un pays d'Amérique (du Nord, centrale, du Sud et Caraïbes ; États souverains)
+1: États-Unis = USA; Canada; Mexique; Brésil; Argentine; Chili; Colombie; Pérou; Venezuela; Cuba
+2: Équateur; Bolivie; Paraguay; Uruguay; Guatemala; Honduras; Salvador; Nicaragua; Costa Rica; Panama; Haïti; République dominicaine = Dominicaine; Jamaïque; Bahamas; Trinité-et-Tobago = Trinidad; Guyana; Suriname
+3: Belize; Barbade; Sainte-Lucie
+4: Grenade; Dominique; Antigua-et-Barbuda = Antigua; Saint-Christophe-et-Niévès = Saint-Kitts-et-Nevis = Saint-Kitts; Saint-Vincent-et-les-Grenadines = Saint-Vincent
