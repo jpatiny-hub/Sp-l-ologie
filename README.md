@@ -19,7 +19,7 @@ le **centre de la Terre**.
 - Badges (séries de jours, profondeur, pépites, exploits, premières places des podiums, jours
   particuliers comme Halloween, la Sainte-Barbe ou le passage à la nouvelle année) qui débloquent
   des carrosseries et des forets pour la foreuse, choisis dans l'atelier (`src/badges.js`).
-- Plus de 230 thèmes actifs, tous des listes fermées et complètes (« Un film avec Jim Carrey »,
+- Plus de 245 thèmes actifs, tous des listes fermées et complètes (« Un film avec Jim Carrey »,
   « Une fleur qui sent mauvais », « Un pays où l'on roule à gauche »…) : comme seules les réponses
   listées sont acceptées, un thème trop large refuserait de bonnes réponses. Plus de 15 000 réponses,
   avec une difficulté estimée pour un public belge.

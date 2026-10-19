@@ -1,0 +1,5 @@
+titre: Une race de chat reconnue par au moins une grande fédération (LOOF, FIFe, TICA, CFA)
+1: Persan; Siamois; Maine coon; Bengal; Sphynx; Ragdoll; Chartreux; Européen = Chat européen; Abyssin; Sacré de Birmanie = Birman; British shorthair = Chartreux britannique; Norvégien = Chat des forêts norvégiennes; Siberien = Sibérien; Angora turc; Exotic shorthair
+2: Burmese; Bombay; Devon rex; Cornish rex; Scottish fold; Turc de Van; Mau égyptien; Ocicat; Savannah; Somali; Balinais; Tonkinois; Korat; Bleu russe = Russe bleu; Manx; Bobtail japonais; Bobtail américain; American curl; Munchkin; LaPerm; Selkirk rex; Singapura; Snowshoe; Toyger; Himalayen; Oriental; Peterbald; Donskoy; American shorthair; American wirehair; Tiffany = Chantilly; Thaï; Havana brown; Nébéleung = Nebelung; Neva masquerade; Ragamuffin; Cymric; Burmilla; Highlander; Chausie; Ceylan; York chocolat
+3: Khao manee; Sokoké; Arabian mau; Minskin; Kurilian bobtail; Bobtail des Kouriles; Lykoi; Dwelf; Bambino; Sérengeti; Javanais
+4: Cheetoh; Australian mist = Mist australien; Ojos azules; Brazilian shorthair = Poil court brésilien; Rex allemand; Colourpoint shorthair

@@ -1,0 +1,5 @@
+titre: Une race de cheval ou de poney (race reconnue)
+1: Pur-sang anglais = Pur-sang; Arabe = Pur-sang arabe; Frison; Percheron; Ardennais; Trait belge = Brabançon; Lipizzan; Camargue; Appaloosa; Mustang; Quarter horse; Shetland; Selle français; Andalou; Lusitanien; Comtois; Boulonnais; Breton; Clydesdale; Shire; Haflinger; Islandais; Fjord
+2: Hanovrien; Holsteiner; Oldenbourg; Trakehner; Przewalski; Barbe; Akhal-téké; Morgan; Paint = Pinto; Tennessee walker; Trotteur français; Trotteur américain = Standardbred; Anglo-arabe; AQPS; Criollo; Paso fino; Mérens; Pottok; Welsh; Connemara; Dartmoor; New Forest; Exmoor; Falabella; Cob normand; Henson; Auxois; Noriker; Poney landais; Gypsy cob; Irish cob; Cheval de Mongolie
+3: Marwari; Kathiawari; Bashkir; Yakoute; Dülmen; Konik; Highland; Garrano; Sorraia; Asturcón; Hucul; Nonius; Gidran; Furioso; Kladruber; Murgese; Maremmano; Sarde; Tersk; Don; Orlov; Budenny; Karabakh; Karabair; Lokai; Turkmène; Caspien
+4: Campolina; Mangalarga marchador; Peruvian paso; Chincoteague
