@@ -40,8 +40,8 @@ test('série de jours, apparences débloquées et choix de la foreuse', async ()
     assert.equal(badge(profile, 'serie-3').count, 1);
     assert.equal(badge(profile, 'serie-3').isNew, true);
     assert.equal(badge(profile, 'serie-7').count, 0);
-    assert.equal(badge(profile, 'sans-eboulement').count, 3, 'répétable : une fois par jour');
-    assert.equal((await eve('/api/me')).data.unseenBadges, 5);
+    assert.equal(badge(profile, 'sans-eboulement').count, 1, 'un badge ne se gagne qu’une fois');
+    assert.equal((await eve('/api/me')).data.unseenBadges, 3);
 
     // Acier débloqué par la série de 3 jours : le choix est gardé sur le compte.
     assert.equal(profile.bodies.find((b) => b.id === 'acier').unlocked, true);
