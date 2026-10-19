@@ -142,9 +142,117 @@ class GameService {
       this.db
         .prepare('UPDATE games SET score = score + ?, finished_at = ? WHERE id = ?')
         .run(points, remaining === 0 ? now : null, game.id);
+      if (game.mode === 'training') this.recordTraining(game, round, { outcome, points, answer }, remaining === 0);
       return remaining === 0;
     });
     if (finished) this.badges.awardForGame(game.id);
+    this.badges.awardThemes(game.user_id, this.today());
+  }
+
+  /** Cumule les statistiques du mode illimité (les parties elles-mêmes sont effacées ensuite). */
+  recordTraining(game, round, { outcome, points, answer }, gameDone) {
+    this.db.prepare('INSERT OR IGNORE INTO training_stats (user_id) VALUES (?)').run(game.user_id);
+    const answered = outcome === 'answer';
+    this.db
+      .prepare(
+        `UPDATE training_stats SET themes = themes + 1, answers = answers + ?, points = points + ?, pepites = pepites + ?
+         WHERE user_id = ?`,
+      )
+      .run(answered ? 1 : 0, points, answered && points >= 100 ? 1 : 0, game.user_id);
+    if (answered) {
+      const theme = this.themes.get(round.theme_id);
+      this.db
+        .prepare('UPDATE training_stats SET best_round = ?, best_round_theme = ?, best_round_answer = ? WHERE user_id = ? AND best_round < ?')
+        .run(points, theme ? theme.title : round.theme_id, answer.label, game.user_id, points);
+    }
+    if (gameDone) {
+      const { score } = this.db.prepare('SELECT score FROM games WHERE id = ?').get(game.id);
+      this.db
+        .prepare('UPDATE training_stats SET games = games + 1, best_score = MAX(best_score, ?) WHERE user_id = ?')
+        .run(score, game.user_id);
+    }
+  }
+
+  /** Statistiques du joueur : forages quotidiens et mode illimité. */
+  playerStats(userId) {
+    const daily = this.db
+      .prepare(
+        `SELECT COUNT(*) AS themes,
+                SUM(r.outcome = 'answer') AS answers,
+                COALESCE(SUM(r.points), 0) AS points,
+                SUM(r.points >= 100) AS pepites,
+                COUNT(DISTINCT r.theme_id) AS distinctThemes
+         FROM rounds r JOIN games g ON g.id = r.game_id
+         WHERE g.user_id = ? AND g.mode = 'daily' AND r.answered_at IS NOT NULL`,
+      )
+      .get(userId);
+    const best = this.db
+      .prepare(
+        `SELECT r.points, r.theme_id, r.answer_label FROM rounds r JOIN games g ON g.id = r.game_id
+         WHERE g.user_id = ? AND g.mode = 'daily' AND r.outcome = 'answer' ORDER BY r.points DESC, g.day DESC LIMIT 1`,
+      )
+      .get(userId);
+    const bestTheme = best && this.themes.get(best.theme_id);
+    const t = this.db.prepare('SELECT * FROM training_stats WHERE user_id = ?').get(userId);
+    const avg = (points, n) => (n ? Math.round(points / n) : 0);
+    return {
+      daily: {
+        themes: daily.themes,
+        distinctThemes: daily.distinctThemes,
+        answers: daily.answers || 0,
+        average: avg(daily.points, daily.answers || 0),
+        pepites: daily.pepites || 0,
+        best: best ? { points: best.points, theme: bestTheme ? bestTheme.title : best.theme_id, answer: best.answer_label } : null,
+      },
+      training: {
+        games: t ? t.games : 0,
+        themes: t ? t.themes : 0,
+        answers: t ? t.answers : 0,
+        average: t ? avg(t.points, t.answers) : 0,
+        pepites: t ? t.pepites : 0,
+        bestScore: t ? t.best_score : 0,
+        best: t && t.best_round ? { points: t.best_round, theme: t.best_round_theme, answer: t.best_round_answer } : null,
+      },
+      themesSeen: daily.themes + (t ? t.themes : 0),
+    };
+  }
+
+  /**
+   * Comparaison d'un jour : réponses et points de chaque joueur, thème par thème.
+   * Réservé aux jours passés, ou au jour en cours une fois son propre forage terminé.
+   */
+  compareDay(day, userId) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || day > this.today()) throw new HttpError(400, 'Jour invalide.');
+    if (day === this.today()) {
+      const mine = this.dailyGameFor(userId, day);
+      if (!mine || mine.finished_at == null) throw new HttpError(403, 'Termine ton forage du jour pour voir les réponses des autres.');
+    }
+    const games = this.db
+      .prepare(
+        `SELECT g.id, g.score, g.user_id AS userId, u.username FROM games g JOIN users u ON u.id = g.user_id
+         WHERE g.mode = 'daily' AND g.day = ? AND g.finished_at IS NOT NULL ORDER BY g.score DESC, u.username_key ASC`,
+      )
+      .all(day);
+    const roundsOf = this.db.prepare('SELECT * FROM rounds WHERE game_id = ? ORDER BY slot');
+    const players = games.map((g) => ({
+      username: g.username,
+      score: g.score,
+      me: g.userId === userId,
+      rounds: roundsOf.all(g.id).map((r) => ({
+        slot: r.slot,
+        outcome: r.outcome,
+        answer: r.answer_label,
+        input: r.input,
+        points: r.points,
+        tier: tierFor(r.points, r.outcome).id,
+      })),
+    }));
+    const slots = games.length ? roundsOf.all(games[0].id) : [];
+    const themes = slots.map((r) => {
+      const theme = this.themes.get(r.theme_id);
+      return { slot: r.slot, title: theme ? theme.title : 'Thème indisponible' };
+    });
+    return { day, themes, players };
   }
 
   roundView(round, game) {

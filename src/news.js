@@ -19,6 +19,16 @@ const NEWS = [
       'Les chiffres sont acceptés à la place des chiffres romains : « Louis 14 » vaut « Louis XIV ».',
     ],
   },
+  {
+    id: 2,
+    date: '2026-10-19',
+    title: 'Statistiques et comparaisons',
+    items: [
+      'Ton carnet affiche maintenant des statistiques détaillées : forages du jour et mode illimité (thèmes rencontrés, moyenne, meilleure réponse…).',
+      'Sept nouveaux badges récompensent le nombre de thèmes rencontrés, tous modes de jeu confondus.',
+      'Dans le podium (onglet « Jour ») et à la fin de ton forage, tu peux comparer tes réponses et tes points avec ceux des autres joueurs, thème par thème. Seuls les forages du jour (mode compétition) sont comparables : le mode illimité reste personnel.',
+    ],
+  },
 ];
 
 const LATEST_NEWS_ID = NEWS[NEWS.length - 1].id;

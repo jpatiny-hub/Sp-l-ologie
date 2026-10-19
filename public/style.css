@@ -531,3 +531,11 @@ h3 .small { font-family: 'VT323', monospace; font-size: calc(18px * var(--fs)); 
 
 .news { border-color: var(--accent); }
 .news-list { margin: 8px 0 12px; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; }
+
+.stats-block h3 { margin: 12px 0 4px; }
+.compare-list { list-style: none; margin: 4px 0 12px; padding: 0; }
+.compare-list li { display: flex; gap: 8px; align-items: center; padding: 3px 0; }
+.compare-list li.me { font-weight: bold; }
+.compare-list .who { min-width: 6em; }
+.compare-list .what { flex: 1; overflow-wrap: anywhere; }
+.compare-list .swatch { flex: none; width: 12px; height: 12px; } display: inline-block;

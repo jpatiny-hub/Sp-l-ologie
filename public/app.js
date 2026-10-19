@@ -769,6 +769,7 @@
     const centre = state.score >= Pixel.MAX_POINTS;
     $('results-depth').textContent = centre ? '−6 371 km' : `−${Pixel.formatDepth(state.score)}`;
     $('results-zone').textContent = centre ? 'Tu as atteint le centre de la Terre !' : `Ta foreuse s'est arrêtée dans : ${Pixel.zoneName(state.score)}`;
+    $('btn-results-compare').hidden = state.mode !== 'daily';
     renderDistribution(state);
     renderDiveLog(state);
     renderCatch(state);
@@ -1001,7 +1002,7 @@
 
   // ---------- Carnet : badges et atelier ----------
   const CATEGORIES = [
-    ['exploit', 'Exploits'], ['serie', 'Séries de forages'], ['profondeur', 'Profondeur'], ['pepites', 'Pépites'], ['podium', 'Podiums'], ['calendrier', 'Jours particuliers'],
+    ['exploit', 'Exploits'], ['serie', 'Séries de forages'], ['profondeur', 'Profondeur'], ['pepites', 'Pépites'], ['themes', 'Thèmes rencontrés'], ['podium', 'Podiums'], ['calendrier', 'Jours particuliers'],
   ];
 
   function longDay(day) {
@@ -1059,6 +1060,33 @@
     }
   }
 
+  function renderPlayerStats(ps) {
+    const block = (title, rows) =>
+      el('div', { class: 'stats-block' }, el('h3', {}, title), el('dl', { class: 'stats' }, ...rows.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)])));
+    const best = (b) => (b ? `${pts(b.points)} · ${b.answer} (${b.theme})` : '—');
+    const d = ps.daily;
+    const t = ps.training;
+    $('player-stats').replaceChildren(
+      el('p', {}, el('strong', {}, `${ps.themesSeen} thèmes rencontrés`), ' au total, tous modes confondus.'),
+      block('Forages du jour', [
+        ['Thèmes rencontrés', `${d.themes} (${d.distinctThemes} différents)`],
+        ['Réponses données', String(d.answers)],
+        ['Moyenne par réponse', pts(d.average)],
+        ['Pépites', String(d.pepites)],
+        ['Meilleure réponse', best(d.best)],
+      ]),
+      block('Mode illimité', [
+        ['Forages terminés', String(t.games)],
+        ['Thèmes rencontrés', String(t.themes)],
+        ['Réponses données', String(t.answers)],
+        ['Moyenne par réponse', pts(t.average)],
+        ['Pépites', String(t.pepites)],
+        ['Meilleur forage', pts(t.bestScore)],
+        ['Meilleure réponse', best(t.best)],
+      ]),
+    );
+  }
+
   function renderProfile(profile) {
     const st = profile.stats;
     const stats = [
@@ -1069,6 +1097,7 @@
       ['Meilleur forage', pts(st.bestScore)],
     ];
     $('profile-stats').replaceChildren(...stats.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]));
+    renderPlayerStats(profile.playerStats);
     const sections = $('badge-sections');
     sections.replaceChildren();
     CATEGORIES.forEach(([id, title]) => {
@@ -1391,6 +1420,7 @@
       );
     });
     if (!board.entries.length) ranking.append(el('li', {}, el('span', {}, ''), el('span', {}, 'Aucun forage sur cette période.'), el('span', {}, '')));
+    $('btn-compare').hidden = board.period !== 'day' || !board.entries.length;
     const when = { day: 'ce jour-là', week: 'cette semaine', month: 'ce mois-ci' }[board.period];
     $('my-rank').textContent = board.me
       ? `Ton rang : ${board.me.rank === 1 ? '1er' : `${board.me.rank}e`} sur ${board.entries.length} · ${pts(board.me.score)}`
@@ -1401,6 +1431,45 @@
   $('btn-week-prev').addEventListener('click', () => openPodium(app.podium.period, app.podium.prev));
   $('btn-week-next').addEventListener('click', () => app.podium.next && openPodium(app.podium.period, app.podium.next));
   $('btn-podium-home').addEventListener('click', () => goHome());
+
+  // ---------- Comparaison des réponses d'un jour ----------
+  async function openCompare(day, back = 'podium') {
+    app.compareBack = back;
+    try {
+      const data = await api(`/api/compare?date=${day}`);
+      $('compare-title').textContent = `Réponses du ${longDay(day)}`;
+      const body = $('compare-body');
+      body.replaceChildren();
+      if (!data.players.length) body.append(el('p', { class: 'muted' }, 'Aucun forage terminé ce jour-là.'));
+      data.themes.forEach((th, i) => {
+        const list = el('ul', { class: 'compare-list' });
+        data.players
+          .map((p) => ({ p, r: p.rounds[i] }))
+          .filter(({ r }) => r)
+          .sort((a, b) => (b.r.points || 0) - (a.r.points || 0))
+          .forEach(({ p, r }) => {
+            const what = r.outcome === 'answer' ? r.answer : r.outcome === 'timeout' ? 'temps écoulé' : 'passé';
+            list.append(
+              el(
+                'li',
+                { class: p.me ? 'me' : '' },
+                el('span', { class: 'swatch', style: `background:${Pixel.TIER_COLORS[r.tier] || '#666'}` }),
+                el('span', { class: 'who' }, p.username),
+                el('span', { class: 'what' }, what),
+                el('span', { class: 'pts' }, pts(r.points || 0)),
+              ),
+            );
+          });
+        body.append(el('h3', {}, `${i + 1}. ${th.title}`), list);
+      });
+      show('compare');
+    } catch (err) {
+      showNotice(err.message);
+    }
+  }
+  $('btn-compare').addEventListener('click', () => openCompare(app.podium.start));
+  $('btn-results-compare').addEventListener('click', () => openCompare(app.me.today.day, 'results'));
+  $('btn-compare-back').addEventListener('click', () => show(app.compareBack || 'podium'));
 
   // ---------- Démarrage ----------
   fitCanvas();

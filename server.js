@@ -296,7 +296,13 @@ function createApp({
     // Carnet du joueur : badges, statistiques et apparences de la foreuse.
     'GET /api/profile': async (req, res) => {
       const user = requireUser(req, res);
-      json(res, 200, game.badges.profile(user.id, game.today()));
+      json(res, 200, { ...game.badges.profile(user.id, game.today()), playerStats: game.playerStats(user.id) });
+    },
+
+    // Réponses et points de tous les joueurs pour un jour donné, pour comparer.
+    'GET /api/compare': async (req, res, _id, url) => {
+      const user = requireUser(req, res);
+      json(res, 200, game.compareDay(url.searchParams.get('date') || game.today(), user.id));
     },
 
     // Le joueur a lu les notes de mise à jour (jusqu'à la note `id` comprise).
