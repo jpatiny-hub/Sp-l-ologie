@@ -528,3 +528,6 @@ h3 .small { font-family: 'VT323', monospace; font-size: calc(18px * var(--fs)); 
 .report { display: flex; flex-direction: column; padding: 6px 0; border-bottom: 2px dashed rgba(0,0,0,0.35); }
 .report .what { display: flex; flex-direction: column; }
 .report.handled, .report.added { opacity: 0.6; }
+
+.news { border-color: var(--accent); }
+.news-list { margin: 8px 0 12px; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; }

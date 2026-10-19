@@ -381,7 +381,25 @@
     }
   }
 
+  function renderNews() {
+    const news = (app.me && app.me.news) || [];
+    $('news-card').hidden = !news.length;
+    if (!news.length) return;
+    $('news-title').textContent = news.length === 1 ? news[0].title : 'Nouveautés du jeu';
+    $('news-list').replaceChildren(...news.flatMap((n) => n.items.map((text) => el('li', {}, text))));
+  }
+
+  $('btn-news-ok').addEventListener('click', async () => {
+    const news = (app.me && app.me.news) || [];
+    if (!news.length) return;
+    const last = Math.max(...news.map((n) => n.id));
+    app.me.news = [];
+    renderNews();
+    api('/api/news/seen', { id: last }).catch(() => {});
+  });
+
   function renderHome() {
+    renderNews();
     const today = app.me.today;
     $('today-date').textContent = formatDay(today.day, { weekday: 'long', day: 'numeric', month: 'long' });
     const status = $('today-status');

@@ -111,6 +111,7 @@ CREATE TABLE IF NOT EXISTS theme_suggestions (
 const MIGRATIONS = [
   ['users', 'skin_body', 'TEXT'],
   ['users', 'skin_bit', 'TEXT'],
+  ['users', 'news_seen', 'INTEGER NOT NULL DEFAULT 0'],
   // Signalement fait pendant la manche (manche retrouvée par game_id et slot) et suite donnée aux points.
   ['answer_reports', 'game_id', 'INTEGER'],
   ['answer_reports', 'slot', 'INTEGER'],
