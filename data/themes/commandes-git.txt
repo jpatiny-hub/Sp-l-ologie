@@ -1,4 +1,5 @@
 titre: Une commande de Git (sous-commande livrée avec Git : porcelaine, plomberie ou outil auxiliaire, jusqu'à Git 2.52)
+actif: non
 # Liste de « git help -a » (Git 2.43), plus les synonymes historiques (stage, init-db, pickaxe, fsck-objects), les commandes internes
 # (upload-pack, merge-ours…), git subtree (contrib) et les commandes ajoutées depuis (replay, refs, backfill, diff-pairs, repo, last-modified).
 # Les extensions externes (git lfs, git flow) ne sont pas comprises.

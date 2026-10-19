@@ -4,6 +4,22 @@
 // fréquents dans les noms belges : « De Panne », « Het Zoute », « The Kooks »).
 const LEADING_ARTICLES = new Set(['le', 'la', 'les', 'l', 'un', 'une', 'des', 'du', 'de', 'd', 'het', 'the']);
 
+const ROMAN = /^(?=[ivxlcdm])m{0,3}(cm|cd|d?c{0,3})(xc|xl|l?x{0,3})(ix|iv|v?i{0,3})$/;
+const ROMAN_VALUES = { i: 1, v: 5, x: 10, l: 50, c: 100, d: 500, m: 1000 };
+// Mots français qui se lisent aussi comme des chiffres romains.
+const NOT_ROMAN = new Set(['dix', 'mix', 'mi', 'ci', 'di', 'li', 'mil', 'did', 'mm']);
+
+/** « xvii » → « 17 » ; null si le mot n'est pas un chiffre romain plausible. */
+function romanToNumber(word) {
+  if (NOT_ROMAN.has(word) || !ROMAN.test(word)) return null;
+  let total = 0;
+  for (let i = 0; i < word.length; i++) {
+    const v = ROMAN_VALUES[word[i]];
+    total += i + 1 < word.length && v < ROMAN_VALUES[word[i + 1]] ? -v : v;
+  }
+  return total;
+}
+
 /**
  * Découpe une réponse en mots normalisés : minuscules, sans accents, sans ponctuation,
  * sans article initial, « st » → « saint », pluriels simples (-s, -x) retirés.
@@ -25,6 +41,14 @@ function normalizeWords(text) {
   if (!cleaned) return [];
   const words = cleaned.split(' ');
   while (words.length > 1 && LEADING_ARTICLES.has(words[0])) words.shift();
+  // Chiffres romains après un nom : « Louis XVII » = « Louis 17 », « Napoléon Ier » = « Napoléon 1er ».
+  for (let i = 1; i < words.length; i++) {
+    if (words[i] === 'ier') words[i] = '1er';
+    else {
+      const n = romanToNumber(words[i]);
+      if (n) words[i] = String(n);
+    }
+  }
   return words
     .map((w) => (w === 'st' ? 'saint' : w === 'ste' ? 'sainte' : w))
     .map((w) => (w.length > 3 && /[sx]$/.test(w) ? w.slice(0, -1) : w));

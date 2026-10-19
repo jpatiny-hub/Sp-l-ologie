@@ -1,4 +1,5 @@
 titre: Un mot-clé réservé de Python 3 (les 35 mots-clés, plus les mots-clés contextuels match, case et type)
+actif: non
 # keyword.kwlist de Python 3.7+ et keyword.softkwlist (sauf « _ »). print et exec ne sont plus des mots-clés depuis Python 3.
 1: if; for; while; def; import; return; else; class; True; False
 2: elif; in; and; or; not; None; try; except; from; break; continue; lambda; with; pass

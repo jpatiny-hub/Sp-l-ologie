@@ -1,4 +1,5 @@
 titre: Un mot-clé réservé du langage C (normes C89 à C23)
+actif: non
 # 32 mots-clés de C89, plus ceux ajoutés par C99, C11 et C23 (les formes _Bool / bool, _Alignas / alignas… comptent pour un).
 1: int; if; else; for; while; return; char; void; float; double
 2: struct; switch; case; break; continue; do; const; static; unsigned; long; short; sizeof; typedef; goto; default; signed; enum; union

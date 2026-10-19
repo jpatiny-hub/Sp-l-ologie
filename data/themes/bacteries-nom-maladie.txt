@@ -1,4 +1,4 @@
-titre: Une bactérie pathogène dont le nom d'espèce désigne la maladie qu'elle cause (ex. Vibrio cholerae, Clostridium tetani)
+titre: Une bactérie pathogène dont le nom d'espèce désigne la maladie qu'elle cause
 # Critère : l'épithète spécifique (ou de sérovar) évoque la maladie. Exclus : genres seuls (Listeria → listériose ne compte pas), Treponema pallidum, Helicobacter pylori…
 # Niveau 5 : cas limites acceptés par générosité (Haemophilus influenzae ne cause pas la grippe ; maladies animales ou végétales).
 1: Vibrio cholerae = Vibrion cholérique = Bacille virgule; Mycobacterium tuberculosis = Bacille de Koch = BK = Bacille tuberculeux; Yersinia pestis = Bacille de Yersin = Bacille de la peste = Pasteurella pestis; Clostridium tetani = Bacille tétanique = Bacille de Nicolaier; Mycobacterium leprae = Bacille de Hansen = Bacille de la lèpre

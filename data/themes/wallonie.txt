@@ -1,4 +1,4 @@
-titre: Une commune de Wallonie (Bertogne, fusionnée avec Bastogne en 2025, comprise)
+titre: Une commune de Wallonie
 1: Liège = Luik; Namur = Namen; Charleroi; Mons = Bergen; Tournai = Doornik; Arlon = Aarlen
 2: Verviers; La Louvière; Wavre = Waver; Nivelles = Nijvel; Spa; Dinant; Bastogne = Bastenaken; Huy = Hoei; Mouscron = Moeskroen; Waterloo; Louvain-la-Neuve = Ottignies-Louvain-la-Neuve = Ottignies = LLN; Binche; Durbuy; Marche-en-Famenne = Marche; Ath = Aat
 3: Seraing; Herstal; Eupen; Malmedy; Bouillon; Chimay; Gembloux = Gembloers; Braine-l'Alleud = Eigenbrakel; Soignies = Zinnik; Thuin; Ciney; Andenne; Stavelot; Philippeville; Couvin; Rochefort; Hannut = Hannuit; Waremme = Borgworm; Jodoigne = Geldenaken; Tubize = Tubeke; Enghien = Edingen; Lessines = Lessen; Comines = Comines-Warneton = Komen-Waasten; Ans; Fleurus; Châtelet; Visé = Wezet; Neufchâteau; Libramont = Libramont-Chevigny; Virton; Saint-Hubert; La Roche-en-Ardenne = La Roche; Florenville; Braine-le-Comte = 's-Gravenbrakel; Lasne; La Hulpe = Terhulpen; Rixensart; Genval; Chaudfontaine

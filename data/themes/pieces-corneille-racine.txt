@@ -1,4 +1,5 @@
 titre: Une pièce de théâtre de Pierre Corneille ou de Jean Racine
+actif: non
 1: Le Cid; Phèdre; Andromaque; Britannicus; Bérénice; Horace; Cinna; L'Illusion comique
 2: Polyeucte; Iphigénie; Athalie; Esther; Les Plaideurs; Bajazet; Mithridate; Le Menteur; Médée; Nicomède; Rodogune
 3: La Thébaïde; Alexandre le Grand; Suréna; La Place royale; Sertorius; Œdipe; Attila; Psyché; Tite et Bérénice; La Mort de Pompée = Pompée; Héraclius

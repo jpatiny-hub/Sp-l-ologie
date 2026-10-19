@@ -1,4 +1,5 @@
 titre: Un château classé en 1855 (rouges du Médoc et Haut-Brion, ou Sauternes-Barsac)
+actif: non
 # Classement officiel des vins de Bordeaux de 1855 : 61 rouges (dont Cantemerle, ajouté en 1856) et 27 Sauternes-Barsac.
 1: Château Margaux = Margaux; Château Latour = Latour; Château Lafite Rothschild = Lafite Rothschild = Lafite = Château Lafite; Château Mouton Rothschild = Mouton Rothschild = Mouton = Château Mouton; Château Haut-Brion = Haut-Brion; Château d'Yquem = Yquem
 2: Château Cos d'Estournel = Cos d'Estournel; Château Léoville-Las Cases = Léoville-Las Cases = Las Cases; Château Ducru-Beaucaillou = Ducru-Beaucaillou; Château Lynch-Bages = Lynch-Bages; Château Palmer = Palmer; Château Pontet-Canet = Pontet-Canet; Château Beychevelle = Beychevelle; Château Talbot = Talbot; Château Calon-Ségur = Calon-Ségur; Château Montrose = Montrose; Château Gruaud-Larose = Gruaud-Larose; Château Pichon Longueville Baron = Pichon Longueville Baron = Pichon Baron = Château Pichon-Longueville; Château Pichon Longueville Comtesse de Lalande = Pichon Longueville Comtesse de Lalande = Pichon Comtesse = Pichon Lalande

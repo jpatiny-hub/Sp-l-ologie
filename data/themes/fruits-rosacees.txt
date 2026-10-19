@@ -1,4 +1,4 @@
-titre: Un fruit comestible produit par une plante de la famille des Rosacées (pommes, prunes, fraises, ronces, sorbiers…)
+titre: Un fruit comestible produit par une plante de la famille des Rosacées
 # Pièges exclus : cassis, groseille (Grossulariacées), myrtille, arbouse (Éricacées), kaki, figue, mûre du mûrier (Moracées), acérola…
 1: Pomme; Poire; Fraise; Cerise; Framboise; Pêche; Abricot; Prune
 2: Mûre = Mûre sauvage = Mûre de ronce = Ronce; Coing; Nectarine; Brugnon; Amande; Mirabelle; Reine-claude; Quetsche; Griotte = Cerise acide = Cerise aigre; Nèfle = Nèfle d'Europe = Néflier = Mespilus; Fraise des bois; Cynorrhodon = Gratte-cul = Fruit de l'églantier = Baie d'églantier = Églantier; Prunelle = Prunelle sauvage = Fruit du prunellier = Épine noire

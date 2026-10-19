@@ -1,4 +1,5 @@
 titre: Un membre des Monty Python, du Splendid, des Nuls, des Inconnus ou des Robins des Bois
+actif: non
 1: John Cleese; Christian Clavier; Gérard Jugnot; Thierry Lhermitte; Josiane Balasko; Michel Blanc; Alain Chabat; Didier Bourdon; Bernard Campan; Pascal Légitimus; Jean-Paul Rouve; Marina Foïs
 2: Marie-Anne Chazel; Dominique Farrugia; Chantal Lauby; Eric Idle; Michael Palin; Terry Gilliam; Terry Jones; Graham Chapman; Pierre-François Martin-Laval = Pef; Maurice Barthélemy
 3: Bruno Carette; Élise Larnicol; Pascal Vincent; Bruno Moynot
