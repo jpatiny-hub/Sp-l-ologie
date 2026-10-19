@@ -15,7 +15,11 @@
   const SHAFT_W = 18;
   const SHAFT_X = Math.floor(W / 2 - SHAFT_W / 2);
   const DRILL_SPEED = 55; // points par seconde (descentes longues)
-  const MIN_DRILL_TIME = 2.4; // secondes : même une réponse évidente (descente courte) creuse visiblement
+  // Durée de la descente : au moins 2,2 s pour une réponse évidente, et un peu plus quand on creuse loin
+  // (la foreuse va alors plus vite, pour garder une descente cohérente sans être interminable).
+  const DRILL_TIME_MIN = 2.2;
+  const DRILL_TIME_PER_POINT = 0.016;
+  const DRILL_TIME_MAX = 5;
 
   // Couches traversées (en points de score). Le nom est affiché pendant la descente.
   const ZONES = [
@@ -724,9 +728,10 @@
       this.target = Math.min(MAX_POINTS, layers.reduce((s, l) => s + (l.points || 0), 0));
       this.mode = 'follow';
       if (this.onOverview) this.onOverview(0);
-      // Descente d'au moins MIN_DRILL_TIME secondes : plus lente quand elle est courte.
       const distance = this.target - this.depth;
-      this.speed = distance > 0 ? Math.min(DRILL_SPEED, distance / MIN_DRILL_TIME) : DRILL_SPEED;
+      this.speed = distance > 0
+        ? distance / Math.min(DRILL_TIME_MAX, DRILL_TIME_MIN + DRILL_TIME_PER_POINT * distance)
+        : DRILL_SPEED;
       if (!animate) {
         this.depth = this.target;
         this.camY = this.cameraTarget();
