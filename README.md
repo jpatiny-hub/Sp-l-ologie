@@ -94,6 +94,12 @@ réponses d'un thème). Aucun point n'est donné ; le responsable du jeu retrouv
 dans son carnet (« Réponses signalées ») et peut les copier pour les ajouter aux thèmes. Le
 responsable est le premier compte créé, ou les identifiants listés dans `ADMIN_USERS`.
 
+Quand une réponse signalée **pendant la manche** est ajoutée au fichier du thème, le joueur reçoit
+ses points au prochain démarrage du serveur (ou à l'ouverture de la liste des signalements), à
+la rareté du moment : seulement si sa manche s'est terminée sans réponse valide, pour un forage
+quotidien dont la semaine est encore en cours (un podium hebdomadaire terminé n'est pas modifié),
+et une seule fois. Les signalements faits après la partie ne donnent pas de points.
+
 ## Administration
 
 - **Mot de passe perdu sans code de récupération** :
