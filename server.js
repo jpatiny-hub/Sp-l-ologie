@@ -10,6 +10,7 @@ const { loadThemes } = require('./src/themes');
 const { GameService, HttpError } = require('./src/game');
 const { msUntilNextDay, isDay } = require('./src/dates');
 const auth = require('./src/auth');
+const { unseenNews, LATEST_NEWS_ID } = require('./src/news');
 
 const SESSION_MS = config.SESSION_DAYS * 24 * 3600 * 1000;
 const MAX_BODY = 10 * 1024;
@@ -216,6 +217,8 @@ function createApp({
         if (String(err.message).includes('UNIQUE')) throw new HttpError(409, 'Cet identifiant est déjà pris.');
         throw err;
       }
+      // Un nouveau compte n'a pas besoin des notes déjà publiées.
+      db.prepare('UPDATE users SET news_seen = ? WHERE id = ?').run(LATEST_NEWS_ID, userId);
       signupLimiter.fail(ip, now());
       json(res, 201, { user: userView({ username: display }), recoveryCode }, { 'Set-Cookie': createSession(userId) });
     },
@@ -277,12 +280,13 @@ function createApp({
       const user = currentUser(req, res);
       if (!user) return json(res, 200, { user: null });
       game.badges.awardPodiums(game.today());
-      const row = db.prepare('SELECT skin_body, skin_bit FROM users WHERE id = ?').get(user.id);
+      const row = db.prepare('SELECT skin_body, skin_bit, news_seen FROM users WHERE id = ?').get(user.id);
       json(res, 200, {
         user: userView(user),
         isAdmin: isAdmin(user),
         skin: game.badges.skinOf(row),
         unseenBadges: game.badges.unseenCount(user.id),
+        news: unseenNews(row.news_seen),
         today: game.todaySummary(user.id),
         nextResetMs: msUntilNextDay(now()),
         timerSeconds: config.TIMER_SECONDS,
@@ -293,6 +297,15 @@ function createApp({
     'GET /api/profile': async (req, res) => {
       const user = requireUser(req, res);
       json(res, 200, game.badges.profile(user.id, game.today()));
+    },
+
+    // Le joueur a lu les notes de mise à jour (jusqu'à la note `id` comprise).
+    'POST /api/news/seen': async (req, res) => {
+      const user = requireUser(req, res);
+      const { id } = await readJson(req);
+      if (!Number.isInteger(id)) throw new HttpError(400, 'Note inconnue.');
+      db.prepare('UPDATE users SET news_seen = MAX(news_seen, ?) WHERE id = ?').run(Math.min(id, LATEST_NEWS_ID), user.id);
+      json(res, 200, { ok: true });
     },
 
     'POST /api/profile/seen': async (req, res) => {

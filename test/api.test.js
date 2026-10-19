@@ -405,3 +405,23 @@ test('proposition de thèmes : tous les joueurs peuvent proposer, seul le respon
     await app.close();
   }
 });
+
+test("note de mise à jour : vue une fois par les anciens comptes, pas par les nouveaux", async () => {
+  const app = await startServer();
+  try {
+    const alice = client(app.base);
+    await alice('/api/signup', { username: 'alice', password: 'secret123' });
+    assert.deepEqual((await alice('/api/me')).data.news, [], 'un compte neuf ne voit pas les notes déjà publiées');
+
+    // Ancien compte : la note n'a jamais été vue.
+    app.db.prepare('UPDATE users SET news_seen = 0').run();
+    const news = (await alice('/api/me')).data.news;
+    assert.equal(news.length, 1);
+    assert.match(news[0].items.join(' '), /Proposer un thème/);
+    assert.equal((await alice('/api/news/seen', { id: 'x' })).status, 400);
+    await alice('/api/news/seen', { id: news[0].id });
+    assert.deepEqual((await alice('/api/me')).data.news, []);
+  } finally {
+    await app.close();
+  }
+});
