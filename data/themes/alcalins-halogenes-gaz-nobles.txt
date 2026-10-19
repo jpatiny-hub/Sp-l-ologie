@@ -1,0 +1,6 @@
+titre: Un élément des colonnes 1, 2, 17 ou 18 du tableau périodique (alcalins, alcalino-terreux, halogènes, gaz nobles)
+# Groupe 1 (hydrogène compris), groupe 2, groupe 17, groupe 18.
+1: Sodium = Na; Potassium = K; Chlore = Cl; Hélium = He; Néon = Ne; Calcium = Ca; Lithium = Li; Fluor = F; Magnésium = Mg; Iode = I
+2: Argon = Ar; Brome = Br; Krypton = Kr; Xénon = Xe; Radon = Rn; Hydrogène = H; Césium = Cs; Baryum = Ba; Radium = Ra; Béryllium = Be
+3: Rubidium = Rb; Francium = Fr; Strontium = Sr; Astate = At
+4: Oganesson = Og; Tennesse = Tennessine = Ts

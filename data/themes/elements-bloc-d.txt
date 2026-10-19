@@ -1,0 +1,8 @@
+titre: Un élément du bloc d du tableau périodique (métaux de transition, colonnes 3 à 12)
+# Colonnes 3 à 12, périodes 4 à 7. Zinc, cadmium, mercure et copernicium compris.
+# La place du groupe 3 est discutée : lanthane, actinium, lutécium et lawrencium sont tous acceptés.
+1: Fer = Fe; Cuivre = Cu; Or = Au; Argent = Ag; Zinc = Zn; Nickel = Ni; Platine = Pt; Mercure = Hg; Titane = Ti; Chrome = Cr
+2: Cobalt = Co; Manganèse = Mn; Tungstène = Wolfram = W; Palladium = Pd; Cadmium = Cd; Vanadium = V; Iridium = Ir; Osmium = Os; Rhodium = Rh; Molybdène = Mo; Zirconium = Zr
+3: Scandium = Sc; Yttrium = Y; Tantale = Ta; Niobium = Nb; Ruthénium = Ru; Rhénium = Re; Hafnium = Hf; Technétium = Tc
+4: Rutherfordium = Rf; Dubnium = Db; Seaborgium = Sg; Bohrium = Bh; Hassium = Hs; Meitnérium = Meitnerium = Mt; Darmstadtium = Ds; Roentgenium = Rg; Copernicium = Cn
+5: Lanthane = La; Actinium = Ac; Lutécium = Lutétium = Lu; Lawrencium = Lr

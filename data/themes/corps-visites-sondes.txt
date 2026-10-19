@@ -1,0 +1,7 @@
+titre: Une planète, une planète naine, un astéroïde ou une comète survolé(e) ou exploré(e) par une sonde spatiale (Terre et satellites des planètes exclus, jusqu'en 2025)
+# Planètes, planètes naines, astéroïdes (y compris leurs petites lunes : Dactyl, Dimorphos, Selam) et comètes approchés par une sonde.
+1: Mars; Jupiter; Saturne; Vénus; Pluton; Mercure
+2: Uranus; Neptune; Cérès; Comète de Halley = Halley = 1P/Halley; Tchourioumov-Guérassimenko = Churyumov-Gerasimenko = Tchouri = 67P; Vesta
+3: Ryugu; Bennu; Itokawa; Eros = Éros; Arrokoth = Ultima Thulé = Ultima Thule; Dimorphos; Didymos; Tempel 1 = 9P/Tempel; Wild 2 = 81P/Wild
+4: Gaspra; Ida; Dactyl; Mathilde; Lutetia = Lutèce; Šteins = Steins; Toutatis; Borrelly = 19P/Borrelly; Hartley 2 = 103P/Hartley; Giacobini-Zinner = 21P/Giacobini-Zinner; Dinkinesh; Selam
+5: Annefrank; Braille; Grigg-Skjellerup = 26P/Grigg-Skjellerup; Donaldjohanson; Masursky; APL = 132524 APL; Siding Spring = C/2013 A1

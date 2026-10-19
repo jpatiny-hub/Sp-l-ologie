@@ -1,0 +1,8 @@
+titre: Un élément chimique sans aucun isotope stable (tous ses isotopes sont radioactifs)
+# Technétium (43), prométhium (61) et tous les éléments de numéro atomique ≥ 83.
+# Le bismuth (Bi-209, demi-vie ~2×10^19 ans) est accepté : il n'a, à strictement parler, aucun isotope stable.
+1: Uranium = U; Plutonium = Pu; Radium = Ra; Radon = Rn; Polonium = Po
+2: Thorium = Th; Technétium = Tc; Américium = Am; Curium = Cm; Francium = Fr; Einsteinium = Es; Neptunium = Np
+3: Prométhium = Pm; Astate = At; Actinium = Ac; Californium = Cf; Fermium = Fm; Mendélévium = Md; Nobélium = No; Berkélium = Bk; Protactinium = Pa; Bismuth = Bi; Oganesson = Og
+4: Lawrencium = Lr; Rutherfordium = Rf; Seaborgium = Sg; Bohrium = Bh; Copernicium = Cn; Nihonium = Nh; Flérovium = Flerovium = Fl; Moscovium = Mc; Livermorium = Lv; Tennesse = Tennessine = Ts
+5: Dubnium = Db; Hassium = Hs; Meitnérium = Meitnerium = Mt; Darmstadtium = Ds; Roentgenium = Rg
