@@ -372,3 +372,36 @@ test('une réponse signalée puis ajoutée au thème rapporte ses points au joue
     await app.close();
   }
 });
+
+test('proposition de thèmes : tous les joueurs peuvent proposer, seul le responsable les voit', async () => {
+  const app = await startServer();
+  try {
+    const admin = client(app.base);
+    const eve = client(app.base);
+    await admin('/api/signup', { username: 'chef', password: 'secret123' });
+    await eve('/api/signup', { username: 'eve', password: 'secret123' });
+    assert.equal((await client(app.base)('/api/themes/suggest', { title: 'Un instrument à vent' })).status, 401);
+    assert.equal((await eve('/api/themes/suggest', { title: 'abc' })).status, 400, 'titre trop court');
+    assert.equal((await eve('/api/themes/suggest', { title: 'Un instrument à vent', details: 'flûte, hautbois…' })).status, 201);
+
+    const mine = (await eve('/api/themes/suggestions')).data.suggestions;
+    assert.equal(mine.length, 1);
+    assert.equal(mine[0].handled, false);
+    assert.equal((await eve('/api/admin/theme-suggestions')).status, 403);
+
+    const { suggestions } = (await admin('/api/admin/theme-suggestions')).data;
+    assert.equal(suggestions.length, 1);
+    assert.equal(suggestions[0].username, 'eve');
+    assert.equal(suggestions[0].details, 'flûte, hautbois…');
+    assert.equal((await eve('/api/admin/theme-suggestions/handled', { id: suggestions[0].id })).status, 403);
+    await admin('/api/admin/theme-suggestions/handled', { id: suggestions[0].id });
+    assert.equal((await admin('/api/admin/theme-suggestions')).data.suggestions[0].handled, true);
+    assert.equal((await eve('/api/themes/suggestions')).data.suggestions[0].handled, true);
+
+    // Au plus 5 propositions par jour et par joueur.
+    for (let i = 0; i < 4; i++) await eve('/api/themes/suggest', { title: `Idée numéro ${i}` });
+    assert.equal((await eve('/api/themes/suggest', { title: 'Une de trop' })).status, 429);
+  } finally {
+    await app.close();
+  }
+});

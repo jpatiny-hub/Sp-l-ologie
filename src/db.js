@@ -95,6 +95,16 @@ CREATE TABLE IF NOT EXISTS answer_reports (
   handled_at INTEGER,
   PRIMARY KEY (user_id, theme_id, input_key)
 );
+
+-- Thèmes proposés par les joueurs, à examiner par le responsable du jeu.
+CREATE TABLE IF NOT EXISTS theme_suggestions (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title      TEXT NOT NULL,
+  details    TEXT NOT NULL DEFAULT '',
+  created_at INTEGER NOT NULL,
+  handled_at INTEGER
+);
 `;
 
 // Colonnes ajoutées après la mise en ligne : créées si la base est plus ancienne.

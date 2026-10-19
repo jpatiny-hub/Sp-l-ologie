@@ -358,6 +358,30 @@ function createApp({
       json(res, 200, { ok: true });
     },
 
+    'GET /api/themes/suggestions': async (req, res) => {
+      const user = requireUser(req, res);
+      json(res, 200, { suggestions: game.mySuggestions(user.id) });
+    },
+
+    'POST /api/themes/suggest': async (req, res) => {
+      const user = requireUser(req, res);
+      const { title, details } = await readJson(req);
+      json(res, 201, game.suggestTheme(user.id, title, details));
+    },
+
+    'GET /api/admin/theme-suggestions': async (req, res) => {
+      requireAdmin(req, res);
+      json(res, 200, { suggestions: game.allSuggestions() });
+    },
+
+    'POST /api/admin/theme-suggestions/handled': async (req, res) => {
+      requireAdmin(req, res);
+      const { id } = await readJson(req);
+      if (!Number.isInteger(id)) throw new HttpError(400, 'Proposition inconnue.');
+      game.markSuggestionHandled(id);
+      json(res, 200, { ok: true });
+    },
+
     'GET /api/game/:id/answers': async (req, res, id, url) => {
       const user = requireUser(req, res);
       json(res, 200, game.themeAnswers(id, user.id, Number(url.searchParams.get('slot'))));

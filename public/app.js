@@ -1031,6 +1031,7 @@
       renderProfile(profile);
       show('profile');
       loadReports();
+      loadSuggestions();
       if (profile.badges.some((b) => b.isNew)) {
         api('/api/profile/seen', {}).catch(() => {});
         if (app.me) app.me.unseenBadges = 0;
@@ -1204,6 +1205,106 @@
       $('reports-status').textContent = `${plural(pending.length, 'signalement copié', 'signalements copiés')} : colle-les dans la conversation.`;
     } catch {
       $('reports-status').textContent = text;
+    }
+  });
+
+  // ---------- Thèmes proposés ----------
+  async function loadSuggestions() {
+    try {
+      const { suggestions } = await api('/api/themes/suggestions');
+      renderMySuggestions(suggestions);
+    } catch {
+      /* la section reste vide */
+    }
+    const card = $('admin-suggestions');
+    card.hidden = !(app.me && app.me.isAdmin);
+    if (card.hidden) return;
+    try {
+      const { suggestions } = await api('/api/admin/theme-suggestions');
+      app.suggestions = suggestions;
+      renderSuggestions();
+    } catch (err) {
+      $('suggestions-status').textContent = err.message;
+    }
+  }
+
+  function renderMySuggestions(list) {
+    $('suggest-mine').replaceChildren(
+      ...list.map((s) =>
+        el(
+          'li',
+          { class: `report ${s.handled ? 'handled' : 'pending'}` },
+          el('span', { class: 'what' }, el('strong', {}, s.title)),
+          el('span', { class: 'muted' }, s.handled ? 'Examinée, merci !' : 'En attente d\'examen'),
+        ),
+      ),
+    );
+  }
+
+  $('form-suggest').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const status = $('suggest-status');
+    status.textContent = '';
+    try {
+      await api('/api/themes/suggest', { title: $('suggest-title').value, details: $('suggest-details').value });
+      $('suggest-title').value = '';
+      $('suggest-details').value = '';
+      status.textContent = 'Merci ! Ta proposition est bien reçue.';
+      loadSuggestions();
+    } catch (err) {
+      status.textContent = err.message;
+    }
+  });
+
+  function renderSuggestions() {
+    const tab = app.suggestionTab || 'pending';
+    const all = app.suggestions || [];
+    const shown = all.filter((s) => !s.handled === (tab === 'pending'));
+    $('count-sug-pending').textContent = `(${all.filter((s) => !s.handled).length})`;
+    $('count-sug-done').textContent = `(${all.filter((s) => s.handled).length})`;
+    document.querySelectorAll('#suggestion-tabs .tab').forEach((t) => t.classList.toggle('active', t.dataset.suggestions === tab));
+    $('btn-copy-suggestions').hidden = tab !== 'pending';
+    const list = $('suggestion-list');
+    list.replaceChildren(
+      ...shown.map((s) => {
+        const item = el(
+          'li',
+          { class: `report ${s.handled ? 'handled' : 'pending'}` },
+          el('span', { class: 'what' }, el('strong', {}, s.title), s.details ? el('span', { class: 'muted' }, s.details) : null),
+          el('span', { class: 'muted' }, `proposé par ${s.username} · ${formatDay(new Date(s.createdAt).toISOString().slice(0, 10), { day: 'numeric', month: 'long' })}`),
+        );
+        if (!s.handled) {
+          const done = el('button', { class: 'link', type: 'button' }, 'Marquer comme traité');
+          done.addEventListener('click', async () => {
+            await api('/api/admin/theme-suggestions/handled', { id: s.id }).catch(() => {});
+            s.handled = true;
+            renderSuggestions();
+          });
+          item.append(done);
+        }
+        return item;
+      }),
+    );
+    if (!shown.length) list.append(el('li', { class: 'muted' }, tab === 'pending' ? 'Aucune proposition à traiter.' : 'Aucune proposition traitée pour l\'instant.'));
+  }
+
+  document.querySelectorAll('#suggestion-tabs .tab').forEach((t) =>
+    t.addEventListener('click', () => {
+      app.suggestionTab = t.dataset.suggestions;
+      renderSuggestions();
+    }),
+  );
+
+  $('btn-copy-suggestions').addEventListener('click', async () => {
+    const pending = (app.suggestions || []).filter((s) => !s.handled);
+    const text = pending.length
+      ? pending.map((s) => `${s.title}${s.details ? ` — ${s.details.replace(/\s+/g, ' ')}` : ''} (proposé par ${s.username})`).join('\n')
+      : 'Aucune proposition en attente.';
+    try {
+      await navigator.clipboard.writeText(text);
+      $('suggestions-status').textContent = `${plural(pending.length, 'proposition copiée', 'propositions copiées')} : colle-les dans la conversation.`;
+    } catch {
+      $('suggestions-status').textContent = text;
     }
   });
 
