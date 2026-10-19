@@ -101,6 +101,11 @@ CREATE TABLE IF NOT EXISTS answer_reports (
 const MIGRATIONS = [
   ['users', 'skin_body', 'TEXT'],
   ['users', 'skin_bit', 'TEXT'],
+  // Signalement fait pendant la manche (manche retrouvée par game_id et slot) et suite donnée aux points.
+  ['answer_reports', 'game_id', 'INTEGER'],
+  ['answer_reports', 'slot', 'INTEGER'],
+  ['answer_reports', 'credit', 'TEXT'],
+  ['answer_reports', 'points', 'INTEGER'],
 ];
 
 function openDb(file) {

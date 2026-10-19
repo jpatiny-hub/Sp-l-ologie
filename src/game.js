@@ -282,13 +282,17 @@ class GameService {
     if (!theme) throw new HttpError(404, 'Ce thème n\'existe plus.');
     const match = matchAnswer(theme, input);
     if (match) return { status: 'known', label: match.answer.label };
+    // Signalé pendant la manche (sans préciser de manche) : donne droit aux points si la réponse est ajoutée.
+    const during = !Number.isInteger(slot) && round.answered_at == null;
     const recent = this.db
       .prepare('SELECT COUNT(*) AS n FROM answer_reports WHERE user_id = ? AND created_at > ?')
       .get(userId, this.now() - 24 * 3600 * 1000).n;
     if (recent >= 30) throw new HttpError(429, 'Beaucoup de signalements aujourd\'hui : merci, on en reste là pour l\'instant !');
     this.db
-      .prepare('INSERT OR IGNORE INTO answer_reports (user_id, theme_id, input_key, input, created_at) VALUES (?, ?, ?, ?, ?)')
-      .run(userId, theme.id, key, input, this.now());
+      .prepare(
+        'INSERT OR IGNORE INTO answer_reports (user_id, theme_id, input_key, input, created_at, game_id, slot) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      )
+      .run(userId, theme.id, key, input, this.now(), during ? gameId : null, during ? round.slot : null);
     return { status: 'recorded' };
   }
 
@@ -297,7 +301,7 @@ class GameService {
     const rows = this.db
       .prepare(
         `SELECT theme_id, input_key, MIN(input) AS input, COUNT(*) AS players, MIN(created_at) AS first_at,
-                MAX(created_at) AS last_at, SUM(handled_at IS NULL) AS pending
+                MAX(created_at) AS last_at, SUM(handled_at IS NULL) AS pending, SUM(credit = 'credited') AS credited
          FROM answer_reports GROUP BY theme_id, input_key
          ORDER BY pending > 0 DESC, players DESC, last_at DESC LIMIT 300`,
       )
@@ -314,9 +318,63 @@ class GameService {
         players: r.players,
         firstAt: r.first_at,
         lastAt: r.last_at,
+        credited: r.credited || 0,
         status: added ? 'added' : r.pending ? 'pending' : 'handled',
       };
     });
+  }
+
+  /**
+   * Accorde les points aux joueurs qui avaient signalé, pendant leur manche, une réponse qui a
+   * depuis été ajoutée au thème. Conditions : manche close sans réponse valide, forage quotidien,
+   * et semaine du forage encore en cours (on ne modifie pas un podium hebdomadaire terminé).
+   * Renvoie le nombre de joueurs crédités.
+   */
+  creditReports() {
+    const rows = this.db
+      .prepare('SELECT rowid AS id, * FROM answer_reports WHERE game_id IS NOT NULL AND credit IS NULL')
+      .all();
+    let credited = 0;
+    for (const r of rows) {
+      const theme = this.themes.get(r.theme_id);
+      const match = theme && matchAnswer(theme, r.input);
+      if (!match) continue; // pas (encore) ajoutée au thème
+      const game = this.db.prepare('SELECT * FROM games WHERE id = ?').get(r.game_id);
+      const round = this.db.prepare('SELECT * FROM rounds WHERE game_id = ? AND slot = ?').get(r.game_id, r.slot);
+      const setCredit = (status, points = null) =>
+        this.db.prepare('UPDATE answer_reports SET credit = ?, points = ? WHERE rowid = ?').run(status, points, r.id);
+      if (!game || !round || game.mode !== 'daily' || round.answered_at == null) {
+        setCredit('ineligible');
+      } else if (round.outcome === 'answer') {
+        setCredit('kept'); // le joueur a trouvé une autre réponse depuis : il garde ses points
+      } else if (weekStart(game.day) !== weekStart(this.today())) {
+        setCredit('expired');
+      } else {
+        const counts = new Map(
+          this.db.prepare('SELECT answer_key, n FROM answer_counts WHERE theme_id = ?').all(theme.id).map((x) => [x.answer_key, x.n]),
+        );
+        const score = scoreAnswer(theme, counts, match.answer.key);
+        transaction(this.db, () => {
+          this.db
+            .prepare(
+              `UPDATE rounds SET outcome = 'answer', points = ?, input = ?, answer_key = ?, answer_label = ?, probability = ?
+               WHERE game_id = ? AND slot = ?`,
+            )
+            .run(score.points, r.input, match.answer.key, match.answer.label, score.probability, r.game_id, r.slot);
+          this.db.prepare('UPDATE games SET score = score + ? WHERE id = ?').run(score.points, r.game_id);
+          this.db
+            .prepare(
+              `INSERT INTO answer_counts (theme_id, answer_key, n) VALUES (?, ?, 1)
+               ON CONFLICT (theme_id, answer_key) DO UPDATE SET n = n + 1`,
+            )
+            .run(theme.id, match.answer.key);
+          setCredit('credited', score.points);
+        });
+        this.badges.awardForGame(r.game_id);
+        credited++;
+      }
+    }
+    return credited;
   }
 
   markReportHandled(themeId, inputKey) {

@@ -65,6 +65,7 @@ function createApp({
 }) {
   const game = new GameService(db, themes, now);
   game.badges.backfill();
+  game.creditReports();
   const loginLimiter = new auth.RateLimiter(10, 15 * 60 * 1000);
   const signupLimiter = new auth.RateLimiter(10, 60 * 60 * 1000);
 
@@ -345,6 +346,7 @@ function createApp({
 
     'GET /api/admin/reports': async (req, res) => {
       requireAdmin(req, res);
+      game.creditReports();
       json(res, 200, { reports: game.reportedAnswers() });
     },
 

@@ -1147,7 +1147,11 @@
           'li',
           { class: `report ${r.status}` },
           el('span', { class: 'what' }, el('strong', {}, `« ${r.input} »`), el('span', { class: 'muted' }, r.themeTitle)),
-          el('span', { class: 'muted' }, `${plural(r.players, 'joueur', 'joueurs')} · ${labels[r.status]}`),
+          el(
+            'span',
+            { class: 'muted' },
+            `${plural(r.players, 'joueur', 'joueurs')} · ${labels[r.status]}${r.credited ? ` · points accordés à ${r.credited}` : ''}`,
+          ),
         );
         if (r.status === 'pending') {
           const done = el('button', { class: 'link', type: 'button' }, 'Marquer comme traitée');
