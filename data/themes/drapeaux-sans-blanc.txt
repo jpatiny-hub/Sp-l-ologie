@@ -1,0 +1,5 @@
+titre: Un pays dont le drapeau ne comporte aucune trace de blanc (emblème compris)
+1: Allemagne; Belgique; Chine; Vietnam; Roumanie; Colombie; Jamaïque; Ghana; Ukraine
+2: Lituanie; Mali; Guinée; Sénégal; Cameroun; Bolivie; Mongolie; Angola; Arménie; Éthiopie; Bénin; Tchad; Gabon; Maroc; Bangladesh; Congo = République du Congo = Congo-Brazzaville; République démocratique du Congo = RDC = Congo-Kinshasa
+3: Mauritanie; Rwanda; Guinée-Bissau; Barbade; Bahamas; Burkina Faso; Sri Lanka
+4: Macédoine du Nord = Macédoine; Kirghizistan; Palau = Palaos; Maurice; Sao Tomé-et-Principe = Sao Tomé

@@ -1,0 +1,7 @@
+titre: Une langue officielle (au niveau national) d'au moins un État d'Afrique
+# D'après les constitutions : français, anglais, arabe, portugais, espagnol ; langues africaines officielles (swahili, amharique, afrikaans, zoulou, kirundi, kinyarwanda, sesotho, sango, chichewa…) ; les 16 langues officielles du Zimbabwe. Les simples langues nationales (wolof, lingala, haoussa…) ne comptent pas.
+1: Français; Anglais; Arabe; Portugais
+2: Swahili = Kiswahili; Espagnol = Castillan; Afrikaans; Zoulou = isiZulu; Xhosa = isiXhosa
+3: Amharique; Somali; Malgache; Kirundi; Kinyarwanda; Sesotho = Sotho; Setswana = Tswana; Shona; Chichewa = Chewa; Swati = Siswati; Sango; Berbère = Tamazight = Amazigh = Amazighe; Comorien = Shikomori; Créole seychellois = Seychellois
+4: Ndébélé = Ndebele = isiNdebele; Venda = Tshivenda; Tsonga = Xitsonga; Sepedi = Sotho du Nord; Oromo = Afan Oromo; Afar; Tigrigna = Tigrinya; Langue des signes
+5: Kalanga; Nambya; Ndau; Chibarwe = Barwe; Koisan = Khoisan; Shangani; Tonga = Chitonga

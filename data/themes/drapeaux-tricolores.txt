@@ -1,0 +1,6 @@
+titre: Un pays dont le drapeau est formé de trois bandes de même largeur, horizontales ou verticales (avec ou sans emblème au centre)
+# Les drapeaux à bandes inégales (Canada, Colombie, Équateur, Lettonie, Libye…) ou à plus de trois bandes ne comptent pas.
+1: France; Italie; Allemagne; Belgique; Irlande; Pays-Bas = Hollande; Russie; Roumanie; Hongrie; Bulgarie; Autriche; Mexique
+2: Luxembourg; Lituanie; Estonie; Argentine; Pérou; Bolivie; Nigeria = Nigéria; Mali; Guinée; Côte d'Ivoire; Sénégal; Cameroun; Tchad; Gabon; Égypte; Syrie; Irak; Yémen; Venezuela; Croatie; Serbie; Slovaquie; Slovénie; Arménie
+3: Ghana; Éthiopie; Niger; Sierra Leone; Honduras; Salvador; Nicaragua; Guatemala
+4: Andorre; Moldavie; Mongolie

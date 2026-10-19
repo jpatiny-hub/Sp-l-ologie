@@ -1,0 +1,6 @@
+titre: Un pays ou territoire dont le drapeau comporte une croix ou un sautoir bien visible (Union Jack compris)
+# Croix nordiques, croix de Saint-Georges, sautoirs (Saint-André, Saint-Patrick) et territoires portant l'Union Jack dans le canton.
+1: Suisse; Royaume-Uni = Grande-Bretagne; Danemark; Suède; Norvège; Finlande; Islande; Grèce; Australie; Nouvelle-Zélande
+2: Angleterre; Écosse; Géorgie; Jamaïque; Fidji; Tonga; Îles Féroé = Féroé; Québec
+3: Burundi; Dominique; Åland = Îles Åland; Irlande du Nord; Tuvalu; Bermudes; Îles Caïmans = Caïmans; Îles Cook; Niue; Anguilla; Îles Vierges britanniques; Montserrat; Sainte-Hélène; Îles Falkland = Malouines = Falkland; Îles Turques-et-Caïques = Turques-et-Caïques
+4: Pitcairn; Jersey; Guernesey; Hawaï

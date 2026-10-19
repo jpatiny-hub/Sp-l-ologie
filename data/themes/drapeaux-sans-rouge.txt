@@ -1,0 +1,6 @@
+titre: Un pays dont le drapeau ne comporte aucune trace de rouge (emblème compris)
+# Les drapeaux dont les armoiries sont multicolores (Salvador, Nicaragua, Guatemala, Saint-Marin, Vatican…) sont écartés par prudence.
+1: Ukraine; Grèce; Finlande; Suède; Israël; Argentine; Brésil; Inde; Irlande; Arabie saoudite
+2: Uruguay; Honduras; Estonie; Kazakhstan; Jamaïque; Pakistan; Bahamas; Barbade; Côte d'Ivoire; Gabon; Niger; Rwanda; Sierra Leone
+3: Bhoutan; Palau = Palaos; Somalie; Botswana; Micronésie; Lesotho; Sainte-Lucie
+4: Nauru; Îles Marshall = Marshall; Saint-Vincent-et-les-Grenadines = Saint-Vincent; Kosovo; Bosnie-Herzégovine = Bosnie; Chypre

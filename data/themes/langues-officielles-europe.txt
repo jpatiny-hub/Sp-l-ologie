@@ -1,0 +1,6 @@
+titre: Une langue officielle (au niveau national) d'au moins un État d'Europe, ou de l'Union européenne
+# Ne comptent pas les langues seulement régionales ou minoritaires (breton, basque, frison, sarde, same, gaélique écossais…), sauf le catalan (Andorre), le gallois, le féroïen et le romanche, officiels dans leur territoire.
+1: Français; Allemand; Italien; Anglais; Espagnol; Néerlandais = Flamand
+2: Portugais; Grec; Polonais; Russe; Suédois; Danois; Norvégien; Finnois; Hongrois; Tchèque; Roumain = Moldave
+3: Bulgare; Croate; Serbe; Slovène; Slovaque; Turc; Ukrainien; Irlandais = Gaélique irlandais; Islandais; Lituanien; Letton; Estonien; Maltais; Albanais; Luxembourgeois; Biélorusse; Géorgien; Arménien; Catalan
+4: Macédonien; Bosniaque; Monténégrin; Romanche; Gallois; Azéri = Azerbaïdjanais; Féroïen
