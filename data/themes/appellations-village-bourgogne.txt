@@ -1,0 +1,7 @@
+titre: Une appellation communale (« village ») des vins de Bourgogne, de Chablis au Mâconnais (Beaujolais exclu)
+# Appellations de niveau village de l'Yonne, de la Côte-d'Or et de la Saône-et-Loire (les grands crus forment un autre thème).
+1: Chablis; Meursault; Pommard; Beaune; Gevrey-Chambertin; Nuits-Saint-Georges; Pouilly-Fuissé; Volnay; Mercurey; Vosne-Romanée
+2: Puligny-Montrachet; Chassagne-Montrachet; Chambolle-Musigny; Morey-Saint-Denis; Aloxe-Corton; Santenay; Savigny-lès-Beaune; Rully; Givry; Saint-Véran; Petit Chablis; Irancy; Vougeot; Fixin
+3: Marsannay = Marsannay-la-Côte; Pernand-Vergelesses; Monthélie; Auxey-Duresses; Saint-Romain; Saint-Aubin; Ladoix = Ladoix-Serrigny; Chorey-lès-Beaune; Montagny; Saint-Bris; Maranges; Viré-Clessé; Côte de Nuits-Villages
+4: Blagny; Bouzeron; Pouilly-Loché; Pouilly-Vinzelles; Vézelay; Côte de Beaune; Côte de Beaune-Villages
+5: Mâcon-Villages

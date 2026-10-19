@@ -1,0 +1,7 @@
+titre: Un cru du Beaujolais (les 10 crus) ou un cru des Côtes du Rhône (les 17 crus)
+# Beaujolais : 10 crus. Vallée du Rhône : 8 crus septentrionaux et 9 méridionaux (Cairanne depuis 2016). Le vin doux naturel Muscat de Beaumes-de-Venise est accepté.
+1: Châteauneuf-du-Pape; Morgon; Fleurie; Brouilly; Moulin-à-Vent; Hermitage; Côte-Rôtie; Gigondas; Saint-Amour
+2: Juliénas; Chiroubles; Crozes-Hermitage; Condrieu; Saint-Joseph; Tavel; Vacqueyras; Côte de Brouilly; Cornas
+3: Chénas; Régnié; Lirac; Rasteau; Beaumes-de-Venise; Château-Grillet
+4: Saint-Péray; Vinsobres; Cairanne
+5: Muscat de Beaumes-de-Venise

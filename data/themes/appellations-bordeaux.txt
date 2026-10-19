@@ -1,0 +1,6 @@
+titre: Une appellation (AOC) viticole du Bordelais, en Gironde (dénominations des Côtes de Bordeaux comprises)
+# Les anciens noms (Côtes de Castillon, Premières Côtes de Blaye, Bordeaux Côtes de Francs…) sont acceptés comme variantes.
+1: Bordeaux; Saint-Émilion; Pomerol; Médoc; Margaux; Pauillac; Sauternes; Graves; Saint-Julien; Saint-Estèphe
+2: Haut-Médoc; Pessac-Léognan; Bordeaux supérieur; Entre-deux-Mers; Barsac; Saint-Émilion grand cru; Lalande-de-Pomerol; Fronsac; Listrac-Médoc = Listrac; Moulis-en-Médoc = Moulis; Côtes de Bourg = Bourg = Bourgeais; Blaye; Crémant de Bordeaux; Côtes de Bordeaux
+3: Canon-Fronsac; Montagne-Saint-Émilion; Lussac-Saint-Émilion; Puisseguin-Saint-Émilion; Saint-Georges-Saint-Émilion; Loupiac; Cadillac; Sainte-Croix-du-Mont; Cérons; Bordeaux rosé; Bordeaux clairet = clairet; Castillon Côtes de Bordeaux = Côtes de Castillon; Blaye Côtes de Bordeaux = Premières Côtes de Blaye; Cadillac Côtes de Bordeaux
+4: Côtes de Blaye; Francs Côtes de Bordeaux = Bordeaux Côtes de Francs = Côtes de Francs; Sainte-Foy Côtes de Bordeaux = Sainte-Foy-Bordeaux; Premières Côtes de Bordeaux; Graves supérieures; Graves de Vayres; Entre-deux-Mers Haut-Benauge; Bordeaux Haut-Benauge; Côtes de Bordeaux-Saint-Macaire
