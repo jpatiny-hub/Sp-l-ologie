@@ -1453,7 +1453,7 @@
               el(
                 'li',
                 { class: p.me ? 'me' : '' },
-                el('span', { class: 'swatch', style: `background:${Pixel.TIER_COLORS[r.tier] || '#666'}` }),
+                el('span', { class: 'swatch', style: { background: Pixel.TIER_COLORS[r.tier] || '#666' } }),
                 el('span', { class: 'who' }, p.username),
                 el('span', { class: 'what' }, what),
                 el('span', { class: 'pts' }, pts(r.points || 0)),
