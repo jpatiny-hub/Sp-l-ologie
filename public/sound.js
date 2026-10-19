@@ -145,7 +145,7 @@
     /** Réponse validée : plus elle est rare, plus l'arpège monte. */
     tier(id) {
       if (!ready()) return;
-      const steps = { evident: 1, courant: 2, original: 3, rare: 4, tres_rare: 5, pepite: 6 }[id] || 0;
+      const steps = { evident: 1, courant: 2, original: 3, rare: 4, pepite: 6 }[id] || 0;
       if (!steps) return this.miss();
       const notes = [392, 494, 587, 784, 988, 1175];
       for (let i = 0; i < steps; i++) tone(notes[i], { at: i * 0.07, dur: 0.14, type: 'square', gain: 0.1 });

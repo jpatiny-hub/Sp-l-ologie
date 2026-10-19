@@ -19,8 +19,16 @@ const key = (label) => theme.answers.find((a) => a.label === label).key;
 test("sans données, les points suivent les niveaux de difficulté", () => {
   const counts = new Map();
   const points = ['A1', 'B1', 'C1', 'D1', 'E1'].map((l) => scoreAnswer(theme, counts, key(l)).points);
-  assert.deepEqual(points, [10, 29, 48, 68, 100]);
+  assert.deepEqual(points, [10, 29, 48, 100, 100]);
   assert.ok(scoreAnswer(theme, counts, key('E1')).pepite);
+  assert.ok(scoreAnswer(theme, counts, key('D1')).pepite, 'une réponse de niveau 4 jamais donnée est aussi une pépite');
+});
+
+test('un niveau 4 déjà donné n\'est plus une pépite', () => {
+  const s = scoreAnswer(theme, new Map([[key('D1'), 1]]), key('D1'));
+  assert.equal(s.pepite, false);
+  assert.notEqual(s.tier.id, 'pepite');
+  assert.ok(s.points < 100);
 });
 
 test('une pépite déjà trouvée ne vaut plus 100 points, mais reste rare', () => {
@@ -41,8 +49,8 @@ test("plus une réponse est donnée, moins elle rapporte", () => {
 });
 
 test("les réponses jamais données deviennent plus rares quand les données s'accumulent", () => {
-  const before = scoreAnswer(theme, new Map(), key('D1')).points;
-  const after = scoreAnswer(theme, new Map([[key('A1'), 400]]), key('D1')).points;
+  const before = scoreAnswer(theme, new Map(), key('C1')).points;
+  const after = scoreAnswer(theme, new Map([[key('A1'), 400]]), key('C1')).points;
   assert.ok(after > before, `${after} <= ${before}`);
 });
 
@@ -53,6 +61,6 @@ test('paliers de rareté', () => {
   assert.equal(tierFor(29, 'answer').id, 'courant');
   assert.equal(tierFor(48, 'answer').id, 'original');
   assert.equal(tierFor(68, 'answer').id, 'rare');
-  assert.equal(tierFor(90, 'answer').id, 'tres_rare');
+  assert.equal(tierFor(90, 'answer').id, 'rare');
   assert.equal(tierFor(100, 'answer').id, 'pepite');
 });

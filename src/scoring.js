@@ -18,7 +18,7 @@
  * Les points dépendent de la « surprise » de la réponse (en théorie de l'information :
  * -ln p) comparée à la réponse la plus attendue du thème :
  *     t = ln(p_max / p) / ÉCHELLE  (borné entre 0 et 1)   →   points = 10 + 80 × t
- * Une réponse très rare (t ≥ 0,85) que personne n'avait encore donnée est une « pépite » : 100 points.
+ * Une réponse rare (t ≥ 0,70, soit un niveau 4 ou 5) que personne n'avait encore donnée est une « pépite » : 100 points.
  */
 
 // Poids a priori par niveau : chaque niveau est environ 3 fois moins probable que le précédent.
@@ -31,17 +31,17 @@ const PRIOR_STRENGTH = 500;
 // Écart de surprise entre le niveau 1 et le niveau 5 : sert d'unité pour t.
 const SCALE = Math.log(LEVEL_WEIGHTS[1] / LEVEL_WEIGHTS[5]);
 
-const PEPITE_THRESHOLD = 0.85;
+const PEPITE_THRESHOLD = 0.7;
 
 const TIERS = {
   invalid: { id: 'invalid', label: 'Hors thème', emoji: '⬛' },
   timeout: { id: 'timeout', label: 'Temps écoulé', emoji: '⬛' },
   skip: { id: 'skip', label: 'Passé', emoji: '⬛' },
-  evident: { id: 'evident', label: 'Évident', emoji: '🟫' },
-  courant: { id: 'courant', label: 'Courant', emoji: '🟨' },
-  original: { id: 'original', label: 'Original', emoji: '🟧' },
-  rare: { id: 'rare', label: 'Rare', emoji: '🟥' },
-  tres_rare: { id: 'tres_rare', label: 'Très rare', emoji: '🟪' },
+  // Rareté, de la roche commune au métal précieux.
+  evident: { id: 'evident', label: 'Gravier', emoji: '🟫' },
+  courant: { id: 'courant', label: 'Soufre', emoji: '🟨' },
+  original: { id: 'original', label: 'Cuivre', emoji: '🟧' },
+  rare: { id: 'rare', label: 'Rubis', emoji: '🟥' },
   pepite: { id: 'pepite', label: 'Pépite !', emoji: '💎' },
 };
 
@@ -50,7 +50,6 @@ function tierFor(points, outcome) {
   if (outcome === 'skip') return TIERS.skip;
   if (!points) return TIERS.invalid;
   if (points >= 100) return TIERS.pepite;
-  if (points >= 80) return TIERS.tres_rare;
   if (points >= 60) return TIERS.rare;
   if (points >= 40) return TIERS.original;
   if (points >= 20) return TIERS.courant;

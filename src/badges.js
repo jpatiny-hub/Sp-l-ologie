@@ -24,10 +24,10 @@ const STREAKS = [
 
 // Profondeur atteinte en un forage (points du jour).
 const DEPTHS = [
-  [260, 'Plongée dans le manteau', 'Atteindre le manteau inférieur (260 points en un forage)'],
-  [500, 'Fer en fusion', 'Atteindre le noyau externe (500 points en un forage)'],
-  [650, 'Cœur de cristal', 'Atteindre le noyau interne (650 points en un forage)'],
-  [700, 'Voyage au centre de la Terre', 'Atteindre le centre de la Terre (700 points en un forage)'],
+  [260, 'Plongée dans le manteau', 'Atteindre le manteau inférieur (220 points en un forage)', 220],
+  [500, 'Fer en fusion', 'Atteindre le noyau externe (430 points en un forage)', 430],
+  [650, 'Cœur de cristal', 'Atteindre le noyau interne (560 points en un forage)', 560],
+  [700, 'Voyage au centre de la Terre', 'Atteindre le centre de la Terre (600 points en un forage)', 600],
 ];
 
 const PEPITES = [
@@ -238,7 +238,7 @@ class BadgeService {
     this.give(userId, 'premier-forage', '1', day);
     const streak = BadgeService.streakEndingOn(this.playedDays(userId), day);
     STREAKS.forEach(([n]) => streak >= n && this.give(userId, `serie-${n}`, '1', day));
-    DEPTHS.forEach(([n]) => game.score >= n && this.give(userId, `profondeur-${n}`, '1', day));
+    DEPTHS.forEach(([n, , , threshold]) => game.score >= threshold && this.give(userId, `profondeur-${n}`, '1', day));
     const pepites = this.db
       .prepare("SELECT COUNT(*) AS n FROM rounds r JOIN games g ON g.id = r.game_id WHERE g.user_id = ? AND g.mode = 'daily' AND r.points >= 100")
       .get(userId).n;

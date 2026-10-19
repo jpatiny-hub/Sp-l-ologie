@@ -10,7 +10,7 @@
   const H = 200;
   const SKY = 56;
   const PPP = 2;
-  const MAX_POINTS = 700;
+  const MAX_POINTS = 600;
   const WORLD_H = SKY + MAX_POINTS * PPP + 28;
   const SHAFT_W = 18;
   const SHAFT_X = Math.floor(W / 2 - SHAFT_W / 2);
@@ -29,38 +29,37 @@
     { from: 44, name: 'Veine de houille', dark: '#08080a', colors: ['#17171b', '#202026', '#2a2a31', '#111114'] },
     { from: 58, name: 'Croûte granitique', dark: '#2e2624', colors: ['#a8968f', '#c5a89c', '#7d716c', '#e0d4c8'] },
     { from: 110, name: 'Manteau supérieur', dark: '#1d220d', colors: ['#56632a', '#647233', '#4a5623', '#76863d'] },
-    { from: 260, name: 'Manteau inférieur', dark: '#2a0d07', colors: ['#6e2818', '#7d301c', '#5e2013', '#8f3a22'] },
-    { from: 500, name: 'Noyau externe', dark: '#5a2306', colors: ['#d06d1f', '#e88a2a', '#f7b23b', '#b5561a'] },
-    { from: 650, name: 'Noyau interne', dark: '#8a5d12', colors: ['#f9e27a', '#fbeaa0', '#f3d25a', '#fff6cc'] },
+    { from: 220, name: 'Manteau inférieur', dark: '#2a0d07', colors: ['#6e2818', '#7d301c', '#5e2013', '#8f3a22'] },
+    { from: 430, name: 'Noyau externe', dark: '#5a2306', colors: ['#d06d1f', '#e88a2a', '#f7b23b', '#b5561a'] },
+    { from: 560, name: 'Noyau interne', dark: '#8a5d12', colors: ['#f9e27a', '#fbeaa0', '#f3d25a', '#fff6cc'] },
   ];
 
   // Correspondance score → profondeur réelle (km), interpolée linéairement.
   const DEPTH_TABLE = [
-    [0, 0], [6, 0.0005], [24, 0.02], [44, 0.4], [58, 1.2], [110, 35], [260, 660], [500, 2890], [650, 5150], [700, 6371],
+    [0, 0], [6, 0.0005], [24, 0.02], [44, 0.4], [58, 1.2], [110, 35], [220, 660], [430, 2890], [560, 5150], [600, 6371],
   ];
 
   const PALETTES = {
     normal: {
       invalid: '#4a4a4a', timeout: '#4a4a4a', skip: '#4a4a4a',
-      evident: '#8b5a2b', courant: '#e8c547', original: '#f08a24', rare: '#d9342b', tres_rare: '#9b4dca', pepite: '#5ee0ff',
+      evident: '#8b5a2b', courant: '#e8c547', original: '#f08a24', rare: '#d9342b', pepite: '#5ee0ff',
     },
     // Mode daltonien : palette d'Okabe et Ito, distinguable pour toutes les formes de daltonisme.
     colorblind: {
       invalid: '#4a4a4a', timeout: '#4a4a4a', skip: '#4a4a4a',
-      evident: '#cfc3a6', courant: '#f0e442', original: '#e69f00', rare: '#56b4e9', tres_rare: '#0072b2', pepite: '#f5f5f5',
+      evident: '#cfc3a6', courant: '#f0e442', original: '#e69f00', rare: '#56b4e9', pepite: '#f5f5f5',
     },
   };
   // Objet partagé avec l'interface : son contenu change avec le mode daltonien.
   const TIER_COLORS = { ...PALETTES.normal };
 
   // Symbole propre à chaque rareté (mode daltonien) : texte et motif 5 × 5 pour les repères du puits.
-  const TIER_SYMBOLS = { evident: '·', courant: '–', original: '+', rare: '×', tres_rare: '=', pepite: '◆', skip: '', timeout: '', invalid: '' };
+  const TIER_SYMBOLS = { evident: '·', courant: '–', original: '+', rare: '×', pepite: '◆', skip: '', timeout: '', invalid: '' };
   const TIER_GLYPHS = {
     evident: ['.....', '.....', '..#..', '.....', '.....'],
     courant: ['.....', '.....', '.###.', '.....', '.....'],
     original: ['.....', '..#..', '.###.', '..#..', '.....'],
     rare: ['.....', '.#.#.', '..#..', '.#.#.', '.....'],
-    tres_rare: ['.....', '.###.', '.....', '.###.', '.....'],
     pepite: ['..#..', '.#.#.', '#...#', '.#.#.', '..#..'],
   };
   let colorblind = false;
@@ -1016,7 +1015,7 @@
       ctx.restore();
 
       // Ambiance chaude dans les profondeurs.
-      const heat = Math.max(0, Math.min(1, (this.depth - 260) / 440));
+      const heat = Math.max(0, Math.min(1, (this.depth - 220) / 380));
       if (heat > 0) {
         ctx.fillStyle = `rgba(255, 90, 20, ${0.08 * heat + Math.sin(time * 3) * 0.02 * heat})`;
         ctx.fillRect(0, 0, W, this.h);
