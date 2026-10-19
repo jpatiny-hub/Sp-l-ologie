@@ -1,0 +1,5 @@
+titre: Une orientation sexuelle ou une identité de genre
+1: Homosexuel = Homosexualité = Gay; Lesbienne = Lesbianisme; Bisexuel = Bisexualité = Bi; Hétérosexuel = Hétérosexualité = Hétéro; Transgenre = Trans = Transidentité; Non-binaire = Non binaire; Cisgenre = Cis; Queer; Asexuel = Asexualité = Ace; Pansexuel = Pansexualité = Pan
+2: Genderfluid = Genre fluide = Fluide; Agenre; Intersexe = Intersexuation; Genderqueer; Demisexuel = Demisexualité; Aromantique = Aromantisme; Polysexuel = Polysexualité; Omnisexuel = Omnisexualité; Bigenre; Androgyne; Transsexuel; Genre neutre = Neutrois; Questioning = Questionnement; Homme trans; Femme trans; Allosexuel; Hétéroflexible; Homoflexible
+3: Demigirl; Demiboy; Bispirituel = Two-spirit; Hijra; Fa'afafine; Muxe; Takatāpui = Takatapui
+4: Skoliosexuel = Skoliosexualité; Androsexuel = Androsexualité; Gynésexuel = Gynésexualité; Gris-asexuel = Gray-ace = Gris-ace; Lithromantique = Lithsexuel; Quoisexuel = Quoiromantique; Maverique = Mavérique; Pangenre; Xénogenre

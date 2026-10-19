@@ -48,6 +48,7 @@ const CALENDAR = {
   'jour-terre': { name: () => 'Jour de la Terre', description: (y) => `Forage du jour de la Terre, le 22 avril ${y}`, icon: 'globe', body: 'globe' },
   paques: { name: () => 'Œuf de dinosaure', description: (y) => `Forage du dimanche de Pâques ${y}`, icon: 'oeuf', body: 'oeuf' },
   'premier-mai': { name: () => 'Gueule noire', description: (y) => `Forage de la fête du Travail ${y}, en hommage aux mineurs`, icon: 'lampe-mineur' },
+  'fierte': { name: () => 'Fierté', description: (y) => `Forage du 17 mai ${y}, journée mondiale contre l'homophobie, la transphobie et la biphobie`, icon: 'drapeau-fierte', body: 'fierte' },
   'fete-nationale': { name: () => 'Tricolore', description: (y) => `Forage du 21 juillet ${y}, fête nationale belge`, icon: 'drapeau', body: 'tricolore' },
   'mole-day': { name: () => 'Jour de la mole', description: (y) => `Forage du Mole Day (6,022 × 10²³), le 23 octobre ${y}`, icon: 'taupe', body: 'taupe' },
   halloween: { name: () => 'Citrouille diabolique', description: (y) => `Forage d'Halloween ${y}`, icon: 'citrouille', body: 'citrouille' },
@@ -89,6 +90,7 @@ const FIXED_DAYS = {
   '04-01': 'poisson-avril',
   '04-22': 'jour-terre',
   '05-01': 'premier-mai',
+  '05-17': 'fierte',
   '07-21': 'fete-nationale',
   '10-23': 'mole-day',
   '10-31': 'halloween',
@@ -169,7 +171,7 @@ const BODIES = [
   ['classique', 'Classique'], ['acier', 'Acier'], ['cuivre', 'Cuivre'], ['emeraude', 'Émeraude'], ['obsidienne', 'Obsidienne'],
   ['or', 'Or massif'], ['diamant', 'Diamant'], ['cordee', 'Cordée'], ['expedition', 'Expédition'], ['legende', 'Légende'],
   ['feu-artifice', "Feu d'artifice"], ['cupidon', 'Cupidon'], ['globe', 'Planète bleue'], ['oeuf', 'Œuf de Pâques'],
-  ['tricolore', 'Tricolore'], ['taupe', 'Taupe'], ['citrouille', 'Citrouille diabolique'], ['spectre', 'Spectre'],
+  ['tricolore', 'Tricolore'], ['fierte', 'Arc-en-ciel'], ['taupe', 'Taupe'], ['citrouille', 'Citrouille diabolique'], ['spectre', 'Spectre'],
   ['casque', 'Casque de mineur'], ['mitre', 'Mitre'], ['noel', 'Noël'], ['chat-noir', 'Chat noir'],
 ];
 const BITS = [['standard', 'Foret standard'], ['tariere', 'Tarière'], ['tricone', 'Tricône'], ['diamant', 'Couronne diamantée'], ['carotteuse', 'Carotteuse']];

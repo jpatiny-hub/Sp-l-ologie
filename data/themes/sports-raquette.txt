@@ -1,0 +1,5 @@
+titre: Un sport qui se joue avec une raquette (ou une palette)
+1: Tennis; Badminton; Squash; Tennis de table = Ping-pong; Padel
+2: Pickleball; Racquetball; Beach tennis; Speedminton = Crossminton; Tennis en fauteuil; Jeu de paume; Pelote basque = Palette
+3: Padel tennis; Platform tennis; Paddle tennis; Soft tennis = Tennis souple; Frescobol; Matkot; Jokari; Real tennis = Tennis royal; Frontenis; Pala; Paleta
+4: Longue paume; Courte paume
