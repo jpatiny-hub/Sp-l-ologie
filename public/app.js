@@ -1141,8 +1141,14 @@
   function renderReports() {
     const list = $('report-list');
     const labels = { pending: 'à vérifier', handled: 'traitée', added: 'ajoutée au thème' };
+    const tab = app.reportTab || 'pending';
+    const shown = app.reports.filter((r) => (r.status === 'pending') === (tab === 'pending'));
+    $('count-pending').textContent = `(${app.reports.filter((r) => r.status === 'pending').length})`;
+    $('count-done').textContent = `(${app.reports.filter((r) => r.status !== 'pending').length})`;
+    document.querySelectorAll('#report-tabs .tab').forEach((t) => t.classList.toggle('active', t.dataset.reports === tab));
+    $('btn-copy-reports').hidden = tab !== 'pending';
     list.replaceChildren(
-      ...app.reports.map((r) => {
+      ...shown.map((r) => {
         const item = el(
           'li',
           { class: `report ${r.status}` },
@@ -1165,8 +1171,15 @@
         return item;
       }),
     );
-    if (!app.reports.length) list.append(el('li', { class: 'muted' }, 'Aucun signalement pour l\'instant.'));
+    if (!shown.length) list.append(el('li', { class: 'muted' }, tab === 'pending' ? 'Aucun signalement à traiter.' : 'Aucun signalement traité pour l\'instant.'));
   }
+
+  document.querySelectorAll('#report-tabs .tab').forEach((t) =>
+    t.addEventListener('click', () => {
+      app.reportTab = t.dataset.reports;
+      renderReports();
+    }),
+  );
 
   $('btn-copy-reports').addEventListener('click', async () => {
     const pending = (app.reports || []).filter((r) => r.status === 'pending');
