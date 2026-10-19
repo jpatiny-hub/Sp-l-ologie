@@ -223,6 +223,8 @@ test('une saisie approximative est proposée au joueur avant d’être validée'
     const dan = client(app.base);
     await dan('/api/signup', { username: 'dan', password: 'secret123' });
     const { data: game } = await dan('/api/game/start', { mode: 'daily' });
+    // Thème fixé : le test ne doit pas dépendre du tirage du jour.
+    app.db.prepare("UPDATE rounds SET theme_id = 'wallonie' WHERE game_id = ? AND slot = 0").run(game.id);
     await dan(`/api/game/${game.id}/reveal`, {});
     const round = app.db.prepare('SELECT theme_id FROM rounds WHERE game_id = ? AND slot = 0').get(game.id);
     const theme = THEMES.get(round.theme_id);
