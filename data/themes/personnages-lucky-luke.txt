@@ -1,0 +1,5 @@
+titre: Un personnage de Lucky Luke (héros, bandits, figures historiques et animaux)
+1: Lucky Luke; Jolly Jumper; Rantanplan; Joe Dalton = Joe; William Dalton = William; Jack Dalton = Jack; Averell Dalton = Averell; Ma Dalton = Maman Dalton; Billy the Kid; Calamity Jane; Jesse James
+2: Pat Poker; Phil Defer; Joss Jamon; Ming Li Foo; Judge Roy Bean = Juge Roy Bean; Buffalo Bill; Sitting Bull = Taureau Assis; Sarah Bernhardt; Oscar Wilde; Crazy Horse = Cheval Fou; Black Bart; Wild Bill Hickok = Hickok; Cole Younger; Bob Ford; Doc Holliday; Wyatt Earp
+3: Sam Bass; John Wesley Hardin
+4: Pat Garrett
