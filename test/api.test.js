@@ -416,10 +416,10 @@ test("note de mise à jour : vue une fois par les anciens comptes, pas par les n
     // Ancien compte : la note n'a jamais été vue.
     app.db.prepare('UPDATE users SET news_seen = 0').run();
     const news = (await alice('/api/me')).data.news;
-    assert.equal(news.length, 1);
+    assert.equal(news.length, 2);
     assert.match(news[0].items.join(' '), /Proposer un thème/);
     assert.equal((await alice('/api/news/seen', { id: 'x' })).status, 400);
-    await alice('/api/news/seen', { id: news[0].id });
+    await alice('/api/news/seen', { id: news[news.length - 1].id });
     assert.deepEqual((await alice('/api/me')).data.news, []);
   } finally {
     await app.close();
