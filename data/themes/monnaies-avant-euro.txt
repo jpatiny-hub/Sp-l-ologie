@@ -1,0 +1,5 @@
+titre: Une monnaie nationale remplacée par l'euro (pays de la zone euro jusqu'à la Bulgarie en 2026, micro-États et écu compris)
+1: Franc belge; Franc français; Mark allemand = Deutsche Mark = Mark = Deutschmark; Florin néerlandais = Florin = Gulden; Lire italienne = Lire = Lira; Peseta = Peseta espagnole; Franc luxembourgeois
+2: Drachme = Drachme grecque; Escudo = Escudo portugais; Schilling autrichien = Schilling; Livre irlandaise = Punt; Markka = Mark finlandais; Kuna = Kuna croate; Lev = Lev bulgare
+3: Tolar = Tolar slovène; Couronne slovaque; Couronne estonienne; Lats = Lats letton; Litas = Litas lituanien; Livre chypriote; Lire maltaise = Livre maltaise = Lira maltaise
+4: Écu = ECU = Unité de compte européenne; Franc monégasque; Lire vaticane; Lire saint-marinaise

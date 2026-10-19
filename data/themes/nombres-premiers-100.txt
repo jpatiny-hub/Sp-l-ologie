@@ -1,0 +1,6 @@
+titre: Un nombre premier inférieur à 100 (en chiffres ou en lettres)
+1: 2 = deux; 3 = trois; 5 = cinq; 7 = sept; 11 = onze; 13 = treize
+2: 17 = dix-sept; 19 = dix-neuf; 23 = vingt-trois; 29 = vingt-neuf; 31 = trente et un; 37 = trente-sept
+3: 41 = quarante et un; 43 = quarante-trois; 47 = quarante-sept; 53 = cinquante-trois; 59 = cinquante-neuf; 61 = soixante et un
+4: 67 = soixante-sept; 71 = septante et un = soixante et onze; 73 = septante-trois = soixante-treize; 79 = septante-neuf = soixante-dix-neuf; 83 = quatre-vingt-trois
+5: 89 = quatre-vingt-neuf; 97 = nonante-sept = quatre-vingt-dix-sept

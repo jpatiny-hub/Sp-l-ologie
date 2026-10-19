@@ -1,0 +1,10 @@
+titre: Un acteur ou une actrice ayant incarné James Bond, M, Q, Miss Moneypenny, Felix Leiter ou Blofeld au cinéma (films EON, Casino Royale de 1967 et Jamais plus jamais compris)
+# Bond : Connery, Lazenby, Moore, Dalton, Brosnan, Craig ; dans Casino Royale (1967), plusieurs agents sont rebaptisés « James Bond 007 » (Niven, Sellers, Andress, Cooper, Lavi) et Woody Allen joue Jimmy Bond.
+# M : Lee, Brown, Dench, Fiennes, Huston (1967), Fox (1983). Q : Burton (Boothroyd, Dr. No), Llewelyn, Cleese, Whishaw, Bayldon (1967), McCowen (1983).
+# Moneypenny : Maxwell, Bliss, Bond, Harris, Bouchet (1967), Salem (1983). Leiter : Lord, Linder, Van Nutter, Burton, Hedison, Terry, Wright, Casey (1983).
+# Blofeld : Dawson (corps) et Pohlmann (voix), Pleasence, Savalas, Gray, Hollis (corps) et Rietti (voix), von Sydow (1983), Waltz.
+1: Sean Connery; Daniel Craig; Roger Moore; Pierce Brosnan; Judi Dench
+2: Timothy Dalton; George Lazenby; Ralph Fiennes; Christoph Waltz; Ben Whishaw; Desmond Llewelyn; Naomie Harris; John Cleese; Lois Maxwell
+3: Bernard Lee; Donald Pleasence; Telly Savalas; Max von Sydow; Jeffrey Wright; Samantha Bond; David Niven; Charles Gray; Robert Brown; Edward Fox
+4: Peter Sellers; Woody Allen; John Huston; David Hedison; Jack Lord; Caroline Bliss; Barbara Bouchet; Bernie Casey; Alec McCowen; Cec Linder; John Terry; Ursula Andress
+5: Terence Cooper; Daliah Lavi; Rik Van Nutter; Norman Burton; Anthony Dawson; Eric Pohlmann; John Hollis; Robert Rietti; Peter Burton; Geoffrey Bayldon; Pamela Salem
