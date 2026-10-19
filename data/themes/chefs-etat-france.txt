@@ -1,0 +1,7 @@
+titre: Un chef de l'État français depuis la chute du Second Empire (septembre 1870 à 2026, intérims et gouvernements provisoires compris)
+# Intérims de la IIIe République assurés par le président du Conseil : Rouvier (1887), Dupuy (1894 et 1899), François-Marsal (1924), Tardieu (1932).
+1: Charles de Gaulle = De Gaulle; Emmanuel Macron = Macron; François Mitterrand = Mitterrand; Jacques Chirac = Chirac; Nicolas Sarkozy = Sarkozy; François Hollande = Hollande; Valéry Giscard d'Estaing = Giscard d'Estaing = Giscard = VGE; Georges Pompidou = Pompidou
+2: Philippe Pétain = Pétain = Maréchal Pétain; René Coty = Coty; Vincent Auriol = Auriol; Adolphe Thiers = Thiers; Raymond Poincaré = Poincaré; Patrice de Mac Mahon = Mac Mahon = MacMahon; Alain Poher = Poher; Léon Blum = Blum
+3: Jules Grévy = Grévy; Sadi Carnot = Carnot; Félix Faure = Faure; Paul Doumer = Doumer; Albert Lebrun = Lebrun; Paul Deschanel = Deschanel; Alexandre Millerand = Millerand; Armand Fallières = Fallières; Émile Loubet = Loubet; Gaston Doumergue = Doumergue
+4: Jean Casimir-Perier = Casimir-Perier; Félix Gouin = Gouin; Georges Bidault = Bidault; Louis-Jules Trochu = Jules Trochu = Trochu
+5: Maurice Rouvier = Rouvier; Charles Dupuy = Dupuy; Frédéric François-Marsal = François-Marsal; André Tardieu = Tardieu

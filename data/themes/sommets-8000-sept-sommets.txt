@@ -1,0 +1,7 @@
+titre: Un des 14 sommets de plus de 8 000 m ou l'un des « sept sommets » (point culminant de chaque continent, variantes comprises)
+# Sept sommets : listes de Bass et de Messner (Kosciuszko ou Puncak Jaya), Elbrouz ou mont Blanc pour l'Europe.
+1: Everest = Mont Everest = Chomolungma = Sagarmatha; K2 = Chogori; Mont Blanc; Kilimandjaro = Kilimanjaro; Aconcagua; Annapurna
+2: Denali = Mont McKinley = McKinley; Elbrouz = Elbrus; Kangchenjunga = Kanchenjunga; Lhotse; Makalu; Nanga Parbat; Mont Vinson = Massif Vinson = Vinson
+3: Cho Oyu; Dhaulagiri; Manaslu; Broad Peak; Kosciuszko = Mont Kosciuszko; Puncak Jaya = Pyramide Carstensz = Carstensz
+4: Gasherbrum I = Hidden Peak; Gasherbrum II; Shishapangma = Xixabangma
+5: Lhotse Shar; Yalung Kang = Kangchenjunga occidental

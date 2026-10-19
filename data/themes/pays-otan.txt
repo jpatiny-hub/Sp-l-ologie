@@ -1,0 +1,6 @@
+titre: Un pays membre de l'OTAN (les 32 membres en 2026)
+1: Belgique; France; États-Unis = USA; Royaume-Uni = Grande-Bretagne; Allemagne; Pays-Bas; Luxembourg; Canada; Italie
+2: Espagne; Portugal; Norvège; Danemark; Pologne; Turquie; Grèce; Finlande; Suède
+3: Islande; Tchéquie = République tchèque; Hongrie; Roumanie; Bulgarie; Lituanie; Lettonie; Estonie
+4: Slovaquie; Slovénie; Croatie; Albanie
+5: Monténégro; Macédoine du Nord = Macédoine

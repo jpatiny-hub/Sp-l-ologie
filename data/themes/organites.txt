@@ -1,4 +1,6 @@
 titre: Un organite ou une structure de la cellule
+# Retiré du tirage : catégorie trop ouverte pour une liste complète.
+actif: non
 1: Noyau; Mitochondrie; Membrane plasmique = Membrane cellulaire = Membrane = Plasmalemme; Ribosome; Cytoplasme; Chloroplaste
 2: Réticulum endoplasmique = RE; Appareil de Golgi = Golgi = Dictyosome; Lysosome; Vacuole; Paroi cellulaire = Paroi; Chromosome; Nucléole; Cytosquelette; Centriole; Flagelle; Cil; Vésicule; Peroxysome; Centrosome
 3: Réticulum endoplasmique rugueux = RER = Ergastoplasme; Réticulum endoplasmique lisse = REL; Enveloppe nucléaire = Membrane nucléaire; Pore nucléaire; Microtubule; Microfilament = Filament d'actine; Filament intermédiaire; Chromatine; Cytosol = Hyaloplasme; Plaste; Thylakoïde; Stroma; Crête mitochondriale; Matrice mitochondriale; Endosome; Protéasome; Plasmide; Nucléoïde; Pili = Pilus = Fimbriae = Fimbria; Capsule; Microvillosité; Centromère; Télomère; Vacuole contractile = Vacuole pulsatile; Plasmodesme; Glycocalyx; Polysome = Polyribosome; Gouttelette lipidique = Corps lipidique = Adiposome; Granule de sécrétion = Vésicule de sécrétion = Grain de sécrétion; Vésicule synaptique; Pseudopode; Endospore = Spore bactérienne; Nucléosome; Nucléoplasme; Tonoplaste; Myofibrille; Sarcomère; Réticulum sarcoplasmique

@@ -1,0 +1,6 @@
+titre: Un pape élu depuis 1700 (de Clément XI à Léon XIV, nom de règne ou nom de naissance)
+1: Jean-Paul II = Jean-Paul 2 = Karol Wojtyła = Wojtyla; Benoît XVI = Benoît 16 = Joseph Ratzinger = Ratzinger; François = Pape François = Jorge Mario Bergoglio = Bergoglio; Léon XIV = Léon 14 = Robert Prevost = Prevost; Jean XXIII = Jean 23 = Angelo Roncalli = Roncalli
+2: Paul VI = Paul 6 = Giovanni Battista Montini = Montini; Jean-Paul Ier = Jean-Paul 1er = Albino Luciani = Luciani; Pie XII = Pie 12 = Eugenio Pacelli = Pacelli; Pie IX = Pie 9; Léon XIII = Léon 13; Pie X = Pie 10
+3: Pie XI = Pie 11; Benoît XV = Benoît 15; Pie VII = Pie 7; Pie VI = Pie 6; Grégoire XVI = Grégoire 16
+4: Pie VIII = Pie 8; Léon XII = Léon 12; Clément XIV = Clément 14; Benoît XIV = Benoît 14
+5: Clément XIII = Clément 13; Clément XII = Clément 12; Benoît XIII = Benoît 13; Innocent XIII = Innocent 13; Clément XI = Clément 11
