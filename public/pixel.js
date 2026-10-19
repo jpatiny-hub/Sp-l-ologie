@@ -14,7 +14,8 @@
   const WORLD_H = SKY + MAX_POINTS * PPP + 28;
   const SHAFT_W = 18;
   const SHAFT_X = Math.floor(W / 2 - SHAFT_W / 2);
-  const DRILL_SPEED = 55; // points par seconde
+  const DRILL_SPEED = 55; // points par seconde (descentes longues)
+  const MIN_DRILL_TIME = 2.4; // secondes : même une réponse évidente (descente courte) creuse visiblement
 
   // Couches traversées (en points de score). Le nom est affiché pendant la descente.
   const ZONES = [
@@ -73,6 +74,13 @@
       if (p <= p1) return k0 + ((p - p0) / (p1 - p0)) * (k1 - k0);
     }
     return 6371;
+  }
+
+  /** Distance restante jusqu'au centre de la Terre, déjà formatée. */
+  function formatRemaining(points) {
+    const km = 6371 - depthKm(points);
+    if (km < 1) return `${Math.round(km * 1000)} m`;
+    return `${Math.round(km).toLocaleString('fr-BE')} km`;
   }
 
   function formatDepth(points) {
@@ -690,6 +698,10 @@
       this.skin = { body: 'classique', bit: 'standard' };
       this.depth = 0;
       this.target = 0;
+      this.speed = DRILL_SPEED;
+      this.ovProgress = 0;
+      this.ovFrom = 0;
+      this.onOverview = null;
       this.camY = 0;
       this.particles = [];
       this.mode = 'follow';
@@ -711,6 +723,10 @@
       this.layers = layers.slice();
       this.target = Math.min(MAX_POINTS, layers.reduce((s, l) => s + (l.points || 0), 0));
       this.mode = 'follow';
+      if (this.onOverview) this.onOverview(0);
+      // Descente d'au moins MIN_DRILL_TIME secondes : plus lente quand elle est courte.
+      const distance = this.target - this.depth;
+      this.speed = distance > 0 ? Math.min(DRILL_SPEED, distance / MIN_DRILL_TIME) : DRILL_SPEED;
       if (!animate) {
         this.depth = this.target;
         this.camY = this.cameraTarget();
@@ -732,7 +748,16 @@
       this.camY = this.cameraTarget();
     }
 
+    /** Dézoome jusqu'à voir toute la Terre : distance restante entre la foreuse et le centre. */
+    overview() {
+      this.mode = 'overview';
+      this.ovProgress = 0;
+      this.ovFrom = this.camY;
+      if (this.onOverview) this.onOverview(0);
+    }
+
     tour() {
+      if (this.onOverview) this.onOverview(0);
       this.mode = 'tour';
       this.tourDir = 1;
       this.tourPause = 1.2;
@@ -765,7 +790,7 @@
 
     update(dt) {
       if (this.drilling) {
-        this.depth = Math.min(this.target, this.depth + DRILL_SPEED * dt);
+        this.depth = Math.min(this.target, this.depth + this.speed * dt);
         this.emitDepth();
         const colors = ZONES[zoneIndex(this.depth)].colors;
         for (let i = 0; i < 3; i++) {
@@ -798,7 +823,11 @@
         return p.life > 0;
       });
 
-      if (this.mode === 'tour') {
+      if (this.mode === 'overview') {
+        const before = this.ovProgress;
+        this.ovProgress = Math.min(1, this.ovProgress + dt / 2.2);
+        if (this.onOverview && (this.ovProgress >= 1) !== (before >= 1)) this.onOverview(1);
+      } else if (this.mode === 'tour') {
         const bottom = Math.max(0, Math.min(WORLD_H - this.h, this.tipY() + 30 - this.h));
         if (this.tourPause > 0) this.tourPause -= dt;
         else {
@@ -818,7 +847,79 @@
       }
     }
 
+    /** Vue d'ensemble : toute la hauteur du monde tient dans l'écran, avec la distance jusqu'au centre. */
+    drawOverview(time) {
+      const ctx = this.ctx;
+      const t = this.ovProgress;
+      const p = t * t * (3 - 2 * t);
+      const srcH = this.h + (WORLD_H - this.h) * p;
+      const srcY = this.ovFrom * (1 - p);
+      const sy = this.h / srcH;
+      const Y = (y) => (y - srcY) * sy;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(this.world, 0, srcY, W, srcH, 0, 0, W, this.h);
+
+      const tip = this.tipY();
+      for (let zi = 0; zi < ZONES.length; zi++) {
+        const top = SKY + ZONES[zi].from * PPP;
+        const bottom = zi + 1 < ZONES.length ? SKY + ZONES[zi + 1].from * PPP : WORLD_H;
+        const y0 = Math.max(top, SKY + 1);
+        const y1 = Math.min(bottom, tip);
+        if (y1 <= y0) continue;
+        ctx.fillStyle = ZONES[zi].dark;
+        ctx.fillRect(SHAFT_X, Math.round(Y(y0)), SHAFT_W, Math.max(1, Math.round(Y(y1)) - Math.round(Y(y0))));
+      }
+      // Fin de chaque thème : un trait de la couleur de la rareté.
+      let cumulative = 0;
+      this.layers.forEach((layer) => {
+        cumulative += layer.points || 0;
+        if (cumulative > this.depth + 0.01) return;
+        ctx.fillStyle = TIER_COLORS[layer.tier] || '#888';
+        ctx.fillRect(SHAFT_X - 7, Math.round(Y(SKY + Math.min(cumulative, MAX_POINTS) * PPP)) - 1, 6, 2);
+      });
+
+      const yTip = Math.round(Y(tip));
+      const yCore = Math.round(Y(SKY + MAX_POINTS * PPP + 6));
+      if (sy > 0.45) drawDrill(ctx, this.skin, W / 2 - 8, yTip, time, false);
+      const show = Math.max(0, Math.min(1, (p - 0.55) / 0.45));
+      if (show > 0) {
+        ctx.save();
+        ctx.globalAlpha = show;
+        // Foreuse : losange repère.
+        ctx.fillStyle = '#000';
+        ctx.fillRect(W / 2 - 4, yTip - 4, 9, 9);
+        ctx.fillStyle = '#ff7a1a';
+        ctx.fillRect(W / 2 - 3, yTip - 3, 7, 7);
+        ctx.fillStyle = '#fff1a8';
+        ctx.fillRect(W / 2 - 1, yTip - 1, 3, 3);
+        if (this.depth < MAX_POINTS - 0.01) {
+          // Distance restante : trait pointillé jusqu'au centre de la Terre et accolade.
+          const offset = Math.floor(time * 6) % 4;
+          ctx.fillStyle = '#ffd84d';
+          for (let y = yTip + 6 + offset; y < yCore - 5; y += 4) ctx.fillRect(W / 2, y, 1, 2);
+          const bx = W / 2 + 16;
+          ctx.fillRect(bx, yTip, 1, yCore - yTip);
+          ctx.fillRect(bx - 3, yTip, 4, 1);
+          ctx.fillRect(bx - 3, yCore, 4, 1);
+          ctx.fillRect(W / 2 - 2, yCore - 6, 5, 1);
+          ctx.fillRect(W / 2 - 1, yCore - 7, 3, 1);
+        }
+        // Centre de la Terre : étoile qui scintille.
+        const r = 3 + Math.round(Math.sin(time * 4));
+        ctx.fillStyle = '#fff1a8';
+        ctx.fillRect(W / 2 - r, yCore, 2 * r + 1, 1);
+        ctx.fillRect(W / 2, yCore - r, 1, 2 * r + 1);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(W / 2 - 1, yCore - 1, 3, 3);
+        ctx.restore();
+      }
+    }
+
     draw(time) {
+      if (this.mode === 'overview') {
+        this.drawOverview(time);
+        return;
+      }
       const ctx = this.ctx;
       const cam = Math.round(this.camY);
       ctx.imageSmoothingEnabled = false;
@@ -919,6 +1020,6 @@
   }
 
   global.Pixel = {
-    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, drawDrill, WIDTH: W, HEIGHT: H,
+    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, formatRemaining, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, drawDrill, WIDTH: W, HEIGHT: H,
   };
 })(window);
