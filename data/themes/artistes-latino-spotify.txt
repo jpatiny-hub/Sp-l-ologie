@@ -1,0 +1,7 @@
+titre: Un artiste de musique latine (reggaeton, urbano, pop latine, régional mexicain…) comptant plus de 20 millions d'auditeurs mensuels sur Spotify (relevé d'octobre 2026)
+# Source : classement Spotify des artistes par auditeurs mensuels (kworb.net, relevé d'octobre 2026). Les niveaux suivent la notoriété : plus l'artiste a d'auditeurs, plus la réponse est évidente. Les artistes non classés par genre, les compositeurs et paroliers de cinéma indien, et les artistes non binaires ne sont pas dans les listes par genre.
+1: Bad Bunny; Shakira; J Balvin; KAROL G = Karol G; Daddy Yankee
+2: Rauw Alejandro; Ozuna; Maluma; Fuerza Regida; Anuel AA; Farruko; Myke Towers; Peso Pluma; Don Omar
+3: Romeo Santos; Grupo Frontera; Feid; Manuel Turizo; Anitta; Nicky Jam; Enrique Iglesias; Arcángel; Becky G; Neton Vega; Quevedo; Ryan Castro; Omar Courtz; Junior H; Cris MJ; JHAYCO
+4: Wisin & Yandel = Wisin y Yandel = Wisin et Yandel; Ovy On The Drums; Danny Ocean; Carín León; Zion & Lennox = Zion and Lennox; Maná = Mana; Chencho Corleone; Beéle; Natanael Cano; Ñengo Flow = Nengo Flow; Yandel; Tainy; Tito Double P; Prince Royce; Aventura; Blessd; ROSALÍA; Bizarrap; Oscar Maydon
+5: Grupo Firme; Jay Wheeler; Luis Fonsi; El Alfa; Sebastian Yatra; Yung Beef; De La Ghetto; Gabito Ballesteros; Luis Miguel; Zion; Marco Antonio Solís; Lenny Tavárez; Juanes; Sech; Justin Quiles; Camilo; Reik; Young Miko; Aitana; Luis R Conriquez; Banda MS de Sergio Lizárraga; Wisin; Mc Gw; Julión Álvarez y su Norteño Banda
