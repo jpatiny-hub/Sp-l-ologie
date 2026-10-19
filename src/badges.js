@@ -6,9 +6,8 @@ const { ROUNDS_PER_GAME } = require('./config');
 /*
  * Badges
  * ------
- * Gagnés en partie quotidienne uniquement (l'entraînement est illimité). Chaque badge a une
- * « instance » : un badge unique n'en a qu'une ('1'), un badge répétable en a une par jour,
- * par période de podium ou par année. Certains débloquent une carrosserie ou un foret.
+ * Gagnés en partie quotidienne uniquement (l'entraînement est illimité). Chaque badge ne se gagne
+ * qu'une fois ; son « instance » garde la trace de l'occasion (jour, période de podium, année). Certains débloquent une carrosserie ou un foret.
  */
 
 // Séries de jours consécutifs : du matériel de spéléo de plus en plus engagé.
@@ -156,13 +155,13 @@ PEPITES.forEach(([n, name, description]) => {
     unlock: PEPITE_BODIES[n] ? { type: 'body', id: PEPITE_BODIES[n] } : null,
   });
 });
-define('sans-eboulement', { category: 'exploit', name: 'Sans éboulement', description: () => 'Répondre aux 7 thèmes du jour, sans en passer aucun', icon: 'bouclier', repeatable: true });
-define('diamantaire', { category: 'exploit', name: 'Diamantaire', description: () => 'Donner 7 réponses rares ou mieux (60 points ou plus) dans le même forage', icon: 'diamant', repeatable: true });
-define('podium-jour', { category: 'podium', name: 'Chef de cordée', description: () => 'Finir 1er du podium du jour (au moins 3 joueurs)', icon: 'medaille', repeatable: true, unlock: { type: 'body', id: 'cordee' } });
-define('podium-semaine', { category: 'podium', name: "Chef d'expédition", description: () => 'Finir 1er du podium de la semaine (au moins 3 joueurs)', icon: 'trophee', repeatable: true, unlock: { type: 'body', id: 'expedition' } });
-define('podium-mois', { category: 'podium', name: 'Légende des profondeurs', description: () => 'Finir 1er du podium du mois (au moins 3 joueurs)', icon: 'couronne', repeatable: true, unlock: { type: 'body', id: 'legende' } });
+define('sans-eboulement', { category: 'exploit', name: 'Sans éboulement', description: () => 'Répondre aux 7 thèmes du jour, sans en passer aucun', icon: 'bouclier' });
+define('diamantaire', { category: 'exploit', name: 'Diamantaire', description: () => 'Donner 7 réponses rares ou mieux (60 points ou plus) dans le même forage', icon: 'diamant' });
+define('podium-jour', { category: 'podium', name: 'Chef de cordée', description: () => 'Finir 1er du podium du jour (au moins 3 joueurs)', icon: 'medaille', unlock: { type: 'body', id: 'cordee' } });
+define('podium-semaine', { category: 'podium', name: "Chef d'expédition", description: () => 'Finir 1er du podium de la semaine (au moins 3 joueurs)', icon: 'trophee', unlock: { type: 'body', id: 'expedition' } });
+define('podium-mois', { category: 'podium', name: 'Légende des profondeurs', description: () => 'Finir 1er du podium du mois (au moins 3 joueurs)', icon: 'couronne', unlock: { type: 'body', id: 'legende' } });
 for (const [id, c] of Object.entries(CALENDAR)) {
-  define(id, { category: 'calendrier', name: c.name, description: c.description, icon: c.icon, repeatable: true, unlock: c.body ? { type: 'body', id: c.body } : null });
+  define(id, { category: 'calendrier', name: c.name, description: c.description, icon: c.icon, unlock: c.body ? { type: 'body', id: c.body } : null });
 }
 
 // Apparences de la foreuse. Celles qui ne sont débloquées par aucun badge sont disponibles d'emblée.
@@ -184,10 +183,14 @@ class BadgeService {
     this.podiumsCheckedOn = null;
   }
 
+  /** Chaque badge ne se gagne qu'une fois : la première occasion est gardée. */
   give(userId, kind, instance, earnedOn) {
     this.db
-      .prepare('INSERT OR IGNORE INTO badges (user_id, kind, instance, earned_on, created_at) VALUES (?, ?, ?, ?, ?)')
-      .run(userId, kind, String(instance), earnedOn, this.now());
+      .prepare(
+        `INSERT OR IGNORE INTO badges (user_id, kind, instance, earned_on, created_at)
+         SELECT ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM badges WHERE user_id = ? AND kind = ?)`,
+      )
+      .run(userId, kind, String(instance), earnedOn, this.now(), userId, kind);
   }
 
   /** Jours (AAAA-MM-JJ, croissants) où le joueur a terminé son forage. */
@@ -242,6 +245,10 @@ class BadgeService {
 
   /** Rattrape les badges des forages joués avant l'arrivée des badges (sans effet ensuite). */
   backfill() {
+    // Badges gagnés plusieurs fois avant la règle « une seule fois » : on garde le premier.
+    this.db.exec(`DELETE FROM badges WHERE rowid NOT IN (
+      SELECT (SELECT b2.rowid FROM badges b2 WHERE b2.user_id = b.user_id AND b2.kind = b.kind ORDER BY b2.earned_on, b2.rowid LIMIT 1)
+      FROM badges b GROUP BY b.user_id, b.kind)`);
     const ids = this.db.prepare("SELECT id FROM games WHERE mode = 'daily' AND finished_at IS NOT NULL ORDER BY day").all();
     for (const { id } of ids) this.awardForGame(id);
   }
