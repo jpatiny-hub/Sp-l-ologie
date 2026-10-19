@@ -484,6 +484,7 @@
     $('prompt-title').textContent = round.title;
     $('answer-error').textContent = '';
     clearPending();
+    hideReport();
     const input = $('answer-input');
     input.value = '';
     input.focus();
@@ -537,6 +538,7 @@
         $('confirm-suggestion').textContent = `« ${res.suggestion} »`;
         $('answer-confirm').hidden = false;
         $('answer-actions').hidden = true;
+        hideReport();
         $('answer-error').textContent = '';
         Sound.ask();
       } else if (res.result === 'unknown') {
@@ -549,6 +551,7 @@
         input.classList.add('shake');
         input.select();
         app.game = res.state;
+        offerReport(text);
         Sound.wrong();
       } else {
         clearPending();
@@ -562,6 +565,38 @@
       app.busy = false;
     }
   }
+
+  // ---------- Signaler une réponse refusée ----------
+  function hideReport() {
+    app.refused = null;
+    $('btn-report').hidden = true;
+    $('report-status').hidden = true;
+  }
+
+  function offerReport(text) {
+    app.refused = text;
+    const button = $('btn-report');
+    button.textContent = `Je pense que « ${text} » est correcte`;
+    button.hidden = false;
+    $('report-status').hidden = true;
+  }
+
+  $('btn-report').addEventListener('click', async () => {
+    const text = app.refused;
+    if (!text || !app.game) return;
+    $('btn-report').hidden = true;
+    const status = $('report-status');
+    status.hidden = false;
+    try {
+      const res = await api(`/api/game/${app.game.id}/report`, { text });
+      status.textContent = res.status === 'known'
+        ? `« ${res.label} » est déjà acceptée : valide-la !`
+        : `Merci ! « ${text} » sera vérifiée et ajoutée si elle est correcte. Tu peux continuer à jouer.`;
+    } catch (err) {
+      status.textContent = err.message;
+    }
+    $('answer-input').focus();
+  });
 
   /** Recharge la partie depuis le serveur après un imprévu. Renvoie true si l'affichage a changé. */
   async function resync() {
@@ -840,13 +875,13 @@
     try {
       const data = await api(`/api/game/${state.id}/answers?slot=${round.slot}`);
       details.dataset.loaded = '1';
-      renderThemeAnswers(details, data);
+      renderThemeAnswers(details, data, state.id);
     } catch (err) {
       details.replaceChildren(el('p', { class: 'error' }, err.message));
     }
   }
 
-  function renderThemeAnswers(details, data) {
+  function renderThemeAnswers(details, data, gameId) {
     const counts = {};
     data.answers.forEach((a) => (counts[a.tier] = (counts[a.tier] || 0) + 1));
     const chips = el('div', { class: 'chips' });
@@ -883,10 +918,29 @@
     };
     chip('all', 'Toutes', data.answers.length);
     TIER_ORDER.forEach((id) => counts[id] && chip(id, TIER_LABELS[id], counts[id]));
+    // Une bonne réponse manque à la liste : le joueur peut la signaler.
+    const missing = el('form', { class: 'missing-form', autocomplete: 'off' });
+    const field = el('input', { maxlength: '80', placeholder: 'Une bonne réponse manque ?', 'aria-label': 'Réponse manquante', autocapitalize: 'off', spellcheck: 'false' });
+    const note = el('p', { class: 'muted small', role: 'status' });
+    missing.append(field, el('button', { class: 'btn small-btn', type: 'submit' }, 'Signaler'));
+    missing.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const text = field.value.trim();
+      if (!text) return;
+      try {
+        const res = await api(`/api/game/${gameId}/report`, { slot: data.slot, text });
+        note.textContent = res.status === 'known' ? `« ${res.label} » fait déjà partie des réponses.` : `Merci ! « ${text} » sera vérifiée.`;
+        if (res.status !== 'known') field.value = '';
+      } catch (err) {
+        note.textContent = err.message;
+      }
+    });
     details.replaceChildren(
       el('p', { class: 'muted small' }, 'De la plus rare à la plus évidente, avec les points qu\'elle rapporterait aujourd\'hui et le nombre de fois qu\'elle a été donnée.'),
       chips,
       list,
+      missing,
+      note,
     );
     draw();
   }
@@ -963,6 +1017,7 @@
       app.skin = profile.skin;
       renderProfile(profile);
       show('profile');
+      loadReports();
       if (profile.badges.some((b) => b.isNew)) {
         api('/api/profile/seen', {}).catch(() => {});
         if (app.me) app.me.unseenBadges = 0;
@@ -1068,6 +1123,59 @@
     };
     requestAnimationFrame(loop);
   }
+
+  // ---------- Réponses signalées (responsable du jeu) ----------
+  async function loadReports() {
+    const card = $('admin-reports');
+    card.hidden = !(app.me && app.me.isAdmin);
+    if (card.hidden) return;
+    try {
+      const { reports } = await api('/api/admin/reports');
+      app.reports = reports;
+      renderReports();
+    } catch (err) {
+      $('reports-status').textContent = err.message;
+    }
+  }
+
+  function renderReports() {
+    const list = $('report-list');
+    const labels = { pending: 'à vérifier', handled: 'traitée', added: 'ajoutée au thème' };
+    list.replaceChildren(
+      ...app.reports.map((r) => {
+        const item = el(
+          'li',
+          { class: `report ${r.status}` },
+          el('span', { class: 'what' }, el('strong', {}, `« ${r.input} »`), el('span', { class: 'muted' }, r.themeTitle)),
+          el('span', { class: 'muted' }, `${plural(r.players, 'joueur', 'joueurs')} · ${labels[r.status]}`),
+        );
+        if (r.status === 'pending') {
+          const done = el('button', { class: 'link', type: 'button' }, 'Marquer comme traitée');
+          done.addEventListener('click', async () => {
+            await api('/api/admin/reports/handled', { themeId: r.themeId, inputKey: r.inputKey }).catch(() => {});
+            r.status = 'handled';
+            renderReports();
+          });
+          item.append(done);
+        }
+        return item;
+      }),
+    );
+    if (!app.reports.length) list.append(el('li', { class: 'muted' }, 'Aucun signalement pour l\'instant.'));
+  }
+
+  $('btn-copy-reports').addEventListener('click', async () => {
+    const pending = (app.reports || []).filter((r) => r.status === 'pending');
+    const text = pending.length
+      ? pending.map((r) => `${r.themeId} (${r.themeTitle}) : ${r.input} — ${plural(r.players, 'joueur', 'joueurs')}`).join('\n')
+      : 'Aucun signalement en attente.';
+    try {
+      await navigator.clipboard.writeText(text);
+      $('reports-status').textContent = `${plural(pending.length, 'signalement copié', 'signalements copiés')} : colle-les dans la conversation.`;
+    } catch {
+      $('reports-status').textContent = text;
+    }
+  });
 
   $('btn-carnet').addEventListener('click', () => openProfile());
   $('btn-results-carnet').addEventListener('click', () => openProfile());

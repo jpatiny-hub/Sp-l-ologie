@@ -84,6 +84,17 @@ CREATE TABLE IF NOT EXISTS badges (
   seen_at    INTEGER,
   PRIMARY KEY (user_id, kind, instance)
 );
+
+-- Réponses que des joueurs pensent correctes alors qu'elles ont été refusées : à vérifier et ajouter.
+CREATE TABLE IF NOT EXISTS answer_reports (
+  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  theme_id   TEXT NOT NULL,
+  input_key  TEXT NOT NULL,
+  input      TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  handled_at INTEGER,
+  PRIMARY KEY (user_id, theme_id, input_key)
+);
 `;
 
 // Colonnes ajoutées après la mise en ligne : créées si la base est plus ancienne.

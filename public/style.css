@@ -515,3 +515,14 @@ h3 .small { font-family: 'VT323', monospace; font-size: calc(18px * var(--fs)); 
   color: var(--ink);
   box-shadow: 0 0 0 4px var(--danger);
 }
+
+/* ---------- Signaler une réponse ---------- */
+.report-link { color: var(--accent); margin: 0 4px; text-align: left; }
+#report-status { margin: 0 4px; }
+.missing-form { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+.missing-form input { flex: 1; min-width: 0; font-size: calc(20px * var(--fs)); padding: 6px 8px; }
+.missing-form .btn { flex: none; }
+.report-list { list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 6px; }
+.report { display: flex; flex-direction: column; padding: 6px 0; border-bottom: 2px dashed rgba(0,0,0,0.35); }
+.report .what { display: flex; flex-direction: column; }
+.report.handled, .report.added { opacity: 0.6; }

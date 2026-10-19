@@ -265,6 +265,66 @@ class GameService {
     return resultFor('ok');
   }
 
+  /**
+   * Le joueur pense qu'une réponse refusée est correcte : elle est notée pour vérification
+   * (aucun point n'est donné). Possible pour le thème en cours ou un thème déjà joué.
+   */
+  reportAnswer(gameId, userId, slot, text) {
+    const input = typeof text === 'string' ? text.trim().slice(0, 80) : '';
+    const key = toKey(input);
+    if (!key) throw new HttpError(400, 'Réponse vide.');
+    const { rounds } = this.loadGame(gameId, userId);
+    const round = Number.isInteger(slot)
+      ? rounds.find((r) => r.slot === slot)
+      : rounds.find((r) => r.answered_at == null && r.served_at != null);
+    if (!round || round.served_at == null) throw new HttpError(404, 'Thème introuvable.');
+    const theme = this.themes.get(round.theme_id);
+    if (!theme) throw new HttpError(404, 'Ce thème n\'existe plus.');
+    const match = matchAnswer(theme, input);
+    if (match) return { status: 'known', label: match.answer.label };
+    const recent = this.db
+      .prepare('SELECT COUNT(*) AS n FROM answer_reports WHERE user_id = ? AND created_at > ?')
+      .get(userId, this.now() - 24 * 3600 * 1000).n;
+    if (recent >= 30) throw new HttpError(429, 'Beaucoup de signalements aujourd\'hui : merci, on en reste là pour l\'instant !');
+    this.db
+      .prepare('INSERT OR IGNORE INTO answer_reports (user_id, theme_id, input_key, input, created_at) VALUES (?, ?, ?, ?, ?)')
+      .run(userId, theme.id, key, input, this.now());
+    return { status: 'recorded' };
+  }
+
+  /** Réponses signalées, regroupées par thème et par saisie (les plus demandées d'abord). */
+  reportedAnswers() {
+    const rows = this.db
+      .prepare(
+        `SELECT theme_id, input_key, MIN(input) AS input, COUNT(*) AS players, MIN(created_at) AS first_at,
+                MAX(created_at) AS last_at, SUM(handled_at IS NULL) AS pending
+         FROM answer_reports GROUP BY theme_id, input_key
+         ORDER BY pending > 0 DESC, players DESC, last_at DESC LIMIT 300`,
+      )
+      .all();
+    return rows.map((r) => {
+      const theme = this.themes.get(r.theme_id);
+      // Réponse ajoutée au thème depuis le signalement : plus rien à faire.
+      const added = Boolean(theme && matchAnswer(theme, r.input));
+      return {
+        themeId: r.theme_id,
+        themeTitle: theme ? theme.title : r.theme_id,
+        inputKey: r.input_key,
+        input: r.input,
+        players: r.players,
+        firstAt: r.first_at,
+        lastAt: r.last_at,
+        status: added ? 'added' : r.pending ? 'pending' : 'handled',
+      };
+    });
+  }
+
+  markReportHandled(themeId, inputKey) {
+    this.db
+      .prepare('UPDATE answer_reports SET handled_at = ? WHERE theme_id = ? AND input_key = ? AND handled_at IS NULL')
+      .run(this.now(), themeId, inputKey);
+  }
+
   /** Toutes les réponses d'un thème déjà joué, avec leur rareté actuelle. */
   themeAnswers(gameId, userId, slot) {
     const { game, rounds } = this.loadGame(gameId, userId);

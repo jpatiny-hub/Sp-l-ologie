@@ -88,6 +88,12 @@ npm run answers:report -- fromages
 Une réponse souvent refusée mais valable mérite d'être ajoutée ; une réponse beaucoup plus
 fréquente que son niveau ne le laisse penser peut descendre d'un niveau.
 
+Les joueurs peuvent aussi **signaler** une réponse refusée qu'ils pensent correcte (bouton « Je
+pense que … est correcte » pendant la manche, ou « Une bonne réponse manque ? » dans la liste des
+réponses d'un thème). Aucun point n'est donné ; le responsable du jeu retrouve les signalements
+dans son carnet (« Réponses signalées ») et peut les copier pour les ajouter aux thèmes. Le
+responsable est le premier compte créé, ou les identifiants listés dans `ADMIN_USERS`.
+
 ## Administration
 
 - **Mot de passe perdu sans code de récupération** :
@@ -124,6 +130,8 @@ Secrets attendus dans l'environnement GitHub `prod` : `OPNSENSE_CREDENTIALS`,
     En production, le jeu refuse de démarrer sans cette variable, pour ne jamais ranger la base
     dans un dossier de version qui sera supprimé.
   - `HOST=127.0.0.1` : le jeu n'écoute que localement, derrière le proxy.
+  - `ADMIN_USERS` (facultatif) : identifiants, séparés par des virgules, qui voient les réponses
+    signalées ; par défaut, le premier compte créé.
   - `PORT` : le port vers lequel pointe le proxy HTTPS.
 - **Le droit de redémarrer le service** pour l'utilisateur de déploiement, par exemple dans
   `/etc/sudoers.d/speleologie` :
