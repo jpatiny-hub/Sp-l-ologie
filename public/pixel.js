@@ -563,6 +563,8 @@
     '...kkkkkkkkkk...',
   ];
   // Bandes noire, jaune et rouge, en épargnant le hublot.
+  // Drapeau arc-en-ciel : six bandes horizontales.
+  const PRIDE = ['r', 'o', 'j', 'v', 'b', 'p'].map((c) => c.repeat(12));
   const TRICOLORE = [];
   for (let r = 3; r <= 8; r++) {
     let row = '';
@@ -590,6 +592,7 @@
       overlay: { dx: 1, dy: 3, rows: ['.gg......gg..', '.g........gg.', '..........g..', '.........g...', '..g.....gg...', '.ggg.......g.'], pal: { g: '#4caf50' } },
     },
     oeuf: { pal: { y: '#f6e7a8', d: '#9fd3e8' }, overlay: { dx: 1, dy: 3, rows: ['.z.z.z.z.z.z.', 'z.z.z.z.z.z.z'], pal: { z: '#e88bb3' } } },
+    fierte: { overlay: { dx: 2, dy: 3, rows: PRIDE, pal: { r: '#e40303', o: '#ff8c00', j: '#ffed00', v: '#008026', b: '#24408e', p: '#732982' } } },
     tricolore: { overlay: { dx: 2, dy: 3, rows: TRICOLORE, pal: { n: '#1b1b1f', j: '#f6d32d', r: '#e22b2b' } } },
     taupe: { pal: { y: '#5a4e4e', d: '#3b3333' }, overlay: { dx: 11, dy: 4, rows: ['k...', '....', '..pp', '..pp'], pal: { k: '#000000', p: '#f0a3a3' } } },
     citrouille: { rows: PUMPKIN, pal: { y: '#f07a1a', d: '#c25410', e: '#ffe14d', n: '#4c7a34', h: '#b3121b', k: '#2a1206' } },

@@ -54,6 +54,7 @@
     globe: ['....kkkk....', '..kkBggBkk..', '.kBBggggBBk.', '.kBBBggBBgk.', 'kBBBBBgBBggk', 'kBggBBBBBBgk', 'kBgggBBBBBBk', 'kBBggBBBggBk', '.kBBBBBBggk.', '.kBBBBBBBBk.', '..kkBBBBkk..', '....kkkk....'],
     oeuf: ['....kkkk....', '...kwwwwk...', '..kwwwwwwk..', '..kppppppk..', '.kpwpwpwpwk.', '.kwwwwwwwwk.', '.kbbbbbbbbk.', '.kbwbwbwbwk.', '..kwwwwwwk..', '..kwwwwwwk..', '...kkkkkk...', '............'],
     'lampe-mineur': ['...kkkkkk...', '..kyyyyyyk..', '.kyyyWWyyyk.', 'kkkkkkkkkkkk', '.kmmmmmmmmk.', '.kmwmmmmwmk.', '.kmmmmmmmmk.', '.kmmmrrmmmk.', '..kmmmmmmk..', '...kkkkkk...', '............', '............'],
+    'drapeau-fierte': ['............', 'kkkkkkkkkkkk', 'krrrrrrrrrrk', 'kooooooooook', 'kyyyyyyyyyyk', 'kggggggggggk', 'kBBBBBBBBBBk', 'kvvvvvvvvvvk', 'kkkkkkkkkkkk', '............', '............', '............'],
     drapeau: ['.k..........', '.kNNNyyyrrr.', '.kNNNyyyrrr.', '.kNNNyyyrrr.', '.kNNNyyyrrr.', '.kNNNyyyrrr.', '.k..........', '.k..........', '.k..........', '.k..........', 'kkk.........', '............'],
     taupe: ['............', '............', '...mmmmm....', '..mmmmmmm...', '.mmkmmmmmm..', '.mmmmmmmmmpp', '.mmmmmmmmmpp', '..mmmmmmmm..', '..w.w..w.w..', '............', '............', '............'],
     citrouille: ['......G.....', '.....GG.....', '..kkkkkkkk..', '.kooOooOook.', '.kyyooooyyok', '.koyooooyook', '.koooooooook', '.koyyyyyyyok', '.kooyoyoyook', '..kkkkkkkk..', '............', '............'],

@@ -11,6 +11,7 @@ test('calendrier : Pâques, jours fixes et vendredi 13', () => {
   assert.equal(easter(2026), '2026-04-05');
   assert.equal(easter(2027), '2027-03-28');
   assert.deepEqual(calendarKinds('2026-10-31'), ['halloween']);
+  assert.deepEqual(calendarKinds('2026-05-17'), ['fierte']);
   assert.deepEqual(calendarKinds('2027-01-01'), ['nouvel-an']);
   assert.deepEqual(calendarKinds('2026-11-13'), ['vendredi-13']);
   assert.deepEqual(calendarKinds('2027-03-28'), ['paques']);
