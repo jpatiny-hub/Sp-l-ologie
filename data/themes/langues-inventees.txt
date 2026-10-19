@@ -1,0 +1,5 @@
+titre: Une langue inventée (dans une œuvre de fiction ou construite)
+1: Klingon; Elfique; Dothraki; Valyrien = Haut valyrien; Na'vi; Novlangue = Newspeak; Esperanto; Fourchelang = Parseltongue; Minionois = Langage des Minions; Simlish; Quenya; Sindarin
+2: Langue noire = Black Speech = Langage noir; Khuzdul; Vulcain = Vulcan; Romulien; Huttese = Hutt; Shyriiwook = Wookiee; Mando'a = Mandalorien; Atlante = Langue atlante; Nadsat; Lapine; Interlingua; Volapük; Ido; Lojban; Toki Pona; Goa'uld; Ancien = Langue des Anciens; Kryptonien; Dovahzul = Langue des dragons; Kobaïen = Kobaïan; Solresol; Westron = Langue commune; Orque = Langue des orques; Entique = Langue des Ents; Draconique; Aurebesh
+3: Chakobsa; Tamarien; Jawaese; Ewok = Ewokese; Rohirric; Adûnaïque; Parler; Gnome = Gnomish; Pakuni; Brobdingnagien; Lilliputien
+4: Ithkuil; Láadan; Blissymbolics; Telerin; Noldorin; Eldarin; Ilkorin
