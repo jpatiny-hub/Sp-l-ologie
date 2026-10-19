@@ -42,7 +42,7 @@ test('série de jours, apparences débloquées et choix de la foreuse', async ()
     assert.equal(badge(profile, 'serie-3').isNew, true);
     assert.equal(badge(profile, 'serie-7').count, 0);
     assert.equal(badge(profile, 'sans-eboulement').count, 1, 'un badge ne se gagne qu’une fois');
-    assert.equal((await eve('/api/me')).data.unseenBadges, 3);
+    assert.equal((await eve('/api/me')).data.unseenBadges, 5);
 
     // Acier débloqué par la série de 3 jours : le choix est gardé sur le compte.
     assert.equal(profile.bodies.find((b) => b.id === 'acier').unlocked, true);
@@ -101,6 +101,54 @@ test('podium : le premier du jour reçoit son badge une fois la journée termin�
     await playDaily(app, players[2], 1);
     app.clock.now += DAY;
     assert.equal(badge((await players[1]('/api/profile')).data, 'podium-jour').count, 0);
+  } finally {
+    await app.close();
+  }
+});
+
+test('7 réponses communes ou évidentes dans un forage : Sentier battu et Autoroute', async () => {
+  const app = await startServer();
+  try {
+    const kim = client(app.base);
+    await kim('/api/signup', { username: 'kim', password: 'secret123' });
+    await playDaily(app, kim, 1);
+    let profile = (await kim('/api/profile')).data;
+    assert.equal(badge(profile, 'sentier-battu').count, 1);
+    assert.equal(badge(profile, 'autoroute').count, 1);
+
+    const lou = client(app.base);
+    await lou('/api/signup', { username: 'lou', password: 'secret123' });
+    app.clock.now += DAY;
+    await playDaily(app, lou, 4);
+    profile = (await lou('/api/profile')).data;
+    assert.equal(badge(profile, 'sentier-battu').count, 0);
+    assert.equal(badge(profile, 'autoroute').count, 0);
+  } finally {
+    await app.close();
+  }
+});
+
+test('semaine entière : premier chaque jour, ou dernier chaque jour', async () => {
+  const app = await startServer();
+  try {
+    let d = new Date(app.clock.now);
+    while (d.getUTCDay() !== 1) d = new Date(d.getTime() + DAY);
+    app.clock.now = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 10, 0);
+    const names = ['max', 'nora', 'otto'];
+    const players = names.map(() => client(app.base));
+    for (const [i, call] of players.entries()) await call('/api/signup', { username: names[i], password: 'secret123' });
+    for (let day = 0; day < 7; day++) {
+      await playDaily(app, players[0], 4);
+      await playDaily(app, players[1], 2);
+      await playDaily(app, players[2], 1);
+      app.clock.now += DAY;
+    }
+    const [max, nora, otto] = await Promise.all(players.map(async (p) => (await p('/api/profile')).data));
+    assert.equal(badge(max, 'semaine-en-tete').count, 1);
+    assert.equal(badge(max, 'lanterne-rouge').count, 0);
+    assert.equal(badge(otto, 'lanterne-rouge').count, 1);
+    assert.equal(badge(otto, 'semaine-en-tete').count, 0);
+    assert.equal(badge(nora, 'semaine-en-tete').count + badge(nora, 'lanterne-rouge').count, 0);
   } finally {
     await app.close();
   }

@@ -159,9 +159,13 @@ PEPITES.forEach(([n, name, description]) => {
 });
 define('sans-eboulement', { category: 'exploit', name: 'Sans éboulement', description: () => 'Répondre aux 7 thèmes du jour, sans en passer aucun', icon: 'bouclier' });
 define('diamantaire', { category: 'exploit', name: 'Diamantaire', description: () => 'Donner 7 réponses rares ou mieux (60 points ou plus) dans le même forage', icon: 'diamant' });
+define('sentier-battu', { category: 'exploit', name: 'Sentier battu', description: () => 'Donner 7 réponses communes (moins de 40 points) dans le même forage', icon: 'sentier' });
+define('autoroute', { category: 'exploit', name: 'Autoroute', description: () => 'Donner 7 réponses évidentes (moins de 20 points) dans le même forage', icon: 'autoroute' });
 define('podium-jour', { category: 'podium', name: 'Chef de cordée', description: () => 'Finir 1er du podium du jour (au moins 3 joueurs)', icon: 'medaille', unlock: { type: 'body', id: 'cordee' } });
 define('podium-semaine', { category: 'podium', name: "Chef d'expédition", description: () => 'Finir 1er du podium de la semaine (au moins 3 joueurs)', icon: 'trophee', unlock: { type: 'body', id: 'expedition' } });
 define('podium-mois', { category: 'podium', name: 'Légende des profondeurs', description: () => 'Finir 1er du podium du mois (au moins 3 joueurs)', icon: 'couronne', unlock: { type: 'body', id: 'legende' } });
+define('semaine-en-tete', { category: 'podium', name: 'Sept sur sept', description: () => 'Finir 1er du podium chaque jour d\'une même semaine, du lundi au dimanche (au moins 3 joueurs chaque jour)', icon: 'etoile-or' });
+define('lanterne-rouge', { category: 'podium', name: 'Lanterne rouge', description: () => 'Finir dernier du podium chaque jour d\'une même semaine, du lundi au dimanche (au moins 3 joueurs chaque jour)', icon: 'lanterne' });
 for (const [id, c] of Object.entries(CALENDAR)) {
   define(id, { category: 'calendrier', name: c.name, description: c.description, icon: c.icon, unlock: c.body ? { type: 'body', id: c.body } : null });
 }
@@ -242,6 +246,8 @@ class BadgeService {
     const answered = rounds.filter((r) => r.outcome === 'answer');
     if (answered.length === ROUNDS_PER_GAME) this.give(userId, 'sans-eboulement', day, day);
     if (answered.length === ROUNDS_PER_GAME && answered.every((r) => r.points >= 60)) this.give(userId, 'diamantaire', day, day);
+    if (answered.length === ROUNDS_PER_GAME && answered.every((r) => r.points < 40)) this.give(userId, 'sentier-battu', day, day);
+    if (answered.length === ROUNDS_PER_GAME && answered.every((r) => r.points < 20)) this.give(userId, 'autoroute', day, day);
     calendarKinds(day).forEach((kind) => this.give(userId, kind, day.slice(0, 4), day));
   }
 
@@ -284,6 +290,36 @@ class BadgeService {
         if (scores.size < PODIUM_MIN_PLAYERS) continue;
         const best = Math.max(...scores.values());
         for (const [userId, score] of scores) if (score === best) this.give(userId, kind, start, end);
+      }
+    }
+    this.awardWeekStreaks(games, from, today);
+  }
+
+  /**
+   * Semaines terminées (lundi à dimanche) où un joueur a fini premier, ou dernier, chaque jour.
+   * Il faut au moins 3 joueurs chaque jour ; pour la dernière place, les scores ne doivent pas tous être égaux.
+   */
+  awardWeekStreaks(games, from, today) {
+    const weeks = new Map();
+    for (const g of games) {
+      const start = weekStart(g.day);
+      if (addDays(start, 6) >= today || start < from) continue;
+      if (!weeks.has(start)) weeks.set(start, new Map());
+      const days = weeks.get(start);
+      if (!days.has(g.day)) days.set(g.day, new Map());
+      days.get(g.day).set(g.user_id, g.score);
+    }
+    for (const [start, days] of weeks) {
+      if (days.size < 7) continue;
+      const rows = [...days.values()];
+      if (rows.some((scores) => scores.size < PODIUM_MIN_PLAYERS)) continue;
+      const end = addDays(start, 6);
+      for (const userId of rows[0].keys()) {
+        if (!rows.every((scores) => scores.has(userId))) continue;
+        if (rows.every((scores) => scores.get(userId) === Math.max(...scores.values()))) this.give(userId, 'semaine-en-tete', start, end);
+        if (rows.every((scores) => scores.get(userId) === Math.min(...scores.values()) && Math.min(...scores.values()) < Math.max(...scores.values()))) {
+          this.give(userId, 'lanterne-rouge', start, end);
+        }
       }
     }
   }

@@ -54,6 +54,20 @@
     $('hud-zone').textContent = Pixel.zoneName(points);
   };
   scene.onDrill = (on, zone) => Sound.drill(on, zone);
+  // Fin du forage : une fois dézoomé, on affiche la distance restante jusqu'au centre de la Terre.
+  scene.onOverview = (progress) => {
+    const box = $('hud-remaining');
+    box.hidden = progress < 1;
+    if (progress >= 1 && app.game) {
+      box.textContent = app.game.score >= Pixel.MAX_POINTS ? 'Centre de la Terre atteint !' : `Il reste ${Pixel.formatRemaining(app.game.score)} jusqu'au centre`;
+    }
+  };
+  // Pendant les résultats, toucher la scène alterne entre la vue d'ensemble et la visite du puits.
+  $('scene').addEventListener('click', () => {
+    if ($('view-results').hidden) return;
+    if (scene.mode === 'overview') scene.tour();
+    else scene.overview();
+  });
   scene.onZone = (zone) => {
     Sound.layer(zone);
     Sound.drill(true, zone);
@@ -709,7 +723,7 @@
     stopTimer();
     app.game = state;
     scene.setLayers(layersOf(state), false);
-    scene.tour();
+    scene.overview();
     renderResults(state);
     $('share-status').textContent = '';
     $('results-badges').hidden = true;
