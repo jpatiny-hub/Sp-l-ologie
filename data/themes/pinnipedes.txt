@@ -1,4 +1,4 @@
-titre: Un pinnipède (phoque, otarie, lion de mer, morse)
+titre: Un pinnipède (animal proche du phoque)
 # Liste fermée : toutes les espèces de phocidés, d'otariidés et le morse, plus les noms de groupes usuels.
 1: Phoque; Otarie; Morse = Odobenus rosmarus; Lion de mer; Éléphant de mer; Phoque veau-marin = Veau marin = Phoque commun = Phoca vitulina; Phoque gris = Halichoerus grypus
 2: Phoque moine; Otarie à fourrure; Léopard de mer = Hydrurga leptonyx; Phoque du Groenland = Pagophilus groenlandicus; Phoque moine de Méditerranée = Monachus monachus; Éléphant de mer du Sud = Éléphant de mer austral = Mirounga leonina; Éléphant de mer du Nord = Mirounga angustirostris; Lion de mer de Californie = Otarie de Californie = Zalophus californianus; Lion de mer de Steller = Otarie de Steller = Eumetopias jubatus; Phoque barbu = Erignathus barbatus; Phoque annelé = Pusa hispida; Phoque à capuchon = Cystophora cristata

@@ -1,4 +1,5 @@
 titre: Un canton suisse, un Land allemand ou un Land autrichien (26 + 16 + 9)
+actif: non
 1: Genève = Genf; Vaud = Waadt; Valais = Wallis; Zurich = Zürich; Berne = Bern; Tessin = Ticino; Bavière = Bayern; Berlin; Hambourg = Hamburg; Tyrol = Tirol; Vienne = Wien
 2: Neuchâtel = Neuenburg; Fribourg = Freiburg; Jura; Lucerne = Luzern; Bâle-Ville = Basel-Stadt = Bâle; Grisons = Graubünden; Saint-Gall = Sankt Gallen; Bade-Wurtemberg = Baden-Württemberg; Rhénanie-du-Nord-Westphalie = Nordrhein-Westfalen; Saxe = Sachsen; Hesse = Hessen; Brême = Bremen; Basse-Saxe = Niedersachsen; Sarre = Saarland; Salzbourg = Salzburg; Carinthie = Kärnten; Styrie = Steiermark
 3: Bâle-Campagne = Basel-Landschaft; Argovie = Aargau; Thurgovie = Thurgau; Soleure = Solothurn; Schaffhouse = Schaffhausen; Zoug = Zug; Uri; Schwytz = Schwyz; Glaris = Glarus; Rhénanie-Palatinat = Rheinland-Pfalz; Brandebourg = Brandenburg; Thuringe = Thüringen; Saxe-Anhalt = Sachsen-Anhalt; Schleswig-Holstein; Mecklembourg-Poméranie-Occidentale = Mecklenburg-Vorpommern = Mecklembourg; Basse-Autriche = Niederösterreich; Haute-Autriche = Oberösterreich; Vorarlberg; Burgenland

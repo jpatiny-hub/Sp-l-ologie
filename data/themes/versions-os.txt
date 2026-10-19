@@ -1,4 +1,5 @@
 titre: Un nom de version de macOS, d'Android, d'Ubuntu ou de Debian
+actif: non
 # macOS / Mac OS X de Cheetah à Tahoe (2025) ; Android : noms de desserts, publics puis internes (jusqu'à Android 16) ; Ubuntu de 4.10 à 25.10 ; Debian de 1.1 à 13, plus Forky et Duke déjà attribués, et Sid.
 # Pour Ubuntu, l’adjectif seul ou l’animal seul sont acceptés (sauf « Maverick », confondu avec Mavericks de macOS).
 1: Lion; Snow Leopard; Mountain Lion; Yosemite; KitKat = Kit Kat; Lollipop; Oreo; Nougat; Marshmallow

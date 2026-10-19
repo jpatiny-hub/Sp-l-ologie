@@ -1,4 +1,5 @@
 titre: Une commande (utilitaire) normalisée par POSIX
+actif: non
 # Utilitaires de la norme POSIX.1 (éditions 2017 et 2024), y compris les commandes intégrées spéciales du shell (export, exit…).
 # Pas les commandes courantes mais non normalisées (sudo, tar, ssh, less, top, gzip…). « times » est confondu avec « time ».
 1: ls; cd; mkdir; rm; cp; mv; cat; grep; pwd; echo; chmod; find; man; vi; kill; ps; touch; sort
