@@ -262,7 +262,11 @@
         <div class="card" id="admin-reports" hidden>
           <h2>Réponses signalées <span class="muted small">réservé au responsable du jeu</span></h2>
           <p class="muted small">Réponses refusées que des joueurs pensent correctes. Transmets la liste pour qu'elles soient vérifiées et ajoutées aux thèmes.</p>
-          <button class="btn secondary" id="btn-copy-reports" type="button">Copier les signalements en attente</button>
+          <div class="tabs" role="tablist" id="report-tabs">
+            <button class="tab active" data-reports="pending" type="button" role="tab">À traiter <span id="count-pending"></span></button>
+            <button class="tab" data-reports="done" type="button" role="tab">Traités <span id="count-done"></span></button>
+          </div>
+          <button class="btn secondary" id="btn-copy-reports" type="button">Copier les signalements à traiter</button>
           <p class="muted small" id="reports-status" role="status"></p>
           <ul class="report-list" id="report-list"></ul>
         </div>
