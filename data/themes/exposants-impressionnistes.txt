@@ -1,4 +1,5 @@
 titre: Un artiste ayant exposé à l'une des huit expositions impressionnistes (Paris, 1874-1886)
+actif: non
 1: Claude Monet = Monet; Pierre-Auguste Renoir = Renoir = Auguste Renoir; Edgar Degas = Degas; Paul Cézanne = Cézanne; Paul Gauguin = Gauguin; Camille Pissarro = Pissarro
 2: Alfred Sisley = Sisley; Berthe Morisot = Morisot; Mary Cassatt = Cassatt; Gustave Caillebotte = Caillebotte; Georges Seurat = Seurat; Paul Signac = Signac; Odilon Redon = Redon; Eugène Boudin = Boudin
 3: Armand Guillaumin = Guillaumin = Jean-Baptiste Armand Guillaumin; Jean-Louis Forain = Forain; Félix Bracquemond = Bracquemond; Marie Bracquemond; Federico Zandomeneghi = Zandomeneghi; Jean-François Raffaëlli = Raffaëlli; Giuseppe De Nittis = De Nittis; Lucien Pissarro; Émile Schuffenecker = Schuffenecker; Henri Rouart = Rouart = Stanislas-Henri Rouart; Stanislas Lépine = Lépine; Ludovic-Napoléon Lepic = Lepic; Zacharie Astruc = Astruc; Marcellin Desboutin = Desboutin; Alphonse Legros = Legros
