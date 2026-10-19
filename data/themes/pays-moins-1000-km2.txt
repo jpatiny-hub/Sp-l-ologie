@@ -1,0 +1,6 @@
+titre: Un État souverain d'une superficie inférieure à 1 000 km²
+# Vatican, Monaco, Nauru, Tuvalu, Saint-Marin, Liechtenstein… jusqu'à Sao Tomé-et-Principe (≈ 964 km²). Les Comores (≈ 1 862 km²) et le Luxembourg (≈ 2 586 km²) dépassent la limite.
+1: Vatican = Cité du Vatican; Monaco; Malte; Singapour; Saint-Marin; Liechtenstein; Maldives
+2: Seychelles; Andorre; Nauru; Tuvalu; Barbade; Grenade; Sainte-Lucie; Dominique; Bahreïn; Tonga
+3: Saint-Christophe-et-Niévès = Saint-Kitts-et-Nevis = Saint-Kitts; Saint-Vincent-et-les-Grenadines = Saint-Vincent; Antigua-et-Barbuda = Antigua; Palau = Palaos; Micronésie = États fédérés de Micronésie
+4: Kiribati; Îles Marshall = Marshall; Sao Tomé-et-Principe = Sao Tomé

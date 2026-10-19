@@ -1,0 +1,4 @@
+titre: Un pays ou territoire dont le drapeau représente un animal (armoiries ou emblème compris)
+1: Mexique; Albanie; Serbie; Espagne; Pays de Galles; Sri Lanka; Bhoutan; Égypte
+2: Monténégro; Moldavie; Andorre; Ouganda; Kazakhstan; Équateur; Bolivie; Pérou; Guatemala; Papouasie-Nouvelle-Guinée; Zambie; Zimbabwe; Fidji; Dominique; Kiribati
+4: Bermudes; Îles Falkland = Malouines = Falkland; Anguilla

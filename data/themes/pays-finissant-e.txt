@@ -1,0 +1,6 @@
+titre: Un pays dont le nom français se termine par la lettre E (États souverains ; articles ignorés)
+# Noms usuels français : Chine, Inde, Birmanie (et non Myanmar), Tchéquie, Bosnie-Herzégovine… Sont écartés les noms terminés par une autre lettre (Macédoine du Nord, Pays-Bas, Seychelles, Cap-Vert…).
+1: France; Suisse; Italie; Espagne; Belgique; Grèce; Russie; Allemagne; Chine; Inde; Australie; Mexique; Norvège; Suède
+2: Autriche; Pologne; Irlande; Islande; Turquie; Ukraine; Thaïlande; Indonésie; Algérie; Tunisie; Égypte; Argentine; Colombie; Finlande; Danemark; Hongrie; Croatie; Roumanie; Bulgarie; Syrie; Jordanie; Malaisie; Éthiopie; Somalie; Tanzanie; Libye; Nouvelle-Zélande; Bolivie; Jamaïque; Côte d'Ivoire; Mozambique; Arabie saoudite
+3: Serbie; Slovaquie; Slovénie; Tchéquie = République tchèque; Lettonie; Lituanie; Estonie; Géorgie; Arménie; Albanie; Bosnie-Herzégovine = Bosnie; Moldavie; Mongolie; Cambodge; Birmanie; Namibie; Zambie; Zimbabwe; Gambie; Guinée; Mauritanie; Papouasie-Nouvelle-Guinée; Centrafrique = République centrafricaine; Biélorussie = Bélarus; Malte; Chypre; Andorre; Sierra Leone; Érythrée; Barbade; Grenade; Dominique; Belize = Bélize; Maurice = Île Maurice; Micronésie
+4: Sainte-Lucie; Sao Tomé-et-Principe = Sao Tomé; Guinée équatoriale; Palestine
