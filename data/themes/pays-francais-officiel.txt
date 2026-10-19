@@ -1,0 +1,5 @@
+titre: Un pays dont le français est une langue officielle
+1: France; Belgique; Suisse; Canada; Luxembourg; Monaco; Côte d'Ivoire; Sénégal; Cameroun; République démocratique du Congo = RDC = Congo-Kinshasa; Congo = République du Congo = Congo-Brazzaville; Haïti; Madagascar
+2: Mali; Burkina Faso; Niger; Tchad; Togo; Bénin; Guinée; Gabon; Centrafrique = République centrafricaine; Burundi; Rwanda; Djibouti; Comores
+3: Seychelles; Vanuatu
+4: Guinée équatoriale

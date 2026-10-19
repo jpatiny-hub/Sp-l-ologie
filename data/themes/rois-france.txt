@@ -1,4 +1,4 @@
-titre: Un roi de France ou un empereur des Français, de Hugues Capet (987) à Napoléon III (1870)
+titre: Un roi de France ou un empereur des Français (987-1870)
 # Capétiens directs, Valois, Bourbons, Orléans et Bonaparte. Niveau 5 : souverains nominaux ou prétendants proclamés (Henri VI d'Angleterre, Louis XVII, Napoléon II, Louis XIX, Henri V).
 1: Louis XIV = Louis 14 = Roi-Soleil; Louis XVI = Louis 16; Napoléon Ier = Napoléon = Napoléon 1er = Napoléon Bonaparte; François Ier = François 1er; Henri IV = Henri 4; Saint Louis = Louis IX = Louis 9; Louis XV = Louis 15; Napoléon III = Napoléon 3 = Louis-Napoléon Bonaparte; Hugues Capet; Louis XIII = Louis 13; Charles X = Charles 10
 2: Louis XVIII = Louis 18; Louis-Philippe Ier = Louis-Philippe = Louis-Philippe 1er; Philippe Auguste = Philippe II = Philippe 2; Philippe le Bel = Philippe IV = Philippe 4; Charles VII = Charles 7; Louis XI = Louis 11; Henri II = Henri 2; Henri III = Henri 3; Charles IX = Charles 9; François II = François 2; Louis XII = Louis 12; Charles VIII = Charles 8

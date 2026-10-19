@@ -1,0 +1,5 @@
+titre: Un vent régional ou local nommé
+1: Mistral; Tramontane; Sirocco; Alizés = Alizé; Mousson; Foehn = Föhn; Bise; Harmattan; Blizzard
+2: Autan; Libeccio; Levante; Bora; Meltem; Chinook; Pampero; Zonda; Khamsin; Simoun; Ponant; Marin; Grec; Santa Ana; Zéphyr; Aquilon; Borée; Notos; Auster; Eurus
+3: Ghibli; Grégal = Gregale; Maestrale; Ponente; Tramontana; Ostro; Étésiens = Etesian; Leveche; Solano; Cierzo; Terral; Xaloc; Migjorn; Sharav; Haboob; Shamal; Berg; Cape Doctor; Brickfielder; Southerly Buster; Fremantle Doctor; Williwaw; Papagayo
+4: Cers; Joran; Vaudaire; Séchard; Lombarde; Marin blanc; Bise noire; Bise blanche; Tehuantepecer

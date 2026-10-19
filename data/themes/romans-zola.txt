@@ -1,4 +1,4 @@
-titre: Un roman d'Émile Zola (Rougon-Macquart, Trois Villes, Quatre Évangiles et romans de jeunesse)
+titre: Un roman d'Émile Zola
 1: Germinal; L'Assommoir; Nana; Au Bonheur des Dames; La Bête humaine; Thérèse Raquin
 2: La Curée; Le Ventre de Paris; La Terre; L'Œuvre; L'Argent; La Débâcle; Pot-Bouille; La Fortune des Rougon
 3: La Conquête de Plassans; La Faute de l'abbé Mouret; Son Excellence Eugène Rougon; Une page d'amour; La Joie de vivre; Le Rêve; Le Docteur Pascal

@@ -1,4 +1,4 @@
-titre: Une plante carnivore ou protocarnivore (genre, famille, nom courant ou espèce connue)
+titre: Une plante carnivore ou protocarnivore
 # Les 20 et quelques genres reconnus, leurs familles, noms vernaculaires et espèces indigènes d'Europe ou très célèbres.
 1: Dionée = Dionaea = Dionaea muscipula = Dionée attrape-mouche = Attrape-mouche = Attrape-mouche de Vénus = Venus flytrap = Piège à mouches de Vénus; Népenthès = Nepenthes = Plante à urnes = Plante-pichet = Tasse de singe = Népenthe; Drosera = Rossolis = Droséra
 2: Sarracénie = Sarracenia = Plante trompette = Trompette; Grassette = Pinguicula; Utriculaire = Utricularia; Darlingtonia = Darlingtonia californica = Plante cobra = Lis cobra; Céphalotus = Cephalotus = Cephalotus follicularis = Plante-urne d'Albany

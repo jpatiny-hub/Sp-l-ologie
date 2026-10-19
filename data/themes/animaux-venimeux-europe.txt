@@ -1,4 +1,4 @@
-titre: Un animal venimeux vivant à l'état sauvage en Europe (espèce ou groupe connu pour son venin, qu'il injecte par morsure, piqûre ou contact)
+titre: Un animal venimeux vivant à l'état sauvage en Europe (espèce ou groupe)
 # Venimeux = qui produit et inocule un venin (pas seulement vénéneux comme la salamandre ou le crapaud).
 # Groupes acceptés : vipère, araignée, scorpion, guêpe… ; espèces : celles dont le venin est connu ou médicalement notable en Europe.
 1: Vipère; Abeille; Guêpe; Frelon; Scorpion; Araignée; Méduse; Serpent venimeux

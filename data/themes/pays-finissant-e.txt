@@ -1,4 +1,4 @@
-titre: Un pays dont le nom français se termine par la lettre E (États souverains ; articles ignorés)
+titre: Un pays dont le nom français se termine par la lettre E
 # Noms usuels français : Chine, Inde, Birmanie (et non Myanmar), Tchéquie, Bosnie-Herzégovine… Sont écartés les noms terminés par une autre lettre (Macédoine du Nord, Pays-Bas, Seychelles, Cap-Vert…).
 1: France; Suisse; Italie; Espagne; Belgique; Grèce; Russie; Allemagne; Chine; Inde; Australie; Mexique; Norvège; Suède
 2: Autriche; Pologne; Irlande; Islande; Turquie; Ukraine; Thaïlande; Indonésie; Algérie; Tunisie; Égypte; Argentine; Colombie; Finlande; Danemark; Hongrie; Croatie; Roumanie; Bulgarie; Syrie; Jordanie; Malaisie; Éthiopie; Somalie; Tanzanie; Libye; Nouvelle-Zélande; Bolivie; Jamaïque; Côte d'Ivoire; Mozambique; Arabie saoudite

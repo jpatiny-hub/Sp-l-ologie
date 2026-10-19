@@ -1,4 +1,4 @@
-titre: Un canidé actuel (espèce de la famille des Canidés : loups, chiens, renards, chacals… sous-espèces célèbres comprises)
+titre: Un canidé actuel (espèce ou sous-espèce célèbre)
 # Les ~37 espèces actuelles de Canidés et leurs noms courants, plus quelques sous-espèces très connues.
 1: Loup = Loup gris = Canis lupus; Renard = Renard roux = Vulpes vulpes = Renard commun; Chien = Chien domestique = Canis familiaris; Coyote = Canis latrans; Chacal; Fennec = Vulpes zerda = Renard des sables; Dingo
 2: Lycaon = Loup peint = Chien sauvage d'Afrique = Lycaon pictus; Renard polaire = Renard arctique = Isatis = Vulpes lagopus = Alopex lagopus; Loup à crinière = Loup de crin = Aguara guazu = Chrysocyon brachyurus; Chien viverrin = Tanuki = Nyctereutes procyonoides; Dhole = Cuon = Chien sauvage d'Asie = Chien rouge = Cuon alpinus; Chacal doré = Canis aureus; Loup d'Éthiopie = Loup d'Abyssinie = Chacal du Simien = Canis simensis; Loup rouge = Canis rufus; Chacal à chabraque = Lupulella mesomelas = Canis mesomelas; Chacal à flancs rayés = Lupulella adusta = Canis adustus; Loup arctique = Loup blanc

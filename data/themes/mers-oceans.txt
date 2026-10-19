@@ -1,4 +1,4 @@
-titre: Une mer ou un océan (nom officiel ou courant)
+titre: Une mer ou un océan
 1: Atlantique; Pacifique; Indien = Océan Indien; Arctique; Austral; Méditerranée; Mer du Nord; Baltique; Mer Noire; Mer Rouge; Mer Morte; Mer Caspienne; Mer des Caraïbes = Caraïbes
 2: Adriatique; Égée; Ionienne; Tyrrhénienne; Ligurienne; Mer d'Alboran; Mer de Marmara = Marmara; Mer d'Azov; Mer Blanche; Mer de Barents; Mer de Kara; Mer de Laptev; Mer des Tchouktches; Mer de Béring; Mer de Beaufort; Mer d'Okhotsk; Mer du Japon; Mer Jaune; Mer de Chine orientale; Mer de Chine méridionale; Mer de Célèbes; Mer de Banda; Mer de Java; Mer de Timor; Mer d'Arafura; Mer de Corail; Mer de Tasman; Mer des Philippines; Mer d'Andaman; Mer d'Arabie; Mer des Sargasses; Mer du Labrador; Mer du Groenland; Mer de Norvège; Mer d'Irlande; Mer Celtique; Mer de Weddell; Mer de Ross; Mer d'Aral; Mer d'Iroise; Mer des Wadden; Mer de Sulu; Mer de Flores; Mer des Salomon; Mer de Bismarck
 3: Mer de Sibérie orientale; Mer de Baffin; Mer de Bellingshausen; Mer d'Amundsen; Mer de Lincoln; Mer de Cortés = Golfe de Californie

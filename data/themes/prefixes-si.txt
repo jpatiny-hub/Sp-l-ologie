@@ -1,4 +1,4 @@
-titre: Un préfixe du Système international (de quecto à quetta) ou un préfixe binaire (kibi, mébi…)
+titre: Un préfixe du Système international ou un préfixe binaire
 1: Kilo; Milli; Centi; Méga; Giga; Micro; Nano; Déci
 2: Téra; Hecto; Déca; Pico; Femto; Péta; Exa
 3: Atto; Zetta; Yotta; Zepto; Yocto; Kibi; Mébi; Gibi; Tébi

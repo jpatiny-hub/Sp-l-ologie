@@ -1,4 +1,4 @@
-titre: Un élément du bloc d du tableau périodique (métaux de transition, colonnes 3 à 12)
+titre: Un élément du bloc d du tableau périodique (colonnes 3 à 12)
 # Colonnes 3 à 12, périodes 4 à 7. Zinc, cadmium, mercure et copernicium compris.
 # La place du groupe 3 est discutée : lanthane, actinium, lutécium et lawrencium sont tous acceptés.
 1: Fer = Fe; Cuivre = Cu; Or = Au; Argent = Ag; Zinc = Zn; Nickel = Ni; Platine = Pt; Mercure = Hg; Titane = Ti; Chrome = Cr

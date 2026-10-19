@@ -1,4 +1,4 @@
-titre: Un district ou un lieu de Panem dans Hunger Games (district, activité du district, ville ou lieu des Jeux)
+titre: Un district ou un lieu de Panem (Hunger Games)
 # Les districts s'acceptent par numéro ou par spécialité : District 12 = charbon, District 4 = pêche, District 3 = technologie, etc.
 1: District 12 = Douze = Charbon = Mines de charbon; District 1 = Un = Luxe; District 2 = Deux = Maçonnerie = Armée; District 4 = Quatre = Pêche; District 13 = Treize = Nucléaire = Graphite; Capitole = Le Capitole; Panem
 2: District 3 = Trois = Technologie = Électronique; District 5 = Cinq = Énergie = Électricité; District 6 = Six = Transports; District 7 = Sept = Bois = Exploitation forestière; District 8 = Huit = Textile; District 9 = Neuf = Céréales; District 10 = Dix = Bétail = Élevage; District 11 = Onze = Agriculture; Arène = L'Arène

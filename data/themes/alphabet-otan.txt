@@ -1,4 +1,4 @@
-titre: Un mot de l'alphabet radio international OTAN/OACI (Alfa, Bravo, Charlie…), lettres ou chiffres
+titre: Un mot de l'alphabet radio international OTAN/OACI (lettres ou chiffres)
 # Les 26 mots des lettres, plus les 10 mots codés des chiffres de l'OACI/OTAN (Nadazero, Unaone…).
 1: Alpha = Alfa; Bravo; Charlie; Delta; Echo; Tango; Victor; Oscar; Zulu; Hotel
 2: Foxtrot; Golf; India; Juliett = Juliet = Juliette; Kilo; Lima; Mike; November; Papa; Romeo; Sierra; Whiskey = Whisky; Yankee

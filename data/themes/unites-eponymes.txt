@@ -1,4 +1,4 @@
-titre: Une unité de mesure qui porte le nom d'une personne (tous systèmes, hors échelles comme Richter, Mohs ou Beaufort)
+titre: Une unité de mesure qui porte le nom d'une personne
 # Unités SI, CGS, atomiques, degrés de température et degrés techniques (Brix, Baumé…), unités d'information, etc.
 1: Newton = degré Newton; Watt; Volt; Ampère = ampère-heure; Ohm; Kelvin; Degré Celsius = Celsius; Degré Fahrenheit = Fahrenheit; Joule; Pascal; Hertz
 2: Coulomb; Tesla; Farad; Henry; Weber; Siemens; Becquerel; Gray; Sievert; Bel = Décibel = Bell; Angström = Ångström = Angstrom; Curie; Gauss; Mach = nombre de Mach; Dalton; Röntgen = Roentgen = Rontgen

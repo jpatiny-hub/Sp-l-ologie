@@ -1,4 +1,4 @@
-titre: Un village viticole de Bourgogne (appellation communale, de Chablis au Mâconnais)
+titre: Un village viticole de Bourgogne (appellation communale)
 # Appellations de niveau village de l'Yonne, de la Côte-d'Or et de la Saône-et-Loire ; Beaujolais et grands crus exclus.
 1: Chablis; Meursault; Pommard; Beaune; Gevrey-Chambertin; Nuits-Saint-Georges; Pouilly-Fuissé; Volnay; Mercurey; Vosne-Romanée
 2: Puligny-Montrachet; Chassagne-Montrachet; Chambolle-Musigny; Morey-Saint-Denis; Aloxe-Corton; Santenay; Savigny-lès-Beaune; Rully; Givry; Saint-Véran; Petit Chablis; Irancy; Vougeot; Fixin

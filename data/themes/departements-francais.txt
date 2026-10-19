@@ -1,4 +1,4 @@
-titre: Un département français (nom de l'un des 101 départements actuels, outre-mer compris)
+titre: Un département français actuel (outre-mer compris)
 # Paris et le Rhône (hors métropole de Lyon) comptés comme départements ; Corse-du-Sud et Haute-Corse comprises.
 1: Nord; Pas-de-Calais; Paris = Ville de Paris; Ardennes; Bouches-du-Rhône; Gironde; Finistère; Moselle; Var; Savoie; Haute-Savoie; Alpes-Maritimes; Rhône; Somme; Marne; Meuse; Aisne; Vosges; Jura; Dordogne; Calvados; Manche; Bas-Rhin; Haut-Rhin
 2: Seine-Saint-Denis; Hauts-de-Seine; Val-de-Marne; Seine-et-Marne; Yvelines; Essonne; Val-d'Oise; Oise; Seine-Maritime; Eure; Loire; Loire-Atlantique; Isère; Drôme; Ardèche; Vaucluse; Gard; Hérault; Aude; Pyrénées-Orientales; Pyrénées-Atlantiques; Hautes-Pyrénées; Haute-Garonne; Landes; Lot; Tarn; Aveyron; Charente; Charente-Maritime; Vendée; Morbihan; Côtes-d'Armor; Ille-et-Vilaine; Meurthe-et-Moselle; Doubs; Côte-d'Or; Puy-de-Dôme; Cantal; Corrèze; Ain; Allier; Loiret; Cher; Vienne; Sarthe; Mayenne; Orne; Yonne; Aube

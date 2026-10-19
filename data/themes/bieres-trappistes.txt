@@ -1,4 +1,4 @@
-titre: Une bière trappiste (marque ou bière précise, actuelle ou passée)
+titre: Une bière trappiste (actuelle ou passée)
 # Brasseries trappistes (label ATP actuel ou passé) et leurs bières, plus Mont des Cats et Cardeña (trappistes brassées hors abbaye).
 1: Chimay; Orval; Westmalle; Rochefort; Westvleteren; Chimay Bleue = Chimay Grande Réserve
 2: Achel; La Trappe = Koningshoeven; Chimay Rouge = Chimay Première; Chimay Blanche = Chimay Triple = Chimay Cinq Cents; Westmalle Tripel = Westmalle Triple; Westmalle Dubbel = Westmalle Double; Rochefort 6; Rochefort 8; Rochefort 10; Westvleteren 12; Westvleteren 8; Westvleteren Blond = Westvleteren Blonde
