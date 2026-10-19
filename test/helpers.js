@@ -42,10 +42,9 @@ function client(base) {
 function answerFor(db, gameId, level) {
   const round = db.prepare('SELECT theme_id FROM rounds WHERE game_id = ? AND answered_at IS NULL ORDER BY slot').get(gameId);
   const answers = THEMES.get(round.theme_id).answers;
-  // Certains thèmes sautent un niveau : on prend le niveau disponible le plus proche en dessous
-  // (ou, à défaut, le plus évident).
-  const levels = [...new Set(answers.map((a) => a.level))].sort((x, y) => x - y);
-  const available = levels.filter((l) => l <= level).pop() || levels[0];
+  // Certains thèmes sautent un niveau : on prend le niveau disponible le plus proche (le plus rare en cas d'égalité).
+  const levels = [...new Set(answers.map((a) => a.level))];
+  const available = levels.sort((x, y) => Math.abs(x - level) - Math.abs(y - level) || y - x)[0];
   return answers.find((a) => a.level === available).label;
 }
 

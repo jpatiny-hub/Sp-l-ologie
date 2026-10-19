@@ -1,0 +1,6 @@
+titre: Une agglomération de plus de 10 millions d'habitants
+# Agglomérations de plus de 10 millions d'habitants en 2025 selon les estimations de l'ONU (DESA) : 33 mégapoles. Paris (9,4 millions) n'en fait pas partie.
+1: Tokyo; Delhi = New Delhi; Shanghai; Le Caire = Caire = Cairo; Bombay = Mumbai; São Paulo = Sao Paulo; Mexico = Mexico City = Ciudad de México; Pékin = Beijing; Istanbul; Moscou = Moscow; New York = New York City; Los Angeles; Londres = London
+2: Jakarta = Djakarta; Dacca = Dhaka; Manille = Manila = Metro Manila; Calcutta = Kolkata; Séoul = Seoul; Karachi; Bangkok; Buenos Aires; Osaka; Lagos; Lima
+3: Canton = Guangzhou; Lahore; Hô Chi Minh-Ville = Ho Chi Minh Ville = Saïgon = Saigon; Shenzhen; Bangalore = Bengaluru; Madras = Chennai; Kinshasa; Bogotá = Bogota
+4: Luanda

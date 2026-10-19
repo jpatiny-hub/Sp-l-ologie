@@ -1,0 +1,6 @@
+titre: Une commune belge de 50 000 à 100 000 habitants (2026)
+# Communes belges comptant entre 50 000 et 99 999 habitants selon les chiffres de population de 2026 (Statbel). Une liste complète des villes de moins de 100 000 habitants dans le monde serait impossible à tenir à jour.
+1: Mons = Bergen; Tournai = Doornik; Ostende = Oostende; Hasselt; Malines = Mechelen; Alost = Aalst; Courtrai = Kortrijk; La Louvière; Verviers; Seraing; Mouscron = Moeskroen; Genk; Molenbeek-Saint-Jean = Molenbeek = Sint-Jans-Molenbeek; Ixelles = Elsene; Uccle = Ukkel
+2: Saint-Nicolas = Sint-Niklaas; Roulers = Roeselare; Forest = Vorst
+3: Woluwe-Saint-Lambert = Sint-Lambrechts-Woluwe; Jette
+4: Lokeren; Beveren-Kruibeke-Zwijndrecht = Beveren
