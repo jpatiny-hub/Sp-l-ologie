@@ -331,6 +331,20 @@ class GameService {
    * Renvoie le nombre de joueurs crédités.
    */
   creditReports() {
+    // Signalements faits avant que la manche soit retenue : on la retrouve avec l'heure du signalement
+    // (manche de ce thème qui était ouverte à ce moment-là).
+    const old = this.db.prepare('SELECT rowid AS id, * FROM answer_reports WHERE game_id IS NULL AND credit IS NULL').all();
+    for (const r of old) {
+      const round = this.db
+        .prepare(
+          `SELECT r.game_id, r.slot FROM rounds r JOIN games g ON g.id = r.game_id
+           WHERE g.user_id = ? AND r.theme_id = ? AND r.served_at IS NOT NULL AND r.served_at <= ?
+             AND (r.answered_at IS NULL OR r.answered_at >= ?)
+           ORDER BY r.served_at DESC LIMIT 1`,
+        )
+        .get(r.user_id, r.theme_id, r.created_at, r.created_at);
+      if (round) this.db.prepare('UPDATE answer_reports SET game_id = ?, slot = ? WHERE rowid = ?').run(round.game_id, round.slot, r.id);
+    }
     const rows = this.db
       .prepare('SELECT rowid AS id, * FROM answer_reports WHERE game_id IS NOT NULL AND credit IS NULL')
       .all();

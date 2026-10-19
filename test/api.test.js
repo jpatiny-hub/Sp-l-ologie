@@ -327,6 +327,8 @@ test('une réponse signalée puis ajoutée au thème rapporte ses points au joue
     // Signalée après coup, depuis la liste du thème : ne donne jamais de points.
     await gus(`/api/game/${game.id}/report`, { slot: 0, text: 'Autre oubli' });
 
+    // Signalement fait avant que la manche soit retenue (ancienne version) : retrouvée par l'heure.
+    app.db.prepare('UPDATE answer_reports SET game_id = NULL, slot = NULL').run();
     const add = (label) => {
       const key = toKey(label);
       const answer = { key, label, level: 5, weight: LEVEL_WEIGHTS[5] };
