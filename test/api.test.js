@@ -256,6 +256,43 @@ test('une saisie approximative est proposée au joueur avant d’être validée'
   }
 });
 
+test('une réponse refusée peut être signalée, et le responsable du jeu voit les signalements', async () => {
+  const app = await startServer();
+  try {
+    const admin = client(app.base);
+    const eve = client(app.base);
+    await admin('/api/signup', { username: 'chef', password: 'secret123' });
+    await eve('/api/signup', { username: 'eve', password: 'secret123' });
+    assert.equal((await admin('/api/me')).data.isAdmin, true, 'premier compte créé');
+    assert.equal((await eve('/api/me')).data.isAdmin, false);
+
+    const { data: game } = await eve('/api/game/start', { mode: 'daily' });
+    // Pas de signalement sur un thème pas encore révélé.
+    assert.equal((await eve(`/api/game/${game.id}/report`, { text: 'Bruce tout-puissant' })).status, 404);
+    await eve(`/api/game/${game.id}/reveal`, {});
+    assert.equal((await eve(`/api/game/${game.id}/answer`, { text: 'Bobby seul contre tous' })).data.result, 'unknown');
+    let res = await eve(`/api/game/${game.id}/report`, { text: 'Bobby seul contre tous' });
+    assert.deepEqual(res.data, { status: 'recorded' });
+    // Signaler deux fois ne compte qu'une fois ; une réponse déjà connue est indiquée comme telle.
+    await eve(`/api/game/${game.id}/report`, { text: 'bobby  seul contre tous' });
+    res = await eve(`/api/game/${game.id}/report`, { text: answerFor(app.db, game.id, 1) });
+    assert.equal(res.data.status, 'known');
+    // Le thème continue : le signalement ne clôt pas la manche.
+    assert.equal((await eve(`/api/game/${game.id}`)).data.rounds[0].status, 'active');
+
+    assert.equal((await eve('/api/admin/reports')).status, 403);
+    const { reports } = (await admin('/api/admin/reports')).data;
+    assert.equal(reports.length, 1);
+    assert.equal(reports[0].input, 'Bobby seul contre tous');
+    assert.equal(reports[0].players, 1);
+    assert.equal(reports[0].status, 'pending');
+    await admin('/api/admin/reports/handled', { themeId: reports[0].themeId, inputKey: reports[0].inputKey });
+    assert.equal((await admin('/api/admin/reports')).data.reports[0].status, 'handled');
+  } finally {
+    await app.close();
+  }
+});
+
 test('point de contrôle pour l’hébergeur', async () => {
   const app = await startServer();
   try {

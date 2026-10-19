@@ -60,6 +60,7 @@ function createApp({
   secureCookies = false,
   publicDir = config.PUBLIC_DIR,
   clientIpHeader = config.CLIENT_IP_HEADER,
+  adminUsers = config.ADMIN_USERS,
   version = interfaceVersion(publicDir),
 }) {
   const game = new GameService(db, themes, now);
@@ -171,6 +172,19 @@ function createApp({
     return { username: user.username };
   }
 
+  /** Responsable du jeu : identifiants listés dans ADMIN_USERS, à défaut le premier compte créé. */
+  function isAdmin(user) {
+    if (adminUsers.length) return adminUsers.includes(auth.usernameKey(user.username));
+    const first = db.prepare('SELECT MIN(id) AS id FROM users').get().id;
+    return user.id === first;
+  }
+
+  function requireAdmin(req, res) {
+    const user = requireUser(req, res);
+    if (!isAdmin(user)) throw new HttpError(403, 'Réservé au responsable du jeu.');
+    return user;
+  }
+
   const routes = {
     'POST /api/signup': async (req, res) => {
       const ip = clientIp(req);
@@ -265,6 +279,7 @@ function createApp({
       const row = db.prepare('SELECT skin_body, skin_bit FROM users WHERE id = ?').get(user.id);
       json(res, 200, {
         user: userView(user),
+        isAdmin: isAdmin(user),
         skin: game.badges.skinOf(row),
         unseenBadges: game.badges.unseenCount(user.id),
         today: game.todaySummary(user.id),
@@ -320,6 +335,25 @@ function createApp({
       const user = requireUser(req, res);
       await readJson(req);
       json(res, 200, game.skip(id, user.id));
+    },
+
+    'POST /api/game/:id/report': async (req, res, id) => {
+      const user = requireUser(req, res);
+      const { slot, text } = await readJson(req);
+      json(res, 200, game.reportAnswer(id, user.id, slot, text));
+    },
+
+    'GET /api/admin/reports': async (req, res) => {
+      requireAdmin(req, res);
+      json(res, 200, { reports: game.reportedAnswers() });
+    },
+
+    'POST /api/admin/reports/handled': async (req, res) => {
+      requireAdmin(req, res);
+      const { themeId, inputKey } = await readJson(req);
+      if (typeof themeId !== 'string' || typeof inputKey !== 'string') throw new HttpError(400, 'Signalement inconnu.');
+      game.markReportHandled(themeId, inputKey);
+      json(res, 200, { ok: true });
     },
 
     'GET /api/game/:id/answers': async (req, res, id, url) => {

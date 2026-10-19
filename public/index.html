@@ -180,6 +180,8 @@
           <form id="form-answer" class="form answer-form" autocomplete="off">
             <input id="answer-input" name="text" maxlength="80" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Ta réponse…" aria-label="Ta réponse">
             <p class="error" id="answer-error" role="alert"></p>
+            <button class="link report-link" id="btn-report" type="button" hidden></button>
+            <p class="muted small" id="report-status" role="status" hidden></p>
             <div class="confirm" id="answer-confirm" hidden>
               <p>Tu voulais dire <strong id="confirm-suggestion"></strong> ?</p>
               <div class="row">
@@ -256,6 +258,13 @@
             </div>
           </div>
           <p class="muted small" id="skin-status" role="status"></p>
+        </div>
+        <div class="card" id="admin-reports" hidden>
+          <h2>Réponses signalées <span class="muted small">réservé au responsable du jeu</span></h2>
+          <p class="muted small">Réponses refusées que des joueurs pensent correctes. Transmets la liste pour qu'elles soient vérifiées et ajoutées aux thèmes.</p>
+          <button class="btn secondary" id="btn-copy-reports" type="button">Copier les signalements en attente</button>
+          <p class="muted small" id="reports-status" role="status"></p>
+          <ul class="report-list" id="report-list"></ul>
         </div>
         <div class="card">
           <h2>Badges</h2>

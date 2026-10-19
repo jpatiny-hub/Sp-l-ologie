@@ -19,6 +19,12 @@ module.exports = {
   HOST: process.env.HOST || undefined,
   // En-tête donnant l'adresse du visiteur, posé par un proxy de confiance (ex. cf-connecting-ip).
   CLIENT_IP_HEADER: (process.env.CLIENT_IP_HEADER || '').trim().toLowerCase() || null,
+  // Identifiants (séparés par des virgules) qui voient les réponses signalées par les joueurs.
+  // Sans réglage, c'est le premier compte créé.
+  ADMIN_USERS: (process.env.ADMIN_USERS || '')
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean),
   DATA_DIR: process.env.DATA_DIR || path.join(ROOT, 'var'),
   THEMES_DIR: process.env.THEMES_DIR || path.join(ROOT, 'data', 'themes'),
   PUBLIC_DIR: path.join(ROOT, 'public'),
