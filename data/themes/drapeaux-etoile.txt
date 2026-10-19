@@ -1,5 +1,6 @@
 titre: Un pays dont le drapeau comporte au moins une étoile
 1: États-Unis = USA; Chine; Vietnam = Viêt Nam; Turquie; Israël; Maroc; Brésil; Australie
 2: Nouvelle-Zélande; Chili; Cuba; Corée du Nord; Syrie; Algérie; Tunisie; Pakistan; Sénégal; Cameroun; Ghana; Éthiopie; Somalie; Venezuela; Bosnie-Herzégovine = Bosnie; Kosovo; Singapour; Malaisie; Philippines; Panama; Honduras; Libye; Jordanie; Azerbaïdjan
-3: Ouzbékistan; Turkménistan; Tadjikistan; Burkina Faso; Togo; Liberia = Libéria; Mauritanie; Djibouti; Comores; Cap-Vert; Guinée-Bissau; Sao Tomé-et-Principe = Sao Tomé; Mozambique; Angola; Zimbabwe; République démocratique du Congo = RDC = Congo-Kinshasa; Burundi; Guinée équatoriale; Soudan du Sud; Centrafrique = République centrafricaine; Myanmar = Birmanie; Timor oriental = Timor-Leste; Slovénie; Suriname; Papouasie-Nouvelle-Guinée
-4: Grenade; Dominique; Saint-Christophe-et-Niévès; Samoa; Îles Salomon; Tuvalu; Micronésie = États fédérés de Micronésie; Îles Marshall; Nauru
+3: Ouzbékistan; Turkménistan; Tadjikistan; Burkina Faso; Togo; Liberia = Libéria; Mauritanie; Djibouti; Comores; Cap-Vert; Guinée-Bissau; Sao Tomé-et-Principe = Sao Tomé; Mozambique; Angola; Zimbabwe; République démocratique du Congo = RDC = Congo-Kinshasa; Burundi; Guinée équatoriale; Soudan du Sud; Centrafrique = République centrafricaine; Myanmar = Birmanie; Timor oriental = Timor-Leste; Slovénie; Suriname; Papouasie-Nouvelle-Guinée; Paraguay
+4: Grenade; Dominique; Saint-Christophe-et-Niévès; Samoa; Îles Salomon; Tuvalu; Micronésie = États fédérés de Micronésie; Îles Marshall; Nauru; Croatie
+5: Moldavie; Bolivie; Costa Rica; Îles Cook; Niue; Porto Rico

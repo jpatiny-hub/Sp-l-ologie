@@ -1,4 +1,5 @@
 titre: Un oiseau
+actif: non
 1: Pigeon; Moineau; Aigle; Corbeau; Merle; Mouette; Poule = Coq; Canard; Perroquet; Hibou
 2: Chouette; Pie; Rouge-gorge; Mésange; Hirondelle; Cygne; Autruche; Pingouin; Manchot; Flamant rose = Flamant; Paon; Faucon; Vautour; Cigogne; Héron; Dinde = Dindon; Oie; Perruche; Colibri; Toucan; Pélican; Tourterelle; Corneille; Buse; Martin-pêcheur; Pic-vert = Pivert; Geai; Étourneau; Rossignol; Canari; Goéland
 3: Pinson; Chardonneret; Bouvreuil; Verdier; Fauvette; Roitelet; Troglodyte; Grive; Alouette; Bergeronnette; Sittelle; Grimpereau; Accenteur; Rouge-queue; Choucas; Freux; Coucou; Huppe = Huppe fasciée; Faisan; Perdrix; Caille; Bécasse; Vanneau; Foulque; Poule d'eau = Gallinule; Grèbe; Cormoran; Fou de Bassan; Macareux; Albatros; Ibis; Spatule; Grue; Émeu; Nandou; Kiwi; Casoar; Condor; Milan; Épervier; Busard; Balbuzard; Harfang; Grand-duc; Effraie; Ara; Cacatoès; Calopsitte; Inséparable; Mainate; Pic épeiche; Engoulevent; Martinet; Loriot; Gypaète

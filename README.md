@@ -19,9 +19,10 @@ le **centre de la Terre**.
 - Badges (séries de jours, profondeur, pépites, exploits, premières places des podiums, jours
   particuliers comme Halloween, la Sainte-Barbe ou le passage à la nouvelle année) qui débloquent
   des carrosseries et des forets pour la foreuse, choisis dans l'atelier (`src/badges.js`).
-- 123 thèmes, des plus larges (« Un fromage ») aux plus précis (« Un animal qui pond des œufs mais
-  n'est pas un oiseau ») : culture générale, sciences, cinéma, musique, littérature, sport…
-  Plus de 26 000 réponses, avec une difficulté estimée pour un public belge.
+- Près de 200 thèmes actifs, tous des listes fermées et complètes (« Un film avec Jim Carrey »,
+  « Une fleur qui sent mauvais », « Un pays où l'on roule à gauche »…) : comme seules les réponses
+  listées sont acceptées, un thème trop large refuserait de bonnes réponses. Plus de 15 000 réponses,
+  avec une difficulté estimée pour un public belge.
 
 Aucune dépendance externe : Node.js ≥ 22.13 suffit (base SQLite intégrée à Node).
 
@@ -70,7 +71,10 @@ titre: Un fromage
 - le chiffre est le niveau de difficulté (1 à 5) ;
 - les réponses sont séparées par `;` ;
 - les variantes d'une même réponse sont séparées par `=` (la première est le nom affiché) ;
-- `actif: non` retire le thème du tirage.
+- `actif: non` retire le thème du tirage (le fichier reste pour l'historique des parties).
+- Un thème doit être une liste **fermée et complète** : toute bonne réponse qu'un joueur pourrait
+  taper doit y figurer. Mieux vaut un critère qui restreint (« Un film réalisé par Alfred
+  Hitchcock ») qu'une catégorie ouverte (« Un film »).
 
 Lance ensuite `npm run themes:check` pour repérer les doublons.
 

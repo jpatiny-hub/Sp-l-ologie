@@ -1,4 +1,5 @@
 titre: Une commande du terminal Linux ou Unix
+actif: non
 1: ls; cd; mkdir; rm; cp; mv; sudo; cat; grep; pwd
 2: ssh; chmod; man; echo; touch; find; tar; top; kill; ps; nano; vim = vi; git; apt = apt-get; curl; wget; exit; clear; history; head; tail; less; more; ping; zip; unzip; scp; diff; sort; chown; rmdir; whoami; ln; df; du
 3: sed; awk; htop; killall; wc; uniq; cut; tr; gzip; gunzip; alias; export; source; crontab; emacs; yum; dnf; pacman; rsync; screen; tmux; xargs; tee; date; cal; uname; chgrp; passwd; su; shutdown; reboot; ifconfig; ip; netstat; which; whereis; locate; free; mount; umount; file; stat; nohup; jobs; bg; fg; env; printf; md5sum; sha256sum; traceroute; nslookup; dig; systemctl; journalctl; lsblk; fdisk; dd; watch; sleep; time; make; gcc; python; pip; brew; useradd; groups; id; uptime; hostname; ssh-keygen; telnet; ftp; lsof; dmesg; sh; bash; zsh

@@ -1,0 +1,7 @@
+titre: Un mot-clé réservé du langage C (normes C89 à C23)
+# 32 mots-clés de C89, plus ceux ajoutés par C99, C11 et C23 (les formes _Bool / bool, _Alignas / alignas… comptent pour un).
+1: int; if; else; for; while; return; char; void; float; double
+2: struct; switch; case; break; continue; do; const; static; unsigned; long; short; sizeof; typedef; goto; default; signed; enum; union
+3: extern; volatile; register; auto; inline; bool = _Bool; true; false
+4: restrict; nullptr; constexpr; typeof; static_assert = _Static_assert; alignas = _Alignas; alignof = _Alignof; thread_local = _Thread_local; _Atomic; _Generic; _Noreturn; _Complex
+5: _Imaginary; typeof_unqual; _BitInt; _Decimal32; _Decimal64; _Decimal128

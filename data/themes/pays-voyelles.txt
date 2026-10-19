@@ -1,0 +1,6 @@
+titre: Un pays dont le nom français commence et finit par une voyelle (Y compté comme voyelle ; États souverains)
+# Dérivé de la liste des 193 membres de l'ONU plus Vatican, Palestine, Kosovo et Taïwan, sans article.
+1: Italie; Espagne; Allemagne; Australie; Autriche; Algérie; Argentine; Inde; Irlande; Islande; Égypte; Ukraine
+2: Albanie; Andorre; Angola; Arménie; Arabie saoudite; Estonie; Éthiopie; Indonésie; Ouganda; Uruguay
+3: Érythrée; Antigua-et-Barbuda; Eswatini = Swaziland
+5: Île Maurice

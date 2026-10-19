@@ -1,0 +1,6 @@
+titre: Un pays vainqueur (jusqu'en 2023) ou organisateur (jusqu'en 2026) d'une Coupe du monde de football, masculine ou féminine
+# Vainqueurs hommes jusqu'en 2022, femmes jusqu'en 2023 ; organisateurs hommes 1930-2026, femmes 1991-2023.
+1: Brésil; France; Allemagne = RFA = Allemagne de l'Ouest; Italie; Argentine; Espagne; Angleterre; Uruguay; Qatar; Russie; États-Unis = USA
+2: Mexique; Afrique du Sud; Japon; Corée du Sud; Canada
+3: Chine; Australie; Suisse; Suède; Chili
+4: Norvège; Nouvelle-Zélande

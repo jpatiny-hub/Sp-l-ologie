@@ -1,4 +1,5 @@
 titre: Un solvant
+actif: non
 1: Eau; Éthanol = Alcool; Acétone; Méthanol; White-spirit; Térébenthine = Essence de térébenthine
 2: Hexane; Toluène; Benzène; Chloroforme = Trichlorométhane; Dichlorométhane = DCM = Chlorure de méthylène; DMSO = Diméthylsulfoxyde; Éther = Éther diéthylique = Diéthyléther; Acétate d'éthyle; Isopropanol = Propan-2-ol = Alcool isopropylique; Acide acétique; Cyclohexane; Pentane; Heptane; Xylène; Essence = Benzine; Tétrachlorure de carbone; Glycérol = Glycérine
 3: DMF = Diméthylformamide; THF = Tétrahydrofurane; Acétonitrile; Butanol; Pyridine; Dioxane; Disulfure de carbone = Sulfure de carbone; Éther de pétrole; Éthylène glycol; Propylène glycol; Trichloroéthylène; Perchloroéthylène = Tétrachloroéthylène; Méthyléthylcétone = Butanone = MEK; Eau lourde = D2O; Chloroforme deutéré = CDCl3; Ammoniac liquide; CO2 supercritique; Liquide ionique; Acétate de butyle; Naphta; Kérosène; Dichloroéthane; Propanol; Formamide; Nitrométhane

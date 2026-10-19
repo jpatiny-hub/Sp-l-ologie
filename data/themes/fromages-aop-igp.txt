@@ -1,0 +1,7 @@
+titre: Un fromage français AOP ou IGP
+# 47 fromages AOP (dont le Mothais sur feuille, AOP 2024) et 11 fromages IGP (dont la Tome fraîche de l'Aubrac, IGP 2023).
+1: Camembert de Normandie = Camembert; Brie de Meaux = Brie; Comté; Roquefort; Reblochon; Beaufort; Munster = Munster-Géromé; Saint-Nectaire; Cantal; Raclette de Savoie = Raclette
+2: Maroilles = Marolles; Morbier; Mont d'Or = Vacherin Mont d'Or = Vacherin du Haut-Doubs; Époisses; Livarot; Pont-l'Évêque; Fourme d'Ambert; Tomme de Savoie; Abondance; Crottin de Chavignol = Crottin = Chavignol; Ossau-Iraty; Bleu d'Auvergne; Brocciu = Broccio; Gruyère = Gruyère français; Emmental français Est-Central = Emmental; Saint-Marcellin; Brillat-Savarin
+3: Brie de Melun; Chaource; Langres; Neufchâtel; Laguiole; Salers; Bleu de Gex = Bleu de Gex Haut-Jura = Bleu du Haut-Jura = Bleu de Septmoncel; Bleu des Causses; Valençay; Sainte-Maure de Touraine = Sainte-Maure; Selles-sur-Cher; Chabichou du Poitou = Chabichou; Rocamadour; Picodon; Pélardon; Banon; Emmental de Savoie; Tomme des Pyrénées; Cancoillotte
+4: Bleu du Vercors-Sassenage = Bleu du Vercors = Sassenage; Fourme de Montbrison; Tome des Bauges = Tomme des Bauges; Chevrotin; Pouligny-Saint-Pierre = Pouligny; Mâconnais; Charolais; Rigotte de Condrieu = Rigotte; Soumaintrain
+5: Brousse du Rove; Mothais sur feuille = Mothais; Tome fraîche de l'Aubrac = Tome fraîche

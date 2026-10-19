@@ -1,4 +1,5 @@
 titre: Une langue parlée dans le monde
+actif: non
 1: Français; Anglais; Néerlandais = Flamand; Allemand; Espagnol; Italien; Chinois = Mandarin; Arabe
 2: Portugais; Russe; Japonais; Wallon; Turc; Grec; Polonais; Latin; Hindi; Coréen; Suédois; Norvégien; Danois; Roumain; Hébreu; Bruxellois = Brusseleir
 3: Lingala; Swahili; Berbère = Tamazight; Kabyle; Picard; Luxembourgeois; Catalan; Basque; Breton; Corse; Occitan; Alsacien; Gaélique = Irlandais; Gallois; Écossais; Finnois; Hongrois; Tchèque; Slovaque; Slovène; Croate; Serbe; Bosnien; Bulgare; Ukrainien; Biélorusse; Lituanien; Letton; Estonien; Islandais; Albanais; Maltais; Arménien; Géorgien; Persan = Farsi; Kurde; Ourdou; Bengali; Pendjabi; Tamoul; Vietnamien; Thaï; Indonésien; Malais; Tagalog = Filipino; Cantonais; Tibétain; Mongol; Kazakh; Ouzbek; Afrikaans; Zoulou; Esperanto; Yiddish; Créole; Quechua; Klingon; Langue des signes; Kinyarwanda; Kirundi; Tshiluba; Kikongo; Wolof; Bambara; Peul; Haoussa; Yoruba; Amharique; Somali; Malgache; Tahitien; Hawaïen; Maori; Romani; Sanskrit; Grec ancien; Gaumais; Limbourgeois; Lorrain; Champenois; Francique; Platt = Bas allemand

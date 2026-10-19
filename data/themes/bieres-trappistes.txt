@@ -1,0 +1,7 @@
+titre: Une bière trappiste (marque ou bière précise, actuelle ou passée)
+# Brasseries trappistes (label ATP actuel ou passé) et leurs bières, plus Mont des Cats et Cardeña (trappistes brassées hors abbaye).
+1: Chimay; Orval; Westmalle; Rochefort; Westvleteren; Chimay Bleue = Chimay Grande Réserve
+2: Achel; La Trappe = Koningshoeven; Chimay Rouge = Chimay Première; Chimay Blanche = Chimay Triple = Chimay Cinq Cents; Westmalle Tripel = Westmalle Triple; Westmalle Dubbel = Westmalle Double; Rochefort 6; Rochefort 8; Rochefort 10; Westvleteren 12; Westvleteren 8; Westvleteren Blond = Westvleteren Blonde
+3: Chimay Dorée = Chimay Gold; Chimay 150 = Chimay Verte; Petite Orval = Orval Vert; Westmalle Extra = Westmalle Enkel; Rochefort Triple Extra; Achel 8 Blond = Achel Blonde; Achel 8 Bruin = Achel Brune; Mont des Cats; La Trappe Quadrupel = La Trappe Quad; La Trappe Tripel = La Trappe Triple; La Trappe Dubbel = La Trappe Double; La Trappe Blond = La Trappe Blonde; Zundert
+4: Achel 5 Blond; Achel 5 Bruin; Achel Extra = Achel Extra Bruin; La Trappe Isid'or = Isid'or; La Trappe Witte = La Trappe Wit; La Trappe Bockbier = La Trappe Bock; La Trappe PuurS; Zundert 8; Zundert 10; Engelszell = Stift Engelszell; Tre Fontane; Tynt Meadow; Spencer = Spencer Trappist Ale
+5: Gregorius; Benno; Nivard; Cardeña

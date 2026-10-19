@@ -1,4 +1,5 @@
 titre: Un corps qui est un gaz à température ambiante (élément ou composé)
+actif: non
 # Gaz à 20 °C et pression atmosphérique.
 1: Oxygène = Dioxygène = O2; Azote = Diazote = N2; Hydrogène = Dihydrogène = H2; Hélium; Dioxyde de carbone = CO2 = Gaz carbonique; Méthane; Néon; Argon
 2: Monoxyde de carbone = CO; Ozone; Chlore = Dichlore; Butane; Propane; Ammoniac; Krypton; Xénon; Radon; Fluor = Difluor; Protoxyde d'azote = Gaz hilarant = N2O; Sulfure d'hydrogène = Hydrogène sulfuré = H2S; Dioxyde de soufre = SO2; Acétylène = Éthyne; Éthylène = Éthène; Éthane; Fréon = CFC = Chlorofluorocarbure

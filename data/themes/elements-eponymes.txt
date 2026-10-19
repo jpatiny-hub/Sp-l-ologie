@@ -1,7 +1,8 @@
 titre: Un élément chimique nommé d'après un lieu, une personne, un astre ou une figure mythologique
 # Lieux (Polonium, Ytterbium…), scientifiques (Curium…), astres (Uranium, Hélium = Soleil, Sélénium = Lune, Tellure = Terre, Cérium = Cérès, Palladium = Pallas), mythologie et folklore (Titane, Thorium, Cobalt = kobold…).
+# Ajouts : Mercure (planète et dieu), Iridium (Iris, déesse de l’arc-en-ciel), Manganèse (Magnésie, comme le magnésium).
 1: Polonium; Francium; Einsteinium; Curium; Germanium; Américium
 2: Uranium; Plutonium; Neptunium; Europium; Gallium; Mendélévium; Nobélium; Hélium; Californium; Sélénium
 3: Scandium; Titane; Thorium; Cérium; Palladium; Tellure; Magnésium; Ruthénium; Berkélium; Fermium; Rutherfordium; Bohrium; Copernicium; Prométhium; Lutécium = Lutétium; Strontium; Cuivre
-4: Yttrium; Ytterbium; Terbium; Erbium; Holmium; Hafnium; Thulium; Rhénium; Gadolinium; Samarium; Seaborgium; Meitnérium; Lawrencium; Roentgenium; Darmstadtium; Hassium; Dubnium; Vanadium; Niobium; Tantale; Moscovium; Tennessine; Nihonium; Livermorium; Flérovium; Oganesson
-5: Cobalt; Nickel
+4: Yttrium; Ytterbium; Terbium; Erbium; Holmium; Hafnium; Thulium; Rhénium; Gadolinium; Samarium; Seaborgium; Meitnérium; Lawrencium; Roentgenium; Darmstadtium; Hassium; Dubnium; Vanadium; Niobium; Tantale; Moscovium; Tennessine = Tennesse; Nihonium; Livermorium; Flérovium; Oganesson
+5: Cobalt; Nickel; Mercure; Iridium; Manganèse

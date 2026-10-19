@@ -1,4 +1,5 @@
 titre: Un satellite naturel du Système solaire (lune d'une planète, d'une planète naine ou d'un astéroïde)
+actif: non
 1: Lune; Titan; Europe; Io; Ganymède; Phobos; Deimos
 2: Callisto; Encelade; Triton; Charon; Mimas; Titania; Obéron; Miranda; Japet; Rhéa
 3: Ariel; Umbriel; Téthys; Dioné; Hypérion; Phœbé; Néréide; Amalthée; Nix; Hydra; Protée; Pan; Janus; Épiméthée

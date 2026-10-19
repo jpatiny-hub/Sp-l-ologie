@@ -1,0 +1,6 @@
+titre: Un des 27 États membres de l'Union européenne, un pays officiellement candidat (Kosovo, candidat potentiel, compris) ou le Royaume-Uni (ancien membre)
+1: Belgique; France; Allemagne; Pays-Bas; Luxembourg; Italie; Espagne; Portugal
+2: Irlande; Danemark; Grèce; Autriche; Suède; Finlande; Pologne; Royaume-Uni = Grande-Bretagne; Ukraine; Turquie
+3: Tchéquie = République tchèque; Hongrie; Slovaquie; Slovénie; Croatie; Roumanie; Bulgarie; Lituanie; Lettonie; Estonie; Malte; Chypre
+4: Serbie; Albanie; Monténégro; Macédoine du Nord = Macédoine; Moldavie; Bosnie-Herzégovine = Bosnie; Géorgie
+5: Kosovo

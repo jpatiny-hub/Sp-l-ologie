@@ -1,0 +1,5 @@
+titre: Un grand cru de Bourgogne (une des 33 appellations, ou un climat de Chablis grand cru)
+1: Romanée-Conti; Chambertin; Montrachet = Le Montrachet; Clos de Vougeot = Clos Vougeot; Corton; Corton-Charlemagne; Musigny; Chablis grand cru
+2: La Tâche; Richebourg; Échezeaux; Grands-Échezeaux; Bâtard-Montrachet; Chevalier-Montrachet; Clos de Tart; Bonnes-Mares; Clos de la Roche; Charmes-Chambertin; Chambertin-Clos de Bèze = Clos de Bèze
+3: Romanée-Saint-Vivant; La Romanée; Clos Saint-Denis; Clos des Lambrays; Chapelle-Chambertin; Griotte-Chambertin; Latricières-Chambertin; Mazis-Chambertin; Ruchottes-Chambertin; Charlemagne
+4: Mazoyères-Chambertin; La Grande Rue; Bienvenues-Bâtard-Montrachet; Criots-Bâtard-Montrachet; Les Clos = Chablis Les Clos; Grenouilles = Chablis Grenouilles; Vaudésir = Chablis Vaudésir; Blanchot = Chablis Blanchot; Valmur = Chablis Valmur; Preuses = Les Preuses; Bougros = Chablis Bougros

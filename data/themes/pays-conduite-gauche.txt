@@ -1,0 +1,7 @@
+titre: Un pays ou territoire où l'on roule à gauche (États souverains, nations britanniques et territoires dépendants)
+# Situation actuelle. Le Samoa est passé à gauche en 2009. Exclus : Suède (à droite depuis 1967), Birmanie (depuis 1970), Vanuatu, Gibraltar.
+1: Royaume-Uni = Grande-Bretagne; Angleterre; Irlande; Japon; Inde; Australie; Afrique du Sud
+2: Nouvelle-Zélande; Malte; Chypre; Écosse; Pays de Galles; Irlande du Nord; Thaïlande; Pakistan; Indonésie; Singapour; Malaisie; Jamaïque; Kenya; Hong Kong
+3: Bangladesh; Sri Lanka; Népal; Tanzanie; Ouganda; Zimbabwe; Zambie; Mozambique; Namibie; Botswana; Malawi; Maurice = Île Maurice; Seychelles; Bahamas; Barbade; Trinité-et-Tobago; Macao = Macau; Fidji; Papouasie-Nouvelle-Guinée
+4: Bhoutan; Maldives; Brunei; Timor oriental = Timor-Leste; Lesotho; Eswatini = Swaziland; Guyana; Suriname; Samoa; Tonga; Îles Salomon = Salomon; Antigua-et-Barbuda; Dominique; Grenade; Saint-Christophe-et-Niévès = Saint-Kitts-et-Nevis; Sainte-Lucie; Saint-Vincent-et-les-Grenadines; Île de Man; Jersey; Guernesey; Bermudes; Îles Caïmans = Caïmans; Malouines = Îles Malouines = Falklands
+5: Kiribati; Nauru; Tuvalu; Îles Vierges britanniques; Îles Vierges des États-Unis; Anguilla; Montserrat; Îles Turques-et-Caïques = Turks-et-Caïcos; Sainte-Hélène; Îles Cook; Niue; Île Norfolk = Norfolk; Île Christmas; Îles Cocos; Tokelau; Îles Pitcairn = Pitcairn; Akrotiri et Dhekelia

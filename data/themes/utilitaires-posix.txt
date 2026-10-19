@@ -1,0 +1,7 @@
+titre: Une commande (utilitaire) normalisée par POSIX
+# Utilitaires de la norme POSIX.1 (éditions 2017 et 2024), y compris les commandes intégrées spéciales du shell (export, exit…).
+# Pas les commandes courantes mais non normalisées (sudo, tar, ssh, less, top, gzip…). « times » est confondu avec « time ».
+1: ls; cd; mkdir; rm; cp; mv; cat; grep; pwd; echo; chmod; find; man; vi; kill; ps; touch; sort
+2: sed; awk; head; tail; diff; wc; chown; ln; rmdir; date; sh; make; tee; xargs; cut; tr; uniq; du; df; env; export; exit; who; sleep; uname; id; test; true; false; printf; crontab; nohup; nice; alias; fc; set; unset; read; time; file; dd
+3: chgrp; basename; dirname; cmp; comm; paste; join; split; csplit; expand; unexpand; fold; nl; od; pr; patch; bc; expr; mkfifo; more; ed; ex; tty; stty; tput; umask; ulimit; wait; jobs; bg; fg; type; command; hash; getopts; unalias; eval; exec; readonly; return; shift; trap; break; continue; logname; logger; locale; iconv; renice; at; batch; cksum; strings; strip; nm; ar; lex; yacc; m4; c99; c17; ctags; pax; compress; uncompress; zcat; mailx; write; mesg; talk; link; unlink; getconf; cal; ipcs; ipcrm; fuser; newgrp; pathchk; tsort; tabs; uudecode; uuencode; readlink; realpath; timeout
+4: asa; cflow; cxref; fort77; gencat; localedef; lp; uucp; uustat; uux; admin; delta; get; prs; rmdel; sact; sccs; unget; val; what; gettext; ngettext; msgfmt; xgettext; qalter; qdel; qhold; qmove; qmsg; qrerun; qrls; qselect; qsig; qstat; qsub

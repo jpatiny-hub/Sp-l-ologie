@@ -1,4 +1,5 @@
 titre: Un dieu ou une déesse (toutes mythologies)
+actif: non
 1: Zeus; Jupiter; Poséidon; Thor; Odin; Hadès; Aphrodite; Vénus; Mars; Apollon
 2: Héra; Athéna; Arès; Hermès; Artémis; Dionysos; Bacchus; Héphaïstos; Vulcain; Déméter; Neptune; Junon; Minerve; Mercure; Diane; Pluton; Saturne; Cronos; Éros; Cupidon; Gaïa; Loki; Freyja; Ra = Rê; Osiris; Isis; Anubis; Horus; Shiva; Vishnou; Brahma; Ganesh
 3: Perséphone; Hestia; Vesta; Hélios; Séléné; Éos; Aurore; Nyx; Ouranos; Rhéa; Pan; Nike; Némésis; Hécate; Morphée; Hypnos; Thanatos; Tyché; Iris; Eole; Triton; Janus; Faunus; Flore; Cérès; Bellone; Fortuna; Quirinus; Frigg; Baldr = Balder; Freyr; Heimdall; Tyr; Njörd; Idunn; Hel; Bragi; Sif; Seth; Thot; Bastet; Sekhmet; Ptah; Amon = Amon-Rê; Aton; Hathor; Sobek; Khnoum; Nout; Geb; Maât; Bès; Kali; Lakshmi; Parvati; Krishna; Rama; Hanuman; Indra; Agni; Durga; Saraswati; Quetzalcoatl; Huitzilopochtli; Tlaloc; Inti; Viracocha; Pachamama; Amaterasu; Susanoo; Izanagi; Izanami; Inari; Marduk; Ishtar; Baal; Enlil; Mithra; Ahura Mazda; Lug = Lugh; Dagda; Brigid; Cernunnos; Toutatis; Epona; Belenos; Taranis

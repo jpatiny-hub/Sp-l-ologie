@@ -1,0 +1,5 @@
+titre: Une des 30 franchises actuelles de la NBA (nom complet ou surnom, anciens noms acceptés)
+1: Chicago Bulls = Bulls; Los Angeles Lakers = Lakers; Boston Celtics = Celtics; Golden State Warriors = Warriors; Miami Heat = Heat; San Antonio Spurs = Spurs; New York Knicks = Knicks
+2: Houston Rockets = Rockets; Dallas Mavericks = Mavericks = Mavs; Cleveland Cavaliers = Cavaliers = Cavs; Utah Jazz = Jazz; Philadelphia 76ers = 76ers = Sixers; Detroit Pistons = Pistons; Phoenix Suns = Suns; Toronto Raptors = Raptors; Orlando Magic = Magic; Brooklyn Nets = Nets = New Jersey Nets; Denver Nuggets = Nuggets; Milwaukee Bucks = Bucks; Oklahoma City Thunder = Thunder = Seattle SuperSonics = SuperSonics
+3: Los Angeles Clippers = Clippers; Portland Trail Blazers = Trail Blazers = Blazers; Sacramento Kings = Kings; Indiana Pacers = Pacers; Atlanta Hawks = Hawks; Minnesota Timberwolves = Timberwolves = Wolves; Memphis Grizzlies = Grizzlies = Vancouver Grizzlies
+4: Charlotte Hornets = Hornets = Charlotte Bobcats = Bobcats; New Orleans Pelicans = Pelicans = New Orleans Hornets; Washington Wizards = Wizards = Washington Bullets = Bullets

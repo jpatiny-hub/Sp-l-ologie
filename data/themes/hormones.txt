@@ -1,4 +1,5 @@
 titre: Une hormone ou un neurotransmetteur (humain, animal ou végétal)
+actif: non
 1: Insuline; Adrénaline = Épinéphrine; Testostérone; Œstrogène; Cortisol; Dopamine; Sérotonine; Mélatonine; Ocytocine
 2: Thyroxine = T4; Glucagon; Hormone de croissance = Somatotropine = GH; Progestérone; Noradrénaline = Norépinéphrine; Acétylcholine; GABA; Glutamate; Endorphine; Leptine; Ghréline; EPO = Érythropoïétine; Prolactine; Vasopressine = ADH = Hormone antidiurétique; Histamine; Œstradiol
 3: Aldostérone; Calcitonine; Parathormone = PTH; FSH = Hormone folliculo-stimulante; LH = Hormone lutéinisante; TSH = Thyréostimuline; ACTH = Corticotrophine; GnRH; CRH; TRH; Somatostatine; Glycine; Enképhaline; Substance P; Sécrétine; Gastrine; Cholécystokinine = CCK; hCG = Hormone chorionique gonadotrope; Angiotensine; IGF-1; DHEA; Triiodothyronine = T3; Calcitriol; Orexine = Hypocrétine; Auxine; Éthylène; Cytokinine; Gibbérelline; Adénosine; Anandamide; Monoxyde d'azote = NO; Corticostérone; Dihydrotestostérone = DHT; Cortisone; Relaxine

@@ -1,4 +1,5 @@
 titre: Un fruit
+actif: non
 1: Pomme; Banane; Fraise; Orange; Poire; Cerise; Ananas; Kiwi; Raisin; Pêche
 2: Abricot; Prune; Mangue; Framboise; Citron; Melon; Pastèque; Mandarine; Clémentine; Myrtille; Groseille; Pamplemousse; Mûre; Noix de coco = Coco; Figue; Grenade; Nectarine; Brugnon; Cassis; Mirabelle
 3: Litchi; Fruit de la passion = Maracuja; Papaye; Goyave; Kaki; Datte; Avocat; Reine-claude; Coing; Rhubarbe; Groseille à maquereau; Citron vert = Lime; Kumquat; Physalis; Grenadille; Pitaya = Fruit du dragon; Carambole; Myrtille sauvage = Brimbelle; Canneberge = Cranberry; Airelle; Nèfle; Châtaigne; Noisette; Noix; Amande; Olive; Tomate

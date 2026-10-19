@@ -1,0 +1,5 @@
+titre: Un personnage principal (au générique) de Friends, Seinfeld, How I Met Your Mother ou The Big Bang Theory
+1: Rachel Green = Rachel; Ross Geller = Ross; Monica Geller = Monica; Chandler Bing = Chandler; Joey Tribbiani = Joey; Phoebe Buffay = Phoebe; Sheldon Cooper = Sheldon; Barney Stinson = Barney
+2: Leonard Hofstadter = Leonard; Penny; Howard Wolowitz = Howard; Raj Koothrappali = Raj = Rajesh Koothrappali; Ted Mosby = Ted; Marshall Eriksen = Marshall; Lily Aldrin = Lily; Robin Scherbatsky = Robin; Jerry Seinfeld = Jerry; George Costanza = George; Elaine Benes = Elaine; Cosmo Kramer = Kramer
+3: Bernadette Rostenkowski = Bernadette = Bernadette Rostenkowski-Wolowitz; Amy Farrah Fowler = Amy
+4: Tracy McConnell = La Mère = The Mother; Stuart Bloom = Stuart

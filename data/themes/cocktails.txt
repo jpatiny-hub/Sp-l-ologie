@@ -1,4 +1,5 @@
 titre: Un cocktail (avec ou sans alcool)
+actif: non
 1: Mojito; Spritz = Aperol Spritz; Margarita; Piña colada; Cosmopolitan = Cosmo; Bloody Mary; Caipirinha; Sex on the Beach; Gin tonic
 2: Daiquiri; Martini = Dry Martini; Negroni; Old Fashioned; Manhattan; Tequila Sunrise; Cuba Libre; Long Island Iced Tea; Moscow Mule; Mai Tai; Kir; Kir royal; Sangria; Blue Lagoon; White Russian; Black Russian; Irish coffee; Whisky sour; Pisco sour; Americano; Bellini; Mimosa; Ti-punch; Planteur; Punch; Hugo; Espresso martini; Pornstar martini; Virgin mojito; Picon bière
 3: Tom Collins; Gin fizz; Singapore Sling; Zombie; Hurricane; Sidecar; Mint julep; Sazerac; Aviation; Paloma; Dark 'n' Stormy; B-52; Grasshopper; Alexander = Brandy Alexander; Rob Roy; Godfather = Parrain; Rusty Nail; Kamikaze; Caipiroska; French 75; Boulevardier; Gimlet; Vesper; Lemon drop; Screwdriver = Tournevis; Salty dog; Sea breeze; Bramble; Mary Pickford; Bee's knees; Painkiller; Shirley Temple; Pussyfoot; Monaco; Panaché; Tequila paf; Michelada

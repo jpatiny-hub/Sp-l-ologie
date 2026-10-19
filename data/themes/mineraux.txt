@@ -1,4 +1,5 @@
 titre: Un minéral, une roche ou une pierre précieuse
+actif: non
 1: Diamant; Granite; Quartz; Marbre; Calcaire; Rubis; Émeraude; Saphir; Charbon; Or
 2: Basalte; Ardoise; Grès; Silex; Argile; Craie; Sable; Gypse; Améthyste; Topaze; Opale; Jade; Turquoise; Lapis-lazuli; Obsidienne; Pierre ponce = Ponce; Lave; Schiste; Pierre bleue = Petit granit; Sel gemme = Halite; Pyrite; Cristal de roche; Ambre; Perle; Corail; Grenat; Onyx; Agate; Malachite; Mica
 3: Feldspath; Calcite; Dolomite; Fluorine = Fluorite; Talc; Corindon; Apatite; Orthose; Olivine = Péridot; Magnétite; Hématite; Galène; Bauxite; Cinabre; Graphite; Kaolinite = Kaolin; Serpentine; Amiante; Gneiss; Micaschiste; Quartzite; Diorite; Gabbro; Andésite; Rhyolite; Trachyte; Tuf; Brèche; Conglomérat = Poudingue; Marne; Tourbe; Lignite; Anthracite; Houille; Aigue-marine; Béryl; Tourmaline; Citrine; Zircon; Spinelle; Tanzanite; Alexandrite; Œil-de-tigre; Œil-de-chat; Pierre de lune; Labradorite; Cornaline; Jaspe; Calcédoine; Quartz rose; Quartz fumé; Sodalite; Rhodochrosite; Azurite; Chrysocolle; Jais; Marbre de Carrare; Coticule = Pierre à rasoir; Phyllade; Porphyre; Travertin; Tuffeau; Meulière

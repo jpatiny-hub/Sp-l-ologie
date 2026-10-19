@@ -1,0 +1,5 @@
+titre: Un des 50 États des États-Unis
+1: Californie = California; Texas; Floride = Florida; New York = État de New York; Alaska; Hawaï = Hawaii
+2: Nevada; Arizona; Colorado; Louisiane = Louisiana; Washington = État de Washington; Massachusetts; Illinois; Géorgie = Georgia; Michigan; Ohio; Utah; Virginie = Virginia; Pennsylvanie = Pennsylvania; Caroline du Nord = North Carolina; Caroline du Sud = South Carolina; Tennessee; New Jersey; Kentucky; Mississippi
+3: Oregon; Montana; Wyoming; Dakota du Nord = North Dakota; Dakota du Sud = South Dakota; Nouveau-Mexique = New Mexico; Alabama; Missouri; Kansas; Minnesota; Wisconsin; Maryland; Connecticut; Maine; Vermont; Oklahoma; Indiana; Iowa; Nebraska; Idaho; Arkansas; Virginie-Occidentale = West Virginia
+4: New Hampshire; Rhode Island; Delaware

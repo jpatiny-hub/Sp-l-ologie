@@ -1,0 +1,6 @@
+titre: Un pays ayant une frontière terrestre avec la Chine ou avec la Russie (Chine et Russie comprises)
+# Frontières maritimes seules (Japon, États-Unis) exclues. Lituanie et Pologne : par l'oblast de Kaliningrad.
+1: Russie; Chine; Mongolie; Inde; Finlande; Ukraine
+2: Kazakhstan; Corée du Nord; Vietnam = Viêt Nam; Pakistan; Népal; Biélorussie = Bélarus; Norvège; Estonie; Lettonie; Géorgie; Pologne; Lituanie
+3: Afghanistan; Laos; Birmanie = Myanmar; Bhoutan; Kirghizistan; Tadjikistan; Azerbaïdjan
+5: Abkhazie; Ossétie du Sud

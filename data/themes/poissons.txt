@@ -1,4 +1,5 @@
 titre: Un poisson
+actif: non
 1: Saumon; Thon; Requin; Truite; Sardine; Cabillaud; Poisson rouge; Sole; Carpe; Anguille
 2: Bar = Loup de mer; Daurade = Dorade; Merlan; Maquereau; Hareng; Raie; Brochet; Perche; Colin; Lieu; Églefin = Haddock; Turbot; Anchois; Espadon; Poisson-clown = Clown; Plie = Carrelet; Tilapia; Panga; Morue; Rouget; Lotte = Baudroie
 3: Flétan; Barbue; Limande; Sandre; Silure; Tanche; Gardon; Brème; Chevesne; Ablette; Goujon; Barbeau; Vairon; Esturgeon; Mérou; Murène; Congre; Saint-Pierre; Grondin; Rascasse; Sébaste; Sprat; Éperlan; Mulet; Orphie; Poisson-chat; Piranha; Barracuda; Marlin; Thon rouge; Bonite; Espadon voilier = Voilier; Raie manta = Manta; Hippocampe; Poisson-lune = Môle; Poisson-globe = Fugu; Poisson volant; Poisson-scie; Requin-baleine; Requin-marteau; Requin blanc; Roussette; Saumonette; Tacaud; Lingue; Julienne; Sabre; Guppy; Néon; Combattant; Scalaire; Discus; Poisson-chirurgien; Lamproie; Perche du Nil

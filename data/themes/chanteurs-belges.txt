@@ -1,4 +1,5 @@
 titre: Un chanteur, une chanteuse ou un groupe belge
+actif: non
 1: Stromae = Paul Van Haver; Angèle; Jacques Brel = Brel; Salvatore Adamo = Adamo; Lara Fabian; Annie Cordy; Plastic Bertrand
 2: Maurane; Axelle Red; Helmut Lotti; Hooverphonic; Arno; Selah Sue; Loïc Nottet; Damso; Lost Frequencies; Dimitri Vegas & Like Mike = Dimitri Vegas; Kate Ryan; Natalia; Frédéric François; Hamza; Roméo Elvis; Lio; Toots Thielemans = Toots; Django Reinhardt = Django; Vaya Con Dios; Milow; Typh Barrow; Henri PFR; Mentissa
 3: Pierre Rapsat; Sandra Kim; Saule; Puggy; Girls in Hawaii; Balthazar; dEUS = Deus; Soulwax; Technotronic; 2 Unlimited; Front 242; Philippe Lafontaine; Sttellla; Kid Noize; Oscar and the Wolf; Ozark Henry; Clouseau; K3; Belle Perez; Coely; Blanche; Tamino; Mustii; Gustaph; Viktor Lazlo; Claude Barzotti; Will Tura; Dana Winner; Shay; Krisy; Caballero & JeanJass = Caballero = JeanJass; Charlotte de Witte; Amelie Lens; K's Choice; Milk Inc = Milk Inc.; Suarez; Alice on the Roof; Lous and the Yakuza; Ghinzu; Triggerfinger; Machiavel; Netsky; Sylver; Telex

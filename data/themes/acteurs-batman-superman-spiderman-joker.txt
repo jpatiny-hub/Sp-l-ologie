@@ -1,0 +1,8 @@
+titre: Un acteur ayant incarné Batman, Superman, Spider-Man ou le Joker dans un film de cinéma en prises de vues réelles (serials compris, jusqu'en 2025)
+# Batman : Wilson (1943), Lowery (1949), West, Keaton, Kilmer, Clooney, Bale, Affleck, Pattinson. Superman : Alyn, Reeves, Reeve, Routh, Cavill, Corenswet, Cage (caméo dans The Flash, 2023).
+# Spider-Man : Maguire, Garfield, Holland, Hammond (téléfilms de 1977-1981 sortis en salles hors des États-Unis). Joker : Romero, Nicholson, Ledger, Leto, Phoenix, Keoghan.
+1: Michael Keaton; Christian Bale; Tobey Maguire; Heath Ledger; Jack Nicholson; Christopher Reeve; Joaquin Phoenix; Tom Holland
+2: George Clooney; Val Kilmer; Ben Affleck; Robert Pattinson; Andrew Garfield; Henry Cavill; Jared Leto
+3: Adam West; Brandon Routh; David Corenswet; Barry Keoghan; Cesar Romero
+4: Nicolas Cage; Kirk Alyn; George Reeves
+5: Lewis Wilson; Robert Lowery; Nicholas Hammond

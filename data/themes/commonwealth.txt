@@ -1,0 +1,5 @@
+titre: Un État membre du Commonwealth (les 56 membres en 2026)
+1: Royaume-Uni = Grande-Bretagne; Canada; Australie; Inde; Nouvelle-Zélande; Afrique du Sud; Jamaïque; Pakistan
+2: Malte; Chypre; Kenya; Nigeria; Ghana; Bangladesh; Sri Lanka; Singapour; Malaisie; Ouganda; Tanzanie; Rwanda; Cameroun; Bahamas; Barbade; Trinité-et-Tobago; Mozambique; Zambie
+3: Botswana; Namibie; Maurice = Île Maurice; Seychelles; Malawi; Lesotho; Eswatini = Swaziland; Sierra Leone; Gambie; Gabon; Togo; Maldives; Brunei; Fidji; Papouasie-Nouvelle-Guinée; Samoa; Belize; Guyana
+4: Tonga; Îles Salomon = Salomon; Vanuatu; Kiribati; Nauru; Tuvalu; Antigua-et-Barbuda; Dominique; Grenade; Saint-Christophe-et-Niévès = Saint-Kitts-et-Nevis; Sainte-Lucie; Saint-Vincent-et-les-Grenadines

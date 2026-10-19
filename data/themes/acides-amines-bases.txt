@@ -1,0 +1,7 @@
+titre: Un acide aminé protéinogène ou une base nucléique (ADN, ARN)
+# Les 22 acides aminés protéinogènes (dont sélénocystéine et pyrrolysine) et les 5 bases canoniques.
+1: Glycine = Glycocolle; Adénine; Thymine; Guanine; Cytosine; Uracile = Uracil; Lysine; Alanine
+2: Leucine; Tryptophane; Glutamine; Acide glutamique = Glutamate; Cystéine; Méthionine; Phénylalanine; Valine; Tyrosine; Sérine
+3: Arginine; Histidine; Isoleucine; Proline; Thréonine; Asparagine; Acide aspartique = Aspartate
+4: Sélénocystéine
+5: Pyrrolysine

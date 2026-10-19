@@ -1,0 +1,7 @@
+titre: Un club ayant joué au moins une saison en Premier League anglaise (depuis sa création en 1992, saison 2026-2027 comprise)
+# 51 clubs. Les clubs gallois (Cardiff, Swansea) comptent.
+1: Manchester United = Man United = Man Utd; Liverpool; Arsenal; Chelsea; Manchester City = Man City; Tottenham Hotspur = Tottenham = Spurs
+2: Newcastle United = Newcastle; Aston Villa; Everton; West Ham United = West Ham; Leicester City = Leicester; Leeds United = Leeds; Southampton; Nottingham Forest; Brighton & Hove Albion = Brighton; Crystal Palace; Wolverhampton Wanderers = Wolverhampton = Wolves; Fulham; Blackburn Rovers = Blackburn
+3: Burnley; Sunderland; Middlesbrough; AFC Bournemouth = Bournemouth; Brentford; Watford; Norwich City = Norwich; West Bromwich Albion = West Brom = WBA; Stoke City = Stoke; Bolton Wanderers = Bolton; Wigan Athletic = Wigan; Swansea City = Swansea; Hull City = Hull; Sheffield United; Ipswich Town = Ipswich; Portsmouth; Queens Park Rangers = QPR; Birmingham City = Birmingham
+4: Cardiff City = Cardiff; Coventry City = Coventry; Derby County = Derby; Sheffield Wednesday; Charlton Athletic = Charlton; Reading; Wimbledon; Huddersfield Town = Huddersfield; Luton Town = Luton; Blackpool
+5: Barnsley; Bradford City = Bradford; Oldham Athletic = Oldham; Swindon Town = Swindon

@@ -1,4 +1,5 @@
 titre: Une enzyme
+actif: non
 1: Amylase; Lipase; Pepsine; ADN polymérase = Polymérase; Lactase; Trypsine
 2: ARN polymérase; Ligase = ADN ligase; Hélicase; Transcriptase inverse = Rétrotranscriptase; Catalase; Lysozyme; Kinase; Phosphatase; Protéase; Nucléase; Ribonucléase = RNase; Désoxyribonucléase = DNase; Topoisomérase; Télomérase; RuBisCO; ATP synthase; Enzyme de restriction; Cas9; Taq polymérase; Présure = Chymosine; Maltase; Saccharase = Invertase
 3: Primase; Gyrase = ADN gyrase; Hexokinase; Anhydrase carbonique; Chymotrypsine; Élastase; Collagénase; Cellulase; Chitinase; Uréase; Luciférase; Peroxydase; Superoxyde dismutase; Cytochrome c oxydase; Lactate déshydrogénase = LDH; Alcool déshydrogénase; Aldolase; Pyruvate kinase; Acétylcholinestérase; Monoamine oxydase = MAO; Cyclooxygénase = COX; Thrombine; Plasmine; Rénine; Enzyme de conversion de l'angiotensine = ECA; Aromatase; Tyrosinase; Glucose oxydase; EcoRI; Transaminase; Bêta-lactamase; Papaïne; Bromélaïne; Nitrogénase; Intégrase; Caspase; Lipoprotéine lipase
