@@ -716,8 +716,8 @@
   });
 
   // ---------- Résultats ----------
-  const TIER_ORDER = ['pepite', 'tres_rare', 'rare', 'original', 'courant', 'evident'];
-  const TIER_LABELS = { pepite: 'Pépite', tres_rare: 'Très rare', rare: 'Rare', original: 'Original', courant: 'Courant', evident: 'Évident' };
+  const TIER_ORDER = ['pepite', 'rare', 'original', 'courant', 'evident'];
+  const TIER_LABELS = { pepite: 'Pépite', rare: 'Rubis', original: 'Cuivre', courant: 'Soufre', evident: 'Gravier' };
 
   function showResults(state) {
     stopTimer();
@@ -822,8 +822,7 @@
       [top, y(20), 'evident', '#4a2f1a'],
       [y(20), y(40), 'courant', '#8e5f31'],
       [y(40), y(60), 'original', '#64717e'],
-      [y(60), y(80), 'rare', '#2a2a31'],
-      [y(80), bottom, 'tres_rare', '#5e2013'],
+      [y(60), bottom, 'rare', '#5e2013'],
       [bottom, core, 'pepite', '#b5561a'],
     ];
     bands.forEach(([y0, y1, id, fill]) => {

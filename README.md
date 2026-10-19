@@ -50,10 +50,11 @@ des clubs de niveau 1, *Taleggio* est de niveau 4, etc.
    Une réponse que tout le monde donne finit par ne plus rien rapporter, une réponse que personne
    ne trouve devient plus précieuse.
 3. **Points** : ils dépendent de la « surprise » de la réponse (−log p) par rapport à la réponse la
-   plus attendue du thème : de **10** (évident) à **90** (très rare). Une réponse très rare que
-   **personne n'avait encore donnée** est une **pépite : 100 points**.
+   plus attendue du thème : de **10** (gravier) à **90** (rubis). Une réponse rare (niveau 4 ou 5) que
+   **personne n'avait encore donnée** est une **pépite : 100 points**. Les paliers, du plus
+   courant au plus rare : gravier, soufre, cuivre, rubis, pépite. 600 points = le centre de la Terre.
 
-Sans données, cela donne 10 / 29 / 48 / 68 / 100 points pour les niveaux 1 à 5.
+Sans données, cela donne 10 / 29 / 48 / 100 / 100 points pour les niveaux 1 à 5.
 Les réglages sont dans `src/scoring.js` (`LEVEL_WEIGHTS`, `PRIOR_STRENGTH`).
 
 ## Ajouter ou modifier des thèmes
