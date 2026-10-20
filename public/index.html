@@ -41,9 +41,21 @@
         <label>Volume <input type="range" name="volume" min="0" max="100" step="5"></label>
       </fieldset>
       <fieldset>
+        <legend>Apparence</legend>
+        <div class="choices">
+          <label><input type="radio" name="theme" value="sombre"> Sombre</label>
+          <label><input type="radio" name="theme" value="clair"> Clair</label>
+        </div>
+      </fieldset>
+      <fieldset>
         <legend>Couleurs</legend>
-        <label class="check"><input type="checkbox" name="colorblind"> Mode daltonien</label>
-        <p class="hint">Couleurs distinguables quel que soit le type de daltonisme, et un symbole propre à chaque niveau de rareté.</p>
+        <div class="choices vertical">
+          <label><input type="radio" name="colors" value="normal"> Normales</label>
+          <label><input type="radio" name="colors" value="rouge-vert"> Daltonisme rouge-vert (protanopie, deutéranopie)</label>
+          <label><input type="radio" name="colors" value="bleu-jaune"> Daltonisme bleu-jaune (tritanopie)</label>
+          <label><input type="radio" name="colors" value="gris"> Niveaux de gris (achromatopsie)</label>
+        </div>
+        <p class="hint">Dans les modes daltoniens, chaque niveau de rareté a aussi son propre symbole : la couleur n'est jamais la seule information.</p>
       </fieldset>
       <p class="hint">Ces réglages sont propres à cet appareil.</p>
       <button class="btn" value="close">Fermer</button>
@@ -129,6 +141,27 @@
           <ul class="news-list" id="news-list"></ul>
           <button class="btn secondary" id="btn-news-ok" type="button">Compris, merci !</button>
         </div>
+        <div class="card streak" id="streak-card" hidden>
+          <canvas class="streak-lantern" id="streak-lantern" width="16" height="16" aria-hidden="true"></canvas>
+          <div class="streak-text">
+            <p class="streak-count" id="streak-count"></p>
+            <p class="muted small" id="streak-note"></p>
+            <p class="streak-next small" id="streak-next"></p>
+          </div>
+        </div>
+        <div class="card freezes" id="freeze-card" hidden>
+          <div class="freeze-row">
+            <span class="freeze-title">Étais de galerie</span>
+            <span class="freeze-icons" id="freeze-icons"></span>
+          </div>
+          <p class="muted small" id="freeze-note"></p>
+        </div>
+        <div class="card challenge" id="challenge-card" hidden>
+          <h2>Défi de la semaine</h2>
+          <p id="challenge-text"></p>
+          <div class="progress" id="challenge-bar" role="progressbar" aria-valuemin="0"><div class="progress-fill" id="challenge-fill"></div></div>
+          <p class="muted small" id="challenge-note"></p>
+        </div>
         <div class="card">
           <h2>Forage du jour</h2>
           <p class="muted" id="today-date"></p>
@@ -159,6 +192,7 @@
             <li>Plus ta réponse est <strong>improbable</strong>, plus tu marques : de 10 points (gravier) à 90 (rubis).</li>
             <li>Une réponse rare que <strong>personne n'avait encore trouvée</strong> est une pépite : 100 points.</li>
             <li>Les petites fautes d'orthographe sont tolérées : si ta saisie ressemble à une réponse connue, le jeu te la propose et c'est toi qui valides. Si ta réponse n'est pas reconnue, tu peux réessayer tant que le chrono tourne.</li>
+            <li>Un <strong>étai de galerie</strong> sauve ta série si tu rates un jour. Tu en gagnes un tous les 7 jours forés d'affilée (3 au maximum).</li>
             <li>Chaque point fait creuser ta foreuse. <strong>600 points = le centre de la Terre.</strong></li>
             <li>Les podiums additionnent tes forages du jour, de la semaine (lundi → dimanche) ou du mois.</li>
           </ul>
@@ -171,8 +205,10 @@
           <span id="game-mode"></span>
           <span id="game-progress"></span>
           <span id="game-score"></span>
+          <div class="pips" id="game-pips" aria-hidden="true"></div>
         </div>
 
+        <input class="keeper" id="focus-keeper" type="text" tabindex="-1" aria-hidden="true" autocomplete="off" autocapitalize="off" spellcheck="false">
         <div class="card" id="pane-ready" hidden>
           <h2 id="ready-title"></h2>
           <p>Tu auras <span class="timer-seconds">30</span> secondes. Vise la réponse la plus improbable !</p>
@@ -182,7 +218,7 @@
         <div class="card" id="pane-prompt" hidden>
           <p class="muted" id="prompt-index"></p>
           <h2 class="theme-title" id="prompt-title"></h2>
-          <div class="timer"><div class="timer-bar" id="timer-bar"></div></div>
+          <div class="timer" id="timer"><canvas id="timer-canvas" width="96" height="20" aria-hidden="true"></canvas><span class="timer-count" id="timer-count" aria-hidden="true"></span><span class="sr-only" id="timer-sr" role="timer"></span></div>
           <form id="form-answer" class="form answer-form" autocomplete="off">
             <input id="answer-input" name="text" maxlength="80" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Ta réponse…" aria-label="Ta réponse">
             <p class="error" id="answer-error" role="alert"></p>
@@ -228,10 +264,16 @@
           <h2>Carnet de forage <span class="muted small">plus c'est profond, plus c'est rare</span></h2>
           <svg class="chart divelog" id="divelog-chart" viewBox="0 0 320 206" role="img" aria-label="Profondeur atteinte à chaque thème"></svg>
         </div>
-        <div class="card">
-          <h2>Ta récolte <span class="muted small">touche un thème pour voir toutes les réponses</span></h2>
-          <ol class="catch" id="results-answers"></ol>
+        <div class="card best" id="results-best" hidden>
+          <span class="sw" id="results-best-sw"></span>
+          <span>
+            <small>Ta meilleure réponse du jour</small>
+            <strong id="results-best-answer"></strong>
+            <small id="results-best-theme"></small>
+          </span>
         </div>
+        <h2 class="section-title">Ta récolte <span class="muted small">touche un thème pour le déplier</span></h2>
+        <div class="theme-cards" id="results-answers"></div>
         <div class="card" id="results-badges" hidden>
           <h2>Nouveaux badges !</h2>
           <div class="badge-list" id="results-badge-list"></div>
@@ -249,16 +291,33 @@
       <!-- Carnet : badges et atelier -->
       <div class="view" id="view-profile" hidden>
         <button class="btn ghost back-btn" id="btn-profile-home" type="button">◀ Retour à l'accueil</button>
-        <div class="card">
-          <h2>Ton carnet de spéléo</h2>
+        <details class="card fold" data-fold="carnet">
+          <summary><span class="fold-t"><h2>Ton carnet de spéléo</h2></span><span class="pm" aria-hidden="true"></span></summary>
           <dl class="stats" id="profile-stats"></dl>
-        </div>
-        <div class="card">
-          <h2>Statistiques <span class="muted small">forages du jour et mode illimité</span></h2>
+        </details>
+        <details class="card fold" data-fold="bilan">
+          <summary><span class="fold-t"><h2>Bilan du mois</h2><span class="sub" id="bilan-sub">tes forages, mois par mois</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <div class="week-nav">
+            <button class="btn ghost small-btn" id="btn-bilan-prev" type="button" aria-label="Mois précédent">◀</button>
+            <h3 id="bilan-label"></h3>
+            <button class="btn ghost small-btn" id="btn-bilan-next" type="button" aria-label="Mois suivant">▶</button>
+          </div>
+          <div id="bilan-body"></div>
+        </details>
+        <details class="card fold" data-fold="stats">
+          <summary><span class="fold-t"><h2>Statistiques</h2><span class="sub">forages du jour et mode illimité</span></span><span class="pm" aria-hidden="true"></span></summary>
           <div id="player-stats"></div>
-        </div>
-        <div class="card">
-          <h2>Atelier <span class="muted small">l'apparence de ta foreuse, sur tous tes appareils</span></h2>
+          <h3>Tes jours forés <span class="muted small">12 dernières semaines</span></h3>
+          <svg class="chart calendar-chart" id="chart-calendar" role="img" aria-label="Calendrier des jours forés"></svg>
+          <h3>Tes derniers scores</h3>
+          <svg class="chart line-chart" id="chart-recent" viewBox="0 0 320 120" role="img" aria-label="Scores des derniers forages"></svg>
+          <h3>Tes réponses par rareté</h3>
+          <div id="chart-tiers" class="tier-bars"></div>
+          <h3>Ta meilleure profondeur</h3>
+          <svg class="chart earth-chart" id="chart-earth" viewBox="0 0 320 150" role="img" aria-label="Coupe de la Terre avec ta meilleure profondeur"></svg>
+        </details>
+        <details class="card fold" data-fold="atelier">
+          <summary><span class="fold-t"><h2>Atelier</h2><span class="sub">l'apparence de ta foreuse, sur tous tes appareils</span></span><span class="pm" aria-hidden="true"></span></summary>
           <div class="workshop">
             <canvas class="skin-preview" id="skin-preview" width="32" height="40" aria-label="Aperçu de ta foreuse"></canvas>
             <div class="workshop-choices">
@@ -266,12 +325,14 @@
               <div class="skin-grid" id="skin-bodies"></div>
               <h3>Foret</h3>
               <div class="skin-grid" id="skin-bits"></div>
+              <h3>Chrono</h3>
+              <div class="skin-grid" id="skin-timers"></div>
             </div>
           </div>
           <p class="muted small" id="skin-status" role="status"></p>
-        </div>
-        <div class="card">
-          <h2>Proposer un thème <span class="muted small">une idée de liste à deviner ?</span></h2>
+        </details>
+        <details class="card fold" data-fold="proposer">
+          <summary><span class="fold-t"><h2>Proposer un thème</h2><span class="sub">une idée de liste à deviner ?</span></span><span class="pm" aria-hidden="true"></span></summary>
           <form id="form-suggest" class="form">
             <label for="suggest-title">Le thème</label>
             <input id="suggest-title" type="text" maxlength="140" placeholder="Par exemple : un instrument à vent" autocomplete="off" required>
@@ -281,9 +342,9 @@
           </form>
           <p class="muted small" id="suggest-status" role="status"></p>
           <ul class="report-list" id="suggest-mine"></ul>
-        </div>
-        <div class="card" id="admin-suggestions" hidden>
-          <h2>Thèmes proposés <span class="muted small">réservé au responsable du jeu</span></h2>
+        </details>
+        <details class="card fold" data-fold="suggestions" id="admin-suggestions" hidden>
+          <summary><span class="fold-t"><h2>Thèmes proposés</h2><span class="sub">réservé au responsable du jeu</span></span><span class="pm" aria-hidden="true"></span></summary>
           <div class="tabs" role="tablist" id="suggestion-tabs">
             <button class="tab active" data-suggestions="pending" type="button" role="tab">À traiter <span id="count-sug-pending"></span></button>
             <button class="tab" data-suggestions="done" type="button" role="tab">Traités <span id="count-sug-done"></span></button>
@@ -291,9 +352,9 @@
           <button class="btn secondary" id="btn-copy-suggestions" type="button">Copier les propositions à traiter</button>
           <p class="muted small" id="suggestions-status" role="status"></p>
           <ul class="report-list" id="suggestion-list"></ul>
-        </div>
-        <div class="card" id="admin-reports" hidden>
-          <h2>Réponses signalées <span class="muted small">réservé au responsable du jeu</span></h2>
+        </details>
+        <details class="card fold" data-fold="signalements" id="admin-reports" hidden>
+          <summary><span class="fold-t"><h2>Réponses signalées</h2><span class="sub">réservé au responsable du jeu</span></span><span class="pm" aria-hidden="true"></span></summary>
           <p class="muted small">Réponses refusées que des joueurs pensent correctes. Transmets la liste pour qu'elles soient vérifiées et ajoutées aux thèmes.</p>
           <div class="tabs" role="tablist" id="report-tabs">
             <button class="tab active" data-reports="pending" type="button" role="tab">À traiter <span id="count-pending"></span></button>
@@ -302,11 +363,23 @@
           <button class="btn secondary" id="btn-copy-reports" type="button">Copier les signalements à traiter</button>
           <p class="muted small" id="reports-status" role="status"></p>
           <ul class="report-list" id="report-list"></ul>
-        </div>
-        <div class="card">
-          <h2>Badges</h2>
+        </details>
+        <details class="card fold" data-fold="tableau" id="admin-dashboard" hidden>
+          <summary><span class="fold-t"><h2>Tableau de bord</h2><span class="sub">réservé au responsable du jeu</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <div id="dashboard-body"></div>
+        </details>
+        <details class="card fold" data-fold="badges">
+          <summary><span class="fold-t"><h2>Badges</h2></span><span class="pm" aria-hidden="true"></span></summary>
+          <div class="badge-tools">
+            <input type="search" id="badge-search" placeholder="Chercher un badge…" aria-label="Chercher un badge" autocomplete="off" autocapitalize="off" spellcheck="false">
+            <div class="choices" id="badge-filter" role="group" aria-label="Filtrer les badges">
+              <button class="bfilter active" type="button" data-filter="all">Tous</button>
+              <button class="bfilter" type="button" data-filter="got">Obtenus</button>
+              <button class="bfilter" type="button" data-filter="todo">À gagner</button>
+            </div>
+          </div>
           <div id="badge-sections"></div>
-        </div>
+        </details>
       </div>
 
       <!-- Podium -->
@@ -340,9 +413,21 @@
     </section>
   </main>
 
+  <div class="badge-pop" id="badge-pop" hidden role="dialog" aria-modal="true" aria-labelledby="badge-pop-title">
+    <div class="badge-pop-card">
+      <button class="btn ghost small-btn badge-pop-close" id="badge-pop-close" type="button" aria-label="Fermer">✕</button>
+      <canvas class="badge-pop-icon" id="badge-pop-icon" width="16" height="16"></canvas>
+      <h3 id="badge-pop-title"></h3>
+      <p id="badge-pop-desc"></p>
+      <p class="muted" id="badge-pop-meta"></p>
+      <p class="unlock" id="badge-pop-unlock"></p>
+    </div>
+  </div>
+
   <script src="sound.js"></script>
   <script src="pixel.js"></script>
   <script src="icons.js"></script>
+  <script src="timers.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -66,7 +66,6 @@ function createApp({
 }) {
   const game = new GameService(db, themes, now);
   game.badges.backfill();
-  game.creditReports();
   const loginLimiter = new auth.RateLimiter(10, 15 * 60 * 1000);
   const signupLimiter = new auth.RateLimiter(10, 60 * 60 * 1000);
 
@@ -280,7 +279,7 @@ function createApp({
       const user = currentUser(req, res);
       if (!user) return json(res, 200, { user: null });
       game.badges.awardPodiums(game.today());
-      const row = db.prepare('SELECT skin_body, skin_bit, news_seen FROM users WHERE id = ?').get(user.id);
+      const row = db.prepare('SELECT skin_body, skin_bit, skin_timer, news_seen FROM users WHERE id = ?').get(user.id);
       json(res, 200, {
         user: userView(user),
         isAdmin: isAdmin(user),
@@ -288,6 +287,7 @@ function createApp({
         unseenBadges: game.badges.unseenCount(user.id),
         news: unseenNews(row.news_seen),
         today: game.todaySummary(user.id),
+        streak: game.badges.homeSummary(user.id, game.today()),
         nextResetMs: msUntilNextDay(now()),
         timerSeconds: config.TIMER_SECONDS,
       });
@@ -297,6 +297,17 @@ function createApp({
     'GET /api/profile': async (req, res) => {
       const user = requireUser(req, res);
       json(res, 200, { ...game.badges.profile(user.id, game.today()), playerStats: game.playerStats(user.id) });
+    },
+
+    // Bilan d'un mois (AAAA-MM, le mois courant par défaut).
+    'GET /api/month': async (req, res, _id, url) => {
+      const user = requireUser(req, res);
+      json(res, 200, game.monthSummary(user.id, url.searchParams.get('month')));
+    },
+
+    'GET /api/admin/dashboard': async (req, res) => {
+      requireAdmin(req, res);
+      json(res, 200, game.adminDashboard());
     },
 
     // Réponses et points de tous les joueurs pour un jour donné, pour comparer.
@@ -323,9 +334,9 @@ function createApp({
 
     'POST /api/profile/skin': async (req, res) => {
       const user = requireUser(req, res);
-      const { body, bit } = await readJson(req);
-      if (!game.badges.setSkin(user.id, game.today(), { body, bit })) throw new HttpError(403, 'Cette apparence n\'est pas encore débloquée.');
-      json(res, 200, { skin: { body, bit } });
+      const { body, bit, timer } = await readJson(req);
+      if (!game.badges.setSkin(user.id, game.today(), { body, bit, timer })) throw new HttpError(403, 'Cette apparence n\'est pas encore débloquée.');
+      json(res, 200, { skin: game.badges.skinOf(db.prepare('SELECT skin_body, skin_bit, skin_timer FROM users WHERE id = ?').get(user.id)) });
     },
 
     'POST /api/game/start': async (req, res) => {
@@ -365,7 +376,6 @@ function createApp({
 
     'GET /api/admin/reports': async (req, res) => {
       requireAdmin(req, res);
-      game.creditReports();
       json(res, 200, { reports: game.reportedAnswers() });
     },
 

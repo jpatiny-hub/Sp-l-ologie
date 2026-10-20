@@ -14,6 +14,8 @@ module.exports = {
   // Marge côté serveur pour absorber la latence réseau.
   TIMER_GRACE_MS: 2500,
   SESSION_DAYS: 90,
+  // Étais de galerie (gels de série) : un jour manqué n'est pardonné que s'il tombe à cette date ou après.
+  FREEZE_FROM: process.env.FREEZE_FROM || '2026-10-21',
   PORT: Number(process.env.PORT) || 3000,
   // Interface d'écoute (toutes par défaut ; 127.0.0.1 derrière un proxy).
   HOST: process.env.HOST || undefined,

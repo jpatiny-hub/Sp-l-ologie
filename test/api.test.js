@@ -310,7 +310,7 @@ test('point de contrôle pour l’hébergeur', async () => {
   }
 });
 
-test('une réponse signalée puis ajoutée au thème rapporte ses points au joueur, dans la semaine en cours', async () => {
+test('une réponse signalée puis ajoutée au thème ne rapporte rien tant que le responsable ne le décide pas', async () => {
   // Thèmes copiés : on peut y ajouter une réponse comme le ferait une mise à jour des fichiers.
   const themes = new Map([...THEMES].map(([id, t]) => [id, { ...t, answers: [...t.answers], index: new Map(t.index) }]));
   const app = await startServer({ themes });
@@ -321,54 +321,65 @@ test('une réponse signalée puis ajoutée au thème rapporte ses points au joue
     await gus('/api/signup', { username: 'gus', password: 'secret123' });
     const { data: game } = await gus('/api/game/start', { mode: 'daily' });
     await gus(`/api/game/${game.id}/reveal`, {});
-    const round = app.db.prepare('SELECT theme_id FROM rounds WHERE game_id = ? AND slot = 0').get(game.id);
-    const theme = themes.get(round.theme_id);
+    const theme = themes.get(app.db.prepare('SELECT theme_id FROM rounds WHERE game_id = ? AND slot = 0').get(game.id).theme_id);
+    const input = 'Réponse oubliée du fichier';
+    const key = toKey(input);
 
-    await gus(`/api/game/${game.id}/answer`, { text: 'Réponse oubliée du fichier' });
-    await gus(`/api/game/${game.id}/report`, { text: 'Réponse oubliée du fichier' });
+    await gus(`/api/game/${game.id}/answer`, { text: input });
+    await gus(`/api/game/${game.id}/report`, { text: input }); // pendant la manche
     await gus(`/api/game/${game.id}/skip`, {});
-    // Signalée après coup, depuis la liste du thème : ne donne jamais de points.
-    await gus(`/api/game/${game.id}/report`, { slot: 0, text: 'Autre oubli' });
+    app.clock.now += 60 * 1000;
+    await gus(`/api/game/${game.id}/report`, { slot: 0, text: 'Autre oubli' }); // après coup
 
-    // Signalement fait avant que la manche soit retenue (ancienne version) : retrouvée par l'heure.
-    app.db.prepare('UPDATE answer_reports SET game_id = NULL, slot = NULL').run();
-    const add = (label) => {
-      const key = toKey(label);
-      const answer = { key, label, level: 5, weight: LEVEL_WEIGHTS[5] };
+    const credit = (c, text) => c('/api/admin/reports/credit', { themeId: theme.id, inputKey: toKey(text), username: 'gus' });
+    assert.equal((await credit(gus, input)).status, 403, 'réservé au responsable');
+    assert.equal((await credit(admin, input)).status, 409, 'la réponse doit d\'abord figurer dans le thème');
+
+    for (const label of [input, 'Autre oubli']) {
+      const k = toKey(label);
+      const answer = { key: k, label, level: 5, weight: LEVEL_WEIGHTS[5] };
       theme.answers.push(answer);
-      theme.index.set(key, answer);
+      theme.index.set(k, answer);
       theme.weightTotal += answer.weight;
-    };
-    add('Réponse oubliée du fichier');
-    add('Autre oubli');
-    const before = (await gus(`/api/game/${game.id}`)).data;
-    assert.equal(before.rounds[0].points, 0);
+    }
 
-    const { reports } = (await admin('/api/admin/reports')).data; // déclenche l'attribution
-    assert.equal(reports.find((r) => r.input === 'Réponse oubliée du fichier').credited, 1);
-    assert.equal(reports.find((r) => r.input === 'Autre oubli').credited, 0);
+    // Même ajoutée au thème, une réponse signalée reste « à vérifier » et ne donne aucun point toute seule.
+    const { reports } = (await admin('/api/admin/reports')).data;
+    for (const r of reports) {
+      assert.equal(r.status, 'pending');
+      assert.equal(r.credited, 0);
+      assert.ok(r.inTheme);
+    }
+    assert.equal((await gus(`/api/game/${game.id}`)).data.rounds[0].points, 0);
+    assert.equal((await gus(`/api/game/${game.id}`)).data.score, 0);
+
+    // Le responsable accorde les points d'un signalement précis.
+    const res = await credit(admin, input);
+    assert.equal(res.status, 200);
     const after = (await gus(`/api/game/${game.id}`)).data;
-    assert.ok(after.rounds[0].points >= 10, `points accordés : ${after.rounds[0].points}`);
-    assert.equal(after.rounds[0].answer, 'Réponse oubliée du fichier');
-    assert.equal(after.score, after.rounds[0].points);
-    assert.equal(app.db.prepare('SELECT n FROM answer_counts WHERE theme_id = ? AND answer_key = ?').get(theme.id, toKey('Réponse oubliée du fichier')).n, 1);
-    // Une seule attribution, même si on relance.
-    await admin('/api/admin/reports');
-    assert.equal((await gus(`/api/game/${game.id}`)).data.score, after.score);
+    assert.equal(after.rounds[0].points, res.data.points);
+    assert.equal(after.rounds[0].answer, input);
+    assert.equal(after.score, res.data.points);
+    assert.equal(app.db.prepare('SELECT n FROM answer_counts WHERE theme_id = ? AND answer_key = ?').get(theme.id, key).n, 1);
+    assert.equal((await credit(admin, input)).status, 409, 'une seule fois');
+    // L'autre signalement vise la même manche, désormais répondue : rien à accorder.
+    assert.equal((await credit(admin, 'Autre oubli')).status, 409);
+    const listed = (await admin('/api/admin/reports')).data.reports;
+    assert.equal(listed.find((r) => r.input === input).credited, 1);
+    assert.equal(listed.find((r) => r.input === input).status, 'pending', 'jamais traité automatiquement');
 
-    // Semaine terminée : plus de points pour un signalement validé après coup.
+    // Entraînement : aucun point possible.
     const { data: game2 } = await gus('/api/game/start', { mode: 'training' });
     await gus(`/api/game/${game2.id}/reveal`, {});
     await gus(`/api/game/${game2.id}/answer`, { text: 'zzz entraînement' });
-    const r2 = await gus(`/api/game/${game2.id}/report`, { text: 'zzz entraînement' });
-    assert.equal(r2.data.status, 'recorded');
+    assert.equal((await gus(`/api/game/${game2.id}/report`, { text: 'zzz entraînement' })).data.status, 'recorded');
     const training = themes.get(app.db.prepare('SELECT theme_id FROM rounds WHERE game_id = ? AND slot = 0').get(game2.id).theme_id);
-    const key = toKey('zzz entraînement');
-    const a = { key, label: 'Zzz entraînement', level: 1, weight: LEVEL_WEIGHTS[1] };
+    const tk = toKey('zzz entraînement');
+    const a = { key: tk, label: 'Zzz entraînement', level: 1, weight: LEVEL_WEIGHTS[1] };
     training.answers.push(a);
-    training.index.set(key, a);
-    await admin('/api/admin/reports');
-    assert.equal(app.db.prepare("SELECT credit FROM answer_reports WHERE input_key = ?").get(key).credit, 'ineligible', 'pas de points en entraînement');
+    training.index.set(tk, a);
+    const res2 = await admin('/api/admin/reports/credit', { themeId: training.id, inputKey: tk, username: 'gus' });
+    assert.equal(res2.status, 409);
   } finally {
     await app.close();
   }
