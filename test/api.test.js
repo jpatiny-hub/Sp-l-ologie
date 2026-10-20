@@ -426,3 +426,48 @@ test("note de mise à jour : vue une fois par les anciens comptes, pas par les n
     await app.close();
   }
 });
+
+test('ajustement manuel : le responsable rend les points d\'une réponse signalée après coup', async () => {
+  const themes = new Map([...THEMES].map(([id, t]) => [id, { ...t, answers: [...t.answers], index: new Map(t.index) }]));
+  const app = await startServer({ themes });
+  try {
+    const admin = client(app.base);
+    const gus = client(app.base);
+    await admin('/api/signup', { username: 'chef', password: 'secret123' });
+    await gus('/api/signup', { username: 'gus', password: 'secret123' });
+    const { data: game } = await gus('/api/game/start', { mode: 'daily' });
+    await gus(`/api/game/${game.id}/reveal`, {});
+    await gus(`/api/game/${game.id}/skip`, {});
+    app.clock.now += 60 * 1000;
+    const themeId = app.db.prepare('SELECT theme_id FROM rounds WHERE game_id = ? AND slot = 0').get(game.id).theme_id;
+    await gus(`/api/game/${game.id}/report`, { slot: 0, text: 'Oubli signalé trop tard' });
+    const credit = (c) => c('/api/admin/reports/credit', { themeId, inputKey: toKey('Oubli signalé trop tard'), username: 'GUS' });
+
+    assert.equal((await credit(gus)).status, 403, 'réservé au responsable');
+    assert.equal((await credit(admin)).status, 409, 'la réponse doit d\'abord être dans le thème');
+
+    const theme = themes.get(themeId);
+    const key = toKey('Oubli signalé trop tard');
+    const answer = { key, label: 'Oubli signalé trop tard', level: 5, weight: LEVEL_WEIGHTS[5] };
+    theme.answers.push(answer);
+    theme.index.set(key, answer);
+    theme.weightTotal += answer.weight;
+
+    const { reports } = (await admin('/api/admin/reports')).data;
+    const report = reports.find((r) => r.input === 'Oubli signalé trop tard');
+    assert.equal(report.credited, 0, 'signalé après la manche : pas d\'attribution automatique');
+    assert.equal(report.reporters[0].username, 'gus');
+    assert.ok(report.reporters[0].creditableDay);
+
+    const res = await credit(admin);
+    assert.equal(res.status, 200);
+    const after = (await gus(`/api/game/${game.id}`)).data;
+    assert.equal(after.rounds[0].points, res.data.points);
+    assert.equal(after.rounds[0].answer, 'Oubli signalé trop tard');
+    assert.equal(after.score, res.data.points);
+    assert.equal((await credit(admin)).status, 409, 'une seule fois');
+    assert.equal((await admin('/api/admin/reports')).data.reports.find((r) => r.input === 'Oubli signalé trop tard').credited, 1);
+  } finally {
+    await app.close();
+  }
+});

@@ -1220,6 +1220,23 @@
             `${plural(r.players, 'joueur', 'joueurs')} · ${labels[r.status]}${r.credited ? ` · points accordés à ${r.credited}` : ''}`,
           ),
         );
+        (r.reporters || []).filter((p) => p.creditableDay).forEach((p) => {
+          const give = el('button', { class: 'link', type: 'button' }, `Accorder les points à ${p.username} (forage du ${longDay(p.creditableDay)})`);
+          give.addEventListener('click', async () => {
+            if (!window.confirm(`Accorder à ${p.username} les points de « ${r.input} » pour le forage du ${longDay(p.creditableDay)} ?`)) return;
+            try {
+              const res = await api('/api/admin/reports/credit', { themeId: r.themeId, inputKey: r.inputKey, username: p.username });
+              p.creditableDay = null;
+              p.credited = true;
+              r.credited += 1;
+              showNotice(`${p.username} : ${res.points} points accordés.`);
+              renderReports();
+            } catch (err) {
+              showNotice(err.message);
+            }
+          });
+          item.append(give);
+        });
         if (r.status === 'pending') {
           const done = el('button', { class: 'link', type: 'button' }, 'Marquer comme traitée');
           done.addEventListener('click', async () => {
