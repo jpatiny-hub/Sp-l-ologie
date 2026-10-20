@@ -1,0 +1,8 @@
+titre: Un temps ou une forme verbale de la conjugaison française
+# Périmètre : temps et formes de tous les modes (indicatif, subjonctif, conditionnel, impératif, infinitif, participe, gérondif) selon la grammaire scolaire, plus quelques appellations usuelles de la périphrase verbale (futur proche, passé récent).
+# « Présent », « Passé », « Futur » seuls sont acceptés comme variantes du présent de l'indicatif, du passé composé et du futur simple (usage scolaire courant) ; « Passé » seul est volontairement omis car ambigu.
+# « Participe » seul et « Subjonctif » seul sont omis (modes, pas des temps). Doutes : présent historique/de narration et de vérité générale (valeurs du présent, non des temps) ; passé surcomposé retenu comme forme rare mais attestée.
+1: Présent = Présent de l'indicatif; Imparfait = Imparfait de l'indicatif; Passé composé = Passé composé de l'indicatif; Futur simple = Futur = Futur de l'indicatif; Plus-que-parfait = Plus-que-parfait de l'indicatif; Passé simple = Passé simple de l'indicatif; Conditionnel présent = Conditionnel; Impératif présent = Impératif; Infinitif présent = Infinitif
+2: Futur antérieur = Futur antérieur de l'indicatif; Passé antérieur = Passé antérieur de l'indicatif; Subjonctif présent = Présent du subjonctif; Subjonctif passé = Passé du subjonctif; Subjonctif imparfait = Imparfait du subjonctif; Subjonctif plus-que-parfait = Plus-que-parfait du subjonctif; Conditionnel passé = Conditionnel passé première forme; Participe présent; Participe passé; Gérondif; Impératif passé; Infinitif passé
+3: Futur proche; Passé récent; Présent historique = Présent de narration; Présent de vérité générale
+4: Conditionnel passé deuxième forme = Conditionnel passé 2e forme; Passé surcomposé

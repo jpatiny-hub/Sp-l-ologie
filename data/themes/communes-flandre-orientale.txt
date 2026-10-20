@@ -1,0 +1,7 @@
+titre: Une ville ou commune de la province de Flandre orientale
+# 55 communes (liste officielle au 1er janvier 2026, après les fusions de 2019 et 2025). Anciennes communes fusionnées acceptées comme variantes.
+1: Alost = Aalst = Erembodegem; Gand = Gent = Gentbrugge = Ledeberg = Sint-Amandsberg = Mariakerke = Drongen = Wondelgem = Oostakker; Saint-Nicolas = Sint-Niklaas = Sinaai = Belsele
+2: Audenarde = Oudenaarde; Beveren-Kruibeke-Zwijndrecht = Beveren = Kruibeke = Zwijndrecht; Deinze = Nevele; Eeklo; Grammont = Geraardsbergen; Hamme; Lokeren = Moerbeke; Ninove; Renaix = Ronse; Tamise = Temse; Termonde = Dendermonde = Baasrode = Appels; Wetteren; Zottegem
+3: Aalter = Knesselare; Evergem = Everghem; Lievegem = Lovendegem = Waarschoot = Zomergem; Lochristi = Wachtebeke; Maldegem; Merelbeke-Melle = Merelbeke = Melle; Nazareth-De Pinte = Nazareth = De Pinte; Sint-Martens-Latem = Laethem-Saint-Martin = Deurle; Zele
+4: Assenede; Berlare; Brakel; Buggenhout; Denderleeuw; Destelbergen; Erpe-Mere = Erpe = Mere; Gavere = Gavre; Haaltert; Kruisem = Kruishoutem = Zingem; Lede; Stekene; Zelzate
+5: Herzele; Horebeke; Kaprijke; Kluisbergen = Kwaremont; Laarne = Laerne; Lebbeke; Lierde; Maarkedal; Oosterzele; Sint-Gillis-Waas = Saint-Gilles-Waes; Sint-Laureins = Saint-Laurent; Sint-Lievens-Houtem = Hautem-Saint-Liévin; Waasmunster = Waesmunster; Wichelen; Wortegem-Petegem; Zulte; Zwalm = Zwalin

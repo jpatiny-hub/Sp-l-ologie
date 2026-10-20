@@ -1,0 +1,8 @@
+titre: Un Pokémon de type Acier
+# 79 espèces dont au moins une forme (régionale, Méga, etc.) est de type Acier.
+# Source : PokéAPI (type/steel, formes ramenées à leur espèce), jusqu'au n° 1025.
+1: Steelix; Lucario
+2: Sabelette = Sandshrew; Taupiqueur = Diglett; Triopikeur = Dugtrio; Miaouss = Meowth; Magnéti = Magnemite; Magnéton = Magneton; Cizayox = Scizor; Galeking = Aggron; Terhal = Beldum; Métalosse = Metagross; Jirachi; Pingoléon = Empoleon; Dialga; Exagide = Aegislash; Muplodocus = Goodra; Solgaleo; Corvaillus = Corviknight; Zacian; Gromago = Gholdengo
+3: Sablaireau = Sandslash; Foretress = Forretress; Airmure = Skarmory; Mysdibule = Mawile; Galekid = Aron; Galegon = Lairon; Métang = Metang; Registeel; Bastiodon; Archéomire = Bronzor; Archéodong = Bronzong; Magnézone = Magnezone; Heatran; Minotaupe = Excadrill; Noacier = Ferrothorn; Scalpion = Pawniard; Scalproie = Bisharp; Cobaltium = Cobalion; Genesect; Monorpale = Honedge; Dimoclès = Doublade; Trousselin = Klefki; Togedemaru; Necrozma; Magearna; Meltan; Melmetal; Scalpereur = Kingambit
+4: Éoko = Chimecho; Dinoclier = Shieldon; Cheniselle = Wormadam; Tarinorme = Probopass; Lançargot = Escavalier; Grindur = Ferroseed; Tic = Klink; Clic = Klang; Cliticlic = Klinklang; Limonde = Stunfisk; Fermite = Durant; Colimucus = Sliggoo; Sarmuraï = Golisopod; Bamboiselle = Celesteela; Katagami = Kartana; Berserkatt = Perrserker; Charibari = Cufant; Pachyradjah = Copperajah; Duralugon = Duraludon; Zamazenta; Forgerette = Tinkatink; Forgella = Tinkatuff; Vrombi = Varoom; Pondralugon = Archaludon
+5: Ama-Ama = Stakataka; Forgelina = Tinkaton; Vrombotor = Revavroom; Ferdeter = Orthworm; Roue-de-Fer = Iron Treads; Chef-de-Fer = Iron Crown

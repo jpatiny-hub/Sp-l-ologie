@@ -1,0 +1,7 @@
+titre: Un tissu, une étoffe ou une fibre textile
+# Fibres (naturelles, artificielles, synthétiques) ET étoffes usuelles. Liste de mémoire, non exhaustive (tissus régionaux ou techniques manquants possibles).
+1: Coton; Lin; Soie; Laine; Velours; Satin; Jean = Denim; Polyester; Nylon; Dentelle; Cuir; Fourrure; Feutre; Tulle
+2: Tweed; Flanelle; Popeline; Organza; Mousseline; Taffetas; Gabardine; Jersey; Cachemire = Cashmere; Mohair; Viscose; Élasthanne = Lycra = Spandex; Jute = Toile de jute; Damas; Brocart; Éponge; Tartan; Crêpe; Alpaga; Angora; Chanvre; Velours côtelé = Côtelé; Skaï; Acrylique; Polaire; Toile; Serge; Voile; Rayonne; Cretonne; Vichy; Madras; Gaze; Lamé; Sisal; Mérinos; Ramie; Kapok; Moleskine; Coutil; Bambou; Chintz
+3: Shantung; Bouclé; Batiste; Calicot; Cheviot; Georgette = Crêpe georgette; Crêpe de Chine; Faille; Futaine; Grosgrain; Guipure; Loden; Matelassé; Mousseline de soie; Nankin; Oxford; Pongé; Piqué; Plumetis; Reps; Ripstop; Shetland; Tarlatane; Alcantara; Gore-Tex; Kevlar; Néoprène; Cordura; Lyocell = Tencel; Modal; Acétate; Tricot; Panne de velours = Panne; Moire; Seersucker; Toile cirée; Toile de Jouy; Percale; Molleton; Twill; Organdi; Vigogne; Tussor = Tussah; Zibeline; Surah; Lampas; Droguet; Étamine; Burel
+4: Bengaline; Barathea; Bure; Camelot; Cadis; Ottoman; Pékin; Madapolam; Nansouk; Barège; Tiretaine; Siamoise; Gros de Tours; Boucassin; Ratine; Mouliné; Alépine
+5: Escot; Dimité; Burat; Cotonnade

@@ -1,0 +1,8 @@
+titre: Un Pokémon de type Glace
+# 58 espèces dont au moins une forme (régionale, Méga, etc.) est de type Glace.
+# Source : PokéAPI (type/ice, formes ramenées à leur espèce), jusqu'au n° 1025.
+1: Lokhlass = Lapras; Artikodin = Articuno; Givrali = Glaceon
+2: Sabelette = Sandshrew; Sablaireau = Sandslash; Goupix = Vulpix; Feunard = Ninetales; Lamantine = Dewgong; Crustabri = Cloyster; Lippoutou = Jynx; Farfuret = Sneasel; Marcacrin = Swinub; Cochignon = Piloswine; Cadoizo = Delibird; Stalgamin = Snorunt; Oniglali = Glalie; Kaimorse = Walrein; Regice; Blizzaroi = Abomasnow; Dimoret = Weavile; Mammochon = Mamoswine; Momartik = Froslass; Kyurem
+3: M. Mime = Mr. Mime; Morphéo = Castform; Obalie = Spheal; Phogleur = Sealeo; Blizzi = Snover; Motisma = Rotom; Darumarond = Darumaka; Darumacho = Darmanitan; Sorbébé = Vanillite; Sorboul = Vanillish; Sorbouboul = Vanilluxe; Polarhume = Cubchoo; Polagriffe = Beartic
+4: Lippouti = Smoochum; Hexagel = Cryogonal; Amagara = Amaura; Dragmara = Aurorus; Grelaçon = Bergmite; Séracrawl = Avalugg; Crabominable; M. Glaquette = Mr. Rime; Frissonille = Snom; Beldeneige = Frosmoth; Bekaglaçon = Eiscue; Galvagla = Arctozolt; Hydragla = Arctovish; Blizzeval = Glastrier; Sylveroy = Calyrex; Piétacé = Cetoddle; Balbalèze = Cetitan; Frigodo = Frigibax; Cryodo = Arctibax; Glaivodo = Baxcalibur
+5: Hotte-de-Fer = Iron Bundle; Baojian = Chien-Pao

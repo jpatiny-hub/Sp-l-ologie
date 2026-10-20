@@ -1,0 +1,6 @@
+titre: Une application pour prendre des notes
+# Applications et services de prise de notes (grand public, professionnels ou pour passionnés), ayant existé ou existant encore. Liste établie de mémoire, non vérifiée en ligne.
+1: Notes = Apple Notes = Notes Apple; OneNote = One Note = Microsoft OneNote; Evernote; Google Keep = Keep; Notion; Bloc-notes = Notepad; Samsung Notes
+2: Obsidian; Bear; Joplin; Simplenote; Notability; GoodNotes = Good Notes; Microsoft Sticky Notes = Sticky Notes = Pense-bête = Pense-bêtes; Dropbox Paper = Paper; Zoho Notebook; Roam Research = Roam; Logseq; Standard Notes; Day One = Dayone; Typora; Drafts; Ulysses; Quip; Craft
+3: Anytype; Trilium = Trilium Notes; Agenda; Milanote; Capacities; Mem = Mem.ai; Reflect; Notesnook; Upnote; Zettlr; Nimbus Note; Amplenote; Heptabase; Penultimate; Turtl; Laverna; Org-roam; Bike; Papier; Notejoy; Boostnote; Inkdrop; nvALT = Nvalt = Notational Velocity; Zim; Tomboy; Gnote; ColorNote = Color Notes; Squid; AppFlowy; Notable; QOwnNotes; TiddlyWiki; Dendron; Foam; SiYuan; RemNote; Noteshelf; Nebo; Lecture Notes; Flexcil; LiquidText; Workflowy; Dynalist; Tana; Cherrytree; Org-mode = Emacs Org-mode = Org mode; Vimwiki; Awesome Note; Keep My Notes
+4: Paper by WeTransfer = Paper by FiftyThree; Springpad; Catch Notes = Catch; Google Notebook; Vesper

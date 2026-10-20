@@ -1,0 +1,7 @@
+titre: Une ville ou commune de la province de Luxembourg (Belgique)
+# 43 communes (Bastogne a absorbé Bertogne en décembre 2024). Anciennes communes et sections connues acceptées comme variantes.
+1: Arlon = Aarlen = Heinsch = Toernich = Autelbas = Bonnert; Bastogne = Bastenaken = Bertogne = Longvilly = Noville = Wardin = Longchamps; Durbuy = Barvaux = Bomal = Wéris = Grandhan; Marche-en-Famenne = Marche = Hargimont
+2: Bouillon = Poupehan = Corbion = Rochehaut; Florenville = Chassepierre = Muno = Villers-devant-Orval; Houffalize = Nadrin = Tavigny; Libramont-Chevigny = Libramont = Chevigny; Neufchâteau; La Roche-en-Ardenne = La Roche = Samrée; Saint-Hubert = Mirwart = Awenne; Vielsalm; Virton = Ethe = Saint-Mard
+3: Aubange = Athus = Halanzy; Bertrix = Cugnon; Gouvy = Beho = Bovigny; Habay = Habay-la-Neuve; Messancy; Paliseul = Maissin = Carlsbourg
+4: Chiny = Jamoigne = Izel; Érezée; Étalle = Buzenol; Hotton; Léglise; Libin = Redu = Transinne; Manhay = Grandmenil = Odeigne; Martelange; Nassogne; Rendeux; Tintigny = Rossignol
+5: Attert; Daverdisse; Fauvillers; Herbeumont; Meix-devant-Virton; Musson = Mussy-la-Ville; Rouvroy = Torgny; Sainte-Ode; Saint-Léger; Tellin; Tenneville; Vaux-sur-Sûre = Sibret; Wellin

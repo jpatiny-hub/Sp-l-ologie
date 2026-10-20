@@ -1,0 +1,7 @@
+titre: Une ville ou commune de la province du Brabant wallon
+# 27 communes (liste officielle 2026). Anciennes communes et sections connues acceptées comme variantes.
+1: Nivelles = Nijvel = Baulers = Monstreux = Bornival; Ottignies-Louvain-la-Neuve = Louvain-la-Neuve = Ottignies = LLN = Limelette = Céroux-Mousty; Waterloo; Wavre = Waver = Limal = Bierges
+2: Braine-l'Alleud = Eigenbrakel = Ophain = Lillois; Court-Saint-Étienne; Genappe = Genepiën = Bousval = Baisy-Thy = Loupoigne = Glabais = Houtain-le-Val; Grez-Doiceau = Graven = Nethen = Bossut-Gottechain; La Hulpe = Terhulpen; Jodoigne = Geldenaken = Dongelberg = Jauchelette = Lathuy; Lasne = Ohain = Plancenoit = Maransart; Rixensart = Genval = Rosières; Tubize = Tubeke = Clabecq = Oisquercq = Saintes; Villers-la-Ville = Mellery = Sart-Dames-Avelines
+3: Chaumont-Gistoux = Chaumont = Gistoux = Bonlez = Corroy-le-Grand = Dion-le-Mont = Dion-le-Val = Longueville; Mont-Saint-Guibert
+4: Beauvechain = Bevekom = Hamme-Mille = Nodebais; Braine-le-Château = Kasteelbrakel = Wauthier-Braine; Ittre = Itter = Virginal-Samme = Haut-Ittre; Orp-Jauche; Perwez = Perwijs = Orbais = Thorembais-les-Béguines = Thorembais-Saint-Trond; Rebecq = Quenast = Bierghes; Walhain
+5: Chastre = Gentinnes = Cortil-Noirmont = Saint-Géry = Blanmont = Villeroux; Hélécine = Heylissem = Opheylissem; Incourt = Opprebais = Piétrebais = Glimes = Roux-Miroir; Ramillies

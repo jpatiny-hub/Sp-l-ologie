@@ -1,0 +1,8 @@
+titre: Un Pokémon légendaire ou fabuleux
+# 94 espèces. Critère : is_legendary ou is_mythical dans PokéAPI (pokemon-species), n° 1 à 1025.
+# Inclus : sous-légendaires, trios, et les légendaires de Paldea (Wo-Chien, Okidogi…) marqués par l'API ; exclus : paradoxes non marqués (Hotte-de-Fer…) et Ultra-Chimères.
+1: Artikodin = Articuno; Électhor = Zapdos; Sulfura = Moltres; Mew; Lugia; Ho-Oh; Kyogre; Groudon; Rayquaza; Arceus
+2: Mewtwo; Raikou; Entei; Suicune; Celebi; Latias; Latios; Jirachi; Deoxys; Dialga; Palkia; Regigigas; Giratina; Darkrai; Reshiram; Zekrom; Kyurem; Xerneas; Yveltal; Solgaleo; Lunala; Necrozma; Zacian; Zamazenta; Éthernatos = Eternatus; Koraidon; Miraidon
+3: Regirock; Regice; Registeel; Créhelf = Uxie; Créfollet = Mesprit; Créfadet = Azelf; Heatran; Cresselia; Manaphy; Shaymin; Victini; Cobaltium = Cobalion; Terrakium = Terrakion; Viridium = Virizion; Boréas = Tornadus; Fulguris = Thundurus; Démétéros = Landorus; Genesect; Zygarde; Tokorico = Tapu Koko; Tokopiyon = Tapu Lele; Tokotoro = Tapu Bulu; Tokopisco = Tapu Fini; Magearna; Melmetal
+4: Phione; Keldeo; Meloetta; Diancie; Hoopa; Volcanion; Type:0 = Type: Null; Silvallié = Silvally; Cosmog; Cosmovum = Cosmoem; Marshadow; Zeraora; Meltan; Wushours = Kubfu; Shifours = Urshifu; Zarude; Regieleki; Regidrago; Blizzeval = Glastrier; Spectreval = Spectrier; Sylveroy = Calyrex; Ogerpon
+5: Amovénus = Enamorus; Chongjian = Wo-Chien; Baojian = Chien-Pao; Dinglu = Ting-Lu; Yuyu = Chi-Yu; Félicanis = Okidogi; Fortusimia = Munkidori; Favianos = Fezandipiti; Terapagos; Pêchaminus = Pecharunt
