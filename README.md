@@ -16,6 +16,7 @@ le **centre de la Terre**.
   3 lettres, 1 de 5 à 8, 2 de 9 à 12, 3 au-delà) ; une touche voisine du clavier (AZERTY ou QWERTY)
   ne compte que pour une demi-faute, même sur 4 lettres ; le nom de famille seul est reconnu quand
   il est unique dans le thème.
+- Ajustement manuel (responsable) : dans la liste des signalements, une réponse déjà ajoutée au thème propose « Accorder les points » à chaque joueur qui l'avait signalée après coup. Les points sont ceux de la rareté actuelle, sur sa manche sans réponse valide (`POST /api/admin/reports/credit`).
 - Fin de partie : position parmi les joueurs du jour, carnet de forage, nombre de joueurs ayant
   donné la même réponse et, pour chaque thème, toutes les réponses classées par rareté.
 - Bruitages synthétisés (sans fichier son), taille du texte réglable, mode daltonien.

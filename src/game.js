@@ -7,6 +7,7 @@ const { transaction } = require('./db');
 const { matchAnswer, toKey } = require('./matching');
 const { scoreAnswer, probabilities, pointsFor, tierFor } = require('./scoring');
 const { BadgeService } = require('./badges');
+const { usernameKey } = require('./auth');
 
 const PERIODS = ['day', 'week', 'month'];
 
@@ -418,7 +419,20 @@ class GameService {
       const theme = this.themes.get(r.theme_id);
       // Réponse ajoutée au thème depuis le signalement : plus rien à faire.
       const added = Boolean(theme && matchAnswer(theme, r.input));
+      const reporters = added
+        ? this.db
+            .prepare(
+              `SELECT u.id AS uid, u.username, a.credit FROM answer_reports a JOIN users u ON u.id = a.user_id
+               WHERE a.theme_id = ? AND a.input_key = ? ORDER BY a.created_at`,
+            )
+            .all(r.theme_id, r.input_key)
+            .map((p) => {
+              const target = p.credit === 'credited' ? null : this.creditableRound(p.uid, r.theme_id);
+              return { username: p.username, credited: p.credit === 'credited', creditableDay: target ? target.day : null };
+            })
+        : [];
       return {
+        reporters,
         themeId: r.theme_id,
         themeTitle: theme ? theme.title : r.theme_id,
         inputKey: r.input_key,
@@ -430,6 +444,65 @@ class GameService {
         status: added ? 'added' : r.pending ? 'pending' : 'handled',
       };
     });
+  }
+
+  /** Transforme une manche sans réponse valide en réponse `match` (points selon la rareté actuelle). */
+  applyCredit(gameId, slot, theme, match, input) {
+    const counts = new Map(
+      this.db.prepare('SELECT answer_key, n FROM answer_counts WHERE theme_id = ?').all(theme.id).map((x) => [x.answer_key, x.n]),
+    );
+    const score = scoreAnswer(theme, counts, match.answer.key);
+    transaction(this.db, () => {
+      this.db
+        .prepare(
+          `UPDATE rounds SET outcome = 'answer', points = ?, input = ?, answer_key = ?, answer_label = ?, probability = ?
+           WHERE game_id = ? AND slot = ?`,
+        )
+        .run(score.points, input, match.answer.key, match.answer.label, score.probability, gameId, slot);
+      this.db.prepare('UPDATE games SET score = score + ? WHERE id = ?').run(score.points, gameId);
+      this.db
+        .prepare(
+          `INSERT INTO answer_counts (theme_id, answer_key, n) VALUES (?, ?, 1)
+           ON CONFLICT (theme_id, answer_key) DO UPDATE SET n = n + 1`,
+        )
+        .run(theme.id, match.answer.key);
+    });
+    this.badges.awardForGame(gameId);
+    return score.points;
+  }
+
+  /** Manche de forage quotidien du joueur sur ce thème qui s'est close sans réponse valide (la plus récente). */
+  creditableRound(userId, themeId) {
+    return this.db
+      .prepare(
+        `SELECT g.id AS gameId, g.day, r.slot FROM rounds r JOIN games g ON g.id = r.game_id
+         WHERE g.user_id = ? AND g.mode = 'daily' AND r.theme_id = ? AND r.answered_at IS NOT NULL AND r.outcome <> 'answer'
+         ORDER BY g.day DESC LIMIT 1`,
+      )
+      .get(userId, themeId);
+  }
+
+  /**
+   * Ajustement manuel du responsable : accorde les points d'une réponse signalée après coup à un joueur,
+   * sur sa manche sans réponse valide. La réponse doit déjà figurer dans le thème.
+   */
+  creditManually(themeId, inputKey, username) {
+    const report = this.db
+      .prepare(
+        `SELECT a.rowid AS id, a.*, u.id AS uid FROM answer_reports a JOIN users u ON u.id = a.user_id
+         WHERE a.theme_id = ? AND a.input_key = ? AND u.username_key = ?`,
+      )
+      .get(themeId, inputKey, usernameKey(String(username)));
+    if (!report) throw new HttpError(404, 'Signalement introuvable.');
+    if (report.credit === 'credited') throw new HttpError(409, 'Points déjà accordés.');
+    const theme = this.themes.get(themeId);
+    const match = theme && matchAnswer(theme, report.input);
+    if (!match) throw new HttpError(409, "Ajoute d'abord cette réponse au thème.");
+    const target = this.creditableRound(report.uid, themeId);
+    if (!target) throw new HttpError(409, 'Aucune manche sans réponse valide pour ce thème.');
+    const points = this.applyCredit(target.gameId, target.slot, theme, match, report.input);
+    this.db.prepare("UPDATE answer_reports SET credit = 'credited', points = ?, handled_at = COALESCE(handled_at, ?) WHERE rowid = ?").run(points, this.now(), report.id);
+    return { points, day: target.day };
   }
 
   /**
@@ -472,26 +545,8 @@ class GameService {
       } else if (weekStart(game.day) !== weekStart(this.today())) {
         setCredit('expired');
       } else {
-        const counts = new Map(
-          this.db.prepare('SELECT answer_key, n FROM answer_counts WHERE theme_id = ?').all(theme.id).map((x) => [x.answer_key, x.n]),
-        );
-        const score = scoreAnswer(theme, counts, match.answer.key);
-        transaction(this.db, () => {
-          this.db
-            .prepare(
-              `UPDATE rounds SET outcome = 'answer', points = ?, input = ?, answer_key = ?, answer_label = ?, probability = ?
-               WHERE game_id = ? AND slot = ?`,
-            )
-            .run(score.points, r.input, match.answer.key, match.answer.label, score.probability, r.game_id, r.slot);
-          this.db.prepare('UPDATE games SET score = score + ? WHERE id = ?').run(score.points, r.game_id);
-          this.db
-            .prepare(
-              `INSERT INTO answer_counts (theme_id, answer_key, n) VALUES (?, ?, 1)
-               ON CONFLICT (theme_id, answer_key) DO UPDATE SET n = n + 1`,
-            )
-            .run(theme.id, match.answer.key);
-          setCredit('credited', score.points);
-        });
+        const points = this.applyCredit(r.game_id, r.slot, theme, match, r.input);
+        setCredit('credited', points);
         this.badges.awardForGame(r.game_id);
         credited++;
       }

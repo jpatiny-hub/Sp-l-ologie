@@ -377,6 +377,14 @@ function createApp({
       json(res, 200, { ok: true });
     },
 
+    // Ajustement manuel : rend à un joueur les points d'une réponse signalée après coup.
+    'POST /api/admin/reports/credit': async (req, res) => {
+      requireAdmin(req, res);
+      const { themeId, inputKey, username } = await readJson(req);
+      if ([themeId, inputKey, username].some((v) => typeof v !== 'string')) throw new HttpError(400, 'Signalement inconnu.');
+      json(res, 200, game.creditManually(themeId, inputKey, username));
+    },
+
     'GET /api/themes/suggestions': async (req, res) => {
       const user = requireUser(req, res);
       json(res, 200, { suggestions: game.mySuggestions(user.id) });
