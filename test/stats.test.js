@@ -63,3 +63,88 @@ test('comparaison des réponses : réservée à ceux qui ont fini ou aux jours p
     await app.close();
   }
 });
+
+test('mode illimité : les réponses sont comptées sans historique ; accueil : série et badge le plus proche', async () => {
+  const app = await startServer();
+  try {
+    const eve = client(app.base);
+    await eve('/api/signup', { username: 'eve', password: 'secret123' });
+    let me = (await eve('/api/me')).data;
+    assert.equal(me.streak.current, 0);
+    assert.equal(me.streak.playedToday, false);
+
+    await playDaily(app, eve, 1, 'training');
+    const total = () => app.db.prepare('SELECT COALESCE(SUM(n), 0) AS n FROM training_answer_counts').get().n;
+    assert.equal(total(), 7);
+    await playDaily(app, eve, 1, 'training');
+    assert.equal(total(), 14, 'cumulé même quand la partie précédente est effacée');
+    assert.equal(app.db.prepare('SELECT COALESCE(SUM(n), 0) AS n FROM answer_counts').get().n, 0, 'le modèle de rareté du jour reste intact');
+
+    await playDaily(app, eve);
+    me = (await eve('/api/me')).data;
+    assert.equal(me.streak.current, 1);
+    assert.equal(me.streak.playedToday, true);
+    assert.ok(me.streak.next, 'un badge proche est proposé');
+    assert.ok(me.streak.next.remaining > 0);
+    app.clock.now += 24 * 3600 * 1000;
+    me = (await eve('/api/me')).data;
+    assert.equal(me.streak.current, 1, 'la série reste à sauver aujourd\'hui');
+    assert.equal(me.streak.playedToday, false);
+  } finally {
+    await app.close();
+  }
+});
+
+test('liste des réponses : le compteur du mode illimité est fourni', async () => {
+  const app = await startServer();
+  try {
+    const eve = client(app.base);
+    await eve('/api/signup', { username: 'eve', password: 'secret123' });
+    const state = await playDaily(app, eve);
+    const themeId = app.db.prepare('SELECT theme_id FROM rounds WHERE game_id = ? AND slot = 0').get(state.id).theme_id;
+    const key = app.db.prepare('SELECT answer_key FROM rounds WHERE game_id = ? AND slot = 0').get(state.id).answer_key;
+    app.db.prepare('INSERT INTO training_answer_counts (theme_id, answer_key, n) VALUES (?, ?, 5)').run(themeId, key);
+    const { data } = await eve(`/api/game/${state.id}/answers?slot=0`);
+    const mine = data.answers.find((a) => a.mine);
+    assert.equal(mine.trainingCount, 5);
+    assert.ok(data.answers.every((a) => Number.isInteger(a.trainingCount)));
+  } finally {
+    await app.close();
+  }
+});
+
+test('graphiques, bilan du mois, défi de la semaine et tableau de bord du responsable', async () => {
+  const app = await startServer();
+  try {
+    const chef = client(app.base);
+    const eve = client(app.base);
+    await chef('/api/signup', { username: 'chef', password: 'secret123' });
+    await eve('/api/signup', { username: 'eve', password: 'secret123' });
+    for (let i = 0; i < 3; i++) {
+      await playDaily(app, eve, [1, 5, 3][i]);
+      app.clock.now += DAY;
+    }
+    app.clock.now -= DAY; // retour au 16 octobre pour rester dans le même mois
+    const { charts } = (await eve('/api/profile')).data.playerStats;
+    assert.equal(charts.calendar.length, 84);
+    assert.equal(charts.recent.length, 3);
+    assert.equal(charts.calendar.filter((d) => d.score != null).length, 3);
+    assert.equal(Object.values(charts.tiers).reduce((a, b) => a + b, 0), 21);
+
+    const month = (await eve('/api/month')).data;
+    assert.equal(month.month, '2026-10');
+    assert.equal(month.days, 3);
+    assert.ok(month.bestGame.score > 0);
+    assert.equal((await eve('/api/month?month=2026-09')).data.days, 0);
+
+    const challenge = (await eve('/api/me')).data.streak.challenge;
+    assert.ok(challenge.text && challenge.goal > 0 && challenge.progress >= 0);
+
+    assert.equal((await eve('/api/admin/dashboard')).status, 403);
+    const dash = (await chef('/api/admin/dashboard')).data;
+    assert.equal(dash.totalPlayers, 2);
+    assert.ok(Array.isArray(dash.perDay));
+  } finally {
+    await app.close();
+  }
+});

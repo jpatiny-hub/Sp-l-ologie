@@ -12,7 +12,7 @@
   };
 
   const TOKENS = {
-    serie: '#3f5c7a', profondeur: '#6e2818', pepites: '#6b5520', exploit: '#2f5a3a', podium: '#5a3a6e', calendrier: '#4f3f2c', themes: '#2f5f6e',
+    serie: '#3f5c7a', profondeur: '#6e2818', pepites: '#6b5520', exploit: '#2f5a3a', podium: '#5a3a6e', calendrier: '#4f3f2c', themes: '#2f5f6e', entrainement: '#6e4a2f', defi: '#2f4f7a',
   };
 
   // Coupe de la Terre : la couche atteinte est mise en valeur.
@@ -57,6 +57,19 @@
     'lampe-mineur': ['...kkkkkk...', '..kyyyyyyk..', '.kyyyWWyyyk.', 'kkkkkkkkkkkk', '.kmmmmmmmmk.', '.kmwmmmmwmk.', '.kmmmmmmmmk.', '.kmmmrrmmmk.', '..kmmmmmmk..', '...kkkkkk...', '............', '............'],
     'drapeau-fierte': ['............', 'kkkkkkkkkkkk', 'krrrrrrrrrrk', 'kooooooooook', 'kyyyyyyyyyyk', 'kggggggggggk', 'kBBBBBBBBBBk', 'kvvvvvvvvvvk', 'kkkkkkkkkkkk', '............', '............', '............'],
     'etoile-or': ['.....yy.....', '.....yy.....', '....yyyy....', 'yyyyyyyyyyyy', '.yyyyyyyyyy.', '..yyyyyyyy..', '...yyyyyy...', '..yyyyyyyy..', '..yyy..yyy..', '.yyy....yyy.', '.yy......yy.', '............'],
+    // Lanterne de mineur (accueil : série en cours), dessinée sans jeton.
+    'lanterne-mineur': ['....kkkk....', '...k....k...', '...k....k...', '..kkkkkkkk..', '..kSSSSSSk..', '..kyyWWyyk..', '..kyWWWWyk..', '..kyWWWWyk..', '..kyyWWyyk..', '..kSSSSSSk..', '..kkkkkkkk..', '...kk..kk...'],
+    // Étai de galerie : cadre de boisage qui retient la galerie (gel de série).
+    etai: ['kkkkkkkkkkkk', 'knnnnnnnnnnk', 'kkkkkkkkkkkk', '.knk....knk.', '.knk....knk.', '.knk....knk.', '.knk....knk.', '.knk....knk.', '.knk....knk.', '.knk....knk.', 'kkkkkkkkkkkk', '............'],
+    fanion: ['..k.........', '..kkkk......', '..kyyyyk....', '..kyyyyyyk..', '..kyyyyk....', '..kkkk......', '..k.........', '..k.........', '..k.........', '..k.........', '.kkk........', '............'],
+    eclair: ['......kk....', '.....kyyk...', '....kyyk....', '...kyyk.....', '..kyyyyyk...', '..kkkyyk....', '....kyyk....', '...kyyk.....', '...kyk......', '...kk.......', '............', '............'],
+    sablier: ['..kkkkkkkk..', '..kssssssk..', '...kyyyyk...', '....kyyk....', '.....kk.....', '....kyyk....', '...kyyyyk...', '..kyyyyyyk..', '..kkkkkkkk..', '............', '............', '............'],
+    'calendrier-plein': ['..k......k..', '.kkkkkkkkkk.', '.kRRRRRRRRk.', '.kkkkkkkkkk.', '.kwwwwwwwwk.', '.kwgwgwgwwk.', '.kwwwwwwwwk.', '.kwgwgwgwwk.', '.kwwwwwwwwk.', '.kwgwgwgwwk.', '.kkkkkkkkkk.', '............'],
+    cible: ['....kkkk....', '..kkrrrrkk..', '.krrrwwrrrk.', '.krwwrrwwrk.', 'krrwrkkrwrrk', 'krrwrkkrwrrk', '.krwwrrwwrk.', '.krrrwwrrrk.', '..kkrrrrkk..', '....kkkk....', '............', '............'],
+    oeil: ['............', '..kkkkkkkk..', '.kwwwwwwwwk.', 'kwwwbbbbwwwk', 'kwwbkkkkbwwk', 'kwwbkkwkbwwk', 'kwwwbkkbwwwk', '.kwwwwwwwwk.', '..kkkkkkkk..', '............', '............', '............'],
+    note: ['......kkkkk.', '......kyyyk.', '......kkkyk.', '......k..yk.', '......k..yk.', '......k..yk.', '..kkkkk.kkkk', '.kyyyyk.kyyk', '.kyyyyk.kyyk', '..kkkk...kk.', '............', '............'],
+    livre: ['.kkkkkkkkkk.', '.kBBBBBBBBk.', '.kBeeeeeeBk.', '.kBekkkkeBk.', '.kBeeeeeeBk.', '.kBekkkeeBk.', '.kBeeeeeeBk.', '.kBBBBBBBBk.', '.kkkkkkkkkk.', '............', '............', '............'],
+    sabre: ['..........bb', '.........bbc', '........bbc.', '.......bbc..', '......bbc...', '.....bbc....', '....kkk.....', '...kSSk.....', '..kSSk......', '..kkk.......', '............', '............'],
     lanterne: ['.....kk.....', '....kkkk....', '...kkkkkk...', '..krrrrrrk..', '.krrrWWrrrk.', '.krrWWWWrrk.', '.krrWWWWrrk.', '.krrrWWrrrk.', '..krrrrrrk..', '...kkkkkk...', '....kkkk....', '.....kk.....'],
     sentier: ['............', '.....nnnn...', '....nnnnnn..', '.....nnnn...', '..nn........', '.nnnn.......', '..nn....nn..', '.......nnnn.', '........nn..', '.nn.........', 'nnnn........', '.nn.........'],
     autoroute: ['.....yy.....', '.....SS.....', '.....yy.....', '....SssS....', '....SyyS....', '...SssssS...', '...SsyysS...', '..SssssssS..', '..SssyyssS..', '.SssssssssS.', '.SsssyysssS.', '.SssssssssS.'],
@@ -110,5 +123,21 @@
     }
   }
 
-  global.Icons = { drawBadge };
+  /** Dessine une icône seule (sans jeton) sur un canvas de 16 × 16. */
+  function drawIcon(canvas, icon, { dim = false } = {}) {
+    canvas.width = 16;
+    canvas.height = 16;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, 16, 16);
+    (ICONS[icon] || ICONS.pioche).forEach((row, y) => {
+      for (let x = 0; x < 12; x++) {
+        const ch = row[x];
+        if (!ch || ch === '.') continue;
+        ctx.fillStyle = dim ? '#4a403a' : PAL[ch];
+        ctx.fillRect(x + 2, y + 2, 1, 1);
+      }
+    });
+  }
+
+  global.Icons = { drawBadge, drawIcon };
 })(window);

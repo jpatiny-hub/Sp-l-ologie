@@ -153,6 +153,14 @@ class GameService {
   /** Cumule les statistiques du mode illimité (les parties elles-mêmes sont effacées ensuite). */
   recordTraining(game, round, { outcome, points, answer }, gameDone) {
     this.db.prepare('INSERT OR IGNORE INTO training_stats (user_id) VALUES (?)').run(game.user_id);
+    if (answer) {
+      this.db
+        .prepare(
+          `INSERT INTO training_answer_counts (theme_id, answer_key, n) VALUES (?, ?, 1)
+           ON CONFLICT (theme_id, answer_key) DO UPDATE SET n = n + 1`,
+        )
+        .run(round.theme_id, answer.key);
+    }
     const answered = outcome === 'answer';
     this.db
       .prepare(
@@ -195,6 +203,7 @@ class GameService {
       .get(userId);
     const bestTheme = best && this.themes.get(best.theme_id);
     const t = this.db.prepare('SELECT * FROM training_stats WHERE user_id = ?').get(userId);
+    const charts = this.chartData(userId);
     const avg = (points, n) => (n ? Math.round(points / n) : 0);
     return {
       daily: {
@@ -215,7 +224,99 @@ class GameService {
         best: t && t.best_round ? { points: t.best_round, theme: t.best_round_theme, answer: t.best_round_answer } : null,
       },
       themesSeen: daily.themes + (t ? t.themes : 0),
+      charts,
     };
+  }
+
+  /** Données des graphiques du carnet : calendrier des jours forés, derniers scores, répartition par rareté, réponse signature. */
+  chartData(userId) {
+    const today = this.today();
+    const start = addDays(weekStart(today), -77); // 12 semaines, du lundi au dimanche
+    const games = this.db
+      .prepare("SELECT day, score FROM games WHERE user_id = ? AND mode = 'daily' AND finished_at IS NOT NULL AND day >= ? ORDER BY day")
+      .all(userId, start);
+    const byDay = new Map(games.map((g) => [g.day, g.score]));
+    const calendar = [];
+    for (let d = start; d <= addDays(weekStart(today), 6); d = addDays(d, 1)) calendar.push({ day: d, score: byDay.has(d) ? byDay.get(d) : null, future: d > today });
+    const recent = this.db
+      .prepare("SELECT day, score FROM games WHERE user_id = ? AND mode = 'daily' AND finished_at IS NOT NULL ORDER BY day DESC LIMIT 30")
+      .all(userId)
+      .reverse();
+    const points = this.db
+      .prepare("SELECT r.points FROM rounds r JOIN games g ON g.id = r.game_id WHERE g.user_id = ? AND g.mode = 'daily' AND r.outcome = 'answer'")
+      .all(userId);
+    const tiers = { evident: 0, courant: 0, original: 0, rare: 0, pepite: 0 };
+    points.forEach((r) => (tiers[tierFor(r.points, 'answer').id] += 1));
+    const signature = this.db
+      .prepare(
+        `SELECT r.answer_label AS answer, COUNT(*) AS n FROM rounds r JOIN games g ON g.id = r.game_id
+         WHERE g.user_id = ? AND g.mode = 'daily' AND r.outcome = 'answer' AND r.answer_label IS NOT NULL
+         GROUP BY r.answer_key ORDER BY n DESC, MAX(r.points) DESC LIMIT 1`,
+      )
+      .get(userId);
+    return { calendar, recent, tiers, signature: signature && signature.n >= 2 ? signature : null };
+  }
+
+  /** Bilan d'un mois (AAAA-MM) : jours forés, points, meilleurs moments et progression par rapport au mois précédent. */
+  monthSummary(userId, month) {
+    const current = /^\d{4}-\d{2}$/.test(month || '') ? month : this.today().slice(0, 7);
+    const first = `${current}-01`;
+    const last = monthEnd(first);
+    const totals = (from, to) => {
+      const games = this.db
+        .prepare("SELECT id, day, score FROM games WHERE user_id = ? AND mode = 'daily' AND finished_at IS NOT NULL AND day BETWEEN ? AND ?")
+        .all(userId, from, to);
+      const rounds = games.length
+        ? this.db
+            .prepare(`SELECT r.points, r.outcome, r.theme_id, r.answer_label, g.day FROM rounds r JOIN games g ON g.id = r.game_id WHERE g.id IN (${games.map(() => '?').join(',')})`)
+            .all(...games.map((g) => g.id))
+        : [];
+      const total = games.reduce((n, g) => n + g.score, 0);
+      return { games, rounds, total, average: games.length ? Math.round(total / games.length) : 0 };
+    };
+    const now = totals(first, last);
+    const prevFirst = addMonths(first, -1);
+    const before = totals(prevFirst, monthEnd(prevFirst));
+    const best = now.games.slice().sort((a, b) => b.score - a.score)[0] || null;
+    const answered = now.rounds.filter((r) => r.outcome === 'answer');
+    const bestRound = answered.slice().sort((a, b) => b.points - a.points)[0] || null;
+    const bestTheme = bestRound ? this.themes.get(bestRound.theme_id) : null;
+    const chart = this.chartData(userId);
+    return {
+      month: current,
+      days: now.games.length,
+      totalPoints: now.total,
+      average: now.average,
+      bestGame: best && { day: best.day, score: best.score },
+      bestRound: bestRound && { points: bestRound.points, answer: bestRound.answer_label, theme: bestTheme ? bestTheme.title : bestRound.theme_id, day: bestRound.day },
+      pepites: now.rounds.filter((r) => r.points >= 100).length,
+      rares: answered.filter((r) => r.points >= 60).length,
+      skipped: now.rounds.filter((r) => r.outcome !== 'answer').length,
+      previous: { days: before.games.length, average: before.average, totalPoints: before.total },
+      signature: chart.signature,
+    };
+  }
+
+  /** Tableau de bord du responsable : réponses refusées, thèmes concernés et activité récente. */
+  adminDashboard() {
+    const today = this.today();
+    const refused = this.db
+      .prepare('SELECT theme_id, example, n FROM unknown_answers ORDER BY n DESC, last_at DESC LIMIT 15')
+      .all()
+      .map((r) => ({ theme: (this.themes.get(r.theme_id) || {}).title || r.theme_id, input: r.example, n: r.n }));
+    const refusedThemes = this.db
+      .prepare('SELECT theme_id, SUM(n) AS n FROM unknown_answers GROUP BY theme_id ORDER BY n DESC LIMIT 10')
+      .all()
+      .map((r) => ({ theme: (this.themes.get(r.theme_id) || {}).title || r.theme_id, n: r.n }));
+    const perDay = this.db
+      .prepare("SELECT day, COUNT(*) AS n FROM games WHERE mode = 'daily' AND finished_at IS NOT NULL AND day >= ? GROUP BY day ORDER BY day")
+      .all(addDays(today, -6));
+    const week = weekStart(today);
+    const players = this.db.prepare("SELECT COUNT(DISTINCT user_id) AS n FROM games WHERE mode = 'daily' AND day >= ?").get(week).n;
+    const total = this.db.prepare('SELECT COUNT(*) AS n FROM users').get().n;
+    const pending = this.db.prepare('SELECT COUNT(DISTINCT theme_id || input_key) AS n FROM answer_reports WHERE handled_at IS NULL').get().n;
+    const trainingTotal = this.db.prepare('SELECT COALESCE(SUM(games), 0) AS n FROM training_stats').get().n;
+    return { activePlayersThisWeek: players, totalPlayers: total, perDay, refused, refusedThemes, pendingReports: pending, trainingGames: trainingTotal };
   }
 
   /**
@@ -405,7 +506,10 @@ class GameService {
     return { status: 'recorded' };
   }
 
-  /** Réponses signalées, regroupées par thème et par saisie (les plus demandées d'abord). */
+  /**
+   * Réponses signalées, regroupées par thème et par saisie (les plus demandées d'abord).
+   * Rien n'est jamais traité ni crédité automatiquement : le responsable décide, signalement par signalement.
+   */
   reportedAnswers() {
     const rows = this.db
       .prepare(
@@ -417,20 +521,17 @@ class GameService {
       .all();
     return rows.map((r) => {
       const theme = this.themes.get(r.theme_id);
-      // Réponse ajoutée au thème depuis le signalement : plus rien à faire.
-      const added = Boolean(theme && matchAnswer(theme, r.input));
-      const reporters = added
-        ? this.db
-            .prepare(
-              `SELECT u.id AS uid, u.username, a.credit FROM answer_reports a JOIN users u ON u.id = a.user_id
-               WHERE a.theme_id = ? AND a.input_key = ? ORDER BY a.created_at`,
-            )
-            .all(r.theme_id, r.input_key)
-            .map((p) => {
-              const target = p.credit === 'credited' ? null : this.creditableRound(p.uid, r.theme_id);
-              return { username: p.username, credited: p.credit === 'credited', creditableDay: target ? target.day : null };
-            })
-        : [];
+      const match = theme ? matchAnswer(theme, r.input) : null;
+      const reporters = this.db
+        .prepare(
+          `SELECT a.rowid AS id, a.*, u.username FROM answer_reports a JOIN users u ON u.id = a.user_id
+           WHERE a.theme_id = ? AND a.input_key = ? ORDER BY a.created_at`,
+        )
+        .all(r.theme_id, r.input_key)
+        .map((p) => {
+          const target = match && p.credit !== 'credited' ? this.creditTarget(p) : null;
+          return { username: p.username, credited: p.credit === 'credited', creditableDay: target ? target.day : null };
+        });
       return {
         reporters,
         themeId: r.theme_id,
@@ -441,7 +542,9 @@ class GameService {
         firstAt: r.first_at,
         lastAt: r.last_at,
         credited: r.credited || 0,
-        status: added ? 'added' : r.pending ? 'pending' : 'handled',
+        // Réponse reconnue par le thème aujourd'hui (peut être ajoutée depuis, ou une approximation d'une autre réponse).
+        inTheme: match ? match.answer.label : null,
+        status: r.pending ? 'pending' : 'handled',
       };
     });
   }
@@ -482,14 +585,28 @@ class GameService {
       .get(userId, themeId);
   }
 
+  /** Manche visée par un signalement : celle où il a été fait si elle est connue, sinon la dernière sans réponse valide. */
+  creditTarget(report) {
+    if (report.game_id != null && report.slot != null) {
+      const exact = this.db
+        .prepare(
+          `SELECT g.id AS gameId, g.day, r.slot FROM rounds r JOIN games g ON g.id = r.game_id
+           WHERE g.id = ? AND r.slot = ? AND g.mode = 'daily' AND r.answered_at IS NOT NULL AND r.outcome <> 'answer'`,
+        )
+        .get(report.game_id, report.slot);
+      if (exact) return exact;
+    }
+    return this.creditableRound(report.user_id, report.theme_id);
+  }
+
   /**
-   * Ajustement manuel du responsable : accorde les points d'une réponse signalée après coup à un joueur,
+   * Ajustement manuel du responsable : accorde les points d'une réponse signalée à un joueur,
    * sur sa manche sans réponse valide. La réponse doit déjà figurer dans le thème.
    */
   creditManually(themeId, inputKey, username) {
     const report = this.db
       .prepare(
-        `SELECT a.rowid AS id, a.*, u.id AS uid FROM answer_reports a JOIN users u ON u.id = a.user_id
+        `SELECT a.rowid AS id, a.* FROM answer_reports a JOIN users u ON u.id = a.user_id
          WHERE a.theme_id = ? AND a.input_key = ? AND u.username_key = ?`,
       )
       .get(themeId, inputKey, usernameKey(String(username)));
@@ -498,63 +615,27 @@ class GameService {
     const theme = this.themes.get(themeId);
     const match = theme && matchAnswer(theme, report.input);
     if (!match) throw new HttpError(409, "Ajoute d'abord cette réponse au thème.");
-    const target = this.creditableRound(report.uid, themeId);
+    const target = this.creditTarget(report);
     if (!target) throw new HttpError(409, 'Aucune manche sans réponse valide pour ce thème.');
-    const points = this.applyCredit(target.gameId, target.slot, theme, match, report.input);
-    this.db.prepare("UPDATE answer_reports SET credit = 'credited', points = ?, handled_at = COALESCE(handled_at, ?) WHERE rowid = ?").run(points, this.now(), report.id);
+    // La manche est marquée comme créditée avant l'attribution : les badges de vitesse l'ignorent.
+    this.db.prepare("UPDATE answer_reports SET credit = 'credited', points = 0, game_id = ?, slot = ? WHERE rowid = ?").run(target.gameId, target.slot, report.id);
+    let points;
+    try {
+      points = this.applyCredit(target.gameId, target.slot, theme, match, report.input);
+    } catch (err) {
+      this.db.prepare('UPDATE answer_reports SET credit = NULL, points = NULL WHERE rowid = ?').run(report.id);
+      throw err;
+    }
+    this.db.prepare('UPDATE answer_reports SET points = ? WHERE rowid = ?').run(points, report.id);
+    this.badges.awardLynx(report.user_id, this.today());
     return { points, day: target.day };
   }
 
-  /**
-   * Accorde les points aux joueurs qui avaient signalé, pendant leur manche, une réponse qui a
-   * depuis été ajoutée au thème. Conditions : manche close sans réponse valide, forage quotidien,
-   * et semaine du forage encore en cours (on ne modifie pas un podium hebdomadaire terminé).
-   * Renvoie le nombre de joueurs crédités.
-   */
-  creditReports() {
-    // Signalements faits avant que la manche soit retenue : on la retrouve avec l'heure du signalement
-    // (manche de ce thème qui était ouverte à ce moment-là).
-    const old = this.db.prepare('SELECT rowid AS id, * FROM answer_reports WHERE game_id IS NULL AND credit IS NULL').all();
-    for (const r of old) {
-      const round = this.db
-        .prepare(
-          `SELECT r.game_id, r.slot FROM rounds r JOIN games g ON g.id = r.game_id
-           WHERE g.user_id = ? AND r.theme_id = ? AND r.served_at IS NOT NULL AND r.served_at <= ?
-             AND (r.answered_at IS NULL OR r.answered_at >= ?)
-           ORDER BY r.served_at DESC LIMIT 1`,
-        )
-        .get(r.user_id, r.theme_id, r.created_at, r.created_at);
-      if (round) this.db.prepare('UPDATE answer_reports SET game_id = ?, slot = ? WHERE rowid = ?').run(round.game_id, round.slot, r.id);
-    }
-    const rows = this.db
-      .prepare('SELECT rowid AS id, * FROM answer_reports WHERE game_id IS NOT NULL AND credit IS NULL')
-      .all();
-    let credited = 0;
-    for (const r of rows) {
-      const theme = this.themes.get(r.theme_id);
-      const match = theme && matchAnswer(theme, r.input);
-      if (!match) continue; // pas (encore) ajoutée au thème
-      const game = this.db.prepare('SELECT * FROM games WHERE id = ?').get(r.game_id);
-      const round = this.db.prepare('SELECT * FROM rounds WHERE game_id = ? AND slot = ?').get(r.game_id, r.slot);
-      const setCredit = (status, points = null) =>
-        this.db.prepare('UPDATE answer_reports SET credit = ?, points = ? WHERE rowid = ?').run(status, points, r.id);
-      if (!game || !round || game.mode !== 'daily' || round.answered_at == null) {
-        setCredit('ineligible');
-      } else if (round.outcome === 'answer') {
-        setCredit('kept'); // le joueur a trouvé une autre réponse depuis : il garde ses points
-      } else if (weekStart(game.day) !== weekStart(this.today())) {
-        setCredit('expired');
-      } else {
-        const points = this.applyCredit(r.game_id, r.slot, theme, match, r.input);
-        setCredit('credited', points);
-        this.badges.awardForGame(r.game_id);
-        credited++;
-      }
-    }
-    return credited;
-  }
-
   markReportHandled(themeId, inputKey) {
+    // Réponse désormais reconnue par le thème : les joueurs qui l'avaient signalée reçoivent « Œil de lynx ».
+    const theme = this.themes.get(themeId);
+    const reports = this.db.prepare('SELECT user_id, input FROM answer_reports WHERE theme_id = ? AND input_key = ? AND handled_at IS NULL').all(themeId, inputKey);
+    if (theme && reports.length && matchAnswer(theme, reports[0].input)) reports.forEach((r) => this.badges.awardLynx(r.user_id, this.today()));
     this.db
       .prepare('UPDATE answer_reports SET handled_at = ? WHERE theme_id = ? AND input_key = ? AND handled_at IS NULL')
       .run(this.now(), themeId, inputKey);
@@ -607,12 +688,15 @@ class GameService {
     const counts = new Map(
       this.db.prepare('SELECT answer_key, n FROM answer_counts WHERE theme_id = ?').all(theme.id).map((r) => [r.answer_key, r.n]),
     );
+    const training = new Map(
+      this.db.prepare('SELECT answer_key, n FROM training_answer_counts WHERE theme_id = ?').all(theme.id).map((r) => [r.answer_key, r.n]),
+    );
     const { probs, pMax } = probabilities(theme, counts);
     const answers = theme.answers
       .map((a) => {
         const count = counts.get(a.key) || 0;
         const points = pointsFor(probs.get(a.key), pMax, count > 0);
-        return { label: a.label, points, tier: tierFor(points, 'answer').id, count, mine: a.key === round.answer_key };
+        return { label: a.label, aliases: (a.names || []).slice(1), points, tier: tierFor(points, 'answer').id, count, trainingCount: training.get(a.key) || 0, mine: a.key === round.answer_key };
       })
       .sort((a, b) => a.points - b.points || b.count - a.count || a.label.localeCompare(b.label, 'fr'));
     return { slot, title: theme.title, answers };

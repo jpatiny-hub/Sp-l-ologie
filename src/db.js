@@ -110,6 +110,14 @@ CREATE TABLE IF NOT EXISTS training_stats (
   best_score        INTEGER NOT NULL DEFAULT 0
 );
 
+-- Réponses données en mode illimité : un simple compteur par réponse, sans historique, hors du modèle de rareté du jour.
+CREATE TABLE IF NOT EXISTS training_answer_counts (
+  theme_id   TEXT NOT NULL,
+  answer_key TEXT NOT NULL,
+  n          INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (theme_id, answer_key)
+);
+
 -- Thèmes proposés par les joueurs, à examiner par le responsable du jeu.
 CREATE TABLE IF NOT EXISTS theme_suggestions (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -125,6 +133,7 @@ CREATE TABLE IF NOT EXISTS theme_suggestions (
 const MIGRATIONS = [
   ['users', 'skin_body', 'TEXT'],
   ['users', 'skin_bit', 'TEXT'],
+  ['users', 'skin_timer', 'TEXT'],
   ['users', 'news_seen', 'INTEGER NOT NULL DEFAULT 0'],
   // Signalement fait pendant la manche (manche retrouvée par game_id et slot) et suite donnée aux points.
   ['answer_reports', 'game_id', 'INTEGER'],

@@ -16,7 +16,12 @@ le **centre de la Terre**.
   3 lettres, 1 de 5 à 8, 2 de 9 à 12, 3 au-delà) ; une touche voisine du clavier (AZERTY ou QWERTY)
   ne compte que pour une demi-faute, même sur 4 lettres ; le nom de famille seul est reconnu quand
   il est unique dans le thème.
-- Ajustement manuel (responsable) : dans la liste des signalements, une réponse déjà ajoutée au thème propose « Accorder les points » à chaque joueur qui l'avait signalée après coup. Les points sont ceux de la rareté actuelle, sur sa manche sans réponse valide (`POST /api/admin/reports/credit`).
+- Ajustement manuel (responsable) : dans la liste des signalements, « Accorder les points » à un joueur dont la réponse signalée est reconnue par le thème (`POST /api/admin/reports/credit`).
+- Pendant le forage : chrono chiffré qui tremble à 5 s, pastilles de rareté, clavier gardé ouvert entre deux thèmes (champ relais), Entrée enchaîne les étapes. Accueil : lanterne de série et badge le plus proche. Paramètres : thème clair, modes daltoniens (rouge-vert, bleu-jaune, gris). Mode illimité : compteur des réponses données (`training_answer_counts`), sans historique et hors du modèle de rareté.
+- Carnet : bilan du mois, calendrier des jours forés, courbe des scores, répartition par rareté, coupe de la Terre ; accueil : défi de la semaine (`src/challenges.js`) ; nouveaux badges (vitesse, séries, pépites, entraînement, défis, œil de lynx) ; tableau de bord du responsable (`/api/admin/dashboard`).
+- Étais de galerie (gels de série) : un par tranche de 7 jours forés d'affilée, 3 au maximum, ils pardonnent automatiquement un jour manqué ; seuls les jours manqués à partir de `FREEZE_FROM` (21 octobre 2026) sont pardonnés (`BadgeService.streakInfo`).
+- Apparences du chrono (`public/timers.js`, `users.skin_timer`) : batterie de lampe offerte ; mèche de dynamite (badges « In extremis » ou « Filon »), wagonnet (« Habitué du terrain d'essai » ou « Mois complet »), lanterne (« Lanterne rallumée » ou « Boyau étroit »).
+- Carnet : sections repliables (état gardé sur l'appareil) et badges en tableau, le détail s'ouvrant dans une fenêtre flottante. Dans le récapitulatif, un champ de recherche filtre les réponses d'un thème (noms et variantes).
 - Fin de partie : position parmi les joueurs du jour, carnet de forage, nombre de joueurs ayant
   donné la même réponse et, pour chaque thème, toutes les réponses classées par rareté.
 - Bruitages synthétisés (sans fichier son), taille du texte réglable, mode daltonien.
@@ -103,11 +108,11 @@ réponses d'un thème). Aucun point n'est donné ; le responsable du jeu retrouv
 dans son carnet (« Réponses signalées ») et peut les copier pour les ajouter aux thèmes. Le
 responsable est le premier compte créé, ou les identifiants listés dans `ADMIN_USERS`.
 
-Quand une réponse signalée **pendant la manche** est ajoutée au fichier du thème, le joueur reçoit
-ses points au prochain démarrage du serveur (ou à l'ouverture de la liste des signalements), à
-la rareté du moment : seulement si sa manche s'est terminée sans réponse valide, pour un forage
-quotidien dont la semaine est encore en cours (un podium hebdomadaire terminé n'est pas modifié),
-et une seule fois. Les signalements faits après la partie ne donnent pas de points.
+Rien n'est traité ni crédité automatiquement : un signalement reste « à vérifier » jusqu'à ce que le
+responsable le marque comme traité, et les points ne sont jamais accordés tout seuls. Quand la réponse
+est reconnue par le thème, la liste propose « Accorder les points » pour chaque joueur concerné (sur la
+manche où le signalement a été fait, ou à défaut sa dernière manche sans réponse valide sur ce thème).
+Les points suivent la rareté du moment, une seule fois par signalement.
 
 ## Administration
 

@@ -19,9 +19,13 @@
 
   // ---------- Paramètres (propres à l'appareil) ----------
   const SETTINGS_KEY = 'speleologie.settings';
-  const settings = { text: 'normal', sound: true, volume: 60, colorblind: false };
+  const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre' };
   try {
-    Object.assign(settings, JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {});
+    const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
+    // Ancien réglage « mode daltonien » (case à cocher) : devenu « rouge-vert ».
+    if (saved.colorblind && !saved.colors) saved.colors = 'rouge-vert';
+    delete saved.colorblind;
+    Object.assign(settings, saved);
   } catch {
     /* stockage indisponible : réglages par défaut */
   }
@@ -39,8 +43,10 @@
     if (settings.text === 'normal') delete root.dataset.text;
     else root.dataset.text = settings.text;
     Sound.configure({ enabled: settings.sound, volume: settings.volume / 100 });
-    Pixel.setColorblind(settings.colorblind);
-    root.classList.toggle('colorblind', settings.colorblind);
+    Pixel.setColorblind(settings.colors);
+    root.classList.toggle('colorblind', settings.colors !== 'normal');
+    if (settings.theme === 'clair') root.dataset.theme = 'clair';
+    else delete root.dataset.theme;
     const button = $('btn-sound');
     button.setAttribute('aria-pressed', String(settings.sound));
     button.setAttribute('aria-label', settings.sound ? 'Couper le son' : 'Activer le son');
@@ -87,19 +93,21 @@
     settingsForm.elements.text.value = settings.text;
     settingsForm.elements.sound.checked = settings.sound;
     settingsForm.elements.volume.value = settings.volume;
-    settingsForm.elements.colorblind.checked = settings.colorblind;
+    settingsForm.elements.colors.value = settings.colors;
+    settingsForm.elements.theme.value = settings.theme;
     $('settings').showModal();
   });
   settingsForm.addEventListener('input', () => {
-    const colorblind = settings.colorblind;
+    const colors = settings.colors;
     settings.text = settingsForm.elements.text.value || 'normal';
     settings.sound = settingsForm.elements.sound.checked;
     settings.volume = Number(settingsForm.elements.volume.value);
-    settings.colorblind = settingsForm.elements.colorblind.checked;
+    settings.colors = settingsForm.elements.colors.value || 'normal';
+    settings.theme = settingsForm.elements.theme.value || 'sombre';
     applySettings();
     saveSettings();
     fitCanvas();
-    if (colorblind !== settings.colorblind) refreshColors();
+    if (colors !== settings.colors) refreshColors();
   });
   // Un clic en dehors de la fenêtre la ferme.
   $('settings').addEventListener('click', (event) => {
@@ -218,6 +226,7 @@
     document.querySelectorAll('.view').forEach((v) => (v.hidden = v.id !== `view-${view}`));
     $('stage').hidden = (view === 'podium' || view === 'profile') && window.innerWidth < 860;
     if (view === 'profile') startPreview();
+    if (view !== 'game') $('focus-keeper').blur();
     updateBanner();
     $('who').hidden = !app.me;
     $('settings-account').hidden = !app.me;
@@ -424,7 +433,59 @@
         .then((state) => scene.setLayers(layersOf(state), false))
         .catch(() => {});
     }
+    renderStreak();
     updateCountdown();
+  }
+
+  /** Série en cours (lanterne de mineur) et badge le plus proche. */
+  function renderStreak() {
+    const card = $('streak-card');
+    const st = app.me && app.me.streak;
+    if (!st) {
+      card.hidden = true;
+      return;
+    }
+    card.hidden = false;
+    const left = app.me.nextResetMs - (Date.now() - app.meLoadedAt);
+    const atRisk = st.current > 0 && !st.playedToday && left < 6 * 3600 * 1000;
+    card.classList.toggle('lit', st.current > 0 && !atRisk);
+    card.classList.toggle('risk', atRisk);
+    card.classList.toggle('out', st.current === 0);
+    Icons.drawIcon($('streak-lantern'), 'lanterne-mineur', { dim: st.current === 0 });
+    $('streak-count').textContent = st.current > 0 ? plural(st.current, 'jour d\'affilée', 'jours d\'affilée') : 'Aucune série en cours';
+    if (st.current === 0) $('streak-note').textContent = 'Fore aujourd\'hui pour rallumer ta lanterne.';
+    else if (st.playedToday) $('streak-note').textContent = 'Ta lanterne brille : reviens demain pour la garder allumée.';
+    else $('streak-note').textContent = st.freezes > 0 ? `Il reste ${formatDuration(left)} pour forer aujourd'hui.` : `Plus que ${formatDuration(left)} pour ne pas perdre ta série.`;
+    // Étais de galerie (gels de série).
+    const freezeCard = $('freeze-card');
+    freezeCard.hidden = st.freezes == null;
+    if (st.freezes != null) {
+      $('freeze-icons').replaceChildren(
+        ...[0, 1, 2].map((i) => {
+          const c = el('canvas', { class: `freeze-icon${i < st.freezes ? ' full' : ''}`, width: '16', height: '16', title: i < st.freezes ? 'Étai disponible' : 'Emplacement vide' });
+          Icons.drawIcon(c, 'etai', { dim: i >= st.freezes });
+          return c;
+        }),
+      );
+      let note = 'Un étai sauve ta série si tu rates un jour. Tu en gagnes un tous les 7 jours forés d\'affilée (3 au maximum).';
+      if (st.pendingFreezes > 0) note = `Tu as manqué ${plural(st.pendingFreezes, 'jour', 'jours')} : ${st.pendingFreezes > 1 ? 'des étais seront utilisés' : 'un étai sera utilisé'} dès que tu fores.`;
+      else if (st.frozenRecently && st.frozenRecently.length) note = `Un étai a sauvé ta série le ${formatDay(st.frozenRecently[st.frozenRecently.length - 1], { day: 'numeric', month: 'long' })}.`;
+      else if (atRisk && st.freezes > 0) note = 'Si tu rates aujourd\'hui, un étai protégera ta série.';
+      $('freeze-note').textContent = note;
+    }
+    const ch = st.challenge;
+    $('challenge-card').hidden = !ch;
+    if (ch) {
+      $('challenge-text').textContent = ch.text;
+      $('challenge-fill').style.width = `${Math.round((ch.progress / ch.goal) * 100)}%`;
+      $('challenge-bar').setAttribute('aria-valuemax', String(ch.goal));
+      $('challenge-bar').setAttribute('aria-valuenow', String(ch.progress));
+      $('challenge-note').textContent = ch.done
+        ? 'Défi réussi, bravo ! Un nouveau t\'attend lundi.'
+        : `${ch.progress} sur ${ch.goal} · ${plural(ch.daysLeft, 'jour restant', 'jours restants')} (aujourd'hui compris).`;
+    }
+    const next = st.next;
+    $('streak-next').textContent = next ? `Plus que ${next.remaining} ${next.unit} avant le badge « ${next.name} ».` : '';
   }
 
   function updateCountdown() {
@@ -459,6 +520,28 @@
   }
 
   // ---------- Partie ----------
+  // Clavier du téléphone : un champ invisible reprend le focus quand le thème se termine, pour que le clavier
+  // reste ouvert jusqu'au thème suivant. Entrée y enchaîne les étapes (thème suivant, révéler le thème).
+  const keeper = $('focus-keeper');
+  let paneChangedAt = 0;
+  function keyboardHeld() {
+    return document.activeElement === keeper;
+  }
+  function holdKeyboard() {
+    if (document.activeElement === $('answer-input') || keyboardHeld()) keeper.focus({ preventScroll: true });
+    paneChangedAt = performance.now();
+  }
+  keeper.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' || event.repeat) return;
+    event.preventDefault();
+    // Petit délai : une seconde pression d'Entrée tout de suite après la validation ne doit pas enchaîner.
+    if (performance.now() - paneChangedAt < 350) return;
+    if (!$('pane-feedback').hidden) $('btn-next').click();
+    else if (!$('pane-ready').hidden) $('btn-reveal').click();
+  });
+  // Toucher ces boutons ne doit pas retirer le focus du champ relais (sinon le clavier se ferme).
+  ['btn-next', 'btn-reveal'].forEach((id) => $(id).addEventListener('mousedown', (event) => keyboardHeld() && event.preventDefault()));
+
   async function startGame(mode) {
     try {
       const state = await api('/api/game/start', { mode });
@@ -476,8 +559,26 @@
     renderGame();
   }
 
+  /** Sept pastilles : la couleur de rareté de chaque thème déjà joué, la manche en cours clignote. */
+  function renderPips(state) {
+    const box = $('game-pips');
+    const active = state.rounds.findIndex((r) => r.status !== 'done');
+    box.replaceChildren(
+      ...state.rounds.map((r, i) => {
+        const pip = el('span', { class: `pip${i === active ? ' now' : ''}` });
+        if (r.status === 'done' && r.tier) {
+          pip.style.background = Pixel.TIER_COLORS[r.tier.id] || '#4a4a4a';
+          if (settings.colors !== 'normal') pip.textContent = Pixel.TIER_SYMBOLS[r.tier.id] || '';
+          pip.title = r.tier.label;
+        }
+        return pip;
+      }),
+    );
+  }
+
   function renderGame() {
     const s = app.game;
+    renderPips(s);
     const done = s.rounds.filter((r) => r.status === 'done').length;
     $('game-mode').textContent = s.mode === 'daily' ? 'Forage du jour' : 'Entraînement';
     $('game-progress').textContent = `${Math.min(done + 1, ROUNDS)}/${ROUNDS}`;
@@ -491,7 +592,7 @@
     $('pane-prompt').hidden = true;
     $('pane-ready').hidden = false;
     $('ready-title').textContent = `Thème ${next.slot + 1} sur ${ROUNDS}`;
-    $('btn-reveal').focus();
+    if (!keyboardHeld()) $('btn-reveal').focus();
   }
 
   $('btn-reveal').addEventListener('click', async () => {
@@ -527,17 +628,19 @@
     stopTimer();
     const total = app.game.timerSeconds * 1000;
     const deadline = performance.now() + remainingMs;
-    const bar = $('timer-bar');
+    const canvas = $('timer-canvas');
+    const skin = (app.skin && app.skin.timer) || 'batterie';
+    const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let lastSecond = null;
     const tick = () => {
       const left = deadline - performance.now();
       const second = Math.ceil(left / 1000);
       if (second <= 5 && second > 0 && second !== lastSecond) Sound.tick(second <= 3);
+      if (second !== lastSecond && (second % 10 === 0 || second <= 5)) $('timer-sr').textContent = `${Math.max(0, second)} secondes`;
       lastSecond = second;
-      const ratio = Math.max(0, Math.min(1, left / total));
-      bar.style.width = `${ratio * 100}%`;
-      bar.classList.toggle('warn', left < 15000 && left >= 7000);
-      bar.classList.toggle('danger', left < 7000);
+      Timers.draw(canvas, skin, left / 1000, total / 1000, performance.now(), settings.colors, calm);
+      $('timer-count').textContent = left > 0 ? String(second) : '0';
+      $('timer').classList.toggle('last', left > 0 && left <= 5000);
       if (left <= 0) {
         stopTimer();
         skipRound();
@@ -550,6 +653,7 @@
   function stopTimer() {
     if (app.timer) clearInterval(app.timer);
     app.timer = null;
+    $('timer').classList.remove('last');
   }
 
   function clearPending() {
@@ -695,7 +799,9 @@
   function roundFinished({ round, state }) {
     stopTimer();
     app.game = state;
+    holdKeyboard();
     scene.setLayers(layersOf(state), true);
+    renderPips(state);
     $('pane-prompt').hidden = true;
     $('pane-ready').hidden = true;
     $('pane-feedback').hidden = false;
@@ -725,7 +831,8 @@
       $('feedback-others').textContent = '';
     }
     $('btn-next').textContent = state.finished ? 'Voir mon forage' : 'Thème suivant';
-    $('btn-next').focus();
+    if (!keyboardHeld()) $('btn-next').focus();
+    paneChangedAt = performance.now();
   }
 
   $('btn-next').addEventListener('click', () => {
@@ -861,40 +968,64 @@
       const end = depth >= 100 ? (bottom + core) / 2 : y(depth);
       chart.append(svg('line', { x1: cx, y1: top, x2: cx, y2: end, stroke: color, class: 'shaft' }));
       chart.append(svg('rect', { x: cx - 6, y: end - 6, width: 12, height: 12, fill: color, class: 'marker' }));
-      if (settings.colorblind && Pixel.TIER_SYMBOLS[tierId]) chart.append(svg('text', { x: cx, y: end + 4, class: 'glyph' }, Pixel.TIER_SYMBOLS[tierId]));
+      if (settings.colors !== 'normal' && Pixel.TIER_SYMBOLS[tierId]) chart.append(svg('text', { x: cx, y: end + 4, class: 'glyph' }, Pixel.TIER_SYMBOLS[tierId]));
     });
   }
 
   function swatch(tierId) {
     const node = el('span', { class: 'swatch', style: { background: Pixel.TIER_COLORS[tierId] } });
-    if (settings.colorblind) node.textContent = Pixel.TIER_SYMBOLS[tierId] || '';
+    if (settings.colors !== 'normal') node.textContent = Pixel.TIER_SYMBOLS[tierId] || '';
     return node;
   }
 
-  /** Liste des réponses du joueur ; un appui sur un thème dévoile toutes ses réponses. */
+  /** Une carte repliable par thème ; à l'intérieur, un bouton déplie la liste de toutes les réponses. */
   function renderCatch(state) {
     const list = $('results-answers');
     list.replaceChildren();
+    // Meilleure réponse du jour.
+    const answered = state.rounds.filter((r) => r.outcome === 'answer');
+    const best = answered.slice().sort((a, b) => (b.points || 0) - (a.points || 0))[0];
+    $('results-best').hidden = !best;
+    if (best) {
+      const bestSw = $('results-best-sw');
+      bestSw.style.background = Pixel.TIER_COLORS[best.tier.id];
+      bestSw.textContent = settings.colors !== 'normal' ? Pixel.TIER_SYMBOLS[best.tier.id] || '' : '';
+      $('results-best-answer').textContent = best.answer;
+      $('results-best-theme').textContent = `${best.title} · ${best.tier.label.toLowerCase()} · ${pts(best.points)}`;
+    }
     state.rounds.forEach((r) => {
       const tierId = r.tier ? r.tier.id : 'skip';
       const label = r.outcome === 'answer' ? r.answer : r.tier ? r.tier.label : '—';
-      const details = el('div', { class: 'theme-answers', hidden: '' });
-      const button = el(
+      const body = el('div', { class: 'theme-body', hidden: '' });
+      const header = el(
         'button',
         { class: 'catch-row', type: 'button', 'aria-expanded': 'false' },
-        el('span', { class: 'num' }, String(r.slot + 1)),
         swatch(tierId),
-        el(
-          'span',
-          { class: 'what' },
-          el('span', { class: 'theme' }, r.title || `Thème ${r.slot + 1}`),
-          el('span', { class: 'answer' }, label),
-          r.outcome === 'answer' ? el('span', { class: 'others' }, othersText(r.othersCount)) : null,
-        ),
+        el('span', { class: 'what' }, el('span', { class: 'theme' }, `${r.slot + 1}. ${r.title || `Thème ${r.slot + 1}`}`), el('span', { class: 'answer' }, label)),
         el('span', { class: 'pts', style: { color: Pixel.TIER_COLORS[tierId] } }, r.points != null ? String(r.points) : '–'),
+        el('span', { class: 'pm', 'aria-hidden': 'true' }),
       );
-      button.addEventListener('click', () => toggleThemeAnswers(state, r, button, details));
-      list.append(el('li', {}, button, details));
+      // Détail du thème : ta saisie, la rareté, puis le bouton qui déplie toutes les réponses.
+      body.append(el('p', { class: 'theme-full' }, r.title || ''));
+      if (r.outcome === 'answer') {
+        const understood = r.input && r.input.toLowerCase() !== r.answer.toLowerCase();
+        if (understood) body.append(el('p', { class: 'muted' }, `Tu avais écrit « ${r.input} ».`));
+        if (r.probability) body.append(el('p', { class: 'muted' }, `Environ 1 joueur sur ${Math.max(1, Math.round(1 / r.probability)).toLocaleString('fr-BE')} y pense.`));
+        body.append(el('p', { class: 'muted' }, othersText(r.othersCount)));
+      } else {
+        body.append(el('p', { class: 'muted' }, r.outcome === 'timeout' ? 'Le chrono est arrivé à zéro.' : 'Tu as passé ce thème.'));
+      }
+      const all = el('div', { class: 'theme-answers', hidden: '' });
+      const showAll = el('button', { class: 'btn secondary small-btn show-all', type: 'button', 'aria-expanded': 'false' }, 'Toutes les réponses du thème');
+      showAll.addEventListener('click', () => toggleThemeAnswers(state, r, showAll, all));
+      body.append(showAll, all);
+      header.addEventListener('click', () => {
+        const open = body.hidden;
+        body.hidden = !open;
+        header.setAttribute('aria-expanded', String(open));
+        header.closest('.card').classList.toggle('open', open);
+      });
+      list.append(el('div', { class: 'card theme-card' }, header, body));
     });
   }
 
@@ -902,6 +1033,7 @@
     const open = details.hidden;
     details.hidden = !open;
     button.setAttribute('aria-expanded', String(open));
+    button.textContent = open ? 'Masquer les réponses' : 'Toutes les réponses du thème';
     if (!open || details.dataset.loaded) return;
     details.replaceChildren(el('p', { class: 'muted' }, 'Chargement des réponses…'));
     try {
@@ -919,24 +1051,37 @@
     const chips = el('div', { class: 'chips' });
     const list = el('ul', { class: 'answer-list' });
     let filter = 'all';
+    let query = '';
+    // Recherche sans accents ni ponctuation, dans le nom affiché et dans les variantes acceptées.
+    const squash = (t) => String(t).toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '');
+    const search = el('input', { type: 'search', class: 'answer-search', placeholder: 'Chercher une réponse…', 'aria-label': 'Chercher parmi les réponses', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false' });
+    const found = (a) => {
+      const q = squash(query);
+      if (!q) return { ok: true, alias: null };
+      if (squash(a.label).includes(q)) return { ok: true, alias: null };
+      const alias = (a.aliases || []).find((n) => squash(n).includes(q));
+      return { ok: Boolean(alias), alias: alias || null };
+    };
     const draw = () => {
       list.replaceChildren();
-      data.answers
+      const shown = data.answers
         .filter((a) => filter === 'all' || a.tier === filter)
-        .slice()
-        .reverse()
-        .forEach((a) => {
+        .map((a) => ({ a, hit: found(a) }))
+        .filter((x) => x.hit.ok)
+        .reverse();
+      if (!shown.length) list.append(el('li', { class: 'muted none' }, query ? 'Aucune réponse ne correspond. Elle manque peut-être : tu peux la signaler plus bas.' : 'Aucune réponse.'));
+      shown.forEach(({ a, hit }) => {
           list.append(
             el(
               'li',
               { class: a.mine ? 'mine' : '' },
               swatch(a.tier),
-              el('span', {}, a.label, a.mine ? el('span', { class: 'you' }, ' ← toi') : null),
-              el('span', { class: 'muted' }, a.count ? `×${a.count}` : ''),
+              el('span', {}, a.label, hit.alias ? el('span', { class: 'muted' }, ` (= ${hit.alias})`) : null, a.mine ? el('span', { class: 'you' }, ' ← toi') : null),
+              el('span', { class: 'muted', title: a.trainingCount ? `${plural(a.trainingCount, 'fois', 'fois')} en mode illimité` : '' }, `${a.count ? `×${a.count}` : ''}${a.trainingCount ? ` ∞${a.trainingCount}` : ''}`.trim()),
               el('span', { class: 'pts', style: { color: Pixel.TIER_COLORS[a.tier] } }, String(a.points)),
             ),
           );
-        });
+      });
       chips.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b.dataset.filter === filter));
     };
     const chip = (id, text, n) => {
@@ -948,6 +1093,10 @@
       });
       chips.append(b);
     };
+    search.addEventListener('input', () => {
+      query = search.value;
+      draw();
+    });
     chip('all', 'Toutes', data.answers.length);
     TIER_ORDER.forEach((id) => counts[id] && chip(id, TIER_LABELS[id], counts[id]));
     // Une bonne réponse manque à la liste : le joueur peut la signaler.
@@ -968,7 +1117,8 @@
       }
     });
     details.replaceChildren(
-      el('p', { class: 'muted small' }, 'De la plus rare à la plus évidente, avec les points qu\'elle rapporterait aujourd\'hui et le nombre de fois qu\'elle a été donnée.'),
+      el('p', { class: 'muted small' }, 'De la plus rare à la plus évidente, avec les points qu\'elle rapporterait aujourd\'hui. ×N : donnée N fois dans les forages du jour ; ∞N : donnée N fois en mode illimité.'),
+      search,
       chips,
       list,
       missing,
@@ -1002,7 +1152,7 @@
 
   // ---------- Carnet : badges et atelier ----------
   const CATEGORIES = [
-    ['exploit', 'Exploits'], ['serie', 'Séries de forages'], ['profondeur', 'Profondeur'], ['pepites', 'Pépites'], ['themes', 'Thèmes rencontrés'], ['podium', 'Podiums'], ['calendrier', 'Jours particuliers'],
+    ['exploit', 'Exploits'], ['serie', 'Séries de forages'], ['profondeur', 'Profondeur'], ['pepites', 'Pépites'], ['themes', 'Thèmes rencontrés'], ['entrainement', 'Entraînement'], ['defi', 'Défis de la semaine'], ['podium', 'Podiums'], ['calendrier', 'Jours particuliers'],
   ];
 
   function longDay(day) {
@@ -1041,6 +1191,73 @@
     );
   }
 
+  // Carnet : sections repliables, dont l'état est gardé sur l'appareil.
+  function foldOpen(id, fallback) {
+    try {
+      const v = localStorage.getItem(`speleo-fold-${id}`);
+      return v == null ? fallback : v === '1';
+    } catch {
+      return fallback;
+    }
+  }
+
+  function watchFolds(root) {
+    root.querySelectorAll('details[data-fold]').forEach((d) => {
+      if (d.dataset.watched) return;
+      d.dataset.watched = '1';
+      d.addEventListener('toggle', () => {
+        try {
+          localStorage.setItem(`speleo-fold-${d.dataset.fold}`, d.open ? '1' : '0');
+        } catch {
+          /* stockage indisponible : l'état n'est simplement pas retenu */
+        }
+      });
+    });
+  }
+
+  function initFolds() {
+    const view = $('view-profile');
+    view.querySelectorAll('details.fold').forEach((d) => {
+      d.open = foldOpen(d.dataset.fold, d.dataset.fold === 'carnet');
+    });
+    watchFolds(view);
+  }
+
+  // Badge : une pastille dans le tableau, le détail s'ouvre dans une fenêtre flottante.
+  function badgeTile(b) {
+    const locked = !b.count;
+    const icon = el('canvas', { class: 'badge-icon', width: '16', height: '16' });
+    Icons.drawBadge(icon, { icon: b.icon, category: b.category, label: b.label, locked });
+    const tile = el('button', { class: `badge-tile${locked ? ' locked' : ''}${b.isNew ? ' new' : ''}`, type: 'button', title: b.name, 'aria-label': `${b.name}${locked ? ' (pas encore obtenu)' : ''}` }, icon, el('span', { class: 'badge-tile-name' }, b.name));
+    tile.addEventListener('click', () => openBadge(b));
+    return tile;
+  }
+
+  function openBadge(b) {
+    const locked = !b.count;
+    Icons.drawBadge($('badge-pop-icon'), { icon: b.icon, category: b.category, label: b.label, locked });
+    $('badge-pop-title').textContent = b.name;
+    $('badge-pop-desc').textContent = b.description;
+    let meta = locked ? 'Pas encore obtenu.' : '';
+    if (!locked) {
+      if (b.years) meta = b.years.length > 1 ? `Années : ${b.years.join(', ')}` : `Le ${longDay(b.lastOn)}`;
+      else if (b.count > 1) meta = `${b.count} fois · dernière le ${longDay(b.lastOn)}`;
+      else meta = `Obtenu le ${longDay(b.firstOn)}`;
+    }
+    $('badge-pop-meta').textContent = meta;
+    const unlock = b.unlock ? unlockName(b.unlock) : '';
+    $('badge-pop-unlock').textContent = unlock ? `${locked ? 'Débloquera' : 'A débloqué'} : ${unlock}` : '';
+    $('badge-pop').hidden = false;
+    $('badge-pop-close').focus();
+  }
+
+  function closeBadge() {
+    $('badge-pop').hidden = true;
+  }
+  $('badge-pop-close').addEventListener('click', closeBadge);
+  $('badge-pop').addEventListener('click', (e) => e.target === $('badge-pop') && closeBadge());
+  document.addEventListener('keydown', (e) => e.key === 'Escape' && !$('badge-pop').hidden && closeBadge());
+
   async function openProfile() {
     stopTimer();
     try {
@@ -1049,8 +1266,11 @@
       app.skin = profile.skin;
       renderProfile(profile);
       show('profile');
+      initFolds();
       loadReports();
       loadSuggestions();
+      loadBilan(app.bilanMonth || null);
+      loadDashboard();
       if (profile.badges.some((b) => b.isNew)) {
         api('/api/profile/seen', {}).catch(() => {});
         if (app.me) app.me.unseenBadges = 0;
@@ -1087,6 +1307,167 @@
     );
   }
 
+  // ---------- Graphiques du carnet ----------
+  function scoreTier(score) {
+    return score >= 500 ? 'pepite' : score >= 350 ? 'rare' : score >= 200 ? 'original' : score >= 80 ? 'courant' : 'evident';
+  }
+
+  function renderCharts(c, bestScore) {
+    if (!c) return;
+    // Calendrier des jours forés : une colonne par semaine (lundi en haut), une case par jour.
+    const cal = $('chart-calendar');
+    cal.replaceChildren();
+    const cell = 15;
+    const gap = 3;
+    const left = 20;
+    const weeks = Math.ceil(c.calendar.length / 7);
+    cal.setAttribute('viewBox', `0 0 ${left + weeks * (cell + gap)} ${7 * (cell + gap) + 2}`);
+    ['L', 'M', 'M', 'J', 'V', 'S', 'D'].forEach((d, i) => cal.append(svg('text', { x: 0, y: 11 + i * (cell + gap), class: 'cal-label' }, d)));
+    c.calendar.forEach((d, i) => {
+      const w = Math.floor(i / 7);
+      const row = i % 7;
+      const played = d.score != null;
+      const rect = svg('rect', {
+        x: left + w * (cell + gap),
+        y: row * (cell + gap),
+        width: cell,
+        height: cell,
+        fill: played ? Pixel.TIER_COLORS[scoreTier(d.score)] : 'var(--well)',
+        opacity: d.future ? 0.35 : 1,
+        class: `cal-cell${d.day === app.me.today.day ? ' today' : ''}`,
+      });
+      rect.append(svg('title', {}, `${formatDay(d.day, { weekday: 'long', day: 'numeric', month: 'long' })}${played ? ` · ${pts(d.score)}` : ''}`));
+      cal.append(rect);
+    });
+
+    // Courbe des derniers scores, avec la moyenne en pointillés.
+    const line = $('chart-recent');
+    line.replaceChildren();
+    if (c.recent.length < 2) {
+      line.append(svg('text', { x: 160, y: 62, 'text-anchor': 'middle', class: 'cal-label' }, 'Il faut au moins deux forages pour tracer la courbe.'));
+    } else {
+      const W = 320;
+      const H = 120;
+      const pad = { l: 34, r: 8, t: 10, b: 18 };
+      const max = Math.max(100, ...c.recent.map((r) => r.score));
+      const x = (i) => pad.l + (i / (c.recent.length - 1)) * (W - pad.l - pad.r);
+      const y = (v) => H - pad.b - (v / max) * (H - pad.t - pad.b);
+      const avg = c.recent.reduce((n, r) => n + r.score, 0) / c.recent.length;
+      [0, max / 2, max].forEach((v) => {
+        line.append(svg('line', { x1: pad.l, x2: W - pad.r, y1: y(v), y2: y(v), class: 'grid' }), svg('text', { x: pad.l - 4, y: y(v) + 4, 'text-anchor': 'end', class: 'cal-label' }, String(Math.round(v))));
+      });
+      line.append(svg('line', { x1: pad.l, x2: W - pad.r, y1: y(avg), y2: y(avg), class: 'avg' }), svg('text', { x: W - pad.r, y: y(avg) - 3, 'text-anchor': 'end', class: 'cal-label' }, `moyenne ${Math.round(avg)}`));
+      line.append(svg('polyline', { points: c.recent.map((r, i) => `${x(i)},${y(r.score)}`).join(' '), class: 'curve' }));
+      c.recent.forEach((r, i) => {
+        const dot = svg('rect', { x: x(i) - 3, y: y(r.score) - 3, width: 6, height: 6, fill: Pixel.TIER_COLORS[scoreTier(r.score)], class: 'dot' });
+        dot.append(svg('title', {}, `${formatDay(r.day, { day: 'numeric', month: 'long' })} · ${pts(r.score)}`));
+        line.append(dot);
+      });
+      line.append(
+        svg('text', { x: pad.l, y: H - 4, class: 'cal-label' }, formatDay(c.recent[0].day, { day: 'numeric', month: 'short' })),
+        svg('text', { x: W - pad.r, y: H - 4, 'text-anchor': 'end', class: 'cal-label' }, formatDay(c.recent[c.recent.length - 1].day, { day: 'numeric', month: 'short' })),
+      );
+    }
+
+    // Répartition de tes réponses par rareté.
+    const total = Object.values(c.tiers).reduce((a, b) => a + b, 0);
+    const bars = $('chart-tiers');
+    bars.replaceChildren();
+    if (!total) bars.append(el('p', { class: 'muted' }, 'Pas encore de réponse dans un forage du jour.'));
+    ['pepite', 'rare', 'original', 'courant', 'evident'].forEach((id) => {
+      const n = c.tiers[id];
+      const pct = total ? Math.round((n / total) * 100) : 0;
+      bars.append(
+        el(
+          'div',
+          { class: 'tier-bar' },
+          swatch(id),
+          el('span', { class: 'tier-name' }, TIER_LABELS[id]),
+          el('span', { class: 'tier-track' }, el('span', { class: 'tier-fill', style: { width: `${pct}%`, background: Pixel.TIER_COLORS[id] } })),
+          el('span', { class: 'tier-n' }, `${n} · ${pct} %`),
+        ),
+      );
+    });
+    if (c.signature) bars.append(el('p', { class: 'muted small' }, `Ta réponse signature : « ${c.signature.answer} » (${plural(c.signature.n, 'fois', 'fois')}).`));
+
+    // Coupe de la Terre avec ta meilleure profondeur.
+    const earth = $('chart-earth');
+    earth.replaceChildren();
+    const zones = Pixel.ZONES;
+    const top = 6;
+    const bottom = 144;
+    const toY = (points) => top + (Math.min(points, Pixel.MAX_POINTS) / Pixel.MAX_POINTS) * (bottom - top);
+    zones.forEach((z, i) => {
+      const y0 = toY(z.from);
+      const y1 = i + 1 < zones.length ? toY(zones[i + 1].from) : bottom;
+      earth.append(svg('rect', { x: 20, y: y0, width: 60, height: Math.max(1, y1 - y0), fill: z.colors[0] }));
+      if (y1 - y0 > 16) earth.append(svg('text', { x: 90, y: (y0 + y1) / 2 + 4, class: 'cal-label' }, z.name));
+    });
+    const best = toY(bestScore || 0);
+    earth.append(svg('line', { x1: 14, x2: 86, y1: best, y2: best, class: 'best-line' }), svg('rect', { x: 8, y: best - 4, width: 8, height: 8, class: 'best-mark' }));
+    earth.append(svg('text', { x: 200, y: Math.min(bottom - 4, Math.max(14, best + 4)), class: 'best-label' }, `${Pixel.formatDepth(bestScore || 0)} · ${pts(bestScore || 0)}`));
+  }
+
+  // ---------- Bilan du mois ----------
+  function shiftMonth(month, n) {
+    const [y, m] = month.split('-').map(Number);
+    const d = new Date(Date.UTC(y, m - 1 + n, 1));
+    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+  }
+
+  async function loadBilan(month) {
+    try {
+      const b = await api(`/api/month${month ? `?month=${month}` : ''}`);
+      app.bilanMonth = b.month;
+      app.bilanCurrent = app.bilanCurrent || b.month;
+      $('bilan-label').textContent = formatDay(`${b.month}-01`, { month: 'long', year: 'numeric' });
+      $('btn-bilan-next').disabled = b.month >= app.bilanCurrent;
+      const rows = [
+        ['Jours forés', String(b.days)],
+        ['Points marqués', String(b.totalPoints)],
+        ['Moyenne par forage', b.days ? pts(b.average) : '—'],
+        ['Pépites · réponses rares', `${b.pepites} · ${b.rares}`],
+        ['Thèmes passés ou expirés', String(b.skipped)],
+      ];
+      const body = $('bilan-body');
+      body.replaceChildren(el('dl', { class: 'stats' }, ...rows.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)])));
+      if (b.bestGame) body.append(el('p', {}, `Ton meilleur forage : ${pts(b.bestGame.score)} le ${formatDay(b.bestGame.day, { day: 'numeric', month: 'long' })}.`));
+      if (b.bestRound) body.append(el('p', {}, `Ta meilleure manche : « ${b.bestRound.answer} » (${b.bestRound.theme}), ${pts(b.bestRound.points)}.`));
+      if (b.signature) body.append(el('p', {}, `Ta réponse signature : « ${b.signature.answer} » (${plural(b.signature.n, 'fois', 'fois')}).`));
+      if (b.days && b.previous.days) {
+        const delta = b.average - b.previous.average;
+        body.append(el('p', { class: 'muted' }, delta === 0 ? 'Ta moyenne par forage est stable par rapport au mois précédent.' : `Ta moyenne par forage ${delta > 0 ? 'progresse' : 'recule'} de ${Math.abs(delta)} points par rapport au mois précédent.`));
+      }
+      if (!b.days) body.append(el('p', { class: 'muted' }, 'Aucun forage ce mois-là.'));
+    } catch (err) {
+      $('bilan-body').textContent = err.message;
+    }
+  }
+  $('btn-bilan-prev').addEventListener('click', () => app.bilanMonth && loadBilan(shiftMonth(app.bilanMonth, -1)));
+  $('btn-bilan-next').addEventListener('click', () => app.bilanMonth && loadBilan(shiftMonth(app.bilanMonth, 1)));
+
+  // ---------- Tableau de bord du responsable ----------
+  async function loadDashboard() {
+    const card = $('admin-dashboard');
+    card.hidden = !(app.me && app.me.isAdmin);
+    if (card.hidden) return;
+    try {
+      const d = await api('/api/admin/dashboard');
+      const list = (items, render) => (items.length ? el('ul', { class: 'report-list' }, ...items.map((i) => el('li', {}, render(i)))) : el('p', { class: 'muted' }, 'Rien pour l\'instant.'));
+      $('dashboard-body').replaceChildren(
+        el('p', {}, `${plural(d.activePlayersThisWeek, 'joueur actif', 'joueurs actifs')} cette semaine sur ${d.totalPlayers} inscrits · ${plural(d.trainingGames, 'forage illimité terminé', 'forages illimités terminés')} · ${plural(d.pendingReports, 'signalement à vérifier', 'signalements à vérifier')}.`),
+        el('h3', {}, 'Forages terminés, 7 derniers jours'),
+        list(d.perDay, (r) => `${formatDay(r.day, { weekday: 'short', day: 'numeric', month: 'short' })} : ${plural(r.n, 'forage', 'forages')}`),
+        el('h3', {}, 'Réponses refusées les plus fréquentes'),
+        list(d.refused, (r) => `« ${r.input} » ×${r.n} — ${r.theme}`),
+        el('h3', {}, 'Thèmes où l\'on se fait le plus refuser'),
+        list(d.refusedThemes, (r) => `${r.theme} : ${r.n}`),
+      );
+    } catch (err) {
+      $('dashboard-body').textContent = err.message;
+    }
+  }
+
   function renderProfile(profile) {
     const st = profile.stats;
     const stats = [
@@ -1098,19 +1479,63 @@
     ];
     $('profile-stats').replaceChildren(...stats.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]));
     renderPlayerStats(profile.playerStats);
-    const sections = $('badge-sections');
-    sections.replaceChildren();
-    CATEGORIES.forEach(([id, title]) => {
-      const list = profile.badges.filter((b) => b.category === id);
-      if (!list.length) return;
-      const earned = list.filter((b) => b.count).length;
-      sections.append(
-        el('h3', {}, title, el('span', { class: 'muted small' }, ` ${earned}/${list.length}`)),
-        el('div', { class: 'badge-list' }, ...list.map(badgeItem)),
-      );
-    });
+    renderCharts(profile.playerStats.charts, st.bestScore);
+    renderBadgeSections();
     renderWorkshop();
   }
+
+  // Recherche et filtre des badges du carnet.
+  const badgeView = { query: '', filter: 'all' };
+  const squash = (t) => String(t).toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '');
+
+  function renderBadgeSections() {
+    const profile = app.profile;
+    if (!profile) return;
+    const sections = $('badge-sections');
+    sections.replaceChildren();
+    const q = squash(badgeView.query);
+    const searching = Boolean(q) || badgeView.filter !== 'all';
+    let shown = 0;
+    CATEGORIES.forEach(([id, title]) => {
+      const all = profile.badges.filter((b) => b.category === id);
+      if (!all.length) return;
+      const list = all.filter((b) => {
+        if (badgeView.filter === 'got' && !b.count) return false;
+        if (badgeView.filter === 'todo' && b.count) return false;
+        return !q || squash(`${b.name} ${b.description}`).includes(q);
+      });
+      if (!list.length) return;
+      shown += list.length;
+      const earned = all.filter((b) => b.count).length;
+      const fresh = list.some((b) => b.isNew);
+      sections.append(
+        el(
+          'details',
+          { class: 'badge-group', 'data-fold': `badges-${id}`, ...((searching || foldOpen(`badges-${id}`, true)) ? { open: '' } : {}) },
+          el(
+            'summary',
+            {},
+            el('span', { class: 'fold-t' }, el('span', {}, title), el('span', { class: 'muted small' }, ` ${earned}/${all.length}`), fresh ? el('span', { class: 'new-dot' }, 'nouveau') : null),
+            el('span', { class: 'pm', 'aria-hidden': 'true' }),
+          ),
+          el('div', { class: 'badge-table' }, ...list.map(badgeTile)),
+        ),
+      );
+    });
+    if (!shown) sections.append(el('p', { class: 'muted' }, 'Aucun badge ne correspond.'));
+    watchFolds(sections);
+  }
+  $('badge-search').addEventListener('input', () => {
+    badgeView.query = $('badge-search').value;
+    renderBadgeSections();
+  });
+  $('badge-filter').addEventListener('click', (event) => {
+    const b = event.target.closest('button[data-filter]');
+    if (!b) return;
+    badgeView.filter = b.dataset.filter;
+    $('badge-filter').querySelectorAll('button').forEach((x) => x.classList.toggle('active', x === b));
+    renderBadgeSections();
+  });
 
   function drawSkin(canvas, skin, time, drilling) {
     const ctx = canvas.getContext('2d');
@@ -1139,6 +1564,23 @@
     };
     grid('body', app.profile.bodies, $('skin-bodies'));
     grid('bit', app.profile.bits, $('skin-bits'));
+    // Chrono : aperçu du décompte à 18 secondes.
+    const current = app.skin.timer || 'batterie';
+    $('skin-timers').replaceChildren(
+      ...app.profile.timers.map((t) => {
+        const thumb = el('canvas', { class: 'skin-thumb timer', width: '96', height: '20' });
+        Timers.draw(thumb, t.id, 18, 30, 0, settings.colors, true);
+        const selected = t.id === current;
+        const button = el(
+          'button',
+          { type: 'button', class: `skin timer-skin${t.unlocked ? '' : ' locked'}${selected ? ' selected' : ''}`, 'aria-pressed': String(selected), title: t.unlocked ? t.name : t.hint },
+          thumb,
+          el('span', {}, t.unlocked ? t.name : `🔒 ${t.name}`),
+        );
+        button.addEventListener('click', () => chooseSkin('timer', t));
+        return button;
+      }),
+    );
   }
 
   async function chooseSkin(type, s) {
@@ -1201,7 +1643,7 @@
 
   function renderReports() {
     const list = $('report-list');
-    const labels = { pending: 'à vérifier', handled: 'traitée', added: 'ajoutée au thème' };
+    const labels = { pending: 'à vérifier', handled: 'traitée' };
     const tab = app.reportTab || 'pending';
     const shown = app.reports.filter((r) => (r.status === 'pending') === (tab === 'pending'));
     $('count-pending').textContent = `(${app.reports.filter((r) => r.status === 'pending').length})`;
@@ -1217,7 +1659,7 @@
           el(
             'span',
             { class: 'muted' },
-            `${plural(r.players, 'joueur', 'joueurs')} · ${labels[r.status]}${r.credited ? ` · points accordés à ${r.credited}` : ''}`,
+            `${plural(r.players, 'joueur', 'joueurs')} · ${labels[r.status]}${r.inTheme ? ` · reconnue par le thème comme « ${r.inTheme} »` : ''}${r.credited ? ` · points accordés à ${r.credited}` : ''}`,
           ),
         );
         (r.reporters || []).filter((p) => p.creditableDay).forEach((p) => {
@@ -1458,18 +1900,47 @@
       const body = $('compare-body');
       body.replaceChildren();
       if (!data.players.length) body.append(el('p', { class: 'muted' }, 'Aucun forage terminé ce jour-là.'));
+      if (data.players.length) {
+        const top = Math.max(1, ...data.players.map((p) => p.score));
+        body.append(
+          el('h3', {}, 'Scores du jour'),
+          el('p', { class: 'muted small' }, '★ : seul(e) à avoir donné cette réponse · = toi : même réponse que la tienne.'),
+          el(
+            'div',
+            { class: 'score-bars' },
+            ...data.players.map((p) =>
+              el(
+                'div',
+                { class: `score-bar${p.me ? ' me' : ''}` },
+                el('span', { class: 'who' }, p.username),
+                el('span', { class: 'track' }, el('span', { class: 'fill', style: { width: `${Math.round((p.score / top) * 100)}%`, background: Pixel.TIER_COLORS[scoreTier(p.score)] } })),
+                el('span', { class: 'n' }, pts(p.score)),
+              ),
+            ),
+          ),
+        );
+      }
       data.themes.forEach((th, i) => {
         const list = el('ul', { class: 'compare-list' });
-        data.players
-          .map((p) => ({ p, r: p.rounds[i] }))
-          .filter(({ r }) => r)
+        const entries = data.players.map((p) => ({ p, r: p.rounds[i] })).filter(({ r }) => r);
+        const norm = (t) => String(t || '').toLowerCase();
+        const given = new Map();
+        entries.forEach(({ r }) => r.outcome === 'answer' && given.set(norm(r.answer), (given.get(norm(r.answer)) || 0) + 1));
+        const mine = entries.find(({ p }) => p.me);
+        entries
           .sort((a, b) => (b.r.points || 0) - (a.r.points || 0))
           .forEach(({ p, r }) => {
             const what = r.outcome === 'answer' ? r.answer : r.outcome === 'timeout' ? 'temps écoulé' : 'passé';
+            // Repères : seul(e) à avoir donné cette réponse, ou même réponse que la tienne.
+            let mark = '';
+            if (r.outcome === 'answer') {
+              if (given.get(norm(r.answer)) === 1) mark = ' alone';
+              else if (!p.me && mine && mine.r.outcome === 'answer' && norm(mine.r.answer) === norm(r.answer)) mark = ' same';
+            }
             list.append(
               el(
                 'li',
-                { class: p.me ? 'me' : '' },
+                { class: `${p.me ? 'me' : ''}${mark}` },
                 el('span', { class: 'swatch', style: { background: Pixel.TIER_COLORS[r.tier] || '#666' } }),
                 el('span', { class: 'who' }, p.username),
                 el('span', { class: 'what' }, what),
@@ -1487,6 +1958,19 @@
   $('btn-compare').addEventListener('click', () => openCompare(app.podium.start));
   $('btn-results-compare').addEventListener('click', () => openCompare(app.me.today.day, 'results'));
   $('btn-compare-back').addEventListener('click', () => show(app.compareBack || 'podium'));
+
+  // ---------- Raccourcis clavier ----------
+  // Récapitulatif : flèches haut/bas pour passer d'un thème à l'autre (Entrée ou Espace l'ouvre).
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    if ($('view-results').hidden || event.target.closest('input, textarea, select')) return;
+    const rows = [...document.querySelectorAll('#results-answers .catch-row')];
+    if (!rows.length) return;
+    const at = rows.indexOf(document.activeElement);
+    const next = event.key === 'ArrowDown' ? Math.min(rows.length - 1, at + 1) : Math.max(0, at <= 0 ? 0 : at - 1);
+    event.preventDefault();
+    rows[at === -1 ? 0 : next].focus();
+  });
 
   // ---------- Démarrage ----------
   fitCanvas();

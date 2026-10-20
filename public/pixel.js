@@ -44,10 +44,20 @@
       invalid: '#4a4a4a', timeout: '#4a4a4a', skip: '#4a4a4a',
       evident: '#8b5a2b', courant: '#e8c547', original: '#f08a24', rare: '#d9342b', pepite: '#5ee0ff',
     },
-    // Mode daltonien : palette d'Okabe et Ito, distinguable pour toutes les formes de daltonisme.
-    colorblind: {
+    // Daltonisme rouge-vert (protanopie, deutéranopie) : axe bleu-jaune et luminosité, sans rouge ni vert.
+    'rouge-vert': {
       invalid: '#4a4a4a', timeout: '#4a4a4a', skip: '#4a4a4a',
-      evident: '#cfc3a6', courant: '#f0e442', original: '#e69f00', rare: '#56b4e9', pepite: '#f5f5f5',
+      evident: '#2b4c9b', courant: '#6fb5f0', original: '#f6e86a', rare: '#c76a00', pepite: '#ffffff',
+    },
+    // Daltonisme bleu-jaune (tritanopie) : axe rouge-vert-rose, sans bleu ni jaune.
+    'bleu-jaune': {
+      invalid: '#4a4a4a', timeout: '#4a4a4a', skip: '#4a4a4a',
+      evident: '#6b3a2a', courant: '#ff9ab0', original: '#d62828', rare: '#2e8b57', pepite: '#ffffff',
+    },
+    // Niveaux de gris (achromatopsie) : cinq luminosités bien espacées.
+    gris: {
+      invalid: '#4a4a4a', timeout: '#4a4a4a', skip: '#4a4a4a',
+      evident: '#555555', courant: '#8a8a8a', original: '#b8b8b8', rare: '#dedede', pepite: '#ffffff',
     },
   };
   // Objet partagé avec l'interface : son contenu change avec le mode daltonien.
@@ -64,9 +74,11 @@
   };
   let colorblind = false;
 
-  function setColorblind(on) {
-    colorblind = Boolean(on);
-    Object.assign(TIER_COLORS, colorblind ? PALETTES.colorblind : PALETTES.normal);
+  /** `mode` : « normal », « rouge-vert », « bleu-jaune » ou « gris » (un booléen vrai vaut « rouge-vert »). */
+  function setColorblind(mode) {
+    const key = mode === true ? 'rouge-vert' : PALETTES[mode] ? mode : 'normal';
+    colorblind = key !== 'normal';
+    Object.assign(TIER_COLORS, PALETTES[key]);
   }
 
   function depthKm(points) {
@@ -585,13 +597,29 @@
     }
     TRICOLORE.push(row);
   }
+  // Reflets en damier sur la carrosserie, en épargnant le hublot et le voyant.
+  const GOLD_PLATING = [];
+  for (let r = 0; r < 7; r++) {
+    let row = '';
+    for (let c = 0; c < 12; c++) {
+      const hublot = r >= 1 && r <= 4 && c >= 2 && c <= 7;
+      const voyant = r === 2 && c === 10;
+      row += !hublot && !voyant && (r + c) % 2 === 0 ? 'h' : '.';
+    }
+    GOLD_PLATING.push(row);
+  }
   const SKINS = {
     classique: {},
     acier: { pal: { y: '#9aaabb', d: '#5d6f82' } },
     cuivre: { pal: { y: '#d0803e', d: '#8a4a22' } },
     emeraude: { pal: { y: '#3fbf7f', d: '#23784f' } },
     obsidienne: { pal: { y: '#3a2f57', d: '#1f1830', b: '#b28cff', w: '#efe2ff', o: '#b28cff' } },
-    or: { pal: { y: '#ffd34d', d: '#c99a26' }, sparkle: '#fff6cc' },
+    // Or massif : plus clair et plus brillant que la peinture de chantier jaune, avec un reflet quadrillé.
+    or: {
+      pal: { y: '#ffe36e', d: '#a8741a', h: '#fffbd0' },
+      overlay: { dx: 2, dy: 3, rows: GOLD_PLATING, pal: { h: '#fff3a8' } },
+      sparkle: '#ffffff',
+    },
     diamant: { pal: { y: '#c8f2ff', d: '#79c5e3' }, sparkle: '#ffffff' },
     cordee: { pal: { y: '#d9342b', d: '#8f1f19' } },
     expedition: { pal: { y: '#2f5fd0', d: '#1d3b85', o: '#f2c230' } },

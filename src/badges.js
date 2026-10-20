@@ -1,7 +1,8 @@
 'use strict';
 
 const { addDays, weekStart, monthStart, monthEnd, addMonths } = require('./dates');
-const { ROUNDS_PER_GAME } = require('./config');
+const { ROUNDS_PER_GAME, TIMER_SECONDS, FREEZE_FROM } = require('./config');
+const { challengeProgress } = require('./challenges');
 
 /*
  * Badges
@@ -47,6 +48,20 @@ const THEMES = [
   [5000, 'Mémoire de la Terre'],
 ];
 
+// Forages d'entraînement (mode illimité) terminés.
+const TRAINING = [
+  [10, 'Premiers essais'],
+  [50, "Habitué du terrain d'essai"],
+  [200, 'Marathonien du forage'],
+];
+
+// Défis de la semaine réussis.
+const DEFIS = [
+  [1, 'Défi relevé'],
+  [5, 'Habitué des défis'],
+  [15, 'Maître des défis'],
+];
+
 // Jours particuliers : il suffit de terminer le forage du jour ce jour-là.
 const CALENDAR = {
   'nouvel-an': { name: (y) => `Passage à ${y}`, description: (y) => `Forage du 1er janvier ${y}`, icon: 'feu-artifice', body: 'feu-artifice' },
@@ -57,6 +72,9 @@ const CALENDAR = {
   'pi-day': { name: () => 'Forage π', description: (y) => `Forage du jour de π, le 14 mars ${y}`, icon: 'pi' },
   'poisson-avril': { name: () => "Poisson fossile", description: (y) => `Forage du 1er avril ${y}`, icon: 'poisson' },
   'jour-terre': { name: () => 'Jour de la Terre', description: (y) => `Forage du jour de la Terre, le 22 avril ${y}`, icon: 'globe', body: 'globe' },
+  'journee-livre': { name: () => 'Livre de roche', description: (y) => `Forage de la journée mondiale du livre, le 23 avril ${y}`, icon: 'livre' },
+  'star-wars': { name: () => 'Que la Force soit avec toi', description: (y) => `Forage du 4 mai ${y} (May the 4th)`, icon: 'sabre' },
+  'fete-musique': { name: () => 'Concert souterrain', description: (y) => `Forage de la fête de la musique, le 21 juin ${y}`, icon: 'note' },
   paques: { name: () => 'Œuf de dinosaure', description: (y) => `Forage du dimanche de Pâques ${y}`, icon: 'oeuf', body: 'oeuf' },
   'premier-mai': { name: () => 'Gueule noire', description: (y) => `Forage de la fête du Travail ${y}, en hommage aux mineurs`, icon: 'lampe-mineur' },
   'fierte': { name: () => 'Fierté', description: (y) => `Forage du 17 mai ${y}, journée mondiale contre l'homophobie, la transphobie et la biphobie`, icon: 'drapeau-fierte', body: 'fierte' },
@@ -100,8 +118,11 @@ const FIXED_DAYS = {
   '03-14': 'pi-day',
   '04-01': 'poisson-avril',
   '04-22': 'jour-terre',
+  '04-23': 'journee-livre',
   '05-01': 'premier-mai',
+  '05-04': 'star-wars',
   '05-17': 'fierte',
+  '06-21': 'fete-musique',
   '07-21': 'fete-nationale',
   '10-23': 'mole-day',
   '10-31': 'halloween',
@@ -143,6 +164,7 @@ function define(id, def) {
 
 define('premier-forage', { category: 'exploit', name: 'Premier coup de pioche', description: () => 'Terminer un premier forage du jour', icon: 'pioche' });
 const STREAK_BODIES = { 3: 'acier', 7: 'cuivre', 30: 'emeraude', 100: 'obsidienne' };
+const STREAK_TIMERS = { 14: 'lanterne' };
 STREAKS.forEach(([n, name]) => {
   define(`serie-${n}`, {
     category: 'serie',
@@ -150,7 +172,7 @@ STREAKS.forEach(([n, name]) => {
     description: () => `Forer ${n} jours d'affilée`,
     icon: 'lampe',
     label: String(n),
-    unlock: STREAK_BODIES[n] ? { type: 'body', id: STREAK_BODIES[n] } : null,
+    unlock: STREAK_BODIES[n] ? { type: 'body', id: STREAK_BODIES[n] } : STREAK_TIMERS[n] ? { type: 'timer', id: STREAK_TIMERS[n] } : null,
   });
 });
 const DEPTH_BITS = { 260: 'tariere', 500: 'tricone', 650: 'diamant', 700: 'carotteuse' };
@@ -171,6 +193,19 @@ PEPITES.forEach(([n, name, description]) => {
 THEMES.forEach(([n, name]) => {
   define(`themes-${n}`, { category: 'themes', name, description: () => `Rencontrer ${n} thèmes, tous modes de jeu confondus`, icon: 'carotte', label: String(n) });
 });
+TRAINING.forEach(([n, name]) => {
+  define(`entrainement-${n}`, { category: 'entrainement', name, description: () => `Terminer ${n} forages en mode illimité`, icon: 'cible', label: String(n), unlock: n === 50 ? { type: 'timer', id: 'wagonnet' } : null });
+});
+DEFIS.forEach(([n, name]) => {
+  define(`defi-${n}`, { category: 'defi', name, description: () => (n === 1 ? 'Réussir un défi de la semaine' : `Réussir ${n} défis de la semaine`), icon: 'fanion', label: n > 1 ? String(n) : null });
+});
+define('lanterne-rallumee', { category: 'serie', name: 'Lanterne rallumée', description: () => "Reprendre le forage après avoir perdu une série d'au moins 7 jours", icon: 'lanterne-mineur', unlock: { type: 'timer', id: 'lanterne' } });
+define('mois-complet', { category: 'serie', name: 'Mois complet', description: () => 'Forer tous les jours d\'un même mois, du premier au dernier', icon: 'calendrier-plein', unlock: { type: 'timer', id: 'wagonnet' } });
+define('filon', { category: 'pepites', name: 'Filon', description: () => 'Trouver 2 pépites dans le même forage', icon: 'pepite', label: '2', unlock: { type: 'timer', id: 'meche' } });
+define('jackpot', { category: 'pepites', name: 'Jackpot', description: () => 'Trouver 7 pépites dans le même forage', icon: 'diamant', label: '7' });
+define('in-extremis', { category: 'exploit', name: 'In extremis', description: () => 'Donner une réponse valide dans la toute dernière seconde du chrono', icon: 'sablier', unlock: { type: 'timer', id: 'meche' } });
+define('eclair', { category: 'exploit', name: 'Éclair', description: () => 'Donner une réponse valide en moins de 3 secondes', icon: 'eclair' });
+define('oeil-de-lynx', { category: 'exploit', name: 'Œil de lynx', description: () => 'Faire valider une réponse que tu avais signalée', icon: 'oeil' });
 define('sans-eboulement', { category: 'exploit', name: 'Sans éboulement', description: () => 'Répondre aux 7 thèmes du jour, sans en passer aucun', icon: 'bouclier' });
 define('diamantaire', { category: 'exploit', name: 'Diamantaire', description: () => 'Donner 7 réponses rares ou mieux (60 points ou plus) dans le même forage', icon: 'diamant' });
 define('sentier-battu', { category: 'exploit', name: 'Sentier battu', description: () => 'Donner 7 réponses communes (moins de 40 points) dans le même forage', icon: 'sentier' });
@@ -192,6 +227,8 @@ const BODIES = [
   ['tricolore', 'Tricolore'], ['fierte', 'Arc-en-ciel'], ['taupe', 'Taupe'], ['citrouille', 'Citrouille diabolique'], ['spectre', 'Spectre'],
   ['casque', 'Casque de mineur'], ['mitre', 'Mitre'], ['noel', 'Noël'], ['chat-noir', 'Chat noir'],
 ];
+// Apparences du décompte du chrono : la batterie de lampe est offerte, les autres se débloquent avec des badges.
+const TIMERS = [['batterie', 'Batterie de lampe'], ['meche', 'Mèche de dynamite'], ['wagonnet', 'Wagonnet'], ['lanterne', 'Lanterne']];
 const BITS = [['standard', 'Foret standard'], ['tariere', 'Tarière'], ['tricone', 'Tricône'], ['diamant', 'Couronne diamantée'], ['carotteuse', 'Carotteuse']];
 
 const PODIUM_MIN_PLAYERS = 3;
@@ -229,6 +266,48 @@ class BadgeService {
     return n;
   }
 
+  /**
+   * Série avec « étais de galerie » (gels de série) : un étai est gagné à chaque tranche de 7 jours forés d'affilée
+   * (3 au maximum) et pardonne automatiquement un jour manqué. Seuls les jours manqués à partir de FREEZE_FROM
+   * peuvent être pardonnés : l'histoire d'avant n'est pas réécrite.
+   * Renvoie { current, best, freezes (disponibles maintenant), pending (étais qui seront utilisés), alive, frozen (jours pardonnés) }.
+   */
+  static streakInfo(days, today, from = FREEZE_FROM) {
+    const between = (a, b) => Math.round((Date.parse(`${b}T12:00:00Z`) - Date.parse(`${a}T12:00:00Z`)) / 86400000);
+    let streak = 0;
+    let best = 0;
+    let freezes = 0;
+    let prev = null;
+    const frozen = [];
+    for (const d of days) {
+      if (d > today) break;
+      if (prev === null) streak = 1;
+      else {
+        const missed = between(prev, d) - 1;
+        if (missed === 0) streak++;
+        else if (addDays(prev, 1) >= from && missed <= freezes) {
+          freezes -= missed;
+          for (let k = 0; k < missed; k++) frozen.push(addDays(prev, 1 + k));
+          streak++;
+        } else streak = 1;
+      }
+      if (streak % 7 === 0) freezes = Math.min(3, freezes + 1);
+      best = Math.max(best, streak);
+      prev = d;
+    }
+    if (prev === null) return { current: 0, best: 0, freezes: 0, pending: 0, alive: false, frozen };
+    const missedNow = Math.max(0, between(prev, today) - 1);
+    const alive = missedNow === 0 || (addDays(prev, 1) >= from && missedNow <= freezes);
+    return {
+      current: alive ? streak : 0,
+      best,
+      freezes: alive ? freezes - missedNow : freezes,
+      pending: alive ? missedNow : 0,
+      alive,
+      frozen,
+    };
+  }
+
   static bestStreak(days) {
     let best = 0;
     let run = 0;
@@ -250,7 +329,7 @@ class BadgeService {
     const rounds = this.db.prepare('SELECT outcome, points FROM rounds WHERE game_id = ?').all(gameId);
 
     this.give(userId, 'premier-forage', '1', day);
-    const streak = BadgeService.streakEndingOn(this.playedDays(userId), day);
+    const streak = BadgeService.streakInfo(this.playedDays(userId), day).current;
     STREAKS.forEach(([n]) => streak >= n && this.give(userId, `serie-${n}`, '1', day));
     DEPTHS.forEach(([n, , , threshold]) => game.score >= threshold && this.give(userId, `profondeur-${n}`, '1', day));
     const pepites = this.db
@@ -263,6 +342,60 @@ class BadgeService {
     if (answered.length === ROUNDS_PER_GAME && answered.every((r) => r.points < 40)) this.give(userId, 'sentier-battu', day, day);
     if (answered.length === ROUNDS_PER_GAME && answered.every((r) => r.points < 20)) this.give(userId, 'autoroute', day, day);
     calendarKinds(day).forEach((kind) => this.give(userId, kind, day.slice(0, 4), day));
+
+    const pepitesNow = rounds.filter((r) => r.points >= 100).length;
+    if (pepitesNow >= 2) this.give(userId, 'filon', day, day);
+    if (pepitesNow >= ROUNDS_PER_GAME) this.give(userId, 'jackpot', day, day);
+
+    // Vitesse : réponses valides réellement saisies (une réponse accordée après coup par le responsable ne compte pas).
+    const timed = this.db
+      .prepare(
+        `SELECT r.served_at, r.answered_at FROM rounds r
+         WHERE r.game_id = ? AND r.outcome = 'answer' AND r.served_at IS NOT NULL AND r.answered_at IS NOT NULL
+           AND NOT EXISTS (SELECT 1 FROM answer_reports a WHERE a.game_id = r.game_id AND a.slot = r.slot AND a.credit = 'credited')`,
+      )
+      .all(gameId);
+    const limit = TIMER_SECONDS * 1000;
+    if (timed.some((r) => r.answered_at - r.served_at >= limit - 1000)) this.give(userId, 'in-extremis', day, day);
+    if (timed.some((r) => r.answered_at - r.served_at < 3000)) this.give(userId, 'eclair', day, day);
+
+    // Série reprise après une série d'au moins 7 jours perdue.
+    const runs = BadgeService.runs(this.playedDays(userId));
+    const current = runs.find((r) => r.end >= day && r.start <= day);
+    if (current && runs.some((r) => r.end < current.start && r.length >= 7)) this.give(userId, 'lanterne-rallumee', day, day);
+
+    // Mois complet : le dernier jour du mois, tous les jours du mois ont été forés.
+    if (day === monthEnd(day)) {
+      const played = new Set(this.playedDays(userId));
+      let all = true;
+      for (let d = monthStart(day); d <= day; d = addDays(d, 1)) if (!played.has(d)) all = false;
+      if (all) this.give(userId, 'mois-complet', day.slice(0, 7), day);
+    }
+
+    // Défis de la semaine réussis.
+    const done = this.completedChallenges(userId);
+    DEFIS.forEach(([n]) => done >= n && this.give(userId, `defi-${n}`, day, day));
+  }
+
+  /** Séries de jours consécutifs : [{ start, end, length }] dans l'ordre. */
+  static runs(days) {
+    const out = [];
+    for (const d of days) {
+      const last = out[out.length - 1];
+      if (last && addDays(last.end, 1) === d) {
+        last.end = d;
+        last.length++;
+      } else out.push({ start: d, end: d, length: 1 });
+    }
+    return out;
+  }
+
+  /** Nombre de semaines dont le défi a été réussi. */
+  completedChallenges(userId) {
+    const weeks = new Set(this.playedDays(userId).map((d) => weekStart(d)));
+    let n = 0;
+    for (const w of weeks) if (challengeProgress(this.db, userId, w).done) n++;
+    return n;
   }
 
   /** Nombre de thèmes rencontrés (forages du jour et mode illimité). */
@@ -274,10 +407,53 @@ class BadgeService {
     return daily + (training ? training.themes : 0);
   }
 
+  /**
+   * Résumé pour l'accueil : série en cours (et si elle est encore à sauver aujourd'hui) et badge le plus proche.
+   * Seuls comptent les badges de série, de thèmes rencontrés et de pépites, qui ont un compteur à faire monter.
+   */
+  homeSummary(userId, today) {
+    const days = this.playedDays(userId);
+    const playedToday = days.includes(today);
+    const info = BadgeService.streakInfo(days, today);
+    const current = info.current;
+    const owned = new Set(this.db.prepare('SELECT kind FROM badges WHERE user_id = ?').all(userId).map((r) => r.kind));
+    const candidates = [];
+    const consider = (kinds, progress, unit) => {
+      if (progress <= 0) return;
+      const next = kinds.find(([n]) => progress < n && !owned.has(kinds.prefix + n));
+      if (!next) return;
+      const id = kinds.prefix + next[0];
+      if (owned.has(id)) return;
+      candidates.push({ id, name: CATALOG.get(id).name(), icon: CATALOG.get(id).icon, category: CATALOG.get(id).category, label: CATALOG.get(id).label || null, remaining: next[0] - progress, ratio: (next[0] - progress) / next[0], unit });
+    };
+    const withPrefix = (list, prefix) => Object.assign(list.slice(), { prefix });
+    const pepites = this.db
+      .prepare("SELECT COUNT(*) AS n FROM rounds r JOIN games g ON g.id = r.game_id WHERE g.user_id = ? AND g.mode = 'daily' AND r.points >= 100")
+      .get(userId).n;
+    consider(withPrefix(STREAKS, 'serie-'), current, ['jour', 'jours']);
+    consider(withPrefix(THEMES, 'themes-'), this.themesSeen(userId), ['thème', 'thèmes']);
+    consider(withPrefix(PEPITES, 'pepites-'), pepites, ['pépite', 'pépites']);
+    const trainingGames = this.db.prepare('SELECT games FROM training_stats WHERE user_id = ?').get(userId);
+    consider(withPrefix(TRAINING, 'entrainement-'), trainingGames ? trainingGames.games : 0, ['forage illimité', 'forages illimités']);
+    candidates.sort((a, b) => a.ratio - b.ratio || a.remaining - b.remaining);
+    const next = candidates[0] || null;
+    const start = weekStart(today);
+    const challenge = { ...challengeProgress(this.db, userId, start), daysLeft: 7 - Math.round((Date.parse(`${today}T12:00:00Z`) - Date.parse(`${start}T12:00:00Z`)) / 86400000) };
+    challenge.unit = challenge.unit[challenge.goal > 1 ? 1 : 0];
+    return { current, playedToday, freezes: info.freezes, pendingFreezes: info.pending, frozenRecently: info.frozen.filter((d) => d >= addDays(today, -3)), challenge, next: next && { id: next.id, name: next.name, icon: next.icon, category: next.category, label: next.label, remaining: next.remaining, unit: next.remaining > 1 ? next.unit[1] : next.unit[0] } };
+  }
+
   /** Badges des thèmes rencontrés, vérifiés après chaque thème terminé. */
   awardThemes(userId, today) {
     const seen = this.themesSeen(userId);
     THEMES.forEach(([n]) => seen >= n && this.give(userId, `themes-${n}`, '1', today));
+    const training = this.db.prepare('SELECT games FROM training_stats WHERE user_id = ?').get(userId);
+    TRAINING.forEach(([n]) => training && training.games >= n && this.give(userId, `entrainement-${n}`, '1', today));
+  }
+
+  /** Badge « Œil de lynx » : une réponse signalée par le joueur a été validée par le responsable. */
+  awardLynx(userId, day) {
+    this.give(userId, 'oeil-de-lynx', '1', day);
   }
 
   /** Rattrape les badges des forages joués avant l'arrivée des badges (sans effet ensuite). */
@@ -389,32 +565,36 @@ class BadgeService {
     });
     const unlocked = new Set();
     badges.forEach((b) => b.count && b.unlock && unlocked.add(`${b.unlock.type}:${b.unlock.id}`));
+    // Une apparence peut être débloquée par plusieurs badges (le premier obtenu suffit).
     const hintFor = (type, id) => {
-      const badge = badges.find((b) => b.unlock && b.unlock.type === type && b.unlock.id === id);
-      return badge ? `Badge « ${badge.name} » : ${badge.description}` : null;
+      const list = badges.filter((b) => b.unlock && b.unlock.type === type && b.unlock.id === id);
+      if (!list.length) return null;
+      return list.length === 1 ? `Badge « ${list[0].name} » : ${list[0].description}` : `Un de ces badges : ${list.map((b) => `« ${b.name} » (${b.description})`).join(' ou ')}`;
     };
     const skinList = (list, type) =>
       list.map(([id, name]) => {
         const hint = hintFor(type, id);
         return { id, name, unlocked: !hint || unlocked.has(`${type}:${id}`), hint };
       });
-    const user = this.db.prepare('SELECT skin_body, skin_bit FROM users WHERE id = ?').get(userId);
+    const user = this.db.prepare('SELECT skin_body, skin_bit, skin_timer FROM users WHERE id = ?').get(userId);
     const pepites = this.db
       .prepare("SELECT COUNT(*) AS n FROM rounds r JOIN games g ON g.id = r.game_id WHERE g.user_id = ? AND g.mode = 'daily' AND r.points >= 100")
       .get(userId).n;
     const bestScore = this.db.prepare("SELECT MAX(score) AS s FROM games WHERE user_id = ? AND mode = 'daily'").get(userId).s || 0;
-    const current = Math.max(BadgeService.streakEndingOn(days, today), BadgeService.streakEndingOn(days, addDays(today, -1)));
+    const info = BadgeService.streakInfo(days, today);
+    const current = info.current;
     return {
-      stats: { currentStreak: current, bestStreak: BadgeService.bestStreak(days), daysPlayed: days.length, pepites, bestScore },
+      stats: { currentStreak: current, bestStreak: info.best, freezes: info.freezes, daysPlayed: days.length, pepites, bestScore },
       badges,
       bodies: skinList(BODIES, 'body'),
       bits: skinList(BITS, 'bit'),
+      timers: skinList(TIMERS, 'timer'),
       skin: this.skinOf(user),
     };
   }
 
   skinOf(user) {
-    return { body: (user && user.skin_body) || 'classique', bit: (user && user.skin_bit) || 'standard' };
+    return { body: (user && user.skin_body) || 'classique', bit: (user && user.skin_bit) || 'standard', timer: (user && user.skin_timer) || 'batterie' };
   }
 
   markSeen(userId) {
@@ -422,11 +602,12 @@ class BadgeService {
   }
 
   /** Change l'apparence de la foreuse, si elle est débloquée. Renvoie false sinon. */
-  setSkin(userId, today, { body, bit }) {
+  setSkin(userId, today, { body, bit, timer }) {
     const profile = this.profile(userId, today);
     const ok = (list, id) => list.some((s) => s.id === id && s.unlocked);
-    if (!ok(profile.bodies, body) || !ok(profile.bits, bit)) return false;
-    this.db.prepare('UPDATE users SET skin_body = ?, skin_bit = ? WHERE id = ?').run(body, bit, userId);
+    const chosenTimer = timer === undefined ? profile.skin.timer : timer;
+    if (!ok(profile.bodies, body) || !ok(profile.bits, bit) || !ok(profile.timers, chosenTimer)) return false;
+    this.db.prepare('UPDATE users SET skin_body = ?, skin_bit = ?, skin_timer = ? WHERE id = ?').run(body, bit, chosenTimer, userId);
     return true;
   }
 
