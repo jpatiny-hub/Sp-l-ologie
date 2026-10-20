@@ -29,6 +29,15 @@ const NEWS = [
       'Dans le podium (onglet « Jour ») et à la fin de ton forage, tu peux comparer tes réponses et tes points avec ceux des autres joueurs, thème par thème. Seuls les forages du jour (mode compétition) sont comparables : le mode illimité reste personnel.',
     ],
   },
+  {
+    id: 3,
+    date: '2026-10-20',
+    title: 'Fautes de frappe mieux pardonnées',
+    items: [
+      'Les fautes de frappe sont plus tolérantes : une touche voisine sur le clavier (z au lieu de e…) ne compte que pour une demi-faute, les longs noms acceptent jusqu\'à trois fautes, et le nom de famille seul est reconnu quand il est unique dans le thème. Le jeu te demande toujours de confirmer.',
+      'Lettres grecques : les variantes d\'orthographe sont acceptées (dzêta, éta, psy…). Le koala géant a rejoint les marsupiaux, et la série The 100 a été ajoutée.',
+    ],
+  },
 ];
 
 const LATEST_NEWS_ID = NEWS[NEWS.length - 1].id;
