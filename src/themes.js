@@ -54,7 +54,7 @@ function addAnswer(theme, level, names, line) {
     theme.warnings.push(`ligne ${line} : « ${names[0]} » fait doublon avec « ${existing.label} »`);
     return;
   }
-  const answer = { key: keys[0], label: names[0], level, weight: LEVEL_WEIGHTS[level] };
+  const answer = { key: keys[0], label: names[0], names, level, weight: LEVEL_WEIGHTS[level] };
   theme.answers.push(answer);
   theme.weightTotal += answer.weight;
   for (const key of keys) {

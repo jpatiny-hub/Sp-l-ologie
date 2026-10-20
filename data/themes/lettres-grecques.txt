@@ -1,7 +1,7 @@
 titre: Une lettre de l'alphabet grec
 # Les 24 lettres classiques, plus les lettres archaïques ou numérales (digamma, koppa, sampi…).
-1: Alpha; Bêta; Gamma; Delta; Pi; Oméga; Sigma; Lambda
-2: Epsilon; Thêta; Phi; Psi; Mu = Mû; Rhô; Tau; Khi = Chi
-3: Zêta; Êta; Iota; Kappa; Nu = Nû; Xi = Ksi; Omicron; Upsilon = Ypsilon
+1: Alpha = Alfa; Bêta = Vita; Gamma; Delta = Dhelta; Pi; Oméga = Omega; Sigma; Lambda = Lamda = Lamba
+2: Epsilon; Thêta = Théta = Thita = Tita = Tetha = Teta; Phi = Fi; Psi = Psy; Mu = Mû = Mi; Rhô = Rô = Ro; Tau; Khi = Chi
+3: Zêta = Dzêta = Zéta = Zita; Êta = Éta = Ita; Iota = Yota = Giota; Kappa = Cappa = Kapa; Nu = Nû = Ni; Xi = Ksi; Omicron = Omikron = Omicrone; Upsilon = Ypsilon = Hupsilon = Ipsilon
 4: Digamma = Wau; Koppa = Qoppa; Sampi; Stigma
 5: San; Hêta; Yot

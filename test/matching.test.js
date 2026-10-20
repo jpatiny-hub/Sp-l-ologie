@@ -69,3 +69,31 @@ test('symboles : C, C++ et C# restent distincts, les exposants sont lus', () => 
   assert.equal(toKey('C sharp'), toKey('C#'));
   assert.equal(toKey('E=mc²'), toKey('Emc2'));
 });
+
+test('touches voisines du clavier : une demi-faute seulement', () => {
+  assert.equal(editDistance('zeta', 'eeta', 1), 0.5); // z à côté de e (AZERTY)
+  assert.equal(editDistance('wlan', 'qlan', 1), 0.5);
+  assert.equal(editDistance('abcd', 'apcd', 1), 1); // b et p ne sont pas voisines
+  const t = parseTheme('t', 'titre: t\n1: Belgique; Allemagne; Norvège; Cuba; Iran\n');
+  assert.equal(matchAnswer(t, 'Belgiqye').answer.label, 'Belgique'); // u/y voisines
+  assert.equal(matchAnswer(t, 'Cuna').answer.label, 'Cuba'); // b/n voisines : accepté même à 4 lettres
+  assert.equal(matchAnswer(t, 'Cuxa'), null); // x n'est pas voisine de b
+  assert.equal(matchAnswer(t, 'Irak'), null); // 4 lettres : pas de faute ordinaire
+});
+
+test('tolérance plus large sur les longs noms', () => {
+  const t = parseTheme('t', 'titre: t\n1: Constantinople; Pétaouchnok-les-Bains\n');
+  assert.equal(matchAnswer(t, 'Constantinoplle').answer.label, 'Constantinople');
+  assert.equal(matchAnswer(t, 'Petaouchnok les Bainns').answer.label, 'Pétaouchnok-les-Bains');
+  assert.equal(matchAnswer(t, 'Petaouxhnok les Bainns').answer.label, 'Pétaouchnok-les-Bains'); // 2 fautes
+  assert.equal(matchAnswer(t, 'Petaouxhnxk les Bainns').answer.label, 'Pétaouchnok-les-Bains'); // 3 fautes (13 lettres ou plus)
+});
+
+test('nom de famille seul, quand il est unique dans le thème', () => {
+  const t = parseTheme('t', 'titre: t\n1: François Hollande; Emmanuel Macron; Jacques Chirac; Jean Chirac; Louis Napoléon Bonaparte = Napoléon III\n');
+  const m = matchAnswer(t, 'Hollande');
+  assert.equal(m.answer.label, 'François Hollande');
+  assert.equal(m.approximate, true, 'confirmation demandée');
+  assert.equal(matchAnswer(t, 'Chirac'), null, 'ambigu : deux Chirac');
+  assert.equal(matchAnswer(t, 'Francois'), null, 'le prénom seul reste refusé');
+});

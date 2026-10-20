@@ -96,7 +96,6 @@ CREATE TABLE IF NOT EXISTS answer_reports (
   PRIMARY KEY (user_id, theme_id, input_key)
 );
 
--- Thèmes proposés par les joueurs, à examiner par le responsable du jeu.
 -- Statistiques cumulées du mode illimité (les parties d'entraînement sont effacées à la suivante).
 CREATE TABLE IF NOT EXISTS training_stats (
   user_id           INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
@@ -111,6 +110,7 @@ CREATE TABLE IF NOT EXISTS training_stats (
   best_score        INTEGER NOT NULL DEFAULT 0
 );
 
+-- Thèmes proposés par les joueurs, à examiner par le responsable du jeu.
 CREATE TABLE IF NOT EXISTS theme_suggestions (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
