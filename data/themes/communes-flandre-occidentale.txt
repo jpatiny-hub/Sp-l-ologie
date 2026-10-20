@@ -1,0 +1,7 @@
+titre: Une ville ou commune de la province de Flandre occidentale
+# 62 communes (liste officielle au 1er janvier 2026, après les fusions de 2019 et 2025). Anciennes communes fusionnées acceptées comme variantes.
+1: Bruges = Brugge = Sint-Kruis = Sint-Andries = Sint-Michiels = Assebroek = Lissewege = Zeebrugge = Dudzele; Courtrai = Kortrijk = Heule = Marke = Aalbeke = Bissegem; Ostende = Oostende = Stene
+2: Blankenberghe = Blankenberge; Le Coq = De Haan = Wenduine; Coxyde = Koksijde = Oostduinkerke; Dixmude = Diksmuide; Furnes = Veurne; Harelbeke; Iseghem = Izegem; Knokke-Heist = Knokke = Heist = Westkapelle; Menin = Menen = Lauwe = Rekkem; Middelkerke = Westende = Lombardsijde; Nieuport = Nieuwpoort; La Panne = Adinkerke; Poperinge = Watou; Roulers = Roeselare = Rumbeke; Thourout = Torhout; Tielt = Meulebeke; Waregem; Ypres = Ieper = Vlamertinge = Zillebeke = Boezinge
+3: Beernem; Bredene; Damme; Kuurne; Oostkamp; Wervicq = Wervik; Wevelgem = Gullegem = Moorsele; Wingene = Ruiselede; Zedelgem = Zedelghem; Zonnebeke = Passendale; Zwevegem
+4: Anzegem; Avelgem; Deerlijk; Gistel; Heuvelland = Kemmel = Dranouter; Hooglede; Ichtegem; Ingelmunster; Jabbeke; Kortemark; Lichtervelde; Moorslede; Oudenburg = Audembourg; Pittem; Staden; Wielsbeke
+5: Alveringem; Ardooie = Ardoye; Dentergem; Houthulst; Koekelare; Langemark-Poelkapelle = Langemark = Poelkapelle; Ledegem = Ledeghem; Lendelede; Lo-Reninge = Lo = Reninge; Mesen = Messines; Oostrozebeke; Spiere-Helkijn = Espierres-Helchin; Vleteren = Westvleteren; Zuienkerke = Zuyenkerque

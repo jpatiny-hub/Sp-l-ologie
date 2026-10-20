@@ -1,0 +1,7 @@
+titre: Une marque de déodorant
+# Marques (grand public, pharmacie, bio, parfumeurs) qui commercialisent ou ont commercialisé des déodorants, en Belgique ou à l'international. Liste non exhaustive : nombreuses marques de distributeur et de niche non reprises.
+1: Rexona; Nivea; Dove; Axe = Lynx; Sanex; Narta; Adidas; Old Spice; Fa; Gillette; Mennen; Mixa; Garnier
+2: Williams; Speed Stick; Right Guard; Secret; Degree; Sure; Brut; Vichy; Le Petit Marseillais; Etiaxil; Akileïne; Monsavon; Palmolive; Cadum; Ushuaïa; Yves Rocher; The Body Shop; Lacoste; Jean Paul Gaultier; Hugo Boss; Dior; Chanel; Mitchum; Bionsen; Playboy; Mum; Ban; Arrid; Dermophil
+3: Weleda; Lavera; Tom's of Maine = Toms of Maine; Crystal; Stiefel; Kiehl's = Kiehls; Schmidt's = Schmidts; Native; Dr. Organic = Dr Organic; Nuxe; Cattier; Rituals; Lush; Lifebuoy; Tabac; Denim; Impulse; Soft & Gentle = Soft and Gentle; Arm & Hammer = Arm and Hammer; Hidrofugal; Neutrogena; Yves Saint Laurent = YSL; Paco Rabanne; Azzaro; Giorgio Armani = Armani; Calvin Klein; Davidoff; Hermès; Guerlain; Issey Miyake; Borotalco; Yardley; Teen Spirit; Suave; Eucerin; La Roche-Posay; Uriage; Klorane; Sebamed; Clarins; Clinique; Estée Lauder; Aesop; Balea; Alverde; Isana; Cien
+4: Fenjal; Certain Dri; Drysol; Perspirex; Odaban
+5: Corine de Farme; Obao

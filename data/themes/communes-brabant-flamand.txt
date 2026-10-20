@@ -1,0 +1,7 @@
+titre: Une ville ou commune de la province du Brabant flamand
+# 63 communes (liste officielle au 1er janvier 2026, après les fusions de 2019 et 2025). Anciennes communes fusionnées acceptées comme variantes.
+1: Louvain = Leuven = Heverlee = Kessel-Lo = Wilsele = Wijgmaal
+2: Aerschot = Aarschot; Asse; Beersel; Crainhem = Kraainem; Diest; Dilbeek = Dilbeem = Groot-Bijgaarden = Itterbeek = Schepdaal; Drogenbos; Grimbergen = Strombeek-Bever = Humbeek; Hal = Halle = Lembeek = Buizingen; Landen; Linkebeek; Machelen = Diegem; Montaigu = Scherpenheuvel-Zichem = Zichem = Scherpenheuvel = Averbode; Overijse; Rhode-Saint-Genèse = Sint-Genesius-Rode; Tervuren = Tervueren; Tirlemont = Tienen; Vilvoorde = Vilvorde; Wemmel; Wezembeek-Oppem; Zaventem = Sterrebeek = Nossegem = Sint-Stevens-Woluwe
+3: Herent; Hoegaarden; Hoeilaart = Hoeilaert; Kortenberg = Cortenbergh; Meise; Merchtem; Pajottegem = Gooik = Galmaarden = Herne; Rotselaar = Rotselaer; Sint-Pieters-Leeuw = Leeuw-Saint-Pierre; Zoutleeuw = Léau
+4: Affligem; Bertem; Haacht = Haecht; Holsbeek; Huldenberg; Kampenhout; Kapelle-op-den-Bos; Keerbergen; Lennik; Liedekerke; Londerzeel; Lubbeek; Opwijk; Oud-Heverlee; Pepingen; Steenokkerzeel = Steenockerzeel; Ternat; Zemst
+5: Begijnendijk; Bekkevoort; Bever = Biévène; Bierbeek; Boortmeerbeek; Boutersem; Geetbets; Glabbeek; Kortenaken; Linter; Roosdaal = Pamel; Tielt-Winge; Tremelo

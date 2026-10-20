@@ -1,0 +1,7 @@
+titre: Une ville ou commune de la province de Limbourg (Belgique)
+# 38 communes (liste officielle au 1er janvier 2026, après les fusions de 2019 et 2025). Anciennes communes fusionnées acceptées comme variantes.
+1: Genk; Hasselt = Kortessem = Kuringen = Kermt
+2: Beringen; Bilzen-Hoeselt = Bilzen = Hoeselt; Bourg-Léopold = Leopoldsburg; Fourons = Voeren; Lommel; Maaseik; Maasmechelen = Eisden = Leut; Pelt = Neerpelt = Overpelt; Saint-Trond = Sint-Truiden; Tongres = Tongeren-Borgloon = Tongeren = Borgloon
+3: Bocholt; Bree; Diepenbeek; Dilsen-Stokkem = Dilsen = Stokkem; Halen; Hamont-Achel = Hamont; Herck-la-Ville = Herk-de-Stad; Heusden-Zolder = Heusden = Zolder; Houthalen-Helchteren = Houthalen = Helchteren; Lanaken = Rekem; Lummen; Oudsbergen = Meeuwen-Gruitrode = Opglabbeek; Peer; Riemst; Tessenderlo-Ham = Tessenderlo = Ham; Zonhoven
+4: Alken; Hechtel-Eksel = Hechtel = Eksel; Kinrooi; Wellen; Zutendaal
+5: As; Gingelom; Heers; Herstappe; Nieuwerkerken

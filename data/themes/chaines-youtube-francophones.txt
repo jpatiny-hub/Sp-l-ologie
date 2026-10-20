@@ -1,0 +1,5 @@
+titre: Une chaîne YouTube francophone de plus de 5 millions d'abonnés (relevé 2025)
+actif: non
+# THÈME DÉSACTIVÉ : impossible de vérifier les chiffres d'abonnés en ligne (Wikipédia inaccessible depuis l'environnement) et moins de 20 chaînes certaines. Liste établie de mémoire, à compléter et vérifier avant d'activer.
+1: Squeezie; Cyprien; Norman = Norman fait des vidéos; Michou; Inoxtag
+2: McFly et Carlito = McFly & Carlito = Mcfly Carlito; Tibo InShape = Tibo Inshape; Natoo; Amixem; Mister V = MisterV

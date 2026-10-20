@@ -1,0 +1,8 @@
+titre: Un type ou une famille de sauce
+actif: non
+# Critère : termes de classification de la cuisine classique (sauces mères, grandes familles de sauces, bases et liaisons). Liste NON fermée (la typologie varie selon les auteurs : 4 ou 5 sauces mères, etc.), d'où actif: non.
+1: Béchamel; Mayonnaise; Vinaigrette; Ketchup; Sauce tomate; Sauce soja = Soja; Sauce piquante; Sauce blanche; Sauce brune
+2: Velouté; Espagnole = Sauce espagnole; Hollandaise = Sauce hollandaise; Sauce mère = Sauce de base = Grande sauce; Sauce émulsionnée = Émulsion; Sauce chaude; Sauce froide; Sauce au beurre = Sauce beurre; Sauce au vin; Jus; Fond; Coulis; Crème anglaise; Caramel; Roux; Liaison
+3: Sabayon; Gastrique; Réduction; Demi-glace; Fumet; Glace de viande; Sauce dérivée = Sauce composée = Petite sauce; Beurre composé; Sauce vierge; Sauce aigre-douce; Sauce barbecue; Salsa; Jus lié; Sauce crème = Sauce à la crème
+4: Beurre monté; Beurre blanc; Déglaçage; Sauce courte; Sauce longue; Sauce émulsion chaude
+5: Sauce allemande; Sauce suprême

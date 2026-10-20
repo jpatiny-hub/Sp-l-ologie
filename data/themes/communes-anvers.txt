@@ -1,0 +1,7 @@
+titre: Une ville ou commune de la province d'Anvers
+# 67 communes (liste officielle au 1er janvier 2026, après les fusions de 2019 et 2025). Anciennes communes fusionnées acceptées comme variantes.
+1: Anvers = Antwerpen = Borsbeek = Berchem = Borgerhout = Deurne = Ekeren = Hoboken = Merksem = Wilrijk = Berendrecht; Malines = Mechelen = Muizen = Heffen = Leest
+2: Brasschaat; Geel; Herentals; Lierre = Lier; Mol; Mortsel; Schoten; Turnhout
+3: Aartselaar; Baarle-Hertog = Baerle-Duc; Boom; Bornem; Brecht; Duffel; Edegem; Essen; Heist-op-den-Berg = Heist-sur-la-Montagne; Hemiksem; Hoogstraten; Kalmthout; Kapellen; Kontich; Niel; Puurs-Sint-Amands = Puers-Saint-Amand = Puurs = Sint-Amands; Schilde; Westerlo; Wijnegem; Willebroek; Zoersel
+4: Balen; Boechout; Hove; Malle = Oostmalle = Westmalle; Oud-Turnhout = Vieux-Turnhout; Sint-Katelijne-Waver = Wavre-Sainte-Catherine; Wommelgem = Wommelghem; Wuustwezel; Zandhoven
+5: Arendonk; Beerse; Berlaar; Bonheiden; Dessel; Grobbendonk; Herenthout; Herselt; Hulshout; Kasterlee; Laakdal; Lille; Lint; Meerhout; Merksplas; Nijlen; Olen; Putte; Ranst; Ravels; Retie = Rethy; Rijkevorsel; Rumst; Schelle; Stabroek; Vorselaar = Vorselaer; Vosselaar = Vosselaer
