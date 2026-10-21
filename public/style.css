@@ -794,3 +794,33 @@ summary:hover .pm, summary:focus-visible .pm { color: var(--ink); }
 :root[data-lisible] .hud span.hud-remaining { color: #ffd84d; }
 :root[data-lisible] h2 { font-size: calc(17px * var(--fs)); }
 :root[data-lisible] #hud-depth { color: #ffd84d; }
+
+/* ---------- Avatars ---------- */
+canvas.avatar { image-rendering: pixelated; flex: none; }
+.who-av { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.who-av .who-name { overflow: hidden; text-overflow: ellipsis; }
+.who-av canvas.avatar-bust { width: 32px; height: auto; }
+.mini-podium .who-av canvas.avatar-bust { width: 28px; }
+.ranking .who-av canvas.avatar-bust { width: 32px; }
+.compare-list .who, .score-bar .who { display: inline-flex; align-items: center; gap: 6px; }
+canvas.avatar-head { width: 20px; height: auto; }
+.podium .avatar-slot { display: flex; justify-content: center; min-height: 0; }
+.podium .avatar-slot canvas { width: 54px; height: auto; max-width: 100%; }
+.home-profile { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; }
+.home-profile p { margin: 0; }
+.home-profile canvas.avatar { width: 48px; height: auto; }
+.prof-head { display: flex; gap: 16px; align-items: center; margin-bottom: 8px; }
+.prof-avatar canvas { width: 96px; height: auto; background: var(--well); box-shadow: 0 0 0 3px var(--line); padding: 4px; }
+.prof-name { margin: 0 0 8px; font-family: 'Press Start 2P', monospace; font-size: calc(14px * var(--fs)); color: var(--accent); overflow-wrap: anywhere; }
+.small-btn { padding: 8px 10px; }
+#avatar-options .opt { display: flex; align-items: center; gap: 6px; padding: 6px 0; border-bottom: 2px dashed rgba(0,0,0,0.35); }
+#avatar-options .lab { width: 92px; flex: none; color: var(--muted); font-size: calc(18px * var(--fs)); }
+#avatar-options .val-wrap { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 0; text-align: center; }
+#avatar-options .val { font-size: calc(18px * var(--fs)); color: var(--ink); line-height: 1.1; }
+#avatar-options .val.locked { color: var(--muted); }
+#avatar-options .swatch { width: 18px; height: 18px; flex: none; box-shadow: 0 0 0 3px var(--line); }
+#avatar-options .arr { width: 40px; height: 36px; flex: none; background: var(--panel-2); border: 0; color: var(--accent); font-family: 'Press Start 2P', monospace; font-size: 14px; box-shadow: 0 0 0 3px var(--line); cursor: pointer; }
+:root[data-theme='clair'] #avatar-options .opt { border-color: rgba(91, 70, 48, 0.35); }
+.podium .step { gap: 2px; }
+.podium .avatar-slot { margin-bottom: -4px; }
+.ranking li { align-items: center; }

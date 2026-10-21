@@ -17,6 +17,21 @@
     pending: null,
   };
 
+  // ---------- Avatars ----------
+  /** Canevas d'avatar ('bust' dans les listes, 'full' sur le podium et le profil). */
+  function avatarEl(avatar, view = 'bust', scale = 2) {
+    return avatar && window.Avatar ? Avatar.canvas(avatar, { scale, view }) : null;
+  }
+  /** Pseudo précédé de son avatar, pour les listes. */
+  function whoEl(avatar, username, className = 'who-av') {
+    return el('span', { class: className }, avatarEl(avatar), el('span', { class: 'who-name' }, username));
+  }
+  function showMyAvatar() {
+    if (!app.me || !app.me.avatar) return;
+    scene.setAvatar(app.me.avatar);
+    $('home-avatar').replaceChildren(avatarEl(app.me.avatar, 'bust', 3));
+  }
+
   // ---------- Paramètres (propres à l'appareil) ----------
   const SETTINGS_KEY = 'speleologie.settings';
   const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false };
@@ -376,6 +391,7 @@
     app.game = null;
     app.skin = me.skin;
     scene.setSkin(me.skin);
+    showMyAvatar();
     setTimerSeconds(app.me.timerSeconds);
     $('who').textContent = app.me.user.username;
     $('settings-user').textContent = app.me.user.username;
@@ -517,7 +533,7 @@
       list.replaceChildren();
       const medals = ['🥇', '🥈', '🥉'];
       board.entries.slice(0, 3).forEach((e) => {
-        list.append(el('li', { class: e.me ? 'me' : '' }, el('span', {}, `${medals[e.rank - 1] || e.rank + '.'} ${e.username}`), el('span', {}, pts(e.score))));
+        list.append(el('li', { class: e.me ? 'me' : '' }, el('span', { class: 'who-av' }, `${medals[e.rank - 1] || e.rank + '.'} `, avatarEl(e.avatar), el('span', { class: 'who-name' }, e.username)), el('span', {}, pts(e.score))));
       });
       if (!board.entries.length) list.append(el('li', {}, 'Personne n\'a encore creusé cette semaine.'));
       if (board.me && board.me.rank > 3) list.append(el('li', { class: 'me' }, el('span', {}, `${board.me.rank}. toi`), el('span', {}, pts(board.me.score))));
@@ -1225,7 +1241,7 @@
   function initFolds() {
     const view = $('view-profile');
     view.querySelectorAll('details.fold').forEach((d) => {
-      d.open = foldOpen(d.dataset.fold, d.dataset.fold === 'carnet');
+      d.open = foldOpen(d.dataset.fold, d.dataset.fold === 'profil');
     });
     watchFolds(view);
   }
@@ -1264,6 +1280,97 @@
   $('badge-pop-close').addEventListener('click', closeBadge);
   $('badge-pop').addEventListener('click', (e) => e.target === $('badge-pop') && closeBadge());
   document.addEventListener('keydown', (e) => e.key === 'Escape' && !$('badge-pop').hidden && closeBadge());
+
+
+  // ---------- Profil : avatar et pseudo ----------
+  const SWATCH = {
+    peau: { clair: '#f1c9a5', mat: '#d9a066', brun: '#9c6a43', fonce: '#6b4328' },
+    couleur: { brun: '#4a2f1a', noir: '#1b1410', blond: '#e8c547', roux: '#c4562a', gris: '#b8b8c0', rose: '#e86aa8', bleu: '#4a86e8' },
+  };
+  const AVATAR_ORDER = ['forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'chapeau', 'tenue', 'objet', 'lieu'];
+
+  function renderAvatarEditor(profile) {
+    const catalog = profile.avatarCatalog;
+    const draft = { ...profile.avatar };
+    const preview = () => {
+      $('prof-avatar').replaceChildren(avatarEl(draft, 'full', 6));
+    };
+    $('prof-name').textContent = app.me.user.username;
+    const rows = AVATAR_ORDER.map((slot) => {
+      const cat = catalog[slot];
+      const label = el('span', { class: 'val' });
+      const swatch = el('span', { class: 'swatch' });
+      const refresh = () => {
+        const opt = cat.options.find((o) => o.id === draft[slot]) || cat.options[0];
+        label.textContent = `${opt.unlocked ? '' : '🔒 '}${opt.label}`;
+        label.classList.toggle('locked', !opt.unlocked);
+        if (SWATCH[slot]) swatch.style.background = SWATCH[slot][opt.id] || 'transparent';
+      };
+      const step = (dir) => {
+        const i = cat.options.findIndex((o) => o.id === draft[slot]);
+        draft[slot] = cat.options[(i + dir + cat.options.length) % cat.options.length].id;
+        refresh();
+        preview();
+        commit();
+      };
+      const prev = el('button', { class: 'arr', type: 'button', 'aria-label': `${cat.label} précédent` }, '◀');
+      const next = el('button', { class: 'arr', type: 'button', 'aria-label': `${cat.label} suivant` }, '▶');
+      prev.addEventListener('click', () => step(-1));
+      next.addEventListener('click', () => step(1));
+      refresh();
+      return el('div', { class: 'opt' }, el('span', { class: 'lab' }, cat.label), prev, el('span', { class: 'val-wrap' }, SWATCH[slot] ? swatch : null, label), next);
+    });
+    $('avatar-options').replaceChildren(...rows);
+    preview();
+    let timer = null;
+    function commit() {
+      clearTimeout(timer);
+      const locked = AVATAR_ORDER.map((slot) => catalog[slot].options.find((o) => o.id === draft[slot])).filter((o) => o && !o.unlocked);
+      if (locked.length) {
+        $('avatar-status').textContent = `🔒 ${locked.map((o) => o.hint).join(' — ')} (pas enregistré tant que ce n'est pas débloqué)`;
+        return;
+      }
+      $('avatar-status').textContent = '';
+      timer = setTimeout(async () => {
+        try {
+          const res = await api('/api/profile/avatar', { avatar: draft });
+          app.me.avatar = res.avatar;
+          showMyAvatar();
+          $('avatar-status').textContent = 'Personnage enregistré.';
+        } catch (err) {
+          $('avatar-status').textContent = err.message;
+        }
+      }, 500);
+    }
+  }
+
+  $('btn-rename').addEventListener('click', () => {
+    $('form-rename').hidden = false;
+    $('rename-name').value = app.me.user.username;
+    $('rename-password').value = '';
+    $('rename-status').textContent = '';
+    $('rename-name').focus();
+  });
+  $('btn-rename-cancel').addEventListener('click', () => {
+    $('form-rename').hidden = true;
+  });
+  $('form-rename').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const status = $('rename-status');
+    status.textContent = '';
+    try {
+      const res = await api('/api/profile/rename', { username: $('rename-name').value, password: $('rename-password').value });
+      app.me.user.username = res.user.username;
+      $('who').textContent = res.user.username;
+      $('settings-user').textContent = res.user.username;
+      $('prof-name').textContent = res.user.username;
+      $('rename-password').value = '';
+      $('form-rename').hidden = true;
+      status.textContent = `C'est fait : tu t'appelles maintenant ${res.user.username}. Prochain changement possible dans une semaine.`;
+    } catch (err) {
+      status.textContent = err.message;
+    }
+  });
 
   async function openProfile() {
     stopTimer();
@@ -1485,6 +1592,7 @@
       ['Meilleur forage', pts(st.bestScore)],
     ];
     $('profile-stats').replaceChildren(...stats.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]));
+    renderAvatarEditor(profile);
     renderPlayerStats(profile.playerStats);
     renderCharts(profile.playerStats.charts, st.bestScore);
     renderBadgeSections();
@@ -1928,6 +2036,7 @@
       step.append(
         el('span', { class: 'name' }, entry ? entry.username : '—'),
         el('span', { class: 'score' }, entry ? pts(entry.score) : ''),
+        el('span', { class: 'avatar-slot' }, entry ? avatarEl(entry.avatar, 'full', 3) : null),
         el('div', { class: 'block' }, String(place)),
       );
       podium.append(step);
@@ -1941,7 +2050,7 @@
           'li',
           { class: e.me ? 'me' : '' },
           el('span', {}, `${e.rank}.`),
-          el('span', {}, e.username, board.period === 'day' ? null : el('span', { class: 'days' }, ` (${e.days} j)`)),
+          el('span', { class: 'who-av' }, avatarEl(e.avatar), el('span', { class: 'who-name' }, e.username, board.period === 'day' ? null : el('span', { class: 'days' }, ` (${e.days} j)`))),
           el('span', {}, pts(e.score)),
         ),
       );
@@ -1980,7 +2089,7 @@
               el(
                 'div',
                 { class: `score-bar${p.me ? ' me' : ''}` },
-                el('span', { class: 'who' }, p.username),
+                el('span', { class: 'who' }, avatarEl(p.avatar, 'head', 2), p.username),
                 el('span', { class: 'track' }, el('span', { class: 'fill', style: { width: `${Math.round((p.score / top) * 100)}%`, background: Pixel.TIER_COLORS[scoreTier(p.score)] } })),
                 el('span', { class: 'n' }, pts(p.score)),
               ),
@@ -2010,7 +2119,7 @@
                 'li',
                 { class: `${p.me ? 'me' : ''}${mark}` },
                 el('span', { class: 'swatch', style: { background: Pixel.TIER_COLORS[r.tier] || '#666' } }),
-                el('span', { class: 'who' }, p.username),
+                el('span', { class: 'who' }, avatarEl(p.avatar, 'head', 2), p.username),
                 el('span', { class: 'what' }, what),
                 el('span', { class: 'pts' }, pts(r.points || 0)),
               ),
