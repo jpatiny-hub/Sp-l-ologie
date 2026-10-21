@@ -19,7 +19,7 @@
 
   // ---------- Paramètres (propres à l'appareil) ----------
   const SETTINGS_KEY = 'speleologie.settings';
-  const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre' };
+  const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false };
   try {
     const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
     // Ancien réglage « mode daltonien » (case à cocher) : devenu « rouge-vert ».
@@ -45,7 +45,10 @@
     Sound.configure({ enabled: settings.sound, volume: settings.volume / 100 });
     Pixel.setColorblind(settings.colors);
     root.classList.toggle('colorblind', settings.colors !== 'normal');
-    if (settings.theme === 'clair') root.dataset.theme = 'clair';
+    // Lecture facile : police lisible, espacements larges et fond crème doux (apparence claire).
+    if (settings.lisible) root.dataset.lisible = '';
+    else delete root.dataset.lisible;
+    if (settings.theme === 'clair' || settings.lisible) root.dataset.theme = 'clair';
     else delete root.dataset.theme;
     const button = $('btn-sound');
     button.setAttribute('aria-pressed', String(settings.sound));
@@ -95,6 +98,8 @@
     settingsForm.elements.volume.value = settings.volume;
     settingsForm.elements.colors.value = settings.colors;
     settingsForm.elements.theme.value = settings.theme;
+    settingsForm.elements.lisible.checked = settings.lisible;
+    settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
     $('settings').showModal();
   });
   settingsForm.addEventListener('input', () => {
@@ -104,6 +109,8 @@
     settings.volume = Number(settingsForm.elements.volume.value);
     settings.colors = settingsForm.elements.colors.value || 'normal';
     settings.theme = settingsForm.elements.theme.value || 'sombre';
+    settings.lisible = settingsForm.elements.lisible.checked;
+    settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
     applySettings();
     saveSettings();
     fitCanvas();
