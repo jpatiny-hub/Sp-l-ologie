@@ -69,6 +69,33 @@ class GameService {
     return chosen;
   }
 
+  /**
+   * Thème de remplacement du jour (le « joker ») : le même pour tous, tiré parmi les thèmes pas encore choisis ce jour-là,
+   * en privilégiant ceux qui n'ont pas servi depuis longtemps.
+   */
+  dailySpare(day) {
+    const existing = this.db.prepare('SELECT theme_id FROM daily_spare WHERE day = ?').get(day);
+    if (existing && this.themes.get(existing.theme_id)) return existing.theme_id;
+    const todays = new Set(this.dailyThemes(day));
+    const lastUsed = new Map(
+      this.db
+        .prepare('SELECT theme_id, MAX(day) AS last FROM daily_themes WHERE day < ? GROUP BY theme_id')
+        .all(day)
+        .map((r) => [r.theme_id, r.last]),
+    );
+    const candidates = shuffle(this.activeThemeIds().filter((id) => !todays.has(id)));
+    if (!candidates.length) return null;
+    candidates.sort((a, b) => (lastUsed.get(a) || '').localeCompare(lastUsed.get(b) || ''));
+    this.db.prepare('INSERT OR REPLACE INTO daily_spare (day, theme_id) VALUES (?, ?)').run(day, candidates[0]);
+    return candidates[0];
+  }
+
+  /** Thème de remplacement de la partie (joker), ou null s'il n'y en a pas ou s'il est déjà utilisé. */
+  spareFor(game) {
+    if (game.joker_used) return null;
+    return game.mode === 'daily' ? this.dailySpare(game.day) : game.spare_theme || null;
+  }
+
   dailyGameFor(userId, day) {
     return this.db.prepare("SELECT * FROM games WHERE user_id = ? AND day = ? AND mode = 'daily'").get(userId, day);
   }
@@ -86,16 +113,16 @@ class GameService {
       const pool = shuffle(this.activeThemeIds().filter((id) => !excluded.has(id)));
       if (pool.length < ROUNDS_PER_GAME) throw new HttpError(500, 'Pas assez de thèmes pour un entraînement.');
       this.db.prepare("DELETE FROM games WHERE user_id = ? AND mode = 'training'").run(userId);
-      return this.state(this.createGame(userId, 'training', day, pool.slice(0, ROUNDS_PER_GAME)), userId);
+      return this.state(this.createGame(userId, 'training', day, pool.slice(0, ROUNDS_PER_GAME), pool[ROUNDS_PER_GAME] || null), userId);
     }
     throw new HttpError(400, 'Mode de jeu inconnu.');
   }
 
-  createGame(userId, mode, day, themeIds) {
+  createGame(userId, mode, day, themeIds, spare = null) {
     return transaction(this.db, () => {
       const { lastInsertRowid } = this.db
-        .prepare('INSERT INTO games (user_id, mode, day, created_at) VALUES (?, ?, ?, ?)')
-        .run(userId, mode, day, this.now());
+        .prepare('INSERT INTO games (user_id, mode, day, created_at, spare_theme) VALUES (?, ?, ?, ?, ?)')
+        .run(userId, mode, day, this.now(), spare);
       const gameId = Number(lastInsertRowid);
       const insert = this.db.prepare('INSERT INTO rounds (game_id, slot, theme_id) VALUES (?, ?, ?)');
       themeIds.forEach((id, slot) => insert.run(gameId, slot, id));
@@ -345,6 +372,7 @@ class GameService {
       me: g.userId === userId,
       rounds: roundsOf.all(g.id).map((r) => ({
         slot: r.slot,
+        themeId: r.theme_id,
         outcome: r.outcome,
         answer: r.answer_label,
         input: r.input,
@@ -352,10 +380,20 @@ class GameService {
         tier: tierFor(r.points, r.outcome).id,
       })),
     }));
-    const slots = games.length ? roundsOf.all(games[0].id) : [];
-    const themes = slots.map((r) => {
-      const theme = this.themes.get(r.theme_id);
-      return { slot: r.slot, title: theme ? theme.title : 'Thème indisponible' };
+    // Thèmes du jour : ceux de chaque joueur (un joueur qui a utilisé son joker a le thème de remplacement à la place d'un autre).
+    const order = [];
+    const seen = new Set();
+    for (const p of players) {
+      for (const r of p.rounds) {
+        if (seen.has(r.themeId)) continue;
+        seen.add(r.themeId);
+        order.push({ slot: r.slot, themeId: r.themeId });
+      }
+    }
+    order.sort((a, b) => a.slot - b.slot);
+    const themes = order.map((o) => {
+      const theme = this.themes.get(o.themeId);
+      return { slot: o.slot, themeId: o.themeId, title: theme ? theme.title : 'Thème indisponible' };
     });
     return { day, themes, players };
   }
@@ -407,6 +445,8 @@ class GameService {
       score: game.score,
       finished,
       timerSeconds: TIMER_SECONDS,
+      // Joker : on peut changer gratuitement un thème par partie ; ensuite, passer coûte le thème.
+      joker: { available: !finished && !!this.spareFor(game) && !!current, used: !!game.joker_used },
       rounds: rounds.map((r) => this.roundView(r, game)),
       dayScores: finished && game.mode === 'daily' ? this.dayScores(game.day) : null,
       current: current
@@ -753,6 +793,21 @@ class GameService {
   skip(gameId, userId) {
     const { game, round } = this.activeRound(gameId, userId);
     const expired = this.now() >= round.served_at + this.timerMs;
+    const spare = expired ? null : this.spareFor(game);
+    if (spare && this.themes.get(spare)) {
+      // Joker : le thème est remplacé (le même thème de remplacement pour tout le monde) et son chrono repart.
+      transaction(this.db, () => {
+        this.db
+          .prepare('UPDATE rounds SET swapped_from = theme_id, theme_id = ?, served_at = ? WHERE game_id = ? AND slot = ? AND answered_at IS NULL')
+          .run(spare, this.now(), game.id, round.slot);
+        this.db.prepare('UPDATE games SET joker_used = 1 WHERE id = ?').run(game.id);
+      });
+      return {
+        result: 'joker',
+        round: this.roundView(this.db.prepare('SELECT * FROM rounds WHERE game_id = ? AND slot = ?').get(game.id, round.slot), this.loadGame(gameId, userId).game),
+        state: this.state(gameId, userId),
+      };
+    }
     this.finishRound(game, round, { outcome: expired ? 'timeout' : 'skip', points: 0 });
     return {
       result: expired ? 'timeout' : 'skip',

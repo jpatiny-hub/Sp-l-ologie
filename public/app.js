@@ -638,6 +638,9 @@
     updateBanner();
     $('prompt-index').textContent = `Thème ${round.slot + 1} sur ${ROUNDS}`;
     $('prompt-title').textContent = round.title;
+    const jokerReady = !!(app.game.joker && app.game.joker.available);
+    $('btn-skip').textContent = jokerReady ? 'Joker : changer de thème' : 'Passer';
+    $('joker-note').hidden = !jokerReady;
     $('answer-error').textContent = '';
     clearPending();
     hideReport();
@@ -799,11 +802,20 @@
 
   async function skipRound() {
     if (app.busy || !app.game) return;
+    // Joker : un thème par partie peut être changé gratuitement ; au-delà, passer coûte le thème.
+    if (app.game.joker && app.game.joker.available && !window.confirm('Utiliser ton joker ? Ce thème est remplacé par un autre (le même pour tous les joueurs), avec un nouveau chrono. Tu n\'as qu\'un joker par partie.')) return;
     app.busy = true;
     stopTimer();
     clearPending();
     try {
-      roundFinished(await api(`/api/game/${app.game.id}/skip`, {}));
+      const res = await api(`/api/game/${app.game.id}/skip`, {});
+      if (res.result === 'joker') {
+        app.game = res.state;
+        Sound.reveal();
+        renderGame();
+        return;
+      }
+      roundFinished(res);
     } catch (err) {
       // La manche a pu être clôturée côté serveur entre-temps : on resynchronise.
       try {
@@ -837,7 +849,9 @@
     tier.textContent = round.tier.label;
     tier.dataset.tier = round.tier.id;
     tier.style.color = Pixel.TIER_COLORS[round.tier.id];
-    Sound.tier(round.tier.id);
+    const pepites = state.rounds.filter((r) => r.tier && r.tier.id === 'pepite').length;
+    Sound.tier(round.tier.id, pepites);
+    Sound.buzz(round.tier.id, pepites);
     const answer = $('feedback-answer');
     const odds = $('feedback-odds');
     if (round.outcome === 'answer') {
@@ -2099,7 +2113,7 @@
       }
       data.themes.forEach((th, i) => {
         const list = el('ul', { class: 'compare-list' });
-        const entries = data.players.map((p) => ({ p, r: p.rounds[i] })).filter(({ r }) => r);
+        const entries = data.players.map((p) => ({ p, r: p.rounds.find((x) => x.themeId === th.themeId) })).filter(({ r }) => r);
         const norm = (t) => String(t || '').toLowerCase();
         const given = new Map();
         entries.forEach(({ r }) => r.outcome === 'answer' && given.set(norm(r.answer), (given.get(norm(r.answer)) || 0) + 1));
