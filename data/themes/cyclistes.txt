@@ -1,4 +1,5 @@
 titre: Un coureur cycliste
+# Contrôle du 2026-10-21 : les 198 noms principaux ont un article en.wikipedia (existence seulement) ; thème ouvert sans source objective, niveaux non vérifiés.
 actif: non
 1: Eddy Merckx = Merckx; Remco Evenepoel = Evenepoel = Remco; Wout van Aert = Van Aert; Tadej Pogačar = Pogacar; Mathieu van der Poel = Van der Poel; Philippe Gilbert = Gilbert; Lance Armstrong = Armstrong; Tom Boonen = Boonen
 2: Jonas Vingegaard = Vingegaard; Bernard Hinault = Hinault; Jacques Anquetil = Anquetil; Miguel Indurain = Indurain; Chris Froome = Froome; Peter Sagan = Sagan; Julian Alaphilippe = Alaphilippe; Greg Van Avermaet = Van Avermaet; Jasper Philipsen = Philipsen; Raymond Poulidor = Poulidor; Marco Pantani = Pantani; Fausto Coppi = Coppi; Rik Van Looy = Van Looy; Johan Museeuw = Museeuw; Thibaut Pinot = Pinot; Primož Roglič = Roglic; Mark Cavendish = Cavendish; Lotte Kopecky = Kopecky; Laurent Fignon = Fignon; Richard Virenque = Virenque; Romain Bardet = Bardet; Frank Vandenbroucke = VDB = Vandenbroucke; Arnaud De Lie = De Lie; Tim Wellens = Wellens
