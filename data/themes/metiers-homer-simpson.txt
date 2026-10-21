@@ -1,8 +1,7 @@
-titre: Un métier ou une fonction exercé par Homer Simpson dans la série Les Simpson (jusqu'en 2025)
-actif: non
-# Homer a exercé des centaines de petits boulots : liste NON exhaustive, de mémoire, non vérifiable sans accès web. Thème désactivé faute de fiabilité.
-1: Inspecteur de sécurité nucléaire = Technicien de sécurité = Inspecteur de sécurité; Astronaute
-2: Boxeur; Éboueur = Commissaire à la voirie = Commissaire à la propreté; Conducteur de monorail = Pilote de monorail; Mascotte des Isotopes = Mascotte
-3: Pilote de dirigeable = Pilote de ballon dirigeable; Chanteur = Chanteur de quatuor vocal; Employé du Kwik-E-Mart = Caissier du Kwik-E-Mart; Concepteur automobile = Créateur de voiture; Assistant de M. Burns = Assistant personnel de M. Burns
-4: Manager de chanteuse = Manager de Lurleen Lumpkin; Délégué syndical = Syndicaliste; Justicier = Justicier de quartier
-5: Garde du corps; Vendeur de voitures; Barman; Cuisinier
+titre: Un métier ou une fonction exercé par Homer Simpson dans la série Les Simpson
+# Emplois et fonctions occupés par Homer au fil de la série (plus de 188 en 400 épisodes) ; liste établie d'après Wikipédia FR « Liste des métiers d'Homer Simpson » et « Homer Simpson ». Seuls les emplois attestés dans ces articles sont retenus.
+1: Inspecteur de sécurité nucléaire = Technicien de sécurité = Inspecteur de sécurité = Responsable de la sécurité; Astronaute; Boxeur; Éboueur = Commissaire à la voirie = Commissaire à la propreté = Responsable des ordures
+2: Conducteur de monorail = Pilote de monorail; Mascotte des Isotopes = Mascotte; Barman = Barman de chez Moe; Garde du corps = Garde du corps du maire; Vendeur de voitures = Vendeur de voitures d'occasion; Conducteur de chasse-neige = Chasse-neige = Monsieur Chasse-neige; Père Noël = Père Noël de supermarché; Pompier = Pompier volontaire; Routier = Camionneur; Coiffeur
+3: Employé du Kwik-E-Mart = Caissier du Kwik-E-Mart = Employé de nuit au Kwik-E-Mart; Concepteur automobile = Créateur de voiture = Designer d'automobile; Assistant de M. Burns = Assistant personnel de M. Burns; Manager de chanteuse = Manager de Lurleen Lumpkin = Imprésario; Syndicaliste = Délégué syndical = Président de syndicat; Cuisinier; Chanteur d'opéra; Chanteur de grunge; Policier = Chef de la police; Alpiniste; Clown = Sosie de Krusty; Inventeur; Baby-sitter; Pêcheur; Militaire = Soldat; Missionnaire; Pasteur; Professeur d'université = Professeur; Chorégraphe; Paparazzi; Webmaster = Blogueur
+4: Catcheur mexicain = Catcheur; Chasseur de primes; Chauffeur de limousine; Chiropracteur; Critique gastronomique; Critique de cinéma; Croupier; Contrebandier; Coach de football américain = Entraîneur; Tueur à gages; Parrain de la mafia; Maire du Nouveau-Springfield; Directeur de la centrale nucléaire = PDG de la centrale nucléaire; Réalisateur; Marin réserviste = Marin; Ambulancier; Arbitre de football; Roadie = Technicien de tournée
+5: Homme-orchestre; Escroc en télémarketing; Fabricant de bougies; Fermier = Créateur du tomacco; Videur de poisson; Tartman; Vendeur de matelas; Survivaliste; Singe amuseur; Hippie; Diacre

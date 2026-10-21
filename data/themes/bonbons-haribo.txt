@@ -1,7 +1,6 @@
 titre: Un bonbon de la marque Haribo
-# Produits Haribo vendus en France, Belgique ou Allemagne (noms français ou courants) ; fiabilité moyenne sur les références les plus rares.
-1: Dragibus; Tagada = Fraises Tagada = Fraise Tagada; Croco = Crocos = Crocodiles; Schtroumpfs = Schtroumpf = Smurfs; Ourson d'or = Oursons d'or = Goldbären = Goldbears = Oursons
-2: Car-en-sac = Car en sac; Rotella = Roulette = Roulettes; Happy Cola = Cola Haribo; Chamallows = Chamallow; Bananes = Banane; Starmix; Pêches = Pêche; Tropifrutti = Tropi Frutti; Maoam; Pommes acides = Saure Äpfel
-3: Phantasia; Happy Cherries = Cerises; Pasta Frutta; Balla Balla; Color-Rado = Colorado; Twin Cherries; Super Mix; Fruity Bussi; Pico-Balla; Click Mix; Bouteilles de cola = Cola Fizz = Cola Frizz
-4: Gold-Teddy; Lakritz Schnecken = Escargots de réglisse
-
+# Produits Haribo vendus en France, Belgique, Allemagne ou Royaume-Uni (noms français ou courants), vérifiés sur haribo.com (fr-fr, de-de, en-gb) et Wikipédia FR/EN/DE.
+1: Dragibus; Tagada = Fraises Tagada = Fraise Tagada; Croco = Crocos = Crocodiles = Hari Croco; Schtroumpfs = Schtroumpf = Smurfs; Ourson d'or = Oursons d'or = Goldbären = Goldbears = Oursons
+2: Car-en-sac = Car en sac; Rotella = Roulette = Roulettes; Happy Cola = Cola Haribo; Chamallows = Chamallow; Bananes = Banane; Starmix; Pêches = Pêche; Tropifrutti = Tropi Frutti; Maoam; Tangfastics; Jelly Babies; Wine Gums
+3: Phantasia; Happy Cherries = Cerises; Pasta Frutta; Balla Balla; Color-Rado = Colorado; Twin Cherries; Super Mix = Supermix; Fruity Bussi; Pico-Balla; Pasta Basta; Dragolo; Flanbolo; Miami; Quaxi; Kiss Cola; Œufs au plat = Spiegeleier; Berries
+4: Lakritz Schnecken = Escargots de réglisse = Lakritzschnecken; Zimballa; Tirlibibi; Fraizibus; Exotix; Balla Stixx; Pontefract Cakes; Riesenschlangen = Anaconda; Starmint

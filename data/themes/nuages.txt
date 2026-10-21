@@ -1,6 +1,7 @@
-titre: Un type de nuage (genre, espèce ou particularité)
+titre: Un type de nuage (genre, espèce, variété ou particularité)
+# Vérifié contre l'Atlas international des nuages (OMM) tel que repris par Wikipédia (fr Nuage, en Cloud, en List of cloud types) : genres, espèces, variétés, particularités supplémentaires, nuages annexes, nuages d'origine (-genitus/-mutatus). Nimbus (terme historique, plus un genre OMM) est conservé. Non vérifié : l'atlas OMM lui-même (cloudatlas.wmo.int) n'a pas été consulté directement.
 1: Cumulus; Cirrus; Stratus; Nimbus; Cumulonimbus; Altocumulus; Altostratus; Cirrocumulus; Cirrostratus; Nimbostratus; Stratocumulus
 2: Lenticulaire = Lenticularis; Mammatus = Mamma; Castellanus; Fractus; Humilis; Mediocris; Congestus; Calvus; Capillatus; Fibratus; Uncinus; Spissatus; Floccus; Stratiformis; Nebulosus; Incus = Enclume; Virga; Arcus = Nuage en rouleau; Tuba = Entonnoir; Pileus = Capuchon; Velum; Pannus; Praecipitatio; Nacré; Noctiluant = Noctulescent
 3: Cumulonimbus calvus; Cumulonimbus capillatus; Altocumulus lenticularis; Altocumulus castellanus; Cirrus uncinus; Cirrus spissatus; Nuage mur = Wall cloud; Volutus; Asperitas; Fluctus; Murus; Cauda
-4: Cataractagenitus; Homogenitus; Flammagenitus; Silvagenitus; Pyrocumulonimbus; Pyrocumulus; Kelvin-Helmholtz = Nuages de Kelvin-Helmholtz
+4: Cavum = Trou de précipitation = Fallstreak hole; Flumen; Homomutatus; Cirrus fibratus; Cirrus floccus; Altocumulus floccus; Cirrocumulus lenticularis; Cumulonimbus incus; Cataractagenitus; Homogenitus; Flammagenitus; Silvagenitus; Pyrocumulonimbus; Pyrocumulus; Kelvin-Helmholtz = Nuages de Kelvin-Helmholtz
 4: Intortus; Vertebratus; Undulatus; Radiatus; Lacunosus; Duplicatus; Translucidus; Perlucidus; Opacus; Cirrus intortus; Cirrus vertebratus; Altocumulus undulatus; Altostratus radiatus; Cumulus radiatus

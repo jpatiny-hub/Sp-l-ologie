@@ -1,6 +1,6 @@
 titre: Une chaîne de magasins de bricolage présente en Belgique ou en France
-# Périmètre : enseignes grand public de bricolage, de matériaux de construction et de jardinage-bricolage implantées en Belgique ou en France. Exclus : ameublement (Ikea), jardineries pures (Truffaut, Jardiland), discount généraliste (Action). Liste de mémoire, non vérifiée en ligne.
+# Périmètre : enseignes grand public de bricolage, de matériaux de construction et de jardinage-bricolage implantées en Belgique ou en France. Exclus : ameublement (Ikea), jardineries pures (Truffaut, Jardiland), discount généraliste (Action). Partie belge comparée à Wikipédia fr (liste des enseignes de la grande distribution en Belgique) ; Bricoman est devenu Tecnomat ; Cedeo et Dispano (négoce réservé aux professionnels) retirés. Partie française de mémoire, non vérifiée en ligne.
 1: Brico = Brico Belgique; Brico Plan-It = Brico Plan It = BricoPlanIt; Hubo; Gamma; Castorama; Leroy Merlin; Mr.Bricolage = Mr Bricolage = Monsieur Bricolage; Bricomarché; Brico Dépôt = Bricodépôt = Brico Depot
-2: Weldom; Bauhaus; Point P = Point.P; Bricorama; Hornbach; OBI; Bricoman; Lapeyre
-3: Tout Faire Matériaux; Gedimat; Chausson Matériaux = Chausson; BigMat; Brico Cash
-4: Dispano; Cedeo; Samse
+2: Weldom; Bauhaus; Point P = Point.P; Bricorama; Hornbach; OBI; Bricoman = Tecnomat; Lapeyre
+3: Tout Faire Matériaux; Gedimat; Chausson Matériaux = Chausson; BigMat; Brico Cash; BricoCity = Brico City; Dema; Handy Home
+4: Samse

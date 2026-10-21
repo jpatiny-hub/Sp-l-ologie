@@ -2,5 +2,5 @@ titre: Un jeu vidéo de course de karts
 # Séries ou jeux dont le principe central est la course en karts (une série = une réponse, ex. toutes les versions d'une même série).
 1: Mario Kart; Crash Team Racing = CTR = Crash Team Racing Nitro-Fueled
 2: Diddy Kong Racing; Sonic & Sega All-Stars Racing = Sonic & All-Stars Racing Transformed; Team Sonic Racing; Crash Nitro Kart; Garfield Kart; Angry Birds Go!; Nickelodeon Kart Racers
-3: Konami Krazy Racers; Pac-Man World Rally; Bomberman Kart; ModNation Racers; LittleBigPlanet Karting; Sonic Drift; Smurfs Kart; Mickey's Speedway USA; Beach Buggy Racing; Sonic Racing: CrossWorlds = Sonic Racing CrossWorlds
-4: Street Racer; Wacky Wheels; Cocoto Kart Racer; SuperTuxKart
+3: Konami Krazy Racers; Pac-Man World Rally; Bomberman Kart; ModNation Racers; LittleBigPlanet Karting; Sonic Drift; Smurfs Kart; Mickey's Speedway USA; Beach Buggy Racing; Sonic Racing: CrossWorlds = Sonic Racing CrossWorlds; Crazyracing KartRider = KartRider; Kirby Air Ride = Kirby Air Riders; Lego Racers
+4: Street Racer; Wacky Wheels; Cocoto Kart Racer; SuperTuxKart; Looney Tunes Racing; Nicktoons Racing; Chocobo Racing; South Park Rally; Power Drift; Madagascar Kartz; Shrek Smash n' Crash Racing; GKART = QQ Speed

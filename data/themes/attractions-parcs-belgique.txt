@@ -1,6 +1,7 @@
 titre: Une attraction de grand parc d'attractions belge (montagnes russes et attractions emblématiques)
-actif: non
-# Périmètre : attractions emblématiques de Walibi Belgium, Bobbejaanland, Plopsaland De Panne et Bellewaerde, actuelles ou récentes. Fiabilité moyenne (mémoire, noms et ouvertures non vérifiés).
-1: Dalton Terror; Cobra; Vampire; Tornado; Calamity Mine
-2: Psyké Underground = Psyke Underground; Turbine; Gotcha Warp = Gotcha; Popcorn Revenge; Typhoon; Python; Revolution; Sledge Hammer; Fury; Anubis The Ride = Anubis; Heidi The Ride = Heidi; Anaconda
-3: Challenge of Tutankhamon = Tutankhamon; Pulsar; Dawn of the Dinosaurs; Dino Splash
+# Périmètre : attractions actuelles ou récentes de Walibi Belgium, Bobbejaanland, Plopsaland De Panne (Plopsaland Belgium) et Bellewaerde. Noms vérifiés sur les pages Wikipédia FR/EN des parcs (listes d'attractions) ; attractions démontées depuis longtemps exclues.
+1: Dalton Terror; Cobra; Vampire; Calamity Mine; Kondaa; Anubis The Ride = Anubis; Heidi The Ride = Heidi
+2: Turbine = Psyké Underground = Psyke Underground = Sirocco; Pulsar; Tiki-Waka; Loup Garou; Mecalodon; Fury; Typhoon; Revolution = Mount Mara; Wakala; Huracan; Boomerang; Draconis; SuperSplash; The Ride to Happiness = Ride to Happiness
+3: Challenge of Tutankhamon = Tutankhamon; Popcorn Revenge; Radja River; Flash Back = Flash-Back; Dreamcatcher = Dream Catcher; Bob Express; Naga Bay; Oki Doki; Sledge Hammer; Dawson Duel; Screaming Eagle; El Volador; Bengal Rapid River; Amazonia; DinoSplash = Dino Splash; Wickie The Battle; LikeMe Coaster = #LikeMe Coaster; K3 Roller Skater
+4: Buzzsaw; Fun Pilot; Palais du Génie; Houdini's Magical House; Jungle Mission; Big Chute; Silverton; Spinning Vibe; Hampi; Forbidden Caves = The Forbidden Caves; Nightmare Motel; Desperado City; Pen Draig; Wienerwalz; Storm op Zee
+5: Kondaala; Graffiti Shuttle; Guitar Riff; Tiki-Trail; Bubble Swirl; Rio Do Cacao; Brazilian Buggies; Terra Magma
