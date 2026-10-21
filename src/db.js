@@ -96,6 +96,20 @@ CREATE TABLE IF NOT EXISTS answer_reports (
   PRIMARY KEY (user_id, theme_id, input_key)
 );
 
+-- Thème de remplacement du jour (le « joker » : le même pour tous les joueurs).
+CREATE TABLE IF NOT EXISTS daily_spare (
+  day      TEXT PRIMARY KEY,
+  theme_id TEXT NOT NULL
+);
+
+-- Parties terminées en mode illimité, par jour (pour le défi de la semaine).
+CREATE TABLE IF NOT EXISTS training_log (
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  day     TEXT NOT NULL,
+  game_id INTEGER NOT NULL,
+  PRIMARY KEY (user_id, game_id)
+);
+
 -- Statistiques cumulées du mode illimité (les parties d'entraînement sont effacées à la suivante).
 CREATE TABLE IF NOT EXISTS training_stats (
   user_id           INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
@@ -135,6 +149,13 @@ const MIGRATIONS = [
   ['users', 'skin_bit', 'TEXT'],
   ['users', 'skin_timer', 'TEXT'],
   ['users', 'news_seen', 'INTEGER NOT NULL DEFAULT 0'],
+  // Avatar (JSON des choix) et date du dernier changement de pseudo (un changement par semaine).
+  ['users', 'avatar', 'TEXT'],
+  ['users', 'username_changed_at', 'INTEGER'],
+  // Joker : un thème à changer gratuitement par partie (thème de remplacement et thème remplacé).
+  ['games', 'joker_used', 'INTEGER NOT NULL DEFAULT 0'],
+  ['games', 'spare_theme', 'TEXT'],
+  ['rounds', 'swapped_from', 'TEXT'],
   // Signalement fait pendant la manche (manche retrouvée par game_id et slot) et suite donnée aux points.
   ['answer_reports', 'game_id', 'INTEGER'],
   ['answer_reports', 'slot', 'INTEGER'],

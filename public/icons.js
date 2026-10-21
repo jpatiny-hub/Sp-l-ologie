@@ -60,6 +60,7 @@
     // Lanterne de mineur (accueil : série en cours), dessinée sans jeton.
     'lanterne-mineur': ['....kkkk....', '...k....k...', '...k....k...', '..kkkkkkkk..', '..kSSSSSSk..', '..kyyWWyyk..', '..kyWWWWyk..', '..kyWWWWyk..', '..kyyWWyyk..', '..kSSSSSSk..', '..kkkkkkkk..', '...kk..kk...'],
     // Étai de galerie : cadre de boisage qui retient la galerie (gel de série).
+    galerie: ['....kkkk....', '..kkyyyykk..', '.kyy....yyk.', '.ky......yk.', 'ky........yk', 'ky...kk...yk', 'ky..kyyk..yk', 'ky...kk...yk', 'ky........yk', 'kknnnnnnnnkk', 'k.k.k.k.k.k.', '............'],
     etai: ['kkkkkkkkkkkk', 'knnnnnnnnnnk', 'kkkkkkkkkkkk', '.knk....knk.', '.knk....knk.', '.knk....knk.', '.knk....knk.', '.knk....knk.', '.knk....knk.', '.knk....knk.', 'kkkkkkkkkkkk', '............'],
     fanion: ['..k.........', '..kkkk......', '..kyyyyk....', '..kyyyyyyk..', '..kyyyyk....', '..kkkk......', '..k.........', '..k.........', '..k.........', '..k.........', '.kkk........', '............'],
     eclair: ['......kk....', '.....kyyk...', '....kyyk....', '...kyyk.....', '..kyyyyyk...', '..kkkyyk....', '....kyyk....', '...kyyk.....', '...kyk......', '...kk.......', '............', '............'],

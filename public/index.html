@@ -180,9 +180,9 @@
           <button class="btn secondary" id="btn-podium" type="button">Voir le classement</button>
         </div>
         <div class="card">
-          <h2>Ton carnet <span class="new-dot" id="carnet-dot" hidden>nouveau !</span></h2>
-          <p id="carnet-summary" class="muted">Badges, séries de forages et apparences de ta foreuse.</p>
-          <button class="btn secondary" id="btn-carnet" type="button">Badges et atelier</button>
+          <h2>Ton profil <span class="new-dot" id="carnet-dot" hidden>nouveau !</span></h2>
+          <div class="home-profile"><div id="home-avatar" aria-hidden="true"></div><p id="carnet-summary" class="muted">Personnage, badges, séries de forages et apparences de ta foreuse.</p></div>
+          <button class="btn secondary" id="btn-carnet" type="button">Profil, badges et atelier</button>
         </div>
         <div class="card">
           <h2>Entraînement</h2>
@@ -240,6 +240,7 @@
               <button class="btn" type="submit">Valider</button>
               <button class="btn ghost" id="btn-skip" type="button">Passer</button>
             </div>
+            <p class="muted small joker-note" id="joker-note" hidden><canvas id="joker-icon" width="12" height="12" aria-hidden="true"></canvas><span>Galerie de secours : tu peux changer gratuitement un thème par partie.</span></p>
           </form>
         </div>
 
@@ -293,9 +294,61 @@
         </div>
       </div>
 
-      <!-- Carnet : badges et atelier -->
+      <!-- Profil : avatar, badges, atelier, carnet, bilan, statistiques -->
       <div class="view" id="view-profile" hidden>
         <button class="btn ghost back-btn" id="btn-profile-home" type="button">◀ Retour à l'accueil</button>
+        <details class="card fold" data-fold="profil" id="fold-profil" open>
+          <summary><span class="fold-t"><h2>Profil</h2><span class="sub" id="profil-sub">ton nom et ton personnage</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <div class="prof-head">
+            <div class="prof-avatar" id="prof-avatar"></div>
+            <div class="prof-id">
+              <p class="prof-name" id="prof-name"></p>
+              <button class="btn secondary small-btn" id="btn-rename" type="button">Changer de pseudo</button>
+            </div>
+          </div>
+          <form id="form-rename" class="form" hidden autocomplete="off">
+            <label for="rename-name">Nouveau pseudo</label>
+            <input id="rename-name" name="username" maxlength="32" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+            <label for="rename-password">Ton mot de passe</label>
+            <input id="rename-password" name="password" type="password" autocomplete="current-password" required>
+            <p class="muted small">Un changement de pseudo par semaine. Tes parties, badges et classements te suivent.</p>
+            <div class="row">
+              <button class="btn" type="submit">Valider</button>
+              <button class="btn ghost" id="btn-rename-cancel" type="button">Annuler</button>
+            </div>
+          </form>
+          <p class="muted small" id="rename-status" role="status"></p>
+          <h3>Ton personnage</h3>
+          <div id="avatar-options"></div>
+          <p class="muted small" id="avatar-status" role="status"></p>
+        </details>
+        <details class="card fold" data-fold="badges">
+          <summary><span class="fold-t"><h2>Badges</h2></span><span class="pm" aria-hidden="true"></span></summary>
+          <div class="badge-tools">
+            <input type="search" id="badge-search" placeholder="Chercher un badge…" aria-label="Chercher un badge" autocomplete="off" autocapitalize="off" spellcheck="false">
+            <div class="choices" id="badge-filter" role="group" aria-label="Filtrer les badges">
+              <button class="bfilter active" type="button" data-filter="all">Tous</button>
+              <button class="bfilter" type="button" data-filter="got">Obtenus</button>
+              <button class="bfilter" type="button" data-filter="todo">À gagner</button>
+            </div>
+          </div>
+          <div id="badge-sections"></div>
+        </details>
+        <details class="card fold" data-fold="atelier">
+          <summary><span class="fold-t"><h2>Atelier</h2><span class="sub">l'apparence de ta foreuse, sur tous tes appareils</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <div class="workshop">
+            <canvas class="skin-preview" id="skin-preview" width="32" height="40" aria-label="Aperçu de ta foreuse"></canvas>
+            <div class="workshop-choices">
+              <h3>Carrosserie</h3>
+              <div class="skin-grid" id="skin-bodies"></div>
+              <h3>Foret</h3>
+              <div class="skin-grid" id="skin-bits"></div>
+              <h3>Chrono</h3>
+              <div class="skin-grid" id="skin-timers"></div>
+            </div>
+          </div>
+          <p class="muted small" id="skin-status" role="status"></p>
+        </details>
         <details class="card fold" data-fold="carnet">
           <summary><span class="fold-t"><h2>Ton carnet de spéléo</h2></span><span class="pm" aria-hidden="true"></span></summary>
           <dl class="stats" id="profile-stats"></dl>
@@ -320,21 +373,6 @@
           <div id="chart-tiers" class="tier-bars"></div>
           <h3>Ta meilleure profondeur</h3>
           <svg class="chart earth-chart" id="chart-earth" viewBox="0 0 320 150" role="img" aria-label="Coupe de la Terre avec ta meilleure profondeur"></svg>
-        </details>
-        <details class="card fold" data-fold="atelier">
-          <summary><span class="fold-t"><h2>Atelier</h2><span class="sub">l'apparence de ta foreuse, sur tous tes appareils</span></span><span class="pm" aria-hidden="true"></span></summary>
-          <div class="workshop">
-            <canvas class="skin-preview" id="skin-preview" width="32" height="40" aria-label="Aperçu de ta foreuse"></canvas>
-            <div class="workshop-choices">
-              <h3>Carrosserie</h3>
-              <div class="skin-grid" id="skin-bodies"></div>
-              <h3>Foret</h3>
-              <div class="skin-grid" id="skin-bits"></div>
-              <h3>Chrono</h3>
-              <div class="skin-grid" id="skin-timers"></div>
-            </div>
-          </div>
-          <p class="muted small" id="skin-status" role="status"></p>
         </details>
         <details class="card fold" data-fold="proposer" id="fold-proposer">
           <summary><span class="fold-t"><h2>Proposer un thème <span id="report-mine-dot" class="dot" hidden>●</span></h2><span class="sub">une idée de liste à deviner ? · tes réponses signalées</span></span><span class="pm" aria-hidden="true"></span></summary>
@@ -374,18 +412,6 @@
         <details class="card fold" data-fold="tableau" id="admin-dashboard" hidden>
           <summary><span class="fold-t"><h2>Tableau de bord</h2><span class="sub">réservé au responsable du jeu</span></span><span class="pm" aria-hidden="true"></span></summary>
           <div id="dashboard-body"></div>
-        </details>
-        <details class="card fold" data-fold="badges">
-          <summary><span class="fold-t"><h2>Badges</h2></span><span class="pm" aria-hidden="true"></span></summary>
-          <div class="badge-tools">
-            <input type="search" id="badge-search" placeholder="Chercher un badge…" aria-label="Chercher un badge" autocomplete="off" autocapitalize="off" spellcheck="false">
-            <div class="choices" id="badge-filter" role="group" aria-label="Filtrer les badges">
-              <button class="bfilter active" type="button" data-filter="all">Tous</button>
-              <button class="bfilter" type="button" data-filter="got">Obtenus</button>
-              <button class="bfilter" type="button" data-filter="todo">À gagner</button>
-            </div>
-          </div>
-          <div id="badge-sections"></div>
         </details>
       </div>
 
@@ -435,6 +461,7 @@
   <script src="pixel.js"></script>
   <script src="icons.js"></script>
   <script src="timers.js"></script>
+  <script src="avatar.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

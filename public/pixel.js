@@ -727,6 +727,7 @@
       this.world = buildWorld();
       this.layers = [];
       this.skin = { body: 'classique', bit: 'standard' };
+      this.avatar = null;
       this.depth = 0;
       this.target = 0;
       this.speed = DRILL_SPEED;
@@ -769,6 +770,34 @@
 
     setSkin(skin) {
       this.skin = { body: 'classique', bit: 'standard', ...skin };
+    }
+
+    /** Avatar du joueur : au hublot de la foreuse, ou debout à la surface (selon son choix). */
+    setAvatar(avatar) {
+      this.avatar = avatar || null;
+    }
+
+    drawAvatarSurface(ctx, time) {
+      const av = this.avatar;
+      if (!av || av.lieu !== 'surface' || !global.Avatar) return;
+      const bob = Math.round(Math.sin(time * 2) * 0.5);
+      ctx.drawImage(global.Avatar.sprite(av), 0, 0, 16, 28, 34, SKY - 28 + bob, 16, 28);
+    }
+
+    drawAvatarHublot(ctx, x0, bodyTop) {
+      const av = this.avatar;
+      if (!av || av.lieu !== 'hublot' || !global.Avatar) return;
+      // Hublot rond (8 x 7 pixels) sur la carrosserie, avec le visage du joueur.
+      ctx.fillStyle = '#1b1b1f';
+      ctx.fillRect(x0 + 4, bodyTop + 3, 8, 7);
+      ctx.fillStyle = '#5ec8f0';
+      ctx.fillRect(x0 + 5, bodyTop + 4, 6, 5);
+      ctx.drawImage(global.Avatar.sprite(av), 5, global.Avatar.OY + 1, 6, 5, x0 + 5, bodyTop + 4, 6, 5);
+      ctx.fillStyle = '#1b1b1f';
+      ctx.fillRect(x0 + 4, bodyTop + 3, 1, 1);
+      ctx.fillRect(x0 + 11, bodyTop + 3, 1, 1);
+      ctx.fillRect(x0 + 4, bodyTop + 9, 1, 1);
+      ctx.fillRect(x0 + 11, bodyTop + 9, 1, 1);
     }
 
     /** Hauteur visible (en pixels du jeu) : réduite sur petit écran pour garder de gros pixels. */
@@ -958,6 +987,7 @@
       ctx.drawImage(this.world, 0, cam, W, this.h, 0, 0, W, this.h);
       ctx.save();
       ctx.translate(0, -cam);
+      this.drawAvatarSurface(ctx, time);
 
       // Décor animé : scintillements et bulles de magma.
       const inView = (y) => y >= cam - 4 && y <= cam + this.h + 4;
@@ -1025,6 +1055,7 @@
       ctx.fillStyle = '#26262c';
       ctx.fillRect(W / 2, SKY - 38, 1, Math.max(0, bodyTop - (SKY - 38)));
       drawDrill(ctx, this.skin, x0, tip, time, this.drilling);
+      this.drawAvatarHublot(ctx, x0, bodyTop);
 
       for (const p of this.particles) {
         ctx.fillStyle = p.color;

@@ -142,15 +142,36 @@
       tone(PENTA[zone % PENTA.length] * 2, { at: 0.08, dur: 0.25, type: 'triangle', gain: 0.12 });
     },
 
-    /** Réponse validée : plus elle est rare, plus l'arpège monte. */
-    tier(id) {
+    /**
+     * Réponse validée : plus elle est rare, plus l'arpège monte.
+     * `pepites` : nombre de pépites trouvées dans la partie, celle-ci comprise ; chaque pépite de plus
+     * ajoute du « scintillement » (plus d'étincelles, et une note de plus dans la montée finale).
+     */
+    tier(id, pepites = 1) {
       if (!ready()) return;
       const steps = { evident: 1, courant: 2, original: 3, rare: 4, pepite: 6 }[id] || 0;
       if (!steps) return this.miss();
       const notes = [392, 494, 587, 784, 988, 1175];
       for (let i = 0; i < steps; i++) tone(notes[i], { at: i * 0.07, dur: 0.14, type: 'square', gain: 0.1 });
       if (id === 'pepite') {
-        for (let i = 0; i < 8; i++) tone(1400 + Math.random() * 1600, { at: 0.45 + i * 0.05, dur: 0.12, type: 'sine', gain: 0.06 });
+        const n = Math.max(1, Math.min(7, pepites));
+        const sparks = 6 + n * 4;
+        for (let i = 0; i < sparks; i++) tone(1400 + Math.random() * (1600 + n * 250), { at: 0.45 + i * 0.045, dur: 0.12, type: 'sine', gain: 0.05 + n * 0.004 });
+        // Montée de carillon : une note de plus à chaque pépite.
+        for (let i = 0; i < n; i++) tone(PENTA[(i + 4) % PENTA.length] * 4, { at: 0.5 + sparks * 0.045 + i * 0.06, dur: 0.28, type: 'triangle', gain: 0.09 });
+      }
+    },
+
+    /** Vibration du téléphone (si le son est activé) : une impulsion par pépite, une légère pour un Rubis. */
+    buzz(id, pepites = 1) {
+      if (!enabled || !global.navigator || typeof global.navigator.vibrate !== 'function') return;
+      if (id === 'pepite') {
+        const n = Math.max(1, Math.min(6, pepites));
+        const pattern = [];
+        for (let i = 0; i < n; i++) pattern.push(45, 55);
+        global.navigator.vibrate(pattern);
+      } else if (id === 'rare') {
+        global.navigator.vibrate(25);
       }
     },
 
