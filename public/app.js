@@ -639,8 +639,9 @@
     $('prompt-index').textContent = `Thème ${round.slot + 1} sur ${ROUNDS}`;
     $('prompt-title').textContent = round.title;
     const jokerReady = !!(app.game.joker && app.game.joker.available);
-    $('btn-skip').textContent = jokerReady ? 'Joker : changer de thème' : 'Passer';
+    $('btn-skip').textContent = jokerReady ? 'Galerie de secours : changer de thème' : 'Passer';
     $('joker-note').hidden = !jokerReady;
+    if (jokerReady) Icons.drawIcon($('joker-icon'), 'galerie');
     $('answer-error').textContent = '';
     clearPending();
     hideReport();
@@ -803,7 +804,7 @@
   async function skipRound() {
     if (app.busy || !app.game) return;
     // Joker : un thème par partie peut être changé gratuitement ; au-delà, passer coûte le thème.
-    if (app.game.joker && app.game.joker.available && !window.confirm('Utiliser ton joker ? Ce thème est remplacé par un autre (le même pour tous les joueurs), avec un nouveau chrono. Tu n\'as qu\'un joker par partie.')) return;
+    if (app.game.joker && app.game.joker.available && !window.confirm('Prendre la galerie de secours ? Ce thème est remplacé par un autre (le même pour tous les joueurs), avec un nouveau chrono. Il n\'y a qu\'une galerie de secours par partie.')) return;
     app.busy = true;
     stopTimer();
     clearPending();
@@ -813,6 +814,7 @@
         app.game = res.state;
         Sound.reveal();
         renderGame();
+        showNotice('Galerie de secours empruntée : voici un autre thème.');
         return;
       }
       roundFinished(res);
