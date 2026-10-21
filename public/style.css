@@ -824,3 +824,7 @@ canvas.avatar-head { width: 20px; height: auto; }
 .podium .step { gap: 2px; }
 .podium .avatar-slot { margin-bottom: -4px; }
 .ranking li { align-items: center; }
+.score-bar { grid-template-columns: 10.5em 1fr 5.2em; }
+.score-bar .who { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+#avatar-options .lab { width: 7.4em; font-size: calc(16px * var(--fs)); overflow-wrap: anywhere; }
+#avatar-options .val-wrap { padding: 0 2px; }

@@ -67,6 +67,22 @@ const NEWS = [
       'Paramètres : un thème clair, et trois modes pour les daltoniens (rouge-vert, bleu-jaune, niveaux de gris), avec un symbole par niveau de rareté. Sur ordinateur, Entrée enchaîne les étapes du forage et les flèches parcourent le récapitulatif.',
     ],
   },
+  {
+    id: 6,
+    date: '2026-10-22',
+    title: 'Ton profil, ton personnage et 63 nouveaux thèmes',
+    items: [
+      'Ton carnet devient ton Profil. En haut, ton pseudo et ton personnage ; en dessous, dans l\'ordre : badges, atelier, carnet, bilan, statistiques, puis « Proposer un thème ».',
+      'Crée ton personnage : avec des flèches, change la silhouette, les cheveux, les yeux, la barbe, le couvre-chef, la tenue et l\'objet en main (pioche, lanterne… mais aussi diadème, robe rose ou smoking). Les teints et couleurs de cheveux sont libres.',
+      'Ton personnage apparaît à côté de ton pseudo dans les listes et les comparaisons, debout sur ta marche du podium, et pendant le forage : au hublot de la foreuse ou à la surface, comme tu préfères.',
+      'Certains éléments se gagnent : fanion, casque de chef de chantier et cape dorée avec les défis de la semaine ; couronne, casque doré, diamant, dynamite, torche et combinaison de forage avec d\'autres badges. Un élément verrouillé s\'essaie à l\'écran et indique comment le débloquer.',
+      'Tu peux changer de pseudo, une fois par semaine, en confirmant ton mot de passe. Tes parties, badges et classements te suivent.',
+      'Trois nouveaux défis de la semaine : cumuler un score, donner des réponses Soufre, et terminer des parties en mode illimité.',
+      'Nouveau mode « Lecture facile » (Paramètres, rubrique Lecture), pensé pour la dyslexie : police plus lisible, lettres et lignes plus espacées, fond crème doux. Les points et le chrono ne changent pas.',
+      '63 nouveaux thèmes : Kaamelott, League of Legends, Minecraft, Loup-Garou, Age of Empires II, les os du corps, les tentacules, les métiers disparus, les expressions avec un animal ou une couleur, les fonctions de YouTube et d\'Instagram, les parcs d\'attractions… et de nombreux thèmes ont été vérifiés et complétés (palmarès à jour jusqu\'en 2026, films, chansons, exoplanètes).',
+      'Les réponses que tu signales reçoivent une réponse : dans « Proposer un thème », la liste « Mes réponses signalées » indique si elle est acceptée, avec un message, et les points éventuellement accordés.',
+    ],
+  },
 ];
 
 const LATEST_NEWS_ID = NEWS[NEWS.length - 1].id;
