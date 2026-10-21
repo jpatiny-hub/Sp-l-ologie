@@ -1,0 +1,7 @@
+titre: Un métier disparu ou en voie de disparition
+# Métiers traditionnels ou techniques disparus ou devenus très rares en France et en Belgique (forme masculine donnée ; la féminine est acceptée quand elle existe). Liste de mémoire.
+1: Allumeur de réverbères = Allumeur de becs de gaz = Allumeur de lanternes; Rémouleur = Gagne-petit; Lavandière = Laveuse; Porteur d'eau; Sabotier; Colporteur; Crieur public = Crieur; Cocher; Laitier = Livreur de lait; Poinçonneur = Poinçonneur de métro; Dactylo = Dactylographe; Standardiste = Téléphoniste; Chiffonnier
+2: Rempailleur de chaises = Rempailleur; Typographe = Compositeur typographe; Linotypiste; Ouvreuse = Ouvreur de cinéma; Garde-barrière; Veilleur de nuit; Charbonnier = Marchand de charbon; Marchand de glace; Ferblantier; Vitrier ambulant; Cantonnier; Marchand de quatre-saisons = Quatre-saisons; Barbier-chirurgien; Sonneur de cloches = Sonneur; Cloutier; Rétameur; Maréchal-ferrant; Bonne à tout faire
+3: Scribe; Copiste; Porteur de chaise à porteurs = Porteur de chaise; Fileuse = Fileur; Galochier; Résinier = Gemmeur; Bourrelier; Galibot; Tourbier; Calfat; Passeur d'eau = Passeur; Cordier; Cireur de chaussures = Cireur; Sellier; Dentellière; Écrivain public; Colleur d'affiches; Tambour de ville; Charretier; Saunier; Teinturier; Souffleur de verre; Sabot
+4: Ménétrier; Gabelou; Dégraisseur; Bateleur; Hongreur; Flotteur de bois = Flotteur; Scieur de long
+5: Barbotier; Boutonnier

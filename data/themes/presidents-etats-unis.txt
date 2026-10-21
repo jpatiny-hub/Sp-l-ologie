@@ -1,4 +1,5 @@
 titre: Un président des États-Unis (1789-2026)
+# Vérifié le 2026-10-21 sur en.wikipedia (liste des 45 personnes ayant été présidents, de Washington à Trump/Biden) : exhaustif.
 1: George Washington = Washington; Abraham Lincoln = Lincoln; John F. Kennedy = Kennedy = JFK; Barack Obama = Obama; Donald Trump = Trump; Joe Biden = Biden; Bill Clinton = Clinton; George W. Bush = Bush = Bush fils; Richard Nixon = Nixon; Ronald Reagan = Reagan
 2: George H. W. Bush = Bush père; Jimmy Carter = Carter; Franklin D. Roosevelt = Franklin Roosevelt = Roosevelt = FDR; Theodore Roosevelt = Teddy Roosevelt; Dwight D. Eisenhower = Eisenhower = Ike; Harry S. Truman = Truman; Gerald Ford = Ford; Lyndon B. Johnson = Lyndon Johnson = Johnson = LBJ; Thomas Jefferson = Jefferson; Woodrow Wilson = Wilson
 3: John Adams = Adams; Ulysses S. Grant = Grant; Herbert Hoover = Hoover; James Monroe = Monroe; Andrew Jackson = Jackson; James Madison = Madison; John Quincy Adams; Calvin Coolidge = Coolidge; William McKinley = McKinley; William Howard Taft = Taft; Warren G. Harding = Harding; Andrew Johnson

@@ -1,5 +1,6 @@
 titre: Une monnaie nationale remplacée par l'euro
+# Vérifié sur en.wikipedia « Enlargement of the eurozone » (21 États, Bulgarie incluse depuis le 1er janvier 2026). Retiré : l'écu (unité de compte, pas une monnaie nationale). Franc monégasque, lire vaticane et lire saint-marinaise : non vérifiés dans la source (monnaies des micro-États, qui utilisaient les monnaies française/italienne).
 1: Franc belge; Franc français; Mark allemand = Deutsche Mark = Mark = Deutschmark; Florin néerlandais = Florin = Gulden; Lire italienne = Lire = Lira; Peseta = Peseta espagnole; Franc luxembourgeois
 2: Drachme = Drachme grecque; Escudo = Escudo portugais; Schilling autrichien = Schilling; Livre irlandaise = Punt; Markka = Mark finlandais; Kuna = Kuna croate; Lev = Lev bulgare
-3: Tolar = Tolar slovène; Couronne slovaque; Couronne estonienne; Lats = Lats letton; Litas = Litas lituanien; Livre chypriote; Lire maltaise = Livre maltaise = Lira maltaise
-4: Écu = ECU = Unité de compte européenne; Franc monégasque; Lire vaticane; Lire saint-marinaise
+3: Tolar = Tolar slovène; Couronne slovaque = Koruna slovaque; Couronne estonienne = Kroon; Lats = Lats letton; Litas = Litas lituanien; Livre chypriote; Lire maltaise = Livre maltaise = Lira maltaise
+4: Franc monégasque; Lire vaticane; Lire saint-marinaise

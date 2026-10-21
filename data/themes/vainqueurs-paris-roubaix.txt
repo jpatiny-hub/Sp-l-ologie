@@ -1,4 +1,5 @@
 titre: Un coureur ou une coureuse ayant gagné Paris-Roubaix (1896-2026)
+# Vérifié le 2026-10-21 sur en.wikipedia (Paris–Roubaix et Paris–Roubaix Femmes) : exhaustif jusqu'à l'édition 2026 (Wout van Aert ; Franziska Koch).
 # Course masculine depuis 1896 (1949 : Mahé et Serse Coppi déclarés co-vainqueurs), course féminine depuis 2021.
 1: Eddy Merckx = Merckx; Tom Boonen = Boonen; Fabian Cancellara = Cancellara; Mathieu van der Poel = Van der Poel = MVDP; Roger De Vlaeminck = De Vlaeminck; Johan Museeuw = Museeuw; Wout van Aert = Van Aert; Philippe Gilbert = Gilbert
 2: Rik Van Looy = Van Looy; Francesco Moser = Moser; Bernard Hinault = Hinault; Peter Sagan = Sagan; Greg Van Avermaet = Van Avermaet; Peter Van Petegem = Van Petegem; Fausto Coppi = Coppi; Rik Van Steenbergen = Van Steenbergen; Sean Kelly = Kelly; Marc Madiot = Madiot; Gilbert Duclos-Lassalle = Duclos-Lassalle; Franco Ballerini = Ballerini; Louison Bobet = Bobet; Lotte Kopecky = Kopecky; Pauline Ferrand-Prévot = Ferrand-Prévot

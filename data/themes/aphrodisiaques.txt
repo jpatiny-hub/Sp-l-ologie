@@ -1,0 +1,7 @@
+titre: Un aliment ou une substance réputé aphrodisiaque
+# Réputation populaire ou traditionnelle uniquement : l'efficacité n'est pas prouvée pour la plupart de ces produits, et certains sont dangereux (cantharide). Liste de mémoire.
+1: Huître = Huîtres; Chocolat; Champagne; Asperge = Asperges; Gingembre; Ginseng; Safran; Piment; Vanille; Miel; Fraise = Fraises; Figue; Truffe; Ail
+2: Avocat; Banane; Céleri; Cannelle; Noix de muscade = Muscade; Cantharide = Mouche d'Espagne; Corne de rhinocéros; Yohimbine = Yohimbé; Maca; Pistache; Grenade; Poivre; Gelée royale; Ylang-ylang; Caviar; Cacao; Absinthe; Vin = Vin rouge; Oursin; Mandragore
+3: Tribulus = Tribulus terrestris; Damiana; Muira puama; Épimède = Herbe aux chèvres cornues; Ambre gris; Musc; Jasmin; Patchouli; Mangue; Amande; Menthe; Basilic; Sauge; Romarin; Pollen; Fenugrec; Ashwagandha; Tongkat ali
+4: Bois bandé; Catuaba; Guarana; Hippocampe séché = Hippocampe; Nid d'hirondelle comestible = Nid d'hirondelle; Lépidium = Maca du Pérou
+5: Cordyceps = Cordyceps sinensis

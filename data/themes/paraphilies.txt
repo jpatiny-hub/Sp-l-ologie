@@ -1,0 +1,7 @@
+titre: Une paraphilie (terme clinique ou usuel)
+# Termes cliniques ou usuels de la sexologie (classifications DSM et littérature médicale), listés à titre purement terminologique. Liste de mémoire.
+1: Fétichisme; Voyeurisme; Exhibitionnisme; Pédophilie; Zoophilie; Nécrophilie; Masochisme = Masochisme sexuel; Sadisme = Sadisme sexuel
+2: Frotteurisme; Travestisme fétichiste = Travestisme; Gérontophilie; Urophilie; Coprophilie; Éphébophilie; Hébéphilie; Somnophilie; Asphyxiophilie = Hypoxyphilie
+3: Toucherisme; Scatologie téléphonique; Klismaphilie; Acrotomophilie; Mysophilie; Pyrophilie; Objectophilie; Agalmatophilie; Hybristophilie; Partialisme; Autogynéphilie; Formicophilie; Salirophilie
+4: Chrématistophilie; Narratophilie; Dendrophilie; Nasophilie; Biastophilie
+5: Symphorophilie; Emetophilie = Émétophilie

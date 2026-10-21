@@ -1,0 +1,6 @@
+titre: Un os de la partie inférieure du corps humain (bas du tronc, bassin, jambe, pied)
+# Périmètre : vertèbres lombaires, sacrum, coccyx, bassin (os coxal et ses trois pièces) et membre inférieur (cuisse, jambe, pied). Exclus : tête, cou, thorax et membres supérieurs. « Phalange » est accepté ici comme dans la liste du haut du corps.
+1: Fémur; Tibia; Rotule = Patella; Bassin = Pelvis; Péroné = Fibula
+2: Os coxal = Os iliaque = Os de la hanche; Sacrum = Os sacrum; Coccyx; Vertèbre lombaire; Calcanéum = Calcanéus = Os du talon; Astragale = Talus; Phalange; Métatarsien = Métatarse; Tarse = Os du tarse
+3: Ilion = Ilium; Ischion = Ischium; Pubis; Cuboïde = Os cuboïde; Naviculaire = Os naviculaire = Scaphoïde tarsien; Cunéiforme = Os cunéiforme; Phalange du pied = Phalange des orteils
+4: Cunéiforme médial = Premier cunéiforme; Cunéiforme intermédiaire = Deuxième cunéiforme; Cunéiforme latéral = Troisième cunéiforme5: Sésamoïde du pied = Sésamoïdes du gros orteil; Fabella; Os trigone; Os naviculaire accessoire = Os tibial externe

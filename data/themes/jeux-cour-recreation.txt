@@ -1,0 +1,7 @@
+titre: Un jeu de cour de récréation
+# Jeux d'enfants pratiqués à l'école (cour de récréation), en France et en Belgique francophone ; liste de mémoire.
+1: Marelle; Billes = Jeu de billes = Bille; Chat perché = Chat perche; Élastique = Jeu de l'élastique = Élastiques; 1-2-3 soleil = Un, deux, trois, soleil = Un deux trois soleil; Cache-cache; Corde à sauter = Saute-corde; Colin-maillard; Chat = Jeu du chat = Touche-touche; Balle au prisonnier = Ballon prisonnier = Prisonnier; Gendarmes et voleurs = Policiers et voleurs; Pierre-feuille-ciseaux = Chifoumi; Football = Foot
+2: Épervier = Jeu de l'épervier; Poules renards vipères = Poule renard vipère = Poule-renard-vipère; Saute-mouton; Jacques a dit; Quatre coins = Les quatre coins; Béret = Jeu du béret; Passe à dix; Chaises musicales = Jeu des chaises musicales; Loup y es-tu = Le loup y es-tu; Statues = Statue = Chat gelé = Chat glacé; Sardines; Osselets; Ronde = Ronde enfantine = Faire la ronde
+3: Le facteur n'est pas passé = Facteur n'est pas passé; Chamboule-tout; Cartes à échanger = Échange de cartes = Cartes Pokémon; Tir à la corde; Course en sac; Bras de fer; Pigeon vole; Mouchoir = Jeu du mouchoir; Un, deux, trois, piano; Pétanque; Ballon capitaine = Ballon-capitaine; Pendu; Morpion; Bataille navale
+4: Pogs; Loup glacé = Loup-glacé; Pas japonais; Tape-tape; Pomme pomme pomme; Roi du silence = Le roi du silence
+5: Mère-oie; Jeu de la bague

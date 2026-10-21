@@ -1,5 +1,6 @@
 titre: Un pays traversé lors d'une saison de Pékin Express (version française)
 # Source : fr.wikipedia « Pékin Express » (tableau des saisons) et pages de chaque saison. Pays listés par Wikipédia comme lieux de course (départ, étapes ou transit).
+# Vérifié le 21/10/2026 sur fr.wikipedia « Pékin Express » : saisons 1 à 22 (dernière : « Au royaume des dragons », 2026 : Népal, Chine, Thaïlande) ; la diffusion belge est la même émission que la française.
 # Limites : la saison 23 annoncée (« La Route de l'eau ») n'est pas incluse ; les petits passages de frontière non documentés peuvent manquer (ex. le Lesotho figure en saison 7 et en saison 20 ; la saison 1 part de Paris).
 1: Chine; Inde; Thaïlande; Vietnam = Viêt Nam = Viet Nam
 2: Russie; Brésil; Pérou; Bolivie; Cambodge; Indonésie; Égypte; Afrique du Sud; Kenya; Tanzanie; Cuba; Mexique; États-Unis = USA = Etats-Unis d'Amérique = US; Japon; Argentine; Chili; Népal; Sri Lanka = Ceylan; Australie; Corée du Sud = Corée; Philippines

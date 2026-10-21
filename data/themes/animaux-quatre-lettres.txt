@@ -1,0 +1,7 @@
+titre: Un nom d'animal de 4 lettres exactement
+# Nom français courant, au singulier, de 4 lettres (accents ignorés) ; espèces, groupes ou désignations courantes (mâle, femelle, petit) comprises ; « bœuf » exclu (ambigu).
+1: Lion; Ours; Loup; Chat
+2: Cerf; Paon; Daim; Puma; Lynx; Thon; Sole; Raie; Porc; Mule; Kiwi; Dodo; Ibis; Gnou; Lama; Yack = Yak; Zébu; Élan; Veau; Bouc; Cane
+3: Taon; Puce; Mite; Émeu; Buse; Grue; Geai; Loir; Oryx; Kudu; Ibex; Orfe; Lieu; Naja; Ânon; Râle
+4: Pika; Paca; Mara; Saki; Lori; Gaur; Topi; Tahr; Skua; Mako; Nèpe; Pacu
+5: Jars; Cobe; Coua

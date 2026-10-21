@@ -1,0 +1,6 @@
+titre: Un rôle du jeu de société Les Loups-garous de Thiercelieux
+# Cartes de rôle du jeu de base et des extensions (Nouvelle Lune, Personnages, Le Village, etc.).
+1: Villageois; Loup-garou = Loups-garous; Voyante; Sorcière; Chasseur; Cupidon; Petite Fille
+2: Voleur; Salvateur; Ancien; Bouc émissaire; Joueur de flûte; Corbeau; Ange; Comédien; Idiot du village = Idiot; Renard; Servante dévouée
+3: Grand Méchant Loup; Infect Père des Loups; Trois Frères = Frères; Deux Sœurs = Sœurs; Enfant sauvage; Loup-garou blanc
+4: Chevalier à l'épée rouillée; Montreur d'ours; Juge bègue; Abominable Sectaire = Sectaire; Chien-loup

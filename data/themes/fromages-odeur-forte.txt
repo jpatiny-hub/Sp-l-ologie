@@ -1,0 +1,6 @@
+titre: Un fromage réputé pour son odeur forte
+# Fromages à croûte lavée, fleurie ou à pâte persillée connus pour leur odeur marquée, de France, Belgique, Suisse, Allemagne, Italie, Royaume-Uni et autres. Notion subjective ; liste de fromages communément cités (existence confirmée sur Wikipédia FR ; odeur explicitement mentionnée pour Brie de Meaux, Brie de Melun, Limbourg, Stinking Bishop, Casu marzu, Fromage de Bruxelles).
+1: Maroilles; Époisses; Munster; Camembert; Roquefort; Herve; Limburger = Limbourg; Livarot; Gorgonzola; Pont-l'Évêque; Brie de Meaux = Brie; Stilton; Vacherin = Vacherin Mont-d'Or = Mont-d'Or
+2: Vieux-Lille = Vieux Lille; Reblochon; Langres; Morbier; Cancoillotte; Boulette d'Avesnes; Rollot; Cœur d'Arras; Vieux-Boulogne = Vieux Boulogne; Brie de Melun; Taleggio; Appenzeller; Tilsit; Harzer; Romadur; Bleu d'Auvergne; Bleu de Gex; Crottin de Chavignol = Crottin; Soumaintrain; Ami du Chambertin; Stinking Bishop; Cabrales; Casu marzu; Remoudou; Brusselse Kaas = Fromage de Bruxelles; Géromé
+4: Gubbeen; Cashel Blue; Munster fermier; Cœur de Neufchâtel = Neufchâtel
+5: Kaltbach; Brie de Nangis

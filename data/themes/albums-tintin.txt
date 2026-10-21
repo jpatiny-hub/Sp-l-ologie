@@ -1,5 +1,6 @@
 titre: Un album des Aventures de Tintin
+# Les 24 albums de la série (source : fr.wikipedia « Les Aventures de Tintin »). Retiré : Tintin et le Lac aux requins (livre tiré du film de 1972, hors série).
 1: On a marché sur la Lune; Objectif Lune; Tintin au Tibet; Le Secret de La Licorne; Le Trésor de Rackham le Rouge; Tintin au Congo; Le Lotus bleu
 2: Les Sept Boules de cristal = Les 7 Boules de cristal; Le Temple du Soleil; Les Bijoux de la Castafiore; Le Crabe aux pinces d'or; L'Île Noire; L'Oreille cassée; Les Cigares du pharaon; Tintin en Amérique; L'Affaire Tournesol; Coke en stock; Tintin au pays des Soviets; L'Étoile mystérieuse
-3: Le Sceptre d'Ottokar; Tintin au pays de l'or noir; Vol 714 pour Sydney = Vol 714; Tintin et les Picaros; Tintin et l'Alph-Art
-5: Tintin et le Lac aux requins = Le Lac aux requins
+3: Le Sceptre d'Ottokar; Tintin au pays de l'or noir; Vol 714 pour Sydney = Vol 714; Tintin et les Picaros
+4: Tintin et l'Alph-Art

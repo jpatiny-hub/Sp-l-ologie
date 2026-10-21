@@ -1,8 +1,10 @@
 titre: Un instrument de la famille des cuivres
 # Périmètre : aérophones à embouchure où le son naît de la vibration des lèvres (lip-reed), quel que soit le matériau (cuivre, bois, corne, coquillage).
 # Inclus par ce critère : cornet à bouquin, serpent, conque, shofar, trompes naturelles, carnyx, lur, didgeridoo (en bois), vuvuzela. Exclus : saxophone (anche), flûtes.
-# Liste établie de mémoire (pas de source en ligne) ; entrées incertaines volontairement omises.
+# Vérifié en partie sur Wikipédia (Brass instrument, Instrument à vent) en oct. 2026 : familles et instruments courants ; les instruments ethniques rares (kombu, narsingha, kangling, karnay…) restent non vérifiés.
 1: Trompette; Trombone = Trombone à coulisse; Cor = Cor d'harmonie = Cor français; Tuba; Clairon; Cornet = Cornet à pistons; Bugle
 2: Euphonium; Saxhorn; Sousaphone; Cor de chasse = Trompe de chasse = Trompe; Baryton; Cor des Alpes = Alphorn; Hélicon; Cor naturel; Trompette naturelle; Trompette piccolo; Trompette basse; Trombone basse; Trombone ténor; Trombone alto; Didgeridoo = Didjeridu = Didgeridou; Vuvuzela; Conque; Shofar
-3: Ophicléide; Serpent; Cornet à bouquin = Zink; Sacqueboute = Saqueboute; Buccin; Cimbasso; Mellophone = Mellophonium; Tuba wagnérien = Wagner tuba; Saxhorn baryton; Saxhorn alto; Saxhorn basse; Saxhorn contrebasse; Bugle ténor; Tuba basse; Tuba contrebasse; Cor de postillon = Posthorn; Olifant = Oliphant; Cor double; Trombone à pistons; Flügelhorn; Waldhorn; Jagdhorn; Tenorhorn; Bombardon
-4: Lur; Carnyx; Cornu; Buccina = Bucina; Lituus; Salpinx; Dungchen = Dung chen; Karnay; Kombu; Narsingha; Shankha; Kangling; Cornophone; Tuba curva; Bass-horn = Basshorn
+3: Ophicléide; Serpent; Cornet à bouquin = Zink; Sacqueboute = Saqueboute; Buccin; Cimbasso; Mellophone = Mellophonium; Tuba wagnérien = Wagner tuba; Saxhorn baryton; Saxhorn alto; Saxhorn basse; Saxhorn contrebasse; Bugle ténor; Tuba basse; Tuba contrebasse; Cor de postillon = Posthorn; Olifant = Oliphant; Cor double; Trombone à pistons; Flügelhorn; Waldhorn; Jagdhorn; Tenorhorn; Bombardon; Buisine; Fiscorn
+4: Lur; Carnyx; Cornu; Buccina = Bucina; Lituus; Salpinx; Dungchen = Dung chen; Karnay; Kombu; Narsingha; Shankha; Kangling; Cornophone; Tuba curva; Bass-horn = Basshorn; Jazzophone; Saxotromba; Saxtuba; Trompette à coulisse; Trembita; Bucium; Pututu; Horagai
+
+5: Bazooka; Vladimirski rojok = Rojok de Vladimir

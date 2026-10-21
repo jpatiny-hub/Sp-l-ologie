@@ -1,0 +1,7 @@
+titre: Une partie ou un élément qui compose une chaussure
+# Parties constitutives d'une chaussure classique (tige, semelage, fermetures, renforts). Liste de mémoire.
+1: Semelle; Talon; Lacet = Lacets; Languette; Œillet = Oeillets = Œillets; Tige; Semelle intérieure = Première = Semelle de propreté; Semelle extérieure = Semelle d'usure; Bout
+2: Doublure; Empeigne; Cambrion; Fermeture éclair = Zip = Fermeture à glissière; Velcro = Scratch = Bande auto-agrippante; Boucle; Contrefort; Talonnette; Quartier; Bride; Semelle intermédiaire; Bout dur = Bout renforcé
+3: Trépointe; Col; Embout; Passant; Tirette; Claque; Cambrure; Rembourrage; Forme; Crampons = Crampon; Semelle compensée
+4: Talon haut; Bout fleuri = Perforations décoratives; Garniture; Soufflet de languette = Soufflet; Semelle de montage
+5: Plaque de talon = Bout de talon; Rainure de semelle
