@@ -390,9 +390,37 @@ function createApp({
     // Ajustement manuel : rend à un joueur les points d'une réponse signalée après coup.
     'POST /api/admin/reports/credit': async (req, res) => {
       requireAdmin(req, res);
-      const { themeId, inputKey, username } = await readJson(req);
+      const { themeId, inputKey, username, answerKey } = await readJson(req);
       if ([themeId, inputKey, username].some((v) => typeof v !== 'string')) throw new HttpError(400, 'Signalement inconnu.');
-      json(res, 200, game.creditManually(themeId, inputKey, username));
+      json(res, 200, game.creditManually(themeId, inputKey, username, answerKey));
+    },
+
+    // Retour du responsable aux joueurs qui ont signalé une réponse.
+    'POST /api/admin/reports/reply': async (req, res) => {
+      requireAdmin(req, res);
+      const { themeId, inputKey, verdict, message } = await readJson(req);
+      if (typeof themeId !== 'string' || typeof inputKey !== 'string') throw new HttpError(400, 'Signalement inconnu.');
+      json(res, 200, game.replyToReport(themeId, inputKey, verdict, message));
+    },
+
+    // Réponses d'un thème, pour choisir celle visée par un ajustement manuel.
+    'GET /api/admin/theme-answers': async (req, res, _id, url) => {
+      requireAdmin(req, res);
+      const theme = game.themes.get(url.searchParams.get('themeId'));
+      if (!theme) throw new HttpError(404, 'Thème introuvable.');
+      json(res, 200, { answers: theme.answers.map((a) => ({ key: a.key, label: a.label })).sort((a, b) => a.label.localeCompare(b.label, 'fr')) });
+    },
+
+    'GET /api/reports/mine': async (req, res) => {
+      const user = requireUser(req, res);
+      json(res, 200, game.myReports(user.id));
+    },
+
+    'POST /api/reports/mine/seen': async (req, res) => {
+      const user = requireUser(req, res);
+      await readJson(req);
+      game.markMyReportsSeen(user.id);
+      json(res, 200, { ok: true });
     },
 
     'GET /api/themes/suggestions': async (req, res) => {

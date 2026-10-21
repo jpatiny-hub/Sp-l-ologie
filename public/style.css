@@ -759,3 +759,6 @@ summary:hover .pm, summary:focus-visible .pm { color: var(--ink); }
 .skin-thumb.timer { width: 100%; max-width: 160px; height: auto; aspect-ratio: 96 / 20; image-rendering: pixelated; }
 #skin-timers { grid-template-columns: 1fr 1fr; }
 .timer-skin { align-items: stretch; }
+.dot { color: var(--accent, #e2553f); font-size: 0.7em; vertical-align: middle; }
+.report select, .report textarea { margin-top: 6px; }
+.report select { font: inherit; font-size: calc(18px * var(--fs)); padding: 8px; color: var(--ink, #f3e9d2); background: var(--well, #120d0a); border: 0; box-shadow: 0 0 0 3px var(--line, #000); }
