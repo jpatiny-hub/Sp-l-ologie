@@ -10,6 +10,7 @@ const { loadThemes } = require('./src/themes');
 const { GameService, HttpError } = require('./src/game');
 const { msUntilNextDay, isDay } = require('./src/dates');
 const auth = require('./src/auth');
+const Avatar = require('./src/avatar');
 const { unseenNews, LATEST_NEWS_ID } = require('./src/news');
 
 const SESSION_MS = config.SESSION_DAYS * 24 * 3600 * 1000;
@@ -279,11 +280,12 @@ function createApp({
       const user = currentUser(req, res);
       if (!user) return json(res, 200, { user: null });
       game.badges.awardPodiums(game.today());
-      const row = db.prepare('SELECT skin_body, skin_bit, skin_timer, news_seen FROM users WHERE id = ?').get(user.id);
+      const row = db.prepare('SELECT skin_body, skin_bit, skin_timer, news_seen, avatar FROM users WHERE id = ?').get(user.id);
       json(res, 200, {
         user: userView(user),
         isAdmin: isAdmin(user),
         skin: game.badges.skinOf(row),
+        avatar: Avatar.normalize(row.avatar, user.id),
         unseenBadges: game.badges.unseenCount(user.id),
         news: unseenNews(row.news_seen),
         today: game.todaySummary(user.id),
@@ -337,6 +339,50 @@ function createApp({
       const { body, bit, timer } = await readJson(req);
       if (!game.badges.setSkin(user.id, game.today(), { body, bit, timer })) throw new HttpError(403, 'Cette apparence n\'est pas encore débloquée.');
       json(res, 200, { skin: game.badges.skinOf(db.prepare('SELECT skin_body, skin_bit, skin_timer FROM users WHERE id = ?').get(user.id)) });
+    },
+
+    // Avatar : l'enregistrement refuse les éléments pas encore débloqués.
+    'POST /api/profile/avatar': async (req, res) => {
+      const user = requireUser(req, res);
+      const { avatar } = await readJson(req);
+      const saved = game.badges.setAvatar(user.id, game.today(), avatar);
+      if (!saved) throw new HttpError(403, "Cet avatar contient un élément pas encore débloqué.");
+      json(res, 200, { avatar: saved });
+    },
+
+    // Changement de pseudo : mot de passe demandé, un changement par semaine, pas de doublon.
+    'POST /api/profile/rename': async (req, res) => {
+      const user = requireUser(req, res);
+      const { username, password } = await readJson(req);
+      if (typeof password !== 'string') throw new HttpError(400, 'Mot de passe requis.');
+      const problem = auth.validateUsername(username);
+      if (problem) throw new HttpError(400, problem);
+      if (adminUsers.length && isAdmin(user)) throw new HttpError(403, "Le responsable du jeu ne peut pas changer de pseudo ici (ses droits dépendent du pseudo actuel).");
+      const limiterKey = `${clientIp(req)}|${auth.usernameKey(user.username)}|rename`;
+      if (loginLimiter.blocked(limiterKey, now())) throw new HttpError(429, 'Trop de tentatives. Réessaie dans quelques minutes.');
+      const row = db.prepare('SELECT password_hash, username_changed_at FROM users WHERE id = ?').get(user.id);
+      if (!(await auth.verifySecret(password, row.password_hash))) {
+        loginLimiter.fail(limiterKey, now());
+        throw new HttpError(401, 'Mot de passe incorrect.');
+      }
+      loginLimiter.reset(limiterKey);
+      const WEEK = 7 * 24 * 3600 * 1000;
+      if (row.username_changed_at && now() - row.username_changed_at < WEEK) {
+        const next = new Date(row.username_changed_at + WEEK).toISOString().slice(0, 10);
+        throw new HttpError(429, `Tu as déjà changé de pseudo cette semaine : prochain changement possible à partir du ${next}.`);
+      }
+      const display = username.normalize('NFC').trim();
+      const key = auth.usernameKey(display);
+      const taken = db.prepare('SELECT id FROM users WHERE username_key = ?').get(key);
+      if (taken && taken.id !== user.id) throw new HttpError(409, 'Cet identifiant est déjà pris.');
+      if (display === user.username) throw new HttpError(400, 'C\'est déjà ton pseudo.');
+      try {
+        db.prepare('UPDATE users SET username = ?, username_key = ?, username_changed_at = ? WHERE id = ?').run(display, key, now(), user.id);
+      } catch (err) {
+        if (String(err.message).includes('UNIQUE')) throw new HttpError(409, 'Cet identifiant est déjà pris.');
+        throw err;
+      }
+      json(res, 200, { user: userView({ username: display }) });
     },
 
     'POST /api/game/start': async (req, res) => {

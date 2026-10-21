@@ -96,6 +96,14 @@ CREATE TABLE IF NOT EXISTS answer_reports (
   PRIMARY KEY (user_id, theme_id, input_key)
 );
 
+-- Parties terminées en mode illimité, par jour (pour le défi de la semaine).
+CREATE TABLE IF NOT EXISTS training_log (
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  day     TEXT NOT NULL,
+  game_id INTEGER NOT NULL,
+  PRIMARY KEY (user_id, game_id)
+);
+
 -- Statistiques cumulées du mode illimité (les parties d'entraînement sont effacées à la suivante).
 CREATE TABLE IF NOT EXISTS training_stats (
   user_id           INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
@@ -135,6 +143,9 @@ const MIGRATIONS = [
   ['users', 'skin_bit', 'TEXT'],
   ['users', 'skin_timer', 'TEXT'],
   ['users', 'news_seen', 'INTEGER NOT NULL DEFAULT 0'],
+  // Avatar (JSON des choix) et date du dernier changement de pseudo (un changement par semaine).
+  ['users', 'avatar', 'TEXT'],
+  ['users', 'username_changed_at', 'INTEGER'],
   // Signalement fait pendant la manche (manche retrouvée par game_id et slot) et suite donnée aux points.
   ['answer_reports', 'game_id', 'INTEGER'],
   ['answer_reports', 'slot', 'INTEGER'],

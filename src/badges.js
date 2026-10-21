@@ -3,6 +3,7 @@
 const { addDays, weekStart, monthStart, monthEnd, addMonths } = require('./dates');
 const { ROUNDS_PER_GAME, TIMER_SECONDS, FREEZE_FROM } = require('./config');
 const { challengeProgress } = require('./challenges');
+const Avatar = require('./avatar');
 
 /*
  * Badges
@@ -576,7 +577,7 @@ class BadgeService {
         const hint = hintFor(type, id);
         return { id, name, unlocked: !hint || unlocked.has(`${type}:${id}`), hint };
       });
-    const user = this.db.prepare('SELECT skin_body, skin_bit, skin_timer FROM users WHERE id = ?').get(userId);
+    const user = this.db.prepare('SELECT skin_body, skin_bit, skin_timer, avatar FROM users WHERE id = ?').get(userId);
     const pepites = this.db
       .prepare("SELECT COUNT(*) AS n FROM rounds r JOIN games g ON g.id = r.game_id WHERE g.user_id = ? AND g.mode = 'daily' AND r.points >= 100")
       .get(userId).n;
@@ -590,7 +591,17 @@ class BadgeService {
       bits: skinList(BITS, 'bit'),
       timers: skinList(TIMERS, 'timer'),
       skin: this.skinOf(user),
+      avatar: Avatar.normalize(user && user.avatar, userId),
+      avatarCatalog: Avatar.catalog(badges),
     };
+  }
+
+  /** Enregistre l'avatar du joueur s'il ne contient que des éléments débloqués. Renvoie l'avatar, ou null. */
+  setAvatar(userId, today, candidate) {
+    const clean = Avatar.validate(candidate, userId, this.profile(userId, today).badges);
+    if (!clean) return null;
+    this.db.prepare('UPDATE users SET avatar = ? WHERE id = ?').run(JSON.stringify(clean), userId);
+    return clean;
   }
 
   skinOf(user) {

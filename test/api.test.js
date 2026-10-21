@@ -5,7 +5,7 @@ const { NEWS } = require('../src/news');
 const assert = require('node:assert/strict');
 const { matchAnswer, toKey } = require('../src/matching');
 const { LEVEL_WEIGHTS } = require('../src/scoring');
-const { THEMES, startServer, client, answerFor } = require('./helpers');
+const { THEMES, startServer, client, answerFor, playDaily } = require('./helpers');
 
 test('inscription, connexion, session persistante et déconnexion', async () => {
   const app = await startServer();
@@ -533,6 +533,92 @@ test('ajustement manuel d\'une faute : le responsable désigne la réponse visé
     await gus('/api/reports/mine/seen', {});
     assert.equal((await gus('/api/reports/mine')).data.unread, 0);
     assert.equal((await admin('/api/admin/reports')).data.reports[0].reply.verdict, 'accepted');
+  } finally {
+    await app.close();
+  }
+});
+
+test('changement de pseudo : mot de passe demandé, pas de doublon, un changement par semaine', async () => {
+  const app = await startServer();
+  try {
+    const chef = client(app.base);
+    const eve = client(app.base);
+    await chef('/api/signup', { username: 'chef', password: 'secret123' });
+    await eve('/api/signup', { username: 'eve', password: 'secret123' });
+    const rename = (c, username, password = 'secret123') => c('/api/profile/rename', { username, password });
+
+    assert.equal((await rename(eve, 'Eve2', 'mauvais')).status, 401, 'mauvais mot de passe');
+    assert.equal((await rename(eve, 'Chef')).status, 409, 'pseudo déjà pris, casse ignorée');
+    assert.equal((await rename(eve, 'x')).status, 400, 'pseudo trop court');
+    const ok = await rename(eve, 'Eve2');
+    assert.equal(ok.status, 200);
+    assert.equal(ok.data.user.username, 'Eve2');
+    assert.equal((await eve('/api/me')).data.user.username, 'Eve2');
+    assert.equal((await rename(eve, 'Eve3')).status, 429, 'un seul changement par semaine');
+    app.clock.now += 6 * 24 * 3600 * 1000;
+    assert.equal((await rename(eve, 'Eve3')).status, 429);
+    app.clock.now += 2 * 24 * 3600 * 1000;
+    assert.equal((await rename(eve, 'Eve3')).status, 200);
+    // L'ancien pseudo est libre, et la connexion se fait avec le nouveau.
+    const other = client(app.base);
+    assert.equal((await other('/api/login', { username: 'eve', password: 'secret123' })).status, 401);
+    assert.equal((await other('/api/login', { username: 'eve3', password: 'secret123' })).status, 200);
+  } finally {
+    await app.close();
+  }
+});
+
+test('avatar : valeurs par défaut, éléments à débloquer, visible dans les classements', async () => {
+  const app = await startServer();
+  try {
+    const chef = client(app.base);
+    await chef('/api/signup', { username: 'chef', password: 'secret123' });
+    const me = (await chef('/api/me')).data;
+    assert.equal(me.avatar.chapeau, 'casque');
+    const profile = (await chef('/api/profile')).data;
+    const lockedHat = profile.avatarCatalog.chapeau.options.find((o) => o.id === 'couronne');
+    assert.equal(lockedHat.unlocked, false);
+    assert.match(lockedHat.hint, /Badge|badges/);
+
+    assert.equal((await chef('/api/profile/avatar', { avatar: { ...me.avatar, chapeau: 'couronne' } })).status, 403, 'élément verrouillé');
+    assert.equal((await chef('/api/profile/avatar', { avatar: { ...me.avatar, chapeau: 'inconnu' } })).status, 403);
+    const mine = { ...me.avatar, forme: 'f', chapeau: 'diademe', tenue: 'robe', objet: 'fleur', lieu: 'surface' };
+    assert.equal((await chef('/api/profile/avatar', { avatar: mine })).status, 200);
+    assert.deepEqual((await chef('/api/me')).data.avatar, mine);
+
+    // Un badge de défi débloque le fanion.
+    const uid = app.db.prepare("SELECT id FROM users WHERE username = 'chef'").get().id;
+    app.db.prepare("INSERT INTO badges (user_id, kind, instance, earned_on, created_at) VALUES (?, 'defi-1', '1', '2026-10-14', 0)").run(uid);
+    assert.equal((await chef('/api/profile/avatar', { avatar: { ...mine, objet: 'fanion' } })).status, 200);
+
+    await playDaily(app, chef, 1);
+    const board = (await chef('/api/leaderboard?period=week')).data;
+    assert.equal(board.entries[0].avatar.objet, 'fanion');
+    const cmp = (await chef(`/api/compare?date=2026-10-14`)).data;
+    assert.equal(cmp.players[0].avatar.tenue, 'robe');
+  } finally {
+    await app.close();
+  }
+});
+
+test('défis de la semaine : score cumulé, réponses Soufre et parties illimitées', async () => {
+  const { challengeFor, CHALLENGES } = require('../src/challenges');
+  assert.equal(challengeFor('2026-10-19').id, 'regulier', 'la semaine en cours garde son défi');
+  const ids = new Set();
+  for (let d = Date.UTC(2026, 9, 26); ids.size < CHALLENGES.length && d < Date.UTC(2027, 3, 1); d += 7 * 86400000) {
+    ids.add(challengeFor(new Date(d).toISOString().slice(0, 10)).id);
+  }
+  for (const id of ['score', 'soufre', 'illimite']) assert.ok(ids.has(id), `${id} apparaît dans la rotation`);
+  const app = await startServer();
+  try {
+    const chef = client(app.base);
+    await chef('/api/signup', { username: 'chef', password: 'secret123' });
+    await playDaily(app, chef, 1);
+    await playDaily(app, chef, 1, 'training');
+    const { weekStats } = require('../src/challenges');
+    const stats = weekStats(app.db, app.db.prepare('SELECT id FROM users').get().id, '2026-10-12');
+    assert.equal(stats.illimite, 1);
+    assert.ok(stats.score > 0);
   } finally {
     await app.close();
   }
