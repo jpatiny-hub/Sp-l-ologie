@@ -1,7 +1,7 @@
-titre: Une planète, une planète naine, un astéroïde ou une comète explorée par une sonde spatiale (hors Terre et satellites naturels, jusqu'en 2025)
-# Planètes, planètes naines, astéroïdes (y compris leurs petites lunes : Dactyl, Dimorphos, Selam) et comètes approchés par une sonde.
+titre: Une planète, une planète naine, un astéroïde ou une comète explorée par une sonde spatiale (hors Terre et satellites naturels, jusqu'en 2026)
+# Planètes, planètes naines, astéroïdes (y compris leurs petites lunes : Dactyl, Dimorphos, Selam) et comètes approchés par une sonde (vérifié sur en.wikipedia « List of minor planets and comets visited by spacecraft », Tianwen-2 et Hayabusa2, état juillet 2026). Exclus : les simples survols incidentaux lointains (Masursky, APL, Siding Spring observée depuis l'orbite de Mars).
 1: Mars; Jupiter; Saturne; Vénus; Pluton; Mercure
 2: Uranus; Neptune; Cérès; Comète de Halley = Halley = 1P/Halley; Tchourioumov-Guérassimenko = Churyumov-Gerasimenko = Tchouri = 67P; Vesta
 3: Ryugu; Bennu; Itokawa; Eros = Éros; Arrokoth = Ultima Thulé = Ultima Thule; Dimorphos; Didymos; Tempel 1 = 9P/Tempel; Wild 2 = 81P/Wild
 4: Gaspra; Ida; Dactyl; Mathilde; Lutetia = Lutèce; Šteins = Steins; Toutatis; Borrelly = 19P/Borrelly; Hartley 2 = 103P/Hartley; Giacobini-Zinner = 21P/Giacobini-Zinner; Dinkinesh; Selam
-5: Annefrank; Braille; Grigg-Skjellerup = 26P/Grigg-Skjellerup; Donaldjohanson; Masursky; APL = 132524 APL; Siding Spring = C/2013 A1
+5: Annefrank; Braille; Grigg-Skjellerup = 26P/Grigg-Skjellerup; Donaldjohanson; Kamo'oalewa = Kamoʻoalewa = 2016 HO3; Torifune = 98943 Torifune = 2001 CC21

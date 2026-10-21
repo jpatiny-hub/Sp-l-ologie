@@ -1,4 +1,5 @@
 titre: Un album de la série Astérix (1961-2025)
+# 41 albums, vérifié sur fr.wikipedia « Liste des publications d'Astérix » (dernier : Astérix en Lusitanie, octobre 2025).
 1: Astérix le Gaulois; Astérix et Cléopâtre; Astérix chez les Belges; Astérix aux Jeux olympiques; Le Tour de Gaule d'Astérix; Astérix chez les Bretons; Astérix légionnaire
 2: Astérix gladiateur; La Serpe d'or; Astérix et les Goths; Le Combat des chefs; Astérix et les Normands; Le Bouclier arverne; Astérix et le Chaudron; Astérix en Hispanie; La Zizanie; Astérix chez les Helvètes; Le Domaine des dieux; Les Lauriers de César; Le Devin; Astérix en Corse; Le Cadeau de César; La Grande Traversée; Obélix et Compagnie
 3: Le Grand Fossé; L'Odyssée d'Astérix; Le Fils d'Astérix; Astérix chez Rahàzade; La Rose et le Glaive; La Galère d'Obélix; Astérix et Latraviata; Le ciel lui tombe sur la tête; Astérix chez les Pictes; Le Papyrus de César
