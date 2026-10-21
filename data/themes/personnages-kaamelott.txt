@@ -1,0 +1,7 @@
+titre: Un personnage de la série Kaamelott
+# Personnages nommés, récurrents ou notables de la série télévisée Kaamelott (Alexandre Astier, 2005-2009), hors film.
+1: Arthur = Roi Arthur; Perceval; Karadoc; Léodagan; Merlin; Lancelot = Lancelot du Lac; Guenièvre = Dame Guenièvre; Bohort = Bohort de Gaunes
+2: Séli = Dame Séli; Yvain; Gauvain; Kadoc; Calogrenant; Père Blaise = Blaise; Angharad; Mevanwi = Dame Mevanwi; Hervé de Rinel
+3: Dagonet; Galessin; Duc d'Aquitaine; Loth = Roi Loth; Venec; Manilius = Appius Manilius; Ygerne; Morgane; Caius Camille = Lucius Caius Camillus; Élias de Kelliwic'h = Élias
+4: Goustan = Roi Goustan; Méléagant; Demetra; Roi Burgonde = Burgonde; Guethenoc; Maître d'armes; Tavernier
+5: Roparzh; Breccan; Grüdü; Aconia

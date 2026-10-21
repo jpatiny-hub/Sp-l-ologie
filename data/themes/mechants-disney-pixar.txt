@@ -1,0 +1,6 @@
+titre: Un méchant (antagoniste) d'un film d'animation Disney ou Pixar
+# Antagonistes principaux ou notables des longs métrages d'animation Disney (Grands Classiques) et Pixar.
+1: Cruella d'Enfer = Cruella de Vil = Cruella; Scar; Ursula; Jafar; Gaston; Maléfique = Malefique; Capitaine Crochet = Crochet = Hook; Reine de cœur = Reine de coeur; Méchante Reine = Reine (Blanche-Neige)
+2: Hadès = Hades; Frollo = Claude Frollo; Shere Khan; Kaa; Mère Gothel = Gothel; Prince Hans = Hans; Dr Facilier = Docteur Facilier; Yzma; Lady Tremaine = Belle-mère; Syndrome; Randall Boggs = Randall; Lotso; Zurg; Prince Jean; Shan Yu; Clayton; Hopper
+3: Madame Médusa = Médusa; Ratigan; Edgar; Gouverneur Ratcliffe = Ratcliffe; Stromboli; Honnête John; Lucifer; Monstro; Madame Mim = Mim; Shérif de Nottingham; Sid; Stinky Pete = Prospecteur; Charles Muntz = Muntz; Chef Skinner = Skinner; Ernesto de la Cruz; Mor'du; Tamatoa; Bellwether = Dawn Bellwether; Chick Hicks; Zira; Chernabog
+4: Roi Cornu = Horned King; Rourke; Bill Sikes = Sikes; Alameda Slim; Percival McLeach = McLeach

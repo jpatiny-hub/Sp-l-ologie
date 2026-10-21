@@ -1,0 +1,7 @@
+titre: Une marque ou un type de céréales de petit-déjeuner
+# Produits de petit-déjeuner à base de céréales (flocons, céréales soufflées, muesli, granola, porridge) et leurs marques vendues en Europe ou aux États-Unis. Les céréales agricoles (blé, orge…) sont exclues.
+1: Corn Flakes = Cornflakes; Chocapic; Lion; Trésor; Frosties = Frosted Flakes; Special K = Spécial K; Kellogg's = Kellogg; Nesquik; Cheerios; Muesli = Müesli; Granola; Rice Krispies; Miel Pops = Honey Pops = Pops
+2: Golden Grahams; Estrella; Weetabix; Chocos; Coco Pops; Smacks = Honey Smacks; Fitness; Cookie Crisp; Cini Minis = Cinnamon Toast Crunch; Froot Loops; Lucky Charms; Cap'n Crunch; Trix; Porridge; All-Bran; Crunchy Nut; Country Crisp; Alpen; Clusters; Krave; Golden Nuggets; Shredded Wheat; Oreo O's; Kix; Wheaties; Corn Pops; Apple Jacks; Cocoa Puffs; Count Chocula; Raisin Bran
+3: Honey Nut Cheerios; Shreddies; Ready Brek; Choco Krispies = Cocoa Krispies; Reese's Puffs; Grape-Nuts; Fibre 1; Jordans; Dorset Cereals; Kölln; Bjorg; Nesquik Duo; Chex; Rice Chex; Crispix; Sugar Puffs; Fruit & Fibre
+4: Cheerios Multigrain; Franken Berry; Boo Berry; Ricicles; Frosted Wheats
+5: Product 19; Pebbles; Fruity Pebbles; Cocoa Pebbles

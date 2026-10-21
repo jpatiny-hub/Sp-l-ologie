@@ -1,0 +1,7 @@
+titre: Une civilisation jouable dans Age of Empires II
+# Civilisations jouables en parties libres de AoE II : Definitive Edition, extensions comprises, jusqu'en 2025 (hors civilisations réservées aux campagnes Chronicles).
+1: Aztèques; Vikings; Mongols; Japonais; Chinois; Francs; Huns; Turcs
+2: Bretons; Byzantins; Celtes; Goths; Perses; Sarrasins; Teutons; Mayas; Espagnols; Coréens; Romains
+3: Incas; Indiens = Hindoustanais; Italiens; Magyars; Slaves; Berbères; Éthiopiens; Maliens; Portugais; Birmans; Khmers; Malais; Vietnamiens; Bulgares; Coumans; Lituaniens; Tatars
+4: Bengalis; Dravidiens; Gurjaras; Arméniens; Géorgiens; Bourguignons; Siciliens; Polonais; Bohémiens
+5: Jurchens; Khitans; Wei; Shu; Wu

@@ -1,0 +1,6 @@
+titre: Une attraction de grand parc d'attractions belge (montagnes russes et attractions emblématiques)
+actif: non
+# Périmètre : attractions emblématiques de Walibi Belgium, Bobbejaanland, Plopsaland De Panne et Bellewaerde, actuelles ou récentes. Fiabilité moyenne (mémoire, noms et ouvertures non vérifiés).
+1: Dalton Terror; Cobra; Vampire; Tornado; Calamity Mine
+2: Psyké Underground = Psyke Underground; Turbine; Gotcha Warp = Gotcha; Popcorn Revenge; Typhoon; Python; Revolution; Sledge Hammer; Fury; Anubis The Ride = Anubis; Heidi The Ride = Heidi; Anaconda
+3: Challenge of Tutankhamon = Tutankhamon; Pulsar; Dawn of the Dinosaurs; Dino Splash

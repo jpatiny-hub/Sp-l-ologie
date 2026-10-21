@@ -1,0 +1,6 @@
+titre: Une unité ou une échelle de mesure de la température ou de la chaleur
+# Échelles de température (usuelles, anciennes ou scientifiques) et unités de quantité de chaleur / d'énergie thermique ; élargi à la chaleur car les échelles de température seules sont moins de 20. Unités d'isolation thermique incluses (clo, tog).
+1: Celsius = Degré Celsius = Centigrade = Degré centigrade = Degré; Kelvin; Fahrenheit = Degré Fahrenheit; Calorie; Kilocalorie = Grande calorie
+2: Joule; Kilojoule; BTU = British thermal unit; Rankine = Degré Rankine; Réaumur = Degré Réaumur; Thermie; Frigorie; Degré-jour = Degré-jour unifié = DJU
+3: Delisle = Degré Delisle; Newton (échelle) = Échelle de Newton = Degré Newton; Rømer = Romer = Rœmer = Degré Rømer; Therm; Électronvolt = eV; Thermostat de four = Thermostat; Gas mark; Tonne de réfrigération; Clo; Tog
+4: Leiden = Échelle de Leyde = Échelle de Leiden; Wedgwood = Échelle de Wedgwood; ITS-90 = Échelle internationale de température; Chu = Celsius heat unit; Température de Planck

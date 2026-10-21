@@ -1,0 +1,6 @@
+titre: Un film avec Emma Stone
+# Longs métrages où Emma Stone joue ou prête sa voix, jusqu'en 2025 ; hors séries TV.
+1: La La Land; Cruella; Pauvres Créatures = Poor Things; Zombieland; The Amazing Spider-Man; Les Croods = The Croods; Birdman; La Couleur des sentiments = The Help; Supergrave = Superbad
+2: The Amazing Spider-Man 2 = Le Destin d'un héros; La Favorite = The Favourite; Crazy, Stupid, Love = Crazy Stupid Love; Easy A; Retour à Zombieland = Zombieland: Double Tap; Les Croods 2 = The Croods: A New Age; Gangster Squad; Battle of the Sexes; Magic in the Moonlight
+3: L'Homme irrationnel = Irrational Man; Aloha; Kinds of Kindness; Bugonia; Marmaduke; Movie 43
+4: The House Bunny; Paper Man; Ghosts of Girlfriends Past; Eddington

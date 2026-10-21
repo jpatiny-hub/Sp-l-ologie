@@ -1,0 +1,7 @@
+titre: Une unité de mesure de longueur ou de distance
+# Unités métriques (avec préfixes usuels), usuelles anglo-saxonnes, anciennes (France et ailleurs), nautiques, typographiques, astronomiques et atomiques. Unités d'aire, de volume ou de durée exclues.
+1: Mètre; Kilomètre; Centimètre; Millimètre; Pouce; Pied; Mile = Mille anglais
+2: Yard; Lieue; Année-lumière; Mille marin = Mille nautique; Décimètre; Micromètre = Micron; Nanomètre; Angström; Parsec; Unité astronomique = UA; Toise; Coudée; Brasse; Aune; Arpent
+3: Hectomètre; Décamètre; Picomètre; Femtomètre = Fermi; Furlong; Chaîne; Perche; Empan; Palme; Pas; Stade; Encablure; Verge; Ligne; Point = Point typographique; Pica; Cicéro; Hand = Main; Rod; Pole; Mil = Thou; Kiloparsec; Mégaparsec; Seconde-lumière; Minute-lumière; Pied du roi; Lieue marine; Lieue de poste; Mille romain
+4: Verste = Verst; Archine; Li; Ri; Shaku; Ken; Jō; Cun = Tsun; Chi; Zhang; Doigt; Barleycorn = Grain d'orge; Rayon de Bohr = Bohr; Longueur de Planck; Rayon solaire; Rayon terrestre
+5: Smoot; Twip; Attoparsec

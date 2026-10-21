@@ -1,0 +1,7 @@
+titre: Un bonbon de la marque Haribo
+# Produits Haribo vendus en France, Belgique ou Allemagne (noms français ou courants) ; fiabilité moyenne sur les références les plus rares.
+1: Dragibus; Tagada = Fraises Tagada = Fraise Tagada; Croco = Crocos = Crocodiles; Schtroumpfs = Schtroumpf = Smurfs; Ourson d'or = Oursons d'or = Goldbären = Goldbears = Oursons
+2: Car-en-sac = Car en sac; Rotella = Roulette = Roulettes; Happy Cola = Cola Haribo; Chamallows = Chamallow; Bananes = Banane; Starmix; Pêches = Pêche; Tropifrutti = Tropi Frutti; Maoam; Pommes acides = Saure Äpfel
+3: Phantasia; Happy Cherries = Cerises; Pasta Frutta; Balla Balla; Color-Rado = Colorado; Twin Cherries; Super Mix; Fruity Bussi; Pico-Balla; Click Mix; Bouteilles de cola = Cola Fizz = Cola Frizz
+4: Gold-Teddy; Lakritz Schnecken = Escargots de réglisse
+
