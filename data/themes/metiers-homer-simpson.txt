@@ -1,0 +1,8 @@
+titre: Un métier ou une fonction exercé par Homer Simpson dans la série Les Simpson (jusqu'en 2025)
+actif: non
+# Homer a exercé des centaines de petits boulots : liste NON exhaustive, de mémoire, non vérifiable sans accès web. Thème désactivé faute de fiabilité.
+1: Inspecteur de sécurité nucléaire = Technicien de sécurité = Inspecteur de sécurité; Astronaute
+2: Boxeur; Éboueur = Commissaire à la voirie = Commissaire à la propreté; Conducteur de monorail = Pilote de monorail; Mascotte des Isotopes = Mascotte
+3: Pilote de dirigeable = Pilote de ballon dirigeable; Chanteur = Chanteur de quatuor vocal; Employé du Kwik-E-Mart = Caissier du Kwik-E-Mart; Concepteur automobile = Créateur de voiture; Assistant de M. Burns = Assistant personnel de M. Burns
+4: Manager de chanteuse = Manager de Lurleen Lumpkin; Délégué syndical = Syndicaliste; Justicier = Justicier de quartier
+5: Garde du corps; Vendeur de voitures; Barman; Cuisinier

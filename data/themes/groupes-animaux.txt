@@ -1,0 +1,6 @@
+titre: Un nom collectif désignant un groupe d'animaux
+# Noms collectifs français (vénerie, élevage, zoologie) : on répond par le nom du groupe (pas par l'animal). Les noms d'habitat (ruche, fourmilière, volière) et le vocabulaire purement anglais (pride, murder…) ne sont pas retenus.
+1: Meute; Essaim; Troupeau; Volée; Banc; Troupe; Colonie; Nuée; Bande
+2: Harde; Vol; Portée; Couvée; Nichée; Compagnie; Cheptel; Bétail; Volaille
+3: École; Harem; Manade
+4: Vautrait; Murmuration; Grappe

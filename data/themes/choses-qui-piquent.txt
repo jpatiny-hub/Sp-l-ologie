@@ -1,0 +1,7 @@
+titre: Une chose qui peut piquer (animal, plante, objet ou aliment)
+# Au sens large : piqûre, épine, dard, aiguillon, sensation de piquant en bouche. Si une espèce est précisée (ex. moustique tigre, frelon asiatique, fourmi de feu), elle est acceptée avec le groupe. Liste de mémoire.
+1: Moustique = Moustique tigre = Anophèle = Culex; Guêpe; Abeille; Aiguille = Aiguilles; Épingle = Épingles; Ortie = Orties; Piment = Piments = Piment fort; Cactus; Scorpion; Araignée; Chardon; Houx; Rose = Rosier = Roses; Frelon = Frelon asiatique = Frelon européen; Méduse
+2: Oursin = Hérisson de mer; Hérisson; Ronce = Ronces; Fourmi = Fourmi rouge = Fourmi de feu; Moutarde; Wasabi; Poivre; Gingembre; Seringue; Barbelé = Fil barbelé = Barbelés; Épine = Épines; Aiguillon; Taon = Taons; Puce = Puces; Punaise de lit; Bourdon; Raifort; Porc-épic; Acacia
+3: Raie pastenague = Pastenague; Vive = Poisson-vive; Rascasse; Poisson-pierre; Poisson-lion = Rascasse volante; Physalie = Galère portugaise; Chenille processionnaire; Tarentule; Cure-dent = Cure-dents; Fléchette = Fléchettes; Dard; Radis; Harissa; Tabasco; Aloès; Agave; Ajonc; Aubépine; Prunellier; Épine-vinette
+4: Mouche tsé-tsé = Tsé-tsé; Aoûtat = Trombidion; Fourmi balle de fusil; Poisson-chat; Panicaut = Chardon bleu = Eryngium; Berce du Caucase = Berce géante; Corail de feu; Scolopendre; Cône marin = Cône
+5: Fourmi bulldog; Fourmi-taureau
