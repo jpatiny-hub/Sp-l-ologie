@@ -1,5 +1,5 @@
 titre: Une chaîne YouTube francophone de plus de 5 millions d'abonnés (relevé 2025)
 actif: non
-# THÈME DÉSACTIVÉ : impossible de vérifier les chiffres d'abonnés en ligne (Wikipédia inaccessible depuis l'environnement) et moins de 20 chaînes certaines. Liste établie de mémoire, à compléter et vérifier avant d'activer.
+# THÈME DÉSACTIVÉ : liste à confirmer avant activation. Vérification partielle le 21/10/2026 via Wikidata (propriété abonnés P8687, relevés 2025) : confirmés > 5 M : Squeezie (19,8 M), Cyprien (14,5 M), Michou (10,4 M), Inoxtag (8,9 M), Tibo InShape (25,9 M), McFly et Carlito (7,5 M), Amixem (8,0 M, relevé 2023), Mister V (6,4 M), Natoo (5,2 M) ; Norman non retrouvé dans Wikidata (non vérifié). Chaînes ajoutées d'après les mêmes relevés 2025 (> 5 M).
 1: Squeezie; Cyprien; Norman = Norman fait des vidéos; Michou; Inoxtag
-2: McFly et Carlito = McFly & Carlito = Mcfly Carlito; Tibo InShape = Tibo Inshape; Natoo; Amixem; Mister V = MisterV
+2: McFly et Carlito = McFly & Carlito = Mcfly Carlito; Tibo InShape = Tibo Inshape; Natoo; Amixem; Mister V = MisterV; AmineMaTue = Amine Ma Tue = Amine; Rémi Gaillard = Remi Gaillard; Joyca; Seb la Frite = Sébastien Frit; CYRILmp4 = Cyril MP4; Hugoposé = Hugo Posé; PNL; Niska; Ninho; Aya Nakamura; Dadju; Indila; L'Algérino = Algérino

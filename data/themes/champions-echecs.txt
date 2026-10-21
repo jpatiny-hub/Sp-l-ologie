@@ -1,4 +1,5 @@
 titre: Un champion ou une championne du monde d'échecs (jusqu'en 2025)
+# Vérifié (en.wikipedia) : champions du monde masculins (classiques et FIDE) et féminines jusqu'en 2025. Match 2026 Gukesh - Sindarov prévu du 24 novembre au 12 décembre 2026.
 1: Garry Kasparov = Kasparov; Magnus Carlsen = Carlsen; Bobby Fischer = Fischer; Anatoli Karpov = Karpov
 2: Boris Spassky = Spassky; Viswanathan Anand = Anand; Vladimir Kramnik = Kramnik; Mikhaïl Tal = Tal; Mikhaïl Botvinnik = Botvinnik; José Raúl Capablanca = Capablanca; Alexandre Alekhine = Alekhine; Ding Liren; Gukesh Dommaraju = Gukesh; Susan Polgar = Zsuzsa Polgár = Polgar; Hou Yifan
 3: Emanuel Lasker = Lasker; Wilhelm Steinitz = Steinitz; Max Euwe = Euwe; Tigran Petrossian = Petrossian = Petrosian; Vassily Smyslov = Smyslov; Veselin Topalov = Topalov; Vera Menchik = Menchik; Nona Gaprindashvili = Gaprindashvili; Maia Chiburdanidze = Chiburdanidze; Alexandra Kosteniuk = Kosteniuk; Ju Wenjun

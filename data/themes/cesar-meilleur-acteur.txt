@@ -1,5 +1,6 @@
-titre: Un lauréat du César du meilleur acteur (1976-2025)
+titre: Un lauréat du César du meilleur acteur (1976-2026)
+# Vérifié sur fr.wikipedia jusqu'à la 51e cérémonie (2026, Laurent Lafitte).
 1: Gérard Depardieu = Depardieu; Omar Sy; Jean-Paul Belmondo = Belmondo; Alain Delon = Delon; Daniel Auteuil = Auteuil; Vincent Cassel = Cassel; Jacques Villeret = Villeret; Coluche
 2: Philippe Noiret = Noiret; Michel Serrault = Serrault; Jean Rochefort = Rochefort; Michel Galabru = Galabru; Christophe Lambert = Christopher Lambert; Jacques Dutronc = Dutronc; Mathieu Amalric = Amalric; François Cluzet = Cluzet; Jean-Louis Trintignant = Trintignant; Vincent Lindon = Lindon; Pierre Niney = Niney; Gaspard Ulliel = Ulliel; Benoît Magimel = Magimel; Guillaume Gallienne = Gallienne; Roschdy Zem = Zem; Tahar Rahim = Rahim; Claude Brasseur = Brasseur; Pierre Arditi = Arditi; Gérard Lanvin = Lanvin; Richard Bohringer = Bohringer; André Dussollier = Dussollier; Adrien Brody = Brody; Omar Sharif = Sharif
-3: Philippe Torreton = Torreton; Michel Bouquet; Alex Lutz = Lutz; Sami Bouajila = Bouajila
+3: Philippe Torreton = Torreton; Michel Bouquet; Alex Lutz = Lutz; Sami Bouajila = Bouajila; Laurent Lafitte = Lafitte; Philippe Léotard = Léotard
 4: Claude Rich; Sergi López; Éric Elmosnino = Elmosnino; Swann Arlaud = Arlaud; Arieh Worthalter = Worthalter; Karim Leklou = Leklou
