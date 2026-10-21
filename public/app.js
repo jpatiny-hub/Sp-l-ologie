@@ -639,7 +639,7 @@
     $('prompt-index').textContent = `Thème ${round.slot + 1} sur ${ROUNDS}`;
     $('prompt-title').textContent = round.title;
     const jokerReady = !!(app.game.joker && app.game.joker.available);
-    $('btn-skip').textContent = jokerReady ? 'Galerie de secours : changer de thème' : 'Passer';
+    $('btn-skip').textContent = jokerReady ? 'Galerie de secours' : 'Passer';
     $('joker-note').hidden = !jokerReady;
     if (jokerReady) Icons.drawIcon($('joker-icon'), 'galerie');
     $('answer-error').textContent = '';
