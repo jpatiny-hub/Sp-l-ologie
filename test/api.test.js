@@ -608,7 +608,7 @@ test('défis de la semaine : score cumulé, réponses Soufre et parties illimit�
   for (let d = Date.UTC(2026, 9, 26); ids.size < CHALLENGES.length && d < Date.UTC(2027, 3, 1); d += 7 * 86400000) {
     ids.add(challengeFor(new Date(d).toISOString().slice(0, 10)).id);
   }
-  for (const id of ['score', 'soufre', 'illimite', 'cuivre', 'forage450', 'filon', 'rapides', 'weekend', 'centre']) assert.ok(ids.has(id), `${id} apparaît dans la rotation`);
+  for (const id of ['gravier', 'soufre', 'cuivre', 'rubis', 'score', 'illimite', 'forage450', 'rapides', 'weekend']) assert.ok(ids.has(id), `${id} apparaît dans la rotation`);
   const app = await startServer();
   try {
     const chef = client(app.base);
@@ -620,7 +620,7 @@ test('défis de la semaine : score cumulé, réponses Soufre et parties illimit�
     assert.equal(stats.illimite, 1);
     assert.ok(stats.score > 0);
     assert.equal(stats.best, stats.score, 'un seul forage dans la semaine');
-    for (const k of ['cuivre', 'rapides', 'filon', 'weekend', 'soufre']) assert.ok(Number.isInteger(stats[k]) && stats[k] >= 0, k);
+    for (const k of ['gravier', 'soufre', 'cuivre', 'rubis', 'rapides', 'weekend']) assert.ok(Number.isInteger(stats[k]) && stats[k] >= 0, k);
   } finally {
     await app.close();
   }
