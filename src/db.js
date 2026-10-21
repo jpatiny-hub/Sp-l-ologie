@@ -140,6 +140,11 @@ const MIGRATIONS = [
   ['answer_reports', 'slot', 'INTEGER'],
   ['answer_reports', 'credit', 'TEXT'],
   ['answer_reports', 'points', 'INTEGER'],
+  // Retour du responsable au joueur : verdict (accepted / refused), message, et lecture par le joueur.
+  ['answer_reports', 'verdict', 'TEXT'],
+  ['answer_reports', 'message', 'TEXT'],
+  ['answer_reports', 'updated_at', 'INTEGER'],
+  ['answer_reports', 'seen_at', 'INTEGER'],
 ];
 
 function openDb(file) {

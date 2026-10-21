@@ -482,3 +482,58 @@ test('ajustement manuel : le responsable rend les points d\'une réponse signal�
     await app.close();
   }
 });
+
+test('ajustement manuel d\'une faute : le responsable désigne la réponse visée, sans changer les règles ; le joueur voit le retour', async () => {
+  const app = await startServer();
+  try {
+    const admin = client(app.base);
+    const gus = client(app.base);
+    await admin('/api/signup', { username: 'chef', password: 'secret123' });
+    await gus('/api/signup', { username: 'gus', password: 'secret123' });
+    const { data: game } = await gus('/api/game/start', { mode: 'daily' });
+    await gus(`/api/game/${game.id}/reveal`, {});
+    await gus(`/api/game/${game.id}/skip`, {});
+    app.clock.now += 60 * 1000;
+    const themeId = app.db.prepare('SELECT theme_id FROM rounds WHERE game_id = ? AND slot = 0').get(game.id).theme_id;
+    const typo = 'zzqx wvut';
+    await gus(`/api/game/${game.id}/report`, { slot: 0, text: typo });
+    const inputKey = toKey(typo);
+    const credit = (answerKey) => admin('/api/admin/reports/credit', { themeId, inputKey, username: 'gus', answerKey });
+
+    const report = (await admin('/api/admin/reports')).data.reports.find((r) => r.input === typo);
+    assert.equal(report.inTheme, null);
+    assert.ok(report.reporters[0].creditableDay, 'proposé même si la saisie n\'est pas reconnue');
+    assert.equal((await credit()).status, 409, 'sans réponse désignée');
+    assert.equal((await credit('inconnue')).status, 409);
+
+    const { answers } = (await admin(`/api/admin/theme-answers?themeId=${themeId}`)).data;
+    assert.ok(answers.length >= 20);
+    const res = await credit(answers[0].key);
+    assert.equal(res.status, 200);
+    const after = (await gus(`/api/game/${game.id}`)).data;
+    assert.equal(after.rounds[0].points, res.data.points);
+    assert.equal(after.rounds[0].answer, answers[0].label);
+    assert.equal((await credit(answers[0].key)).status, 409, 'une seule fois');
+    // Les règles ne changent pas : la saisie n'est toujours pas reconnue par le thème.
+    assert.equal((await admin('/api/admin/reports')).data.reports.find((r) => r.input === typo).inTheme, null);
+
+    // Retour du responsable.
+    assert.equal((await gus('/api/admin/reports/reply', { themeId, inputKey, verdict: 'accepted', message: 'x' })).status, 403);
+    assert.equal((await admin('/api/admin/reports/reply', { themeId, inputKey, verdict: 'peut-être' })).status, 400);
+    const mine0 = (await gus('/api/reports/mine')).data;
+    assert.equal(mine0.unread, 1, 'les points accordés comptent comme un retour non lu');
+    assert.equal(mine0.reports[0].points, res.data.points);
+    await admin('/api/admin/reports/reply', { themeId, inputKey, verdict: 'refused', message: 'Trop éloigné.' });
+    await admin('/api/admin/reports/reply', { themeId, inputKey, verdict: 'accepted', message: 'Faute tolérée, points accordés.' });
+    const mine = (await gus('/api/reports/mine')).data;
+    assert.equal(mine.reports[0].verdict, 'accepted');
+    assert.equal(mine.reports[0].message, 'Faute tolérée, points accordés.');
+    assert.equal(mine.reports[0].status, 'handled');
+    assert.equal(mine.unread, 1);
+    await gus('/api/reports/mine/seen', {});
+    assert.equal((await gus('/api/reports/mine')).data.unread, 0);
+    assert.equal((await admin('/api/admin/reports')).data.reports[0].reply.verdict, 'accepted');
+  } finally {
+    await app.close();
+  }
+});

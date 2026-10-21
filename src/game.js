@@ -529,7 +529,7 @@ class GameService {
         )
         .all(r.theme_id, r.input_key)
         .map((p) => {
-          const target = match && p.credit !== 'credited' ? this.creditTarget(p) : null;
+          const target = p.credit !== 'credited' ? this.creditTarget(p) : null;
           return { username: p.username, credited: p.credit === 'credited', creditableDay: target ? target.day : null };
         });
       return {
@@ -544,6 +544,7 @@ class GameService {
         credited: r.credited || 0,
         // Réponse reconnue par le thème aujourd'hui (peut être ajoutée depuis, ou une approximation d'une autre réponse).
         inTheme: match ? match.answer.label : null,
+        reply: (this.db.prepare('SELECT verdict, message FROM answer_reports WHERE theme_id = ? AND input_key = ? AND verdict IS NOT NULL ORDER BY updated_at DESC LIMIT 1').get(r.theme_id, r.input_key)) || null,
         status: r.pending ? 'pending' : 'handled',
       };
     });
@@ -603,7 +604,7 @@ class GameService {
    * Ajustement manuel du responsable : accorde les points d'une réponse signalée à un joueur,
    * sur sa manche sans réponse valide. La réponse doit déjà figurer dans le thème.
    */
-  creditManually(themeId, inputKey, username) {
+  creditManually(themeId, inputKey, username, answerKey) {
     const report = this.db
       .prepare(
         `SELECT a.rowid AS id, a.* FROM answer_reports a JOIN users u ON u.id = a.user_id
@@ -613,8 +614,13 @@ class GameService {
     if (!report) throw new HttpError(404, 'Signalement introuvable.');
     if (report.credit === 'credited') throw new HttpError(409, 'Points déjà accordés.');
     const theme = this.themes.get(themeId);
-    const match = theme && matchAnswer(theme, report.input);
-    if (!match) throw new HttpError(409, "Ajoute d'abord cette réponse au thème.");
+    let match = theme && matchAnswer(theme, report.input);
+    if (!match && theme && typeof answerKey === 'string') {
+      // Geste ponctuel : le responsable désigne la réponse visée, sans toucher au thème ni aux règles d'orthographe.
+      const answer = theme.answers.find((a) => a.key === answerKey);
+      if (answer) match = { answer };
+    }
+    if (!match) throw new HttpError(409, "Choisis la réponse visée, ou ajoute-la d'abord au thème.");
     const target = this.creditTarget(report);
     if (!target) throw new HttpError(409, 'Aucune manche sans réponse valide pour ce thème.');
     // La manche est marquée comme créditée avant l'attribution : les badges de vitesse l'ignorent.
@@ -626,9 +632,48 @@ class GameService {
       this.db.prepare('UPDATE answer_reports SET credit = NULL, points = NULL WHERE rowid = ?').run(report.id);
       throw err;
     }
-    this.db.prepare('UPDATE answer_reports SET points = ? WHERE rowid = ?').run(points, report.id);
+    this.db.prepare('UPDATE answer_reports SET points = ?, updated_at = ? WHERE rowid = ?').run(points, this.now(), report.id);
     this.badges.awardLynx(report.user_id, this.today());
     return { points, day: target.day };
+  }
+
+  /** Retour du responsable aux joueurs ayant signalé cette saisie : verdict et message (modifiable). */
+  replyToReport(themeId, inputKey, verdict, message) {
+    if (verdict !== 'accepted' && verdict !== 'refused') throw new HttpError(400, 'Choisis « acceptée » ou « refusée ».');
+    const text = String(message || '').trim().slice(0, 600);
+    const res = this.db
+      .prepare('UPDATE answer_reports SET verdict = ?, message = ?, updated_at = ? WHERE theme_id = ? AND input_key = ?')
+      .run(verdict, text || null, this.now(), themeId, inputKey);
+    if (!res.changes) throw new HttpError(404, 'Signalement introuvable.');
+    return { ok: true };
+  }
+
+  /** Les signalements d'un joueur, avec le retour reçu ; `unread` compte ceux dont le retour n'a pas été vu. */
+  myReports(userId) {
+    const rows = this.db
+      .prepare(
+        `SELECT theme_id, input, created_at, handled_at, credit, points, verdict, message, updated_at, seen_at
+         FROM answer_reports WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
+      )
+      .all(userId);
+    const reports = rows.map((r) => {
+      const theme = this.themes.get(r.theme_id);
+      return {
+        input: r.input,
+        themeTitle: theme ? theme.title : r.theme_id,
+        createdAt: r.created_at,
+        status: r.handled_at != null || r.verdict ? 'handled' : 'pending',
+        verdict: r.verdict || null,
+        message: r.message || null,
+        points: r.credit === 'credited' ? r.points : null,
+        unread: r.updated_at != null && (r.seen_at == null || r.seen_at < r.updated_at),
+      };
+    });
+    return { reports, unread: reports.filter((r) => r.unread).length };
+  }
+
+  markMyReportsSeen(userId) {
+    this.db.prepare('UPDATE answer_reports SET seen_at = ? WHERE user_id = ? AND updated_at IS NOT NULL').run(this.now(), userId);
   }
 
   markReportHandled(themeId, inputKey) {

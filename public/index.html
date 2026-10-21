@@ -331,8 +331,8 @@
           </div>
           <p class="muted small" id="skin-status" role="status"></p>
         </details>
-        <details class="card fold" data-fold="proposer">
-          <summary><span class="fold-t"><h2>Proposer un thème</h2><span class="sub">une idée de liste à deviner ?</span></span><span class="pm" aria-hidden="true"></span></summary>
+        <details class="card fold" data-fold="proposer" id="fold-proposer">
+          <summary><span class="fold-t"><h2>Proposer un thème <span id="report-mine-dot" class="dot" hidden>●</span></h2><span class="sub">une idée de liste à deviner ? · tes réponses signalées</span></span><span class="pm" aria-hidden="true"></span></summary>
           <form id="form-suggest" class="form">
             <label for="suggest-title">Le thème</label>
             <input id="suggest-title" type="text" maxlength="140" placeholder="Par exemple : un instrument à vent" autocomplete="off" required>
@@ -342,6 +342,8 @@
           </form>
           <p class="muted small" id="suggest-status" role="status"></p>
           <ul class="report-list" id="suggest-mine"></ul>
+          <h3 id="report-mine-title" hidden>Mes réponses signalées</h3>
+          <ul class="report-list" id="report-mine"></ul>
         </details>
         <details class="card fold" data-fold="suggestions" id="admin-suggestions" hidden>
           <summary><span class="fold-t"><h2>Thèmes proposés</h2><span class="sub">réservé au responsable du jeu</span></span><span class="pm" aria-hidden="true"></span></summary>

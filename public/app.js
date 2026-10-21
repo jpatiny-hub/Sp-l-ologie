@@ -1663,11 +1663,22 @@
           ),
         );
         (r.reporters || []).filter((p) => p.creditableDay).forEach((p) => {
+          // Réponse non reconnue : le responsable désigne la réponse visée (geste ponctuel, les règles ne changent pas).
+          let pick = null;
+          if (!r.inTheme) {
+            pick = el('select', { 'aria-label': 'Réponse visée' }, el('option', { value: '' }, 'Réponse visée…'));
+            api(`/api/admin/theme-answers?themeId=${encodeURIComponent(r.themeId)}`)
+              .then(({ answers }) => answers.forEach((a) => pick.append(el('option', { value: a.key }, a.label))))
+              .catch(() => {});
+          }
           const give = el('button', { class: 'link', type: 'button' }, `Accorder les points à ${p.username} (forage du ${longDay(p.creditableDay)})`);
           give.addEventListener('click', async () => {
-            if (!window.confirm(`Accorder à ${p.username} les points de « ${r.input} » pour le forage du ${longDay(p.creditableDay)} ?`)) return;
+            const answerKey = pick ? pick.value : undefined;
+            if (pick && !answerKey) return showNotice('Choisis d\'abord la réponse visée.');
+            const what = pick ? pick.selectedOptions[0].textContent : r.input;
+            if (!window.confirm(`Accorder à ${p.username} les points de « ${what} » pour le forage du ${longDay(p.creditableDay)} ?`)) return;
             try {
-              const res = await api('/api/admin/reports/credit', { themeId: r.themeId, inputKey: r.inputKey, username: p.username });
+              const res = await api('/api/admin/reports/credit', { themeId: r.themeId, inputKey: r.inputKey, username: p.username, answerKey });
               p.creditableDay = null;
               p.credited = true;
               r.credited += 1;
@@ -1677,8 +1688,27 @@
               showNotice(err.message);
             }
           });
+          if (pick) item.append(pick);
           item.append(give);
         });
+        // Retour aux joueurs : verdict et message, visibles dans leur onglet « Mes signalements ».
+        const msg = el('textarea', { rows: 2, maxlength: 600, placeholder: 'Message au joueur (pourquoi oui ou non)' });
+        msg.value = (r.reply && r.reply.message) || '';
+        const status = el('span', { class: 'muted small' }, r.reply ? `Retour envoyé : ${r.reply.verdict === 'accepted' ? 'acceptée' : 'refusée'}.` : '');
+        const send = (verdict, label) => {
+          const b = el('button', { class: 'link', type: 'button' }, label);
+          b.addEventListener('click', async () => {
+            try {
+              await api('/api/admin/reports/reply', { themeId: r.themeId, inputKey: r.inputKey, verdict, message: msg.value });
+              r.reply = { verdict, message: msg.value };
+              status.textContent = `Retour envoyé : ${verdict === 'accepted' ? 'acceptée' : 'refusée'}.`;
+            } catch (err) {
+              status.textContent = err.message;
+            }
+          });
+          return b;
+        };
+        item.append(msg, el('span', {}, send('accepted', 'Envoyer : acceptée'), ' · ', send('refused', 'Envoyer : refusée')), status);
         if (r.status === 'pending') {
           const done = el('button', { class: 'link', type: 'button' }, 'Marquer comme traitée');
           done.addEventListener('click', async () => {
@@ -1719,6 +1749,7 @@
     try {
       const { suggestions } = await api('/api/themes/suggestions');
       renderMySuggestions(suggestions);
+      loadMyReports();
     } catch {
       /* la section reste vide */
     }
@@ -1731,6 +1762,36 @@
       renderSuggestions();
     } catch (err) {
       $('suggestions-status').textContent = err.message;
+    }
+  }
+
+  $('fold-proposer').addEventListener('toggle', () => {
+    if (!$('fold-proposer').open) return;
+    loadMyReports();
+    if (!$('report-mine-dot').hidden) api('/api/reports/mine/seen', {}).then(() => ($('report-mine-dot').hidden = true)).catch(() => {});
+  });
+
+  // Retour du responsable sur les réponses que le joueur a signalées.
+  async function loadMyReports() {
+    try {
+      const { reports, unread } = await api('/api/reports/mine');
+      const list = $('report-mine');
+      list.replaceChildren(
+        ...reports.map((r) => {
+          const state = r.verdict === 'accepted' ? 'Acceptée' : r.verdict === 'refused' ? 'Refusée' : r.status === 'handled' ? 'Examinée' : 'En attente d\'examen';
+          return el(
+            'li',
+            { class: `report ${r.status}` },
+            el('span', { class: 'what' }, el('strong', {}, `« ${r.input} »`), el('span', { class: 'muted' }, r.themeTitle)),
+            el('span', { class: 'muted' }, `${state}${r.points != null ? ` · +${r.points} points accordés` : ''}`),
+            r.message ? el('span', {}, r.message) : null,
+          );
+        }),
+      );
+      $('report-mine-title').hidden = !reports.length;
+      $('report-mine-dot').hidden = !unread;
+    } catch {
+      /* la section reste vide */
     }
   }
 
