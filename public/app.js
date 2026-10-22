@@ -801,10 +801,43 @@
 
   $('btn-skip').addEventListener('click', () => skipRound());
 
+  /** Fenêtre de la galerie de secours (joker) : renvoie true si le joueur la prend. */
+  function askGallery() {
+    return new Promise((resolve) => {
+      const dialog = $('gallery-dialog');
+      Icons.drawIcon($('gallery-icon'), 'galerie');
+      let answer = false;
+      const done = (value) => {
+        answer = value;
+        dialog.close();
+      };
+      const yes = () => done(true);
+      const no = () => done(false);
+      const backdrop = (event) => {
+        if (event.target === dialog) done(false);
+      };
+      $('gallery-yes').addEventListener('click', yes);
+      $('gallery-no').addEventListener('click', no);
+      dialog.addEventListener('click', backdrop);
+      dialog.addEventListener(
+        'close',
+        () => {
+          $('gallery-yes').removeEventListener('click', yes);
+          $('gallery-no').removeEventListener('click', no);
+          dialog.removeEventListener('click', backdrop);
+          resolve(answer);
+        },
+        { once: true },
+      );
+      dialog.showModal();
+      $('gallery-yes').focus();
+    });
+  }
+
   async function skipRound() {
     if (app.busy || !app.game) return;
     // Joker : un thème par partie peut être changé gratuitement ; au-delà, passer coûte le thème.
-    if (app.game.joker && app.game.joker.available && !window.confirm('Prendre la galerie de secours ? Ce thème est remplacé par un autre (le même pour tous les joueurs), avec un nouveau chrono. Il n\'y a qu\'une galerie de secours par partie.')) return;
+    if (app.game.joker && app.game.joker.available && !(await askGallery())) return;
     app.busy = true;
     stopTimer();
     clearPending();

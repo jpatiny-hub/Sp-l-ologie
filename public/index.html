@@ -23,6 +23,25 @@
     </nav>
   </header>
 
+  <dialog class="gallery-dialog" id="gallery-dialog" aria-labelledby="gallery-title">
+    <div class="gallery-frame">
+      <span class="gallery-post left" aria-hidden="true"></span>
+      <span class="gallery-post right" aria-hidden="true"></span>
+      <div class="gallery-beam" aria-hidden="true"></div>
+      <div class="gallery-body">
+        <canvas id="gallery-icon" width="12" height="12" aria-hidden="true"></canvas>
+        <h2 id="gallery-title">Galerie de secours</h2>
+        <p>Ce thème te bloque ? Une galerie de secours te mène vers un autre thème, <strong>le même pour tous les mineurs</strong>, avec un chrono tout neuf.</p>
+        <p class="muted small">Il n'y en a qu'une par partie : ensuite, passer un thème coûte le thème.</p>
+        <div class="row">
+          <button class="btn" id="gallery-yes" type="button">Prendre la galerie</button>
+          <button class="btn ghost" id="gallery-no" type="button">Rester ici</button>
+        </div>
+      </div>
+      <div class="gallery-floor" aria-hidden="true"></div>
+    </div>
+  </dialog>
+
   <dialog class="card settings" id="settings">
     <form method="dialog" class="form" id="form-settings">
       <h2>Paramètres</h2>
