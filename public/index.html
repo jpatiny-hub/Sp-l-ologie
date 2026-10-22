@@ -47,6 +47,15 @@
     </div>
   </dialog>
 
+  <dialog class="card assign-dialog" id="assign-dialog" aria-labelledby="assign-title">
+    <h2 id="assign-title">Associer une réponse</h2>
+    <p class="muted small" id="assign-sub"></p>
+    <input type="search" id="assign-search" placeholder="Chercher une réponse…" aria-label="Chercher une réponse" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <ul class="assign-list" id="assign-list"></ul>
+    <p class="muted small" id="assign-status" role="status"></p>
+    <button class="btn" id="assign-confirm" type="button" disabled>Associer</button>
+    <button class="btn ghost" id="assign-cancel" type="button">Annuler</button>
+  </dialog>
   <dialog class="card settings" id="settings">
     <form method="dialog" class="form" id="form-settings">
       <h2>Paramètres</h2>

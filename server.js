@@ -441,6 +441,14 @@ function createApp({
       json(res, 200, game.creditManually(themeId, inputKey, username, answerKey));
     },
 
+    // Le responsable associe après coup une réponse à la manche d'un joueur (depuis le comparatif d'un jour).
+    'POST /api/admin/assign': async (req, res) => {
+      requireAdmin(req, res);
+      const { day, username, themeId, answerKey } = await readJson(req);
+      if ([day, username, themeId, answerKey].some((v) => typeof v !== 'string')) throw new HttpError(400, 'Demande incomplète.');
+      json(res, 200, game.assignAnswer(day, username, themeId, answerKey));
+    },
+
     // Retour du responsable aux joueurs qui ont signalé une réponse.
     'POST /api/admin/reports/reply': async (req, res) => {
       requireAdmin(req, res);

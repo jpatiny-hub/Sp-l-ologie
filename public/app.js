@@ -2120,6 +2120,66 @@
   $('btn-podium-home').addEventListener('click', () => goHome());
 
   // ---------- Comparaison des réponses d'un jour ----------
+  /** Responsable : associe après coup une réponse du thème à la manche d'un joueur qui n'en avait pas de valide. */
+  function assignButton(day, back, player, round, theme) {
+    const button = el('button', { type: 'button', class: 'assign-btn', title: 'Associer une réponse à cette manche' }, 'Associer…');
+    button.addEventListener('click', async () => {
+      const dialog = $('assign-dialog');
+      let answers = [];
+      try {
+        answers = (await api(`/api/admin/theme-answers?themeId=${encodeURIComponent(round.themeId)}`)).answers;
+      } catch (err) {
+        return showNotice(err.message);
+      }
+      let chosen = null;
+      const ac = new AbortController();
+      const on = (node, type, fn) => node.addEventListener(type, fn, { signal: ac.signal });
+      $('assign-sub').textContent = `${player.username} · « ${theme.title} » · ${round.outcome === 'timeout' ? 'temps écoulé' : 'thème passé'}`;
+      $('assign-search').value = '';
+      $('assign-status').textContent = '';
+      $('assign-confirm').disabled = true;
+      $('assign-confirm').textContent = 'Associer';
+      const draw = () => {
+        const q = $('assign-search').value.trim().toLowerCase();
+        const shown = answers.filter((a) => !q || a.label.toLowerCase().includes(q)).slice(0, 80);
+        $('assign-list').replaceChildren(
+          ...shown.map((a) => {
+            const item = el('li', {}, el('button', { type: 'button', class: `assign-item${chosen === a ? ' on' : ''}` }, a.label));
+            item.firstChild.addEventListener('click', () => {
+              chosen = a;
+              $('assign-confirm').disabled = false;
+              $('assign-confirm').textContent = `Associer « ${a.label} »`;
+              draw();
+            });
+            return item;
+          }),
+        );
+        if (!shown.length) $('assign-list').append(el('li', { class: 'muted' }, 'Aucune réponse ne correspond.'));
+      };
+      draw();
+      on($('assign-search'), 'input', draw);
+      on($('assign-cancel'), 'click', () => dialog.close());
+      on(dialog, 'click', (event) => event.target === dialog && dialog.close());
+      on($('assign-confirm'), 'click', async () => {
+        if (!chosen) return;
+        $('assign-confirm').disabled = true;
+        try {
+          const res = await api('/api/admin/assign', { day, username: player.username, themeId: round.themeId, answerKey: chosen.key });
+          dialog.close();
+          await openCompare(day, back);
+          showNotice(`« ${res.answer} » associée à ${player.username} : +${res.points} points.`);
+        } catch (err) {
+          $('assign-status').textContent = err.message;
+          $('assign-confirm').disabled = false;
+        }
+      });
+      dialog.addEventListener('close', () => ac.abort(), { once: true });
+      dialog.showModal();
+      $('assign-search').focus();
+    });
+    return button;
+  }
+
   async function openCompare(day, back = 'podium') {
     app.compareBack = back;
     try {
@@ -2173,6 +2233,7 @@
                 el('span', { class: 'who' }, avatarEl(p.avatar, 'head', 2), p.username),
                 el('span', { class: 'what' }, what),
                 el('span', { class: 'pts' }, r.outcome === 'joker' ? '—' : pts(r.points || 0)),
+                app.me && app.me.isAdmin && (r.outcome === 'timeout' || r.outcome === 'skip') ? assignButton(day, back, p, r, th) : null,
               ),
             );
           });

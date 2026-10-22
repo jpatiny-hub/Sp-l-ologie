@@ -156,6 +156,8 @@ const MIGRATIONS = [
   ['games', 'joker_used', 'INTEGER NOT NULL DEFAULT 0'],
   ['games', 'spare_theme', 'TEXT'],
   ['rounds', 'swapped_from', 'TEXT'],
+  // Manche dont la réponse a été attribuée après coup par le responsable (ignorée par les badges de vitesse).
+  ['rounds', 'credited', 'INTEGER NOT NULL DEFAULT 0'],
   // Signalement fait pendant la manche (manche retrouvée par game_id et slot) et suite donnée aux points.
   ['answer_reports', 'game_id', 'INTEGER'],
   ['answer_reports', 'slot', 'INTEGER'],

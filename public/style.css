@@ -865,3 +865,14 @@ canvas.avatar-head { width: 20px; height: auto; }
 :root[data-colors='rouge-vert'] dialog[open] { filter: url(#cb-rouge-vert); }
 :root[data-colors='bleu-jaune'] dialog[open] { filter: url(#cb-bleu-jaune); }
 :root[data-colors='gris'] dialog[open] { filter: grayscale(1) contrast(1.08); }
+
+/* Responsable : associer une réponse après coup (comparatif). */
+.compare-list .what { min-width: 6em; }
+.assign-btn { flex: none; padding: 2px 8px; font: inherit; font-size: calc(14px * var(--fs)); color: var(--ink); background: var(--panel-2); border: 0; cursor: pointer; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.35); }
+.assign-list { list-style: none; padding: 0; margin: 8px 0; max-height: 40vh; overflow: auto; display: flex; flex-direction: column; gap: 4px; }
+.assign-item { width: 100%; text-align: left; padding: 6px 8px; font: inherit; color: var(--ink); background: var(--panel-2); border: 0; cursor: pointer; }
+.assign-item.on { background: #5a4417; box-shadow: inset 0 0 0 2px var(--accent); }
+#assign-search { width: 100%; box-sizing: border-box; }
+.assign-dialog { max-width: 360px; width: calc(100% - 24px); color: var(--ink); border: 0; }
+.assign-dialog::backdrop { background: rgba(0, 0, 0, 0.7); }
+.assign-dialog .btn { margin-top: 8px; }
