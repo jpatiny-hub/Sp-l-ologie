@@ -1,22 +1,25 @@
 'use strict';
 
-const { TIMEZONE } = require('./config');
+const { TIMEZONE, DAY_START_HOUR } = require('./config');
 
 const dayFormat = new Intl.DateTimeFormat('en-GB', {
   timeZone: TIMEZONE,
   year: 'numeric',
   month: '2-digit',
   day: '2-digit',
+  hour: '2-digit',
+  hourCycle: 'h23',
 });
 
 function parts(ms) {
   return Object.fromEntries(dayFormat.formatToParts(new Date(ms)).map((p) => [p.type, p.value]));
 }
 
-/** Jour courant à Bruxelles, au format AAAA-MM-JJ. */
+/** Jour de jeu à Bruxelles, au format AAAA-MM-JJ : il commence à DAY_START_HOUR h, pas à minuit. */
 function dayKey(ms) {
   const p = parts(ms);
-  return `${p.year}-${p.month}-${p.day}`;
+  const day = `${p.year}-${p.month}-${p.day}`;
+  return Number(p.hour) < DAY_START_HOUR ? addDays(day, -1) : day;
 }
 
 function addDays(day, n) {
