@@ -370,15 +370,24 @@ class GameService {
       avatar: Avatar.normalize(g.avatar, g.userId),
       score: g.score,
       me: g.userId === userId,
-      rounds: roundsOf.all(g.id).map((r) => ({
-        slot: r.slot,
-        themeId: r.theme_id,
-        outcome: r.outcome,
-        answer: r.answer_label,
-        input: r.input,
-        points: r.points,
-        tier: tierFor(r.points, r.outcome).id,
-      })),
+      rounds: roundsOf.all(g.id).flatMap((r) => {
+        const result = {
+          slot: r.slot,
+          themeId: r.theme_id,
+          outcome: r.outcome,
+          answer: r.answer_label,
+          input: r.input,
+          points: r.points,
+          tier: tierFor(r.points, r.outcome).id,
+        };
+        // Galerie de secours : le thème remplacé apparaît comme « galerie de secours », et le thème de remplacement
+        // forme une rubrique à part (en dernier), où seuls ceux qui ont utilisé la galerie figurent.
+        if (!r.swapped_from) return [result];
+        return [
+          { slot: r.slot, themeId: r.swapped_from, outcome: 'joker', answer: null, input: null, points: 0, tier: 'skip' },
+          { ...result, spare: true },
+        ];
+      }),
     }));
     // Thèmes du jour : ceux de chaque joueur (un joueur qui a utilisé son joker a le thème de remplacement à la place d'un autre).
     const order = [];
@@ -387,13 +396,13 @@ class GameService {
       for (const r of p.rounds) {
         if (seen.has(r.themeId)) continue;
         seen.add(r.themeId);
-        order.push({ slot: r.slot, themeId: r.themeId });
+        order.push({ slot: r.spare ? 100 + r.slot : r.slot, themeId: r.themeId, spare: !!r.spare });
       }
     }
     order.sort((a, b) => a.slot - b.slot);
     const themes = order.map((o) => {
       const theme = this.themes.get(o.themeId);
-      return { slot: o.slot, themeId: o.themeId, title: theme ? theme.title : 'Thème indisponible' };
+      return { slot: o.slot, themeId: o.themeId, spare: o.spare, title: theme ? theme.title : 'Thème indisponible' };
     });
     return { day, themes, players };
   }

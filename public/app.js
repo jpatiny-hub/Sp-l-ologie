@@ -2148,7 +2148,7 @@
       }
       data.themes.forEach((th, i) => {
         const list = el('ul', { class: 'compare-list' });
-        const entries = data.players.map((p) => ({ p, r: p.rounds.find((x) => x.themeId === th.themeId) })).filter(({ r }) => r);
+        const entries = data.players.map((p) => ({ p, r: p.rounds.find((x) => x.themeId === th.themeId && !!x.spare === !!th.spare) })).filter(({ r }) => r);
         const norm = (t) => String(t || '').toLowerCase();
         const given = new Map();
         entries.forEach(({ r }) => r.outcome === 'answer' && given.set(norm(r.answer), (given.get(norm(r.answer)) || 0) + 1));
@@ -2156,7 +2156,7 @@
         entries
           .sort((a, b) => (b.r.points || 0) - (a.r.points || 0))
           .forEach(({ p, r }) => {
-            const what = r.outcome === 'answer' ? r.answer : r.outcome === 'timeout' ? 'temps écoulé' : 'passé';
+            const what = r.outcome === 'answer' ? r.answer : r.outcome === 'joker' ? 'Galerie de secours' : r.outcome === 'timeout' ? 'temps écoulé' : 'passé';
             // Repères : seul(e) à avoir donné cette réponse, ou même réponse que la tienne.
             let mark = '';
             if (r.outcome === 'answer') {
@@ -2170,11 +2170,11 @@
                 el('span', { class: 'swatch', style: { background: Pixel.TIER_COLORS[r.tier] || '#666' } }),
                 el('span', { class: 'who' }, avatarEl(p.avatar, 'head', 2), p.username),
                 el('span', { class: 'what' }, what),
-                el('span', { class: 'pts' }, pts(r.points || 0)),
+                el('span', { class: 'pts' }, r.outcome === 'joker' ? '—' : pts(r.points || 0)),
               ),
             );
           });
-        body.append(el('h3', {}, `${i + 1}. ${th.title}`), list);
+        body.append(el('h3', {}, th.spare ? `${i + 1}. Galerie de secours : ${th.title}` : `${i + 1}. ${th.title}`), list);
       });
       show('compare');
     } catch (err) {
