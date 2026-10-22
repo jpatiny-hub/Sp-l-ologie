@@ -11,6 +11,8 @@ const { usernameKey } = require('./auth');
 const Avatar = require('./avatar');
 
 const PERIODS = ['day', 'week', 'month'];
+// Réactions possibles dans le comparatif.
+const REACTIONS = ['bienvu', 'coeur', 'creuse', 'audace', 'surprise'];
 
 class HttpError extends Error {
   constructor(status, message) {
@@ -365,6 +367,20 @@ class GameService {
       )
       .all(day);
     const roundsOf = this.db.prepare('SELECT * FROM rounds WHERE game_id = ? ORDER BY slot');
+    // Réactions reçues par chaque manche, et celles du joueur qui regarde.
+    const reacted = new Map();
+    if (games.length) {
+      const rows = this.db
+        .prepare(`SELECT game_id, slot, reactor_id, kind FROM reactions WHERE game_id IN (${games.map(() => '?').join(',')})`)
+        .all(...games.map((g) => g.id));
+      for (const r of rows) {
+        const key = `${r.game_id}:${r.slot}`;
+        if (!reacted.has(key)) reacted.set(key, { counts: {}, mine: null });
+        const entry = reacted.get(key);
+        entry.counts[r.kind] = (entry.counts[r.kind] || 0) + 1;
+        if (r.reactor_id === userId) entry.mine = r.kind;
+      }
+    }
     const players = games.map((g) => ({
       username: g.username,
       avatar: Avatar.normalize(g.avatar, g.userId),
@@ -379,6 +395,9 @@ class GameService {
           input: r.input,
           points: r.points,
           tier: tierFor(r.points, r.outcome).id,
+          rid: `${g.id}:${r.slot}`,
+          reactions: (reacted.get(`${g.id}:${r.slot}`) || { counts: {} }).counts,
+          mine: (reacted.get(`${g.id}:${r.slot}`) || { mine: null }).mine,
         };
         // Galerie de secours : le thème remplacé apparaît comme « galerie de secours », et le thème de remplacement
         // forme une rubrique à part (en dernier), où seuls ceux qui ont utilisé la galerie figurent.
@@ -405,6 +424,43 @@ class GameService {
       return { slot: o.slot, themeId: o.themeId, spare: o.spare, title: theme ? theme.title : 'Thème indisponible' };
     });
     return { day, themes, players };
+  }
+
+  /**
+   * Réaction du joueur à la réponse d'un autre (`rid` = « partie:manche » telle que donnée par le comparatif).
+   * Une seule réaction par réponse : en choisir une autre remplace la précédente, `kind` nul la retire.
+   */
+  react(userId, rid, kind) {
+    const m = /^(\d+):(\d+)$/.exec(String(rid || ''));
+    if (!m) throw new HttpError(400, 'Réponse inconnue.');
+    if (kind !== null && !REACTIONS.includes(kind)) throw new HttpError(400, 'Réaction inconnue.');
+    const gameId = Number(m[1]);
+    const slot = Number(m[2]);
+    const target = this.db.prepare("SELECT * FROM games WHERE id = ? AND mode = 'daily' AND finished_at IS NOT NULL").get(gameId);
+    if (!target) throw new HttpError(404, 'Réponse introuvable.');
+    if (target.user_id === userId) throw new HttpError(403, 'Tu ne peux pas réagir à ta propre réponse.');
+    const round = this.db.prepare("SELECT outcome FROM rounds WHERE game_id = ? AND slot = ? AND answered_at IS NOT NULL").get(gameId, slot);
+    if (!round || round.outcome !== 'answer') throw new HttpError(404, 'Pas de réponse à laquelle réagir.');
+    // Comme le comparatif : le jour en cours n'est ouvert qu'à ceux qui ont terminé leur forage.
+    if (target.day === this.today()) {
+      const mine = this.dailyGameFor(userId, target.day);
+      if (!mine || mine.finished_at == null) throw new HttpError(403, 'Termine ton forage du jour pour réagir.');
+    }
+    if (kind === null) this.db.prepare('DELETE FROM reactions WHERE game_id = ? AND slot = ? AND reactor_id = ?').run(gameId, slot, userId);
+    else {
+      this.db
+        .prepare(
+          `INSERT INTO reactions (game_id, slot, reactor_id, kind, created_at) VALUES (?, ?, ?, ?, ?)
+           ON CONFLICT (game_id, slot, reactor_id) DO UPDATE SET kind = excluded.kind, created_at = excluded.created_at`,
+        )
+        .run(gameId, slot, userId, kind, this.now());
+    }
+    const counts = {};
+    this.db
+      .prepare('SELECT kind, COUNT(*) AS n FROM reactions WHERE game_id = ? AND slot = ? GROUP BY kind')
+      .all(gameId, slot)
+      .forEach((r) => (counts[r.kind] = r.n));
+    return { rid: `${gameId}:${slot}`, reactions: counts, mine: kind };
   }
 
   roundView(round, game) {
@@ -893,4 +949,4 @@ class GameService {
   }
 }
 
-module.exports = { GameService, HttpError };
+module.exports = { GameService, HttpError, REACTIONS };

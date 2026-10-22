@@ -8,9 +8,11 @@ const config = require('./src/config');
 const { openDb } = require('./src/db');
 const { loadThemes } = require('./src/themes');
 const { GameService, HttpError } = require('./src/game');
-const { msUntilNextDay, isDay } = require('./src/dates');
+const { msUntilNextDay, isDay, addDays: addDaysIso, weekStart: weekStartIso } = require('./src/dates');
 const auth = require('./src/auth');
 const Avatar = require('./src/avatar');
+const { collectiveStatus } = require('./src/collective');
+const { pendingRecap, markRecapSeen, weeklyRecap } = require('./src/recap');
 const { unseenNews, LATEST_NEWS_ID } = require('./src/news');
 
 const SESSION_MS = config.SESSION_DAYS * 24 * 3600 * 1000;
@@ -290,6 +292,8 @@ function createApp({
         news: unseenNews(row.news_seen),
         today: game.todaySummary(user.id),
         streak: game.badges.homeSummary(user.id, game.today()),
+        collective: collectiveStatus(db, game.today(), user.id),
+        recap: pendingRecap(db, user.id, game.today()),
         nextResetMs: msUntilNextDay(now()),
         timerSeconds: config.TIMER_SECONDS,
       });
@@ -316,6 +320,30 @@ function createApp({
     'GET /api/compare': async (req, res, _id, url) => {
       const user = requireUser(req, res);
       json(res, 200, game.compareDay(url.searchParams.get('date') || game.today(), user.id));
+    },
+
+    // Récap de la semaine écoulée (la Gazette de la mine).
+    'GET /api/recap': async (req, res, _id, url) => {
+      const user = requireUser(req, res);
+      const asked = url.searchParams.get('week');
+      const week = isDay(asked) ? asked : addDaysIso(weekStartIso(game.today()), -7);
+      if (week >= weekStartIso(game.today())) throw new HttpError(400, 'Cette semaine n\'est pas terminée.');
+      json(res, 200, weeklyRecap(game, week, user.id));
+    },
+
+    'POST /api/recap/seen': async (req, res) => {
+      const user = requireUser(req, res);
+      const { week } = await readJson(req);
+      if (!isDay(week)) throw new HttpError(400, 'Semaine inconnue.');
+      markRecapSeen(db, user.id, week);
+      json(res, 200, { ok: true });
+    },
+
+    // Réaction à la réponse d'un autre joueur dans le comparatif (kind nul : retire sa réaction).
+    'POST /api/reactions': async (req, res) => {
+      const user = requireUser(req, res);
+      const { rid, kind } = await readJson(req);
+      json(res, 200, game.react(user.id, rid, typeof kind === 'string' ? kind : null));
     },
 
     // Le joueur a lu les notes de mise à jour (jusqu'à la note `id` comprise).

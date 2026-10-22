@@ -132,6 +132,16 @@ CREATE TABLE IF NOT EXISTS training_answer_counts (
   PRIMARY KEY (theme_id, answer_key)
 );
 
+-- Réactions aux réponses des autres dans le comparatif : une par joueur et par réponse (game_id, slot : manche réagie).
+CREATE TABLE IF NOT EXISTS reactions (
+  game_id    INTEGER NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+  slot       INTEGER NOT NULL,
+  reactor_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind       TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  PRIMARY KEY (game_id, slot, reactor_id)
+);
+
 -- Thèmes proposés par les joueurs, à examiner par le responsable du jeu.
 CREATE TABLE IF NOT EXISTS theme_suggestions (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -152,6 +162,8 @@ const MIGRATIONS = [
   // Avatar (JSON des choix) et date du dernier changement de pseudo (un changement par semaine).
   ['users', 'avatar', 'TEXT'],
   ['users', 'username_changed_at', 'INTEGER'],
+  // Dernière semaine (lundi) dont le récap a été vu.
+  ['users', 'recap_seen', 'TEXT'],
   // Joker : un thème à changer gratuitement par partie (thème de remplacement et thème remplacé).
   ['games', 'joker_used', 'INTEGER NOT NULL DEFAULT 0'],
   ['games', 'spare_theme', 'TEXT'],

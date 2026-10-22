@@ -225,10 +225,23 @@
           </div>
         </div>
         <div class="card challenge" id="challenge-card" hidden>
-          <h2>Défi de la semaine</h2>
-          <p id="challenge-text"></p>
-          <div class="progress" id="challenge-bar" role="progressbar" aria-valuemin="0"><div class="progress-fill" id="challenge-fill"></div></div>
-          <p class="muted small" id="challenge-note"></p>
+          <h2>Défis</h2>
+          <div class="mini-tabs" id="challenge-tabs" role="tablist">
+            <button class="tab active" type="button" role="tab" data-challenge="week" aria-selected="true">Semaine</button>
+            <button class="tab" type="button" role="tab" data-challenge="month" aria-selected="false" id="challenge-tab-month" hidden>Mois</button>
+          </div>
+          <div id="challenge-week">
+            <p id="challenge-text"></p>
+            <div class="progress" id="challenge-bar" role="progressbar" aria-valuemin="0"><div class="progress-fill" id="challenge-fill"></div></div>
+            <p class="muted small" id="challenge-note"></p>
+          </div>
+          <div id="challenge-month" hidden>
+            <p id="collective-title"></p>
+            <canvas class="collective-canvas" id="collective-canvas" width="110" height="40" role="img" aria-label="Tunnel creusé ensemble jusqu'au diamant"></canvas>
+            <div class="stat"><strong id="collective-total"></strong><span id="collective-left"></span></div>
+            <ul class="collective-legend" id="collective-legend"></ul>
+            <p class="muted small" id="collective-note"></p>
+          </div>
         </div>
         <div class="card podium-card">
           <h2>Podium</h2>
@@ -254,6 +267,18 @@
             <li>Les podiums additionnent tes forages du jour, de la semaine (lundi → dimanche) ou du mois.</li>
           </ul>
         </details>
+      </div>
+
+      <!-- Récap du lundi -->
+      <div class="view" id="view-recap" hidden>
+        <div id="recap-fireworks">
+          <p class="recap-title">Bravo les mineurs !</p>
+          <p class="muted recap-sub" id="recap-sub"></p>
+          <canvas class="recap-canvas" id="recap-canvas" width="160" height="190" role="img" aria-label="Le podium de la semaine sous un feu d'artifice"></canvas>
+          <div class="recap-names" id="recap-names"></div>
+          <button class="btn" id="btn-recap-next" type="button">Voir la Gazette de la mine</button>
+        </div>
+        <article class="gazette" id="recap-gazette" hidden></article>
       </div>
 
       <!-- Partie -->
