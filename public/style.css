@@ -855,3 +855,13 @@ canvas.avatar-head { width: 20px; height: auto; }
 .compare-list li.joker .swatch { opacity: 0.6; }
 .compare-list li.spare { opacity: 0.8; box-shadow: inset 3px 0 0 rgba(242, 194, 48, 0.5); }
 :root[data-theme='clair'] .compare-list li.joker { background: repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.05) 0 6px, transparent 6px 12px); }
+
+/* Modes daltoniens : les décors, les couleurs de l'interface et les graphiques sont recolorés par un filtre
+   (le rouge et le vert glissent vers le bleu et le jaune, et inversement pour le bleu-jaune). */
+:root[data-colors='rouge-vert'] { filter: url(#cb-rouge-vert); }
+:root[data-colors='bleu-jaune'] { filter: url(#cb-bleu-jaune); }
+:root[data-colors='gris'] { filter: grayscale(1) contrast(1.08); }
+/* Les fenêtres modales passent par la « couche supérieure » du navigateur : le filtre de la page ne les atteint pas. */
+:root[data-colors='rouge-vert'] dialog[open] { filter: url(#cb-rouge-vert); }
+:root[data-colors='bleu-jaune'] dialog[open] { filter: url(#cb-bleu-jaune); }
+:root[data-colors='gris'] dialog[open] { filter: grayscale(1) contrast(1.08); }

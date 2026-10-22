@@ -10,6 +10,11 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Modes daltoniens : filtres de couleur appliqués à toute l'interface et aux décors (voir style.css). -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <filter id="cb-rouge-vert" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="1 0 0 0 0  0.163 0.725 0.112 0 0  0.455 -0.645 1.191 0 0  0 0 0 1 0"/></filter>
+    <filter id="cb-bleu-jaune" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0.741 -0.407 0.666 0 0  0.075 0.585 0.34 0 0  0 0 1 0 0  0 0 0 1 0"/></filter>
+  </svg>
   <header class="topbar">
     <h1 class="logo">Spéléologie</h1>
     <nav class="topnav">
