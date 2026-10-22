@@ -2423,7 +2423,7 @@
     g.replaceChildren(
       el('h2', { class: 'gz-title' }, 'La Gazette de la mine'),
       el('p', { class: 'gz-date' }, `Semaine du ${formatDay(data.start, { day: 'numeric', month: 'long' })} au ${formatDay(data.end, { day: 'numeric', month: 'long' })}`),
-      champ ? el('p', { class: 'gz-headline' }, `${champ.username}, champion(ne) de la semaine : ${pts(champ.score)} !`) : null,
+      champ ? el('p', { class: 'gz-headline' }, `${champ.username} remporte la semaine avec ${pts(champ.score)} !`) : null,
       el(
         'ul',
         { class: 'gz-ranking' },

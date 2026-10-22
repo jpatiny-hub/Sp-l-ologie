@@ -940,3 +940,5 @@ canvas.avatar-head { width: 20px; height: auto; }
 .gz-line { display: flex; justify-content: space-between; gap: 10px; padding: 2px 0; }
 .gz-line span:last-child { text-align: right; }
 .gazette .btn { color: #fff8ea; }
+
+.stat { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
