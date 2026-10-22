@@ -8,6 +8,8 @@ module.exports = {
   GAME_NAME: 'Spéléologie',
   // Les journées et les semaines sont calculées à l'heure belge.
   TIMEZONE: 'Europe/Brussels',
+  // Heure (belge) à laquelle un nouveau jour de jeu, avec ses nouveaux thèmes, commence.
+  DAY_START_HOUR: 2,
   ROUNDS_PER_GAME: 7,
   // Durée pour répondre à un thème (peut être réduite plus tard).
   TIMER_SECONDS: Number(process.env.TIMER_SECONDS) || 30,
