@@ -396,6 +396,7 @@
     showMyAvatar();
     setTimerSeconds(app.me.timerSeconds);
     $('who').textContent = app.me.user.username;
+    $('home-name').textContent = app.me.user.username;
     $('settings-user').textContent = app.me.user.username;
     renderHome();
     show('home');
@@ -408,19 +409,31 @@
     try {
       const profile = await api('/api/profile');
       const earned = profile.badges.filter((b) => b.count).length;
-      const streak = profile.stats.currentStreak;
-      $('carnet-summary').textContent = `${streak ? `Série en cours : ${plural(streak, 'jour', 'jours')}` : 'Pas de série en cours'} · ${plural(earned, 'badge', 'badges')} sur ${profile.badges.length}`;
+      $('carnet-summary').textContent = `${plural(earned, 'badge', 'badges')} sur ${profile.badges.length}`;
     } catch {
       /* résumé facultatif */
     }
   }
 
+  /** Une note peut avoir un résumé en quelques lignes (`highlights`) : le détail passe alors dans « Voir le détail ». */
   function renderNews() {
     const news = (app.me && app.me.news) || [];
     $('news-card').hidden = !news.length;
     if (!news.length) return;
-    $('news-title').textContent = news.length === 1 ? news[0].title : 'Nouveautés du jeu';
-    $('news-list').replaceChildren(...news.flatMap((n) => n.items.map((text) => el('li', {}, text))));
+    const quick = news.flatMap((n) => n.highlights || []);
+    const detailed = news.filter((n) => n.highlights && n.highlights.length);
+    const plain = news.filter((n) => !(n.highlights && n.highlights.length));
+    $('news-title').textContent = quick.length ? 'Quoi de neuf ?' : news.length === 1 ? news[0].title : 'Nouveautés du jeu';
+    $('news-quick').replaceChildren(
+      ...quick.map((h) => {
+        const c = el('canvas', { class: 'news-icon', width: '16', height: '16', 'aria-hidden': 'true' });
+        Icons.drawIcon(c, h.icon);
+        return el('li', {}, c, el('span', {}, h.text));
+      }),
+    );
+    $('news-more').hidden = !detailed.length;
+    $('news-detail-list').replaceChildren(...detailed.flatMap((n) => n.items.map((text) => el('li', {}, text))));
+    $('news-list').replaceChildren(...plain.flatMap((n) => n.items.map((text) => el('li', {}, text))));
   }
 
   $('btn-news-ok').addEventListener('click', async () => {
@@ -476,12 +489,13 @@
     card.classList.toggle('lit', st.current > 0 && !atRisk);
     card.classList.toggle('risk', atRisk);
     card.classList.toggle('out', st.current === 0);
-    Icons.drawIcon($('streak-lantern'), 'lanterne-mineur', { dim: st.current === 0 });
-    $('streak-count').textContent = st.current > 0 ? plural(st.current, 'jour d\'affilée', 'jours d\'affilée') : 'Aucune série en cours';
+    Icons.drawLantern($('streak-lantern'), st.current, { dim: st.current === 0 });
+    $('streak-lantern').dataset.level = String(Icons.lanternLevel(st.current));
+    $('streak-count').textContent = st.current > 0 ? plural(st.current, 'jour', 'jours') : 'Pas de série';
     if (st.current === 0) $('streak-note').textContent = 'Fore aujourd\'hui pour rallumer ta lanterne.';
     else if (st.playedToday) $('streak-note').textContent = 'Ta lanterne brille : reviens demain pour la garder allumée.';
     else $('streak-note').textContent = st.freezes > 0 ? `Il reste ${formatDuration(left)} pour forer aujourd'hui.` : `Plus que ${formatDuration(left)} pour ne pas perdre ta série.`;
-    // Étais de galerie (gels de série).
+    // Étais de galerie (gels de série) : discrets sur le profil, le détail s'ouvre au toucher.
     const freezeCard = $('freeze-card');
     freezeCard.hidden = st.freezes == null;
     if (st.freezes != null) {
@@ -492,7 +506,7 @@
           return c;
         }),
       );
-      let note = 'Un étai sauve ta série si tu rates un jour. Tu en gagnes un tous les 7 jours forés d\'affilée (3 au maximum).';
+      let note = `Tu as ${plural(st.freezes, 'étai', 'étais')} en réserve.`;
       if (st.pendingFreezes > 0) note = `Tu as manqué ${plural(st.pendingFreezes, 'jour', 'jours')} : ${st.pendingFreezes > 1 ? 'des étais seront utilisés' : 'un étai sera utilisé'} dès que tu fores.`;
       else if (st.frozenRecently && st.frozenRecently.length) note = `Un étai a sauvé ta série le ${formatDay(st.frozenRecently[st.frozenRecently.length - 1], { day: 'numeric', month: 'long' })}.`;
       else if (atRisk && st.freezes > 0) note = 'Si tu rates aujourd\'hui, un étai protégera ta série.';
@@ -509,9 +523,20 @@
         ? 'Défi réussi, bravo ! Un nouveau t\'attend lundi.'
         : `${ch.progress} sur ${ch.goal} · ${plural(ch.daysLeft, 'jour restant', 'jours restants')} (aujourd'hui compris).`;
     }
-    const next = st.next;
-    $('streak-next').textContent = next ? `Plus que ${next.remaining} ${next.unit} avant le badge « ${next.name} ».` : '';
+    const nexts = st.nexts || (st.next ? [st.next] : []);
+    $('next-badges').hidden = !nexts.length;
+    $('next-badges-list').replaceChildren(
+      ...nexts.map((n) => {
+        const c = el('canvas', { class: 'next-badge-icon', width: '16', height: '16', 'aria-hidden': 'true' });
+        Icons.drawIcon(c, n.icon);
+        return el('li', {}, c, el('span', {}, el('strong', {}, n.name), ` : encore ${n.remaining} ${n.unit}`));
+      }),
+    );
   }
+
+  $('freeze-card').addEventListener('click', () => $('freeze-dialog').showModal());
+  $('freeze-close').addEventListener('click', () => $('freeze-dialog').close());
+  $('freeze-dialog').addEventListener('click', (event) => event.target === $('freeze-dialog') && $('freeze-dialog').close());
 
   function updateCountdown() {
     if (!app.me) return;
@@ -524,23 +549,48 @@
   }
   setInterval(updateCountdown, 1000);
 
+  document.querySelectorAll('#mode-tabs .tab').forEach((tab) =>
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('#mode-tabs .tab').forEach((t) => {
+        t.classList.toggle('active', t === tab);
+        t.setAttribute('aria-selected', String(t === tab));
+      });
+      $('mode-daily').hidden = tab.dataset.mode !== 'daily';
+      $('mode-training').hidden = tab.dataset.mode !== 'training';
+    }),
+  );
   $('btn-daily').addEventListener('click', () => startGame('daily'));
   $('btn-training').addEventListener('click', () => startGame('training'));
-  $('btn-podium').addEventListener('click', () => openPodium('week', null));
+  $('btn-podium').addEventListener('click', () => openPodium(homePodiumPeriod, null));
+
+  let homePodiumPeriod = 'day';
+
+  document.querySelectorAll('#home-podium-tabs .tab').forEach((tab) =>
+    tab.addEventListener('click', () => {
+      homePodiumPeriod = tab.dataset.period;
+      loadMiniPodium();
+    }),
+  );
 
   async function loadMiniPodium() {
-    const list = $('mini-podium');
+    const box = $('mini-podium');
+    document.querySelectorAll('#home-podium-tabs .tab').forEach((t) => {
+      t.classList.toggle('active', t.dataset.period === homePodiumPeriod);
+      t.setAttribute('aria-selected', String(t.dataset.period === homePodiumPeriod));
+    });
     try {
-      const board = await api('/api/leaderboard');
-      list.replaceChildren();
-      const medals = ['🥇', '🥈', '🥉'];
-      board.entries.slice(0, 3).forEach((e) => {
-        list.append(el('li', { class: e.me ? 'me' : '' }, el('span', { class: 'who-av' }, `${medals[e.rank - 1] || e.rank + '.'} `, avatarEl(e.avatar), el('span', { class: 'who-name' }, e.username)), el('span', {}, pts(e.score))));
-      });
-      if (!board.entries.length) list.append(el('li', {}, 'Personne n\'a encore creusé cette semaine.'));
-      if (board.me && board.me.rank > 3) list.append(el('li', { class: 'me' }, el('span', {}, `${board.me.rank}. toi`), el('span', {}, pts(board.me.score))));
+      const board = await api(`/api/leaderboard?period=${homePodiumPeriod}`);
+      if (board.period !== homePodiumPeriod) return;
+      buildPodium(box, board.entries, 2);
+      const when = { day: 'aujourd\'hui', week: 'cette semaine', month: 'ce mois-ci' }[homePodiumPeriod];
+      $('mini-podium-me').textContent = !board.entries.length
+        ? `Personne n'a encore creusé ${when}.`
+        : board.me
+          ? `Ton rang : ${board.me.rank === 1 ? '1er' : `${board.me.rank}e`} · ${pts(board.me.score)}`
+          : `Tu n'as pas encore joué ${when}.`;
     } catch {
-      list.replaceChildren(el('li', {}, 'Classement indisponible.'));
+      box.replaceChildren();
+      $('mini-podium-me').textContent = 'Classement indisponible.';
     }
   }
 
@@ -2074,24 +2124,28 @@
     return `${board.isCurrent ? 'Cette semaine' : 'Semaine'} · du ${start} au ${end}`;
   }
 
+  /** Trois marches avec le personnage de chacun ; `scale` règle la taille des personnages. */
+  function buildPodium(podium, entries, scale) {
+    podium.replaceChildren();
+    [2, 1, 3].forEach((place) => {
+      const entry = entries.filter((e) => e.rank === place)[0] || null;
+      const step = el('div', { class: `step p${place}${entry ? '' : ' empty'}` });
+      step.append(
+        el('span', { class: 'name' }, entry ? entry.username : '—'),
+        el('span', { class: 'score' }, entry ? pts(entry.score) : ''),
+        el('span', { class: 'avatar-slot' }, entry ? avatarEl(entry.avatar, 'full', scale) : null),
+        el('div', { class: 'block' }, String(place)),
+      );
+      podium.append(step);
+    });
+  }
+
   function renderPodium(board) {
     document.querySelectorAll('#period-tabs .tab').forEach((t) => t.classList.toggle('active', t.dataset.period === board.period));
     $('week-label').textContent = periodLabel(board);
     $('btn-week-next').disabled = !board.next;
 
-    const podium = $('podium');
-    podium.replaceChildren();
-    [2, 1, 3].forEach((place) => {
-      const entry = board.entries.filter((e) => e.rank === place)[0] || null;
-      const step = el('div', { class: `step p${place}${entry ? '' : ' empty'}` });
-      step.append(
-        el('span', { class: 'name' }, entry ? entry.username : '—'),
-        el('span', { class: 'score' }, entry ? pts(entry.score) : ''),
-        el('span', { class: 'avatar-slot' }, entry ? avatarEl(entry.avatar, 'full', 3) : null),
-        el('div', { class: 'block' }, String(place)),
-      );
-      podium.append(step);
-    });
+    buildPodium($('podium'), board.entries, 3);
 
     const ranking = $('ranking');
     ranking.replaceChildren();

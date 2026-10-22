@@ -86,6 +86,8 @@ test('mode illimité : les réponses sont comptées sans historique ; accueil : 
     assert.equal(me.streak.playedToday, true);
     assert.ok(me.streak.next, 'un badge proche est proposé');
     assert.ok(me.streak.next.remaining > 0);
+    assert.ok(me.streak.nexts.length >= 1 && me.streak.nexts.length <= 3, 'jusqu\'à trois prochains badges');
+    assert.equal(me.streak.nexts[0].id, me.streak.next.id);
     app.clock.now += 24 * 3600 * 1000;
     me = (await eve('/api/me')).data;
     assert.equal(me.streak.current, 1, 'la série reste à sauver aujourd\'hui');

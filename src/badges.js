@@ -441,7 +441,7 @@ class BadgeService {
     const start = weekStart(today);
     const challenge = { ...challengeProgress(this.db, userId, start), daysLeft: 7 - Math.round((Date.parse(`${today}T12:00:00Z`) - Date.parse(`${start}T12:00:00Z`)) / 86400000) };
     challenge.unit = challenge.unit[challenge.goal > 1 ? 1 : 0];
-    return { current, playedToday, freezes: info.freezes, pendingFreezes: info.pending, frozenRecently: info.frozen.filter((d) => d >= addDays(today, -3)), challenge, next: next && { id: next.id, name: next.name, icon: next.icon, category: next.category, label: next.label, remaining: next.remaining, unit: next.remaining > 1 ? next.unit[1] : next.unit[0] } };
+    return { current, playedToday, freezes: info.freezes, pendingFreezes: info.pending, frozenRecently: info.frozen.filter((d) => d >= addDays(today, -3)), challenge, nexts: candidates.slice(0, 3).map((n) => ({ id: n.id, name: n.name, icon: n.icon, category: n.category, label: n.label, remaining: n.remaining, unit: n.remaining > 1 ? n.unit[1] : n.unit[0] })), next: next && { id: next.id, name: next.name, icon: next.icon, category: next.category, label: next.label, remaining: next.remaining, unit: next.remaining > 1 ? next.unit[1] : next.unit[0] } };
   }
 
   /** Badges des thèmes rencontrés, vérifiés après chaque thème terminé. */

@@ -11,7 +11,7 @@
 </head>
 <body>
   <!-- Modes daltoniens : filtres de couleur appliqués à toute l'interface et aux décors (voir style.css). -->
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <svg class="cb-filters" width="0" height="0" aria-hidden="true" focusable="false">
     <filter id="cb-rouge-vert" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="1 0 0 0 0  0.163 0.725 0.112 0 0  0.455 -0.645 1.191 0 0  0 0 0 1 0"/></filter>
     <filter id="cb-bleu-jaune" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0.741 -0.407 0.666 0 0  0.075 0.585 0.34 0 0  0 0 1 0 0  0 0 0 1 0"/></filter>
   </svg>
@@ -47,6 +47,13 @@
     </div>
   </dialog>
 
+  <dialog class="card info-dialog" id="freeze-dialog" aria-labelledby="freeze-title">
+    <h2 id="freeze-title">Étais de galerie</h2>
+    <p>Un étai de galerie sauve ta série si tu rates un jour : au lieu de s'éteindre, ta lanterne reste allumée.</p>
+    <p class="muted">Tu en gagnes un tous les 7 jours forés d'affilée, et tu peux en garder 3 au maximum. Ils se mettent en place tout seuls dès que tu fores après un jour manqué.</p>
+    <p id="freeze-note"></p>
+    <button class="btn" id="freeze-close" type="button">Compris</button>
+  </dialog>
   <dialog class="card settings" id="settings">
     <form method="dialog" class="form" id="form-settings">
       <h2>Paramètres</h2>
@@ -167,23 +174,55 @@
       <div class="view" id="view-home" hidden>
         <div class="card news" id="news-card" hidden>
           <h2 id="news-title">Nouveautés</h2>
+          <ul class="news-quick" id="news-quick"></ul>
+          <details class="news-more" id="news-more" hidden>
+            <summary>Voir le détail</summary>
+            <ul class="news-list" id="news-detail-list"></ul>
+          </details>
           <ul class="news-list" id="news-list"></ul>
           <button class="btn secondary" id="btn-news-ok" type="button">Compris, merci !</button>
         </div>
-        <div class="card streak" id="streak-card" hidden>
-          <canvas class="streak-lantern" id="streak-lantern" width="16" height="16" aria-hidden="true"></canvas>
-          <div class="streak-text">
-            <p class="streak-count" id="streak-count"></p>
-            <p class="muted small" id="streak-note"></p>
-            <p class="streak-next small" id="streak-next"></p>
+        <div class="card profile-card">
+          <div class="home-profile">
+            <div id="home-avatar" aria-hidden="true"></div>
+            <div class="home-id">
+              <p class="home-name"><span id="home-name"></span> <span class="new-dot" id="carnet-dot" hidden>nouveau !</span></p>
+              <p id="carnet-summary" class="muted small"></p>
+            </div>
           </div>
+          <div class="home-chips">
+            <div class="streak" id="streak-card" hidden>
+              <canvas class="streak-lantern" id="streak-lantern" width="16" height="16" aria-hidden="true"></canvas>
+              <span class="streak-count" id="streak-count"></span>
+            </div>
+            <button class="freezes" id="freeze-card" type="button" aria-label="Étais de galerie : en savoir plus" hidden>
+              <span class="freeze-icons" id="freeze-icons"></span>
+              <span class="freeze-info" aria-hidden="true">?</span>
+            </button>
+          </div>
+          <p class="muted small" id="streak-note"></p>
+          <div class="next-badges" id="next-badges" hidden>
+            <p class="small next-title">Prochains badges</p>
+            <ul id="next-badges-list"></ul>
+          </div>
+          <button class="btn secondary" id="btn-carnet" type="button">Profil, badges et atelier</button>
         </div>
-        <div class="card freezes" id="freeze-card" hidden>
-          <div class="freeze-row">
-            <span class="freeze-title">Étais de galerie</span>
-            <span class="freeze-icons" id="freeze-icons"></span>
+        <div class="card play-card">
+          <h2>Jouer</h2>
+          <div class="mini-tabs" id="mode-tabs" role="tablist">
+            <button class="tab active" type="button" role="tab" data-mode="daily" aria-selected="true">Forage du jour</button>
+            <button class="tab" type="button" role="tab" data-mode="training" aria-selected="false">Infini</button>
           </div>
-          <p class="muted small" id="freeze-note"></p>
+          <div id="mode-daily">
+            <p class="muted" id="today-date"></p>
+            <div id="today-status"></div>
+            <button class="btn" id="btn-daily" type="button">Commencer le forage</button>
+            <p class="muted small" id="next-reset"></p>
+          </div>
+          <div id="mode-training" hidden>
+            <p>Des thèmes au hasard, autant que tu veux. Ça ne compte pas pour le podium.</p>
+            <button class="btn" id="btn-training" type="button">S'entraîner</button>
+          </div>
         </div>
         <div class="card challenge" id="challenge-card" hidden>
           <h2>Défi de la semaine</h2>
@@ -191,27 +230,16 @@
           <div class="progress" id="challenge-bar" role="progressbar" aria-valuemin="0"><div class="progress-fill" id="challenge-fill"></div></div>
           <p class="muted small" id="challenge-note"></p>
         </div>
-        <div class="card">
-          <h2>Forage du jour</h2>
-          <p class="muted" id="today-date"></p>
-          <div id="today-status"></div>
-          <button class="btn" id="btn-daily" type="button">Commencer le forage</button>
-          <p class="muted small" id="next-reset"></p>
-        </div>
-        <div class="card">
-          <h2>Podium de la semaine</h2>
-          <ol class="mini-podium" id="mini-podium"></ol>
+        <div class="card podium-card">
+          <h2>Podium</h2>
+          <div class="mini-tabs" id="home-podium-tabs" role="tablist">
+            <button class="tab active" type="button" role="tab" data-period="day" aria-selected="true">Jour</button>
+            <button class="tab" type="button" role="tab" data-period="week" aria-selected="false">Semaine</button>
+            <button class="tab" type="button" role="tab" data-period="month" aria-selected="false">Mois</button>
+          </div>
+          <div class="podium mini" id="mini-podium"></div>
+          <p class="muted small" id="mini-podium-me"></p>
           <button class="btn secondary" id="btn-podium" type="button">Voir le classement</button>
-        </div>
-        <div class="card">
-          <h2>Ton profil <span class="new-dot" id="carnet-dot" hidden>nouveau !</span></h2>
-          <div class="home-profile"><div id="home-avatar" aria-hidden="true"></div><p id="carnet-summary" class="muted">Personnage, badges, séries de forages et apparences de ta foreuse.</p></div>
-          <button class="btn secondary" id="btn-carnet" type="button">Profil, badges et atelier</button>
-        </div>
-        <div class="card">
-          <h2>Entraînement</h2>
-          <p>Des thèmes au hasard, autant que tu veux. Ça ne compte pas pour le podium.</p>
-          <button class="btn secondary" id="btn-training" type="button">S'entraîner</button>
         </div>
         <details class="card rules">
           <summary>Règles du jeu</summary>
