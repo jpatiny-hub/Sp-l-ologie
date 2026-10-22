@@ -786,6 +786,35 @@ class GameService {
     return { points, day: target.day };
   }
 
+  /**
+   * Le responsable associe après coup une réponse du thème à la manche d'un joueur qui n'avait pas de réponse valide
+   * (chrono écoulé, thème passé) ce jour-là. Les points suivent la rareté actuelle de la réponse.
+   */
+  assignAnswer(day, username, themeId, answerKey) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(day)) || day > this.today()) throw new HttpError(400, 'Jour invalide.');
+    const user = this.db.prepare('SELECT id FROM users WHERE username_key = ?').get(usernameKey(String(username || '')));
+    if (!user) throw new HttpError(404, 'Joueur introuvable.');
+    const game = this.dailyGameFor(user.id, day);
+    if (!game) throw new HttpError(404, "Ce joueur n'a pas de forage ce jour-là.");
+    const round = this.db
+      .prepare('SELECT * FROM rounds WHERE game_id = ? AND theme_id = ? AND answered_at IS NOT NULL')
+      .get(game.id, String(themeId || ''));
+    if (!round) throw new HttpError(404, 'Thème introuvable dans ce forage.');
+    if (round.outcome === 'answer') throw new HttpError(409, 'Ce thème a déjà une réponse valide.');
+    const theme = this.themes.get(round.theme_id);
+    const answer = theme && theme.answers.find((a) => a.key === answerKey);
+    if (!answer) throw new HttpError(409, 'Choisis une réponse de ce thème.');
+    this.db.prepare('UPDATE rounds SET credited = 1 WHERE game_id = ? AND slot = ?').run(game.id, round.slot);
+    let points;
+    try {
+      points = this.applyCredit(game.id, round.slot, theme, { answer }, answer.label);
+    } catch (err) {
+      this.db.prepare('UPDATE rounds SET credited = 0 WHERE game_id = ? AND slot = ?').run(game.id, round.slot);
+      throw err;
+    }
+    return { points, answer: answer.label, score: this.db.prepare('SELECT score FROM games WHERE id = ?').get(game.id).score };
+  }
+
   /** Retour du responsable aux joueurs ayant signalé cette saisie : verdict et message (modifiable). */
   replyToReport(themeId, inputKey, verdict, message) {
     if (verdict !== 'accepted' && verdict !== 'refused') throw new HttpError(400, 'Choisis « acceptée » ou « refusée ».');

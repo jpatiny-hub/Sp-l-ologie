@@ -197,6 +197,8 @@ const MIGRATIONS = [
   // Partie sans chrono (mode « À l'aise » : duels et mode illimité) et duel auquel appartient la partie.
   ['games', 'no_timer', 'INTEGER NOT NULL DEFAULT 0'],
   ['games', 'duel_id', 'INTEGER'],
+  // Manche dont la réponse a été attribuée après coup par le responsable (ignorée par les badges de vitesse).
+  ['rounds', 'credited', 'INTEGER NOT NULL DEFAULT 0'],
   // Signalement fait pendant la manche (manche retrouvée par game_id et slot) et suite donnée aux points.
   ['answer_reports', 'game_id', 'INTEGER'],
   ['answer_reports', 'slot', 'INTEGER'],
