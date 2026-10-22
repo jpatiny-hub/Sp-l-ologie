@@ -171,3 +171,68 @@ test('mode à l\'aise en entraînement : sans chrono et sans effet sur les stati
     await app.close();
   }
 });
+
+test('badges de duel : exploits (duel parfait, remontada, invaincu) et rivalités', async () => {
+  const { BadgeService } = require('../src/badges');
+  const app = await startServer();
+  try {
+    const names = ['adam', 'eve', 'jose', 'lea'];
+    for (const n of names) await client(app.base)('/api/signup', { username: n, password: 'secret123' });
+    const id = (n) => app.db.prepare('SELECT id FROM users WHERE username_key = ?').get(n).id;
+    const badges = new BadgeService(app.db, () => app.clock.now);
+    let tick = 0;
+    /** Duel terminé entre deux joueurs : points par thème de chacun, vainqueur déduit du total. */
+    const duel = (a, b, pa, pb, mode = 'standard') => {
+      const game = (user, points) => {
+        const { lastInsertRowid } = app.db
+          .prepare("INSERT INTO games (user_id, mode, day, score, created_at, finished_at) VALUES (?, 'duel', '2026-10-14', ?, 1, 2)")
+          .run(user, points.reduce((x, y) => x + y, 0));
+        points.forEach((p, slot) => app.db.prepare("INSERT INTO rounds (game_id, slot, theme_id, outcome, points, answered_at) VALUES (?, ?, 'villes', 'answer', ?, 1)").run(lastInsertRowid, slot, p));
+        return Number(lastInsertRowid);
+      };
+      const ga = game(id(a), pa);
+      const gb = game(id(b), pb);
+      const sa = pa.reduce((x, y) => x + y, 0);
+      const sb = pb.reduce((x, y) => x + y, 0);
+      const winner = sa > sb ? id(a) : sb > sa ? id(b) : null;
+      app.db
+        .prepare("INSERT INTO duels (challenger_id, opponent_id, mode, status, created_at, expires_at, finished_at, challenger_game_id, opponent_game_id, winner_id, challenger_score, opponent_score) VALUES (?, ?, ?, 'done', 1, 9, ?, ?, ?, ?, ?, ?)")
+        .run(id(a), id(b), mode, ++tick, ga, gb, winner, sa, sb);
+      badges.awardDuels(id(a), '2026-10-14');
+      badges.awardDuels(id(b), '2026-10-14');
+    };
+    const has = (n) => new Set(app.db.prepare('SELECT kind FROM badges WHERE user_id = ?').all(id(n)).map((r) => r.kind));
+
+    // Remontada : adam perd les 3 premiers thèmes, puis gagne.
+    duel('adam', 'eve', [10, 10, 10, 90, 90, 90, 90], [50, 50, 50, 10, 10, 10, 10]);
+    assert.ok(has('adam').has('remontada'));
+    assert.ok(has('adam').has('attaquant-1') && has('eve').has('defenseur-1'));
+    assert.equal(has('eve').has('remontada'), false);
+    assert.equal(has('adam').has('duel-parfait'), false);
+    // Duel parfait : les 7 thèmes gagnés, mais pas en duel « à l'aise ».
+    duel('jose', 'eve', [60, 60, 60, 60, 60, 60, 60], [10, 10, 10, 10, 10, 10, 10], 'aise');
+    assert.equal(has('jose').has('duel-parfait'), false, "pas d'exploit en duel à l'aise");
+    assert.ok(has('jose').has('attaquant-1'), "mais la participation compte");
+    duel('lea', 'eve', [60, 60, 60, 60, 60, 60, 60], [10, 10, 10, 10, 10, 10, 10]);
+    assert.ok(has('lea').has('duel-parfait'));
+    // Souffre-douleur et némésis : trois victoires contre le même joueur.
+    duel('adam', 'eve', [60, 60, 60, 60, 60, 60, 60], [10, 10, 10, 10, 10, 10, 10]);
+    assert.equal(has('adam').has('souffre-douleur'), false);
+    duel('adam', 'eve', [60, 60, 60, 60, 60, 60, 60], [10, 10, 10, 10, 10, 10, 10]);
+    assert.ok(has('adam').has('souffre-douleur'));
+    assert.ok(has('eve').has('nemesis'));
+    // Rival : cinq duels contre le même joueur ; diplomate : trois adversaires.
+    duel('eve', 'adam', [10, 10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20, 20]);
+    assert.equal(has('adam').has('rival'), false, 'quatre duels seulement');
+    duel('eve', 'adam', [10, 10, 10, 10, 10, 10, 10], [20, 20, 20, 20, 20, 20, 20]);
+    assert.ok(has('adam').has('rival'));
+    assert.ok(has('adam').has('invaincu'), 'cinq victoires standard d\'affilée');
+    assert.equal(has('adam').has('diplomate-3'), false, 'adam n\'a défié qu\'un seul joueur');
+    duel('adam', 'jose', [10, 10, 10, 10, 10, 10, 10], [10, 10, 10, 10, 10, 10, 20]);
+    duel('adam', 'lea', [10, 10, 10, 10, 10, 10, 10], [10, 10, 10, 10, 10, 10, 20]);
+    assert.ok(has('adam').has('diplomate-3'), 'trois adversaires différents défiés');
+    assert.ok(has('eve').has('sentinelle-3'), 'eve a relevé le défi de trois joueurs différents');
+  } finally {
+    await app.close();
+  }
+});
