@@ -273,6 +273,11 @@
           <p class="muted small" id="mini-podium-me"></p>
           <button class="btn secondary" id="btn-podium" type="button">Voir le classement</button>
         </div>
+        <div class="card admin-home" id="admin-home" hidden>
+          <h2>Contre maître</h2>
+          <p class="muted small" id="admin-home-note">Réservé au responsable du jeu : signalements, thèmes proposés, tableau de bord.</p>
+          <button class="btn secondary" id="btn-admin" type="button">Ouvrir</button>
+        </div>
         <details class="card rules">
           <summary>Règles du jeu</summary>
           <ul>
@@ -508,6 +513,15 @@
           <h3 id="report-mine-title" hidden>Mes réponses signalées</h3>
           <ul class="report-list" id="report-mine"></ul>
         </details>
+      </div>
+
+      <!-- Contre maître : réservé au responsable du jeu -->
+      <div class="view" id="view-admin" hidden>
+        <button class="btn ghost back-btn" id="btn-admin-home" type="button">◀ Retour à l'accueil</button>
+        <div class="card">
+          <h2>Contre maître</h2>
+          <p class="muted small">Réservé au responsable du jeu : réponses signalées, thèmes proposés et tableau de bord.</p>
+        </div>
         <details class="card fold" data-fold="suggestions" id="admin-suggestions" hidden>
           <summary><span class="fold-t"><h2>Thèmes proposés</h2><span class="sub">réservé au responsable du jeu</span></span><span class="pm" aria-hidden="true"></span></summary>
           <div class="tabs" role="tablist" id="suggestion-tabs">

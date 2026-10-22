@@ -249,7 +249,7 @@
   function show(view) {
     document.querySelectorAll('.view').forEach((v) => (v.hidden = v.id !== `view-${view}`));
     // Sur téléphone, la scène de forage ne sert qu'en partie et dans les résultats : pas sur l'accueil.
-    $('stage').hidden = (view === 'podium' || view === 'profile' || view === 'home' || view === 'recap' || view === 'duel') && window.innerWidth < 860;
+    $('stage').hidden = (view === 'podium' || view === 'profile' || view === 'home' || view === 'recap' || view === 'duel' || view === 'admin') && window.innerWidth < 860;
     if (view === 'profile') startPreview();
     if (view !== 'game') $('focus-keeper').blur();
     updateBanner();
@@ -475,6 +475,7 @@
     }
     renderStreak();
     renderDuelDot();
+    renderAdminHome();
     if (!$('mode-duel').hidden) loadDuels();
     updateCountdown();
   }
@@ -1531,8 +1532,8 @@
     });
   }
 
-  function initFolds() {
-    const view = $('view-profile');
+  function initFolds(viewId = 'view-profile') {
+    const view = $(viewId);
     view.querySelectorAll('details.fold').forEach((d) => {
       d.open = foldOpen(d.dataset.fold, d.dataset.fold === 'profil');
     });
@@ -1674,16 +1675,44 @@
       renderProfile(profile);
       show('profile');
       initFolds();
-      loadReports();
       loadSuggestions();
       loadBilan(app.bilanMonth || null);
-      loadDashboard();
       if (profile.badges.some((b) => b.isNew)) {
         api('/api/profile/seen', {}).catch(() => {});
         if (app.me) app.me.unseenBadges = 0;
       }
     } catch (err) {
       showNotice(err.message);
+    }
+  }
+
+  // ---------- Contre maître (responsable du jeu) ----------
+  async function openAdmin() {
+    if (!app.me || !app.me.isAdmin) return;
+    stopTimer();
+    show('admin');
+    initFolds('view-admin');
+    loadReports();
+    loadAdminSuggestions();
+    loadDashboard();
+  }
+  $('btn-admin').addEventListener('click', () => openAdmin());
+  $('btn-admin-home').addEventListener('click', () => goHome());
+
+  /** Bouton de l'accueil, visible seulement pour le responsable : nombre de signalements et de propositions à traiter. */
+  async function renderAdminHome() {
+    const card = $('admin-home');
+    card.hidden = !(app.me && app.me.isAdmin);
+    if (card.hidden) return;
+    try {
+      const [dash, sug] = await Promise.all([api('/api/admin/dashboard'), api('/api/admin/theme-suggestions')]);
+      const pending = (sug.suggestions || []).filter((x) => !x.handled).length;
+      const bits = [];
+      if (dash.pendingReports) bits.push(plural(dash.pendingReports, 'signalement à vérifier', 'signalements à vérifier'));
+      if (pending) bits.push(plural(pending, 'thème proposé à examiner', 'thèmes proposés à examiner'));
+      $('admin-home-note').textContent = bits.length ? bits.join(' · ') : 'Rien à traiter pour le moment.';
+    } catch {
+      /* le bouton reste utilisable sans ces compteurs */
     }
   }
 
@@ -2161,6 +2190,9 @@
     } catch {
       /* la section reste vide */
     }
+  }
+
+  async function loadAdminSuggestions() {
     const card = $('admin-suggestions');
     card.hidden = !(app.me && app.me.isAdmin);
     if (card.hidden) return;
