@@ -7,7 +7,8 @@ const path = require('node:path');
 const config = require('./src/config');
 const { openDb } = require('./src/db');
 const { loadThemes } = require('./src/themes');
-const { GameService, HttpError } = require('./src/game');
+const { GameService } = require('./src/game');
+const { HttpError } = require('./src/errors');
 const { msUntilNextDay, isDay, addDays: addDaysIso, weekStart: weekStartIso } = require('./src/dates');
 const auth = require('./src/auth');
 const Avatar = require('./src/avatar');
@@ -294,6 +295,7 @@ function createApp({
         streak: game.badges.homeSummary(user.id, game.today()),
         collective: collectiveStatus(db, game.today(), user.id),
         recap: pendingRecap(db, user.id, game.today()),
+        duels: game.duels.summary(user.id),
         nextResetMs: msUntilNextDay(now()),
         timerSeconds: config.TIMER_SECONDS,
       });
@@ -320,6 +322,41 @@ function createApp({
     'GET /api/compare': async (req, res, _id, url) => {
       const user = requireUser(req, res);
       json(res, 200, game.compareDay(url.searchParams.get('date') || game.today(), user.id));
+    },
+
+    // Duels : liste, lancement, réponse à un défi et résultat.
+    'GET /api/duels': async (req, res) => {
+      const user = requireUser(req, res);
+      json(res, 200, game.duels.list(user.id));
+    },
+
+    'POST /api/duels': async (req, res) => {
+      const user = requireUser(req, res);
+      const { opponent, mode } = await readJson(req);
+      json(res, 200, game.duels.create(user.id, opponent, mode));
+    },
+
+    'POST /api/duels/:id/accept': async (req, res, id) => {
+      const user = requireUser(req, res);
+      await readJson(req);
+      json(res, 200, game.duels.accept(id, user.id));
+    },
+
+    'POST /api/duels/:id/decline': async (req, res, id) => {
+      const user = requireUser(req, res);
+      await readJson(req);
+      json(res, 200, game.duels.decline(id, user.id));
+    },
+
+    'GET /api/duels/:id/result': async (req, res, id) => {
+      const user = requireUser(req, res);
+      json(res, 200, game.duels.result(id, user.id));
+    },
+
+    'POST /api/duels/:id/seen': async (req, res, id) => {
+      const user = requireUser(req, res);
+      await readJson(req);
+      json(res, 200, game.duels.markSeen(id, user.id));
     },
 
     // Récap de la semaine écoulée (la Gazette de la mine).
@@ -415,8 +452,8 @@ function createApp({
 
     'POST /api/game/start': async (req, res) => {
       const user = requireUser(req, res);
-      const { mode } = await readJson(req);
-      json(res, 200, game.startGame(user.id, mode));
+      const { mode, noTimer } = await readJson(req);
+      json(res, 200, game.startGame(user.id, mode, { noTimer: noTimer === true }));
     },
 
     'GET /api/game/:id': async (req, res, id) => {
@@ -537,10 +574,10 @@ function createApp({
   function findRoute(method, pathname) {
     const direct = routes[`${method} ${pathname}`];
     if (direct) return { handler: direct };
-    const m = pathname.match(/^\/api\/game\/(\d+)(\/[a-z]+)?$/);
+    const m = pathname.match(/^\/api\/(game|duels)\/(\d+)(\/[a-z]+)?$/);
     if (m) {
-      const handler = routes[`${method} /api/game/:id${m[2] || ''}`];
-      if (handler) return { handler, id: Number(m[1]) };
+      const handler = routes[`${method} /api/${m[1]}/:id${m[3] || ''}`];
+      if (handler) return { handler, id: Number(m[2]) };
     }
     return null;
   }

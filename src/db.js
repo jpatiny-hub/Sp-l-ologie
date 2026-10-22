@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS daily_themes (
 CREATE TABLE IF NOT EXISTS games (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  mode        TEXT NOT NULL CHECK (mode IN ('daily', 'training')),
+  mode        TEXT NOT NULL CHECK (mode IN ('daily', 'training', 'duel')),
   day         TEXT NOT NULL,
   score       INTEGER NOT NULL DEFAULT 0,
   created_at  INTEGER NOT NULL,
@@ -142,6 +142,32 @@ CREATE TABLE IF NOT EXISTS reactions (
   PRIMARY KEY (game_id, slot, reactor_id)
 );
 
+-- Duels : deux joueurs jouent les mêmes 7 thèmes (chacun dans sa partie, mode « duel »), le résultat se révèle quand les deux ont fini.
+CREATE TABLE IF NOT EXISTS duels (
+  id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+  challenger_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  opponent_id        INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  mode               TEXT NOT NULL DEFAULT 'standard',
+  status             TEXT NOT NULL DEFAULT 'open',
+  created_at         INTEGER NOT NULL,
+  expires_at         INTEGER NOT NULL,
+  finished_at        INTEGER,
+  challenger_game_id INTEGER,
+  opponent_game_id   INTEGER,
+  winner_id          INTEGER,
+  challenger_score   INTEGER,
+  opponent_score     INTEGER,
+  challenger_seen_at INTEGER,
+  opponent_seen_at   INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS duel_themes (
+  duel_id  INTEGER NOT NULL REFERENCES duels(id) ON DELETE CASCADE,
+  slot     INTEGER NOT NULL,
+  theme_id TEXT NOT NULL,
+  PRIMARY KEY (duel_id, slot)
+);
+
 -- Thèmes proposés par les joueurs, à examiner par le responsable du jeu.
 CREATE TABLE IF NOT EXISTS theme_suggestions (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -168,6 +194,9 @@ const MIGRATIONS = [
   ['games', 'joker_used', 'INTEGER NOT NULL DEFAULT 0'],
   ['games', 'spare_theme', 'TEXT'],
   ['rounds', 'swapped_from', 'TEXT'],
+  // Partie sans chrono (mode « À l'aise » : duels et mode illimité) et duel auquel appartient la partie.
+  ['games', 'no_timer', 'INTEGER NOT NULL DEFAULT 0'],
+  ['games', 'duel_id', 'INTEGER'],
   // Signalement fait pendant la manche (manche retrouvée par game_id et slot) et suite donnée aux points.
   ['answer_reports', 'game_id', 'INTEGER'],
   ['answer_reports', 'slot', 'INTEGER'],
@@ -180,11 +209,41 @@ const MIGRATIONS = [
   ['answer_reports', 'seen_at', 'INTEGER'],
 ];
 
+/**
+ * Les bases créées avant les duels n'acceptent que les modes « daily » et « training » pour une partie.
+ * SQLite ne sait pas modifier une contrainte : on recrée la table (procédure officielle, clés étrangères suspendues).
+ */
+function allowDuelMode(db) {
+  const row = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'games'").get();
+  if (!row || row.sql.includes("'duel'")) return;
+  const sql = row.sql
+    .replace("CHECK (mode IN ('daily', 'training'))", "CHECK (mode IN ('daily', 'training', 'duel'))")
+    .replace(/^CREATE TABLE (IF NOT EXISTS )?"?games"?/i, 'CREATE TABLE games_new');
+  if (!sql.includes("'duel'")) throw new Error('Migration des parties impossible : définition inattendue.');
+  db.exec('PRAGMA foreign_keys = OFF');
+  try {
+    transaction(db, () => {
+      db.exec(sql);
+      db.exec('INSERT INTO games_new SELECT * FROM games');
+      db.exec('DROP TABLE games');
+      db.exec('ALTER TABLE games_new RENAME TO games');
+      db.exec(
+        "CREATE UNIQUE INDEX IF NOT EXISTS games_one_daily ON games(user_id, day) WHERE mode = 'daily'; CREATE INDEX IF NOT EXISTS games_by_day ON games(mode, day);",
+      );
+      const broken = db.prepare('PRAGMA foreign_key_check').all();
+      if (broken.length) throw new Error('Migration des parties : clés étrangères incohérentes.');
+    });
+  } finally {
+    db.exec('PRAGMA foreign_keys = ON');
+  }
+}
+
 function openDb(file) {
   if (file !== ':memory:') fs.mkdirSync(path.dirname(file), { recursive: true });
   const db = new DatabaseSync(file);
   db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;');
   db.exec(SCHEMA);
+  allowDuelMode(db);
   for (const [table, column, type] of MIGRATIONS) {
     const exists = db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === column);
     if (!exists) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);

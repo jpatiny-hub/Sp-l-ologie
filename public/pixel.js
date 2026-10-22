@@ -645,6 +645,19 @@
       pal: { y: '#c8102e', d: '#f4f4f4' },
       overlay: { dx: 2, dy: -3, rows: ['......e.....', '.....eee....', '......e.....', '............', '............', 'wwwwwwwwwwww', 'w..w...w..w.'], pal: { e: '#ffd84a', w: '#ffffff' } },
     },
+    // Duels : le gladiateur (crête de bronze), le rempart (acier à blason) et la némésis (noire aux yeux rouges).
+    gladiateur: {
+      pal: { y: '#b0702c', d: '#6e3f12' },
+      overlay: { dx: 2, dy: -3, rows: ['....rrrr....', '...rrrrrr...', '..rrrrrrrr..', 'hhhhhhhhhhhh'], pal: { r: '#c0261d', h: '#8a8f98' } },
+    },
+    rempart: {
+      pal: { y: '#8aa0b8', d: '#4a5f78' },
+      overlay: { dx: 4, dy: 3, rows: ['hhhhhh', 'hrrrrh', 'hrwwrh', '.hrrh.', '..hh..'], pal: { h: '#3b4252', r: '#c0261d', w: '#ffffff' } },
+    },
+    nemesis: {
+      pal: { y: '#1a1a20', d: '#0c0c10', k: '#000000' },
+      overlay: { dx: 9, dy: 4, rows: ['ee.ee', 'ee.ee'], pal: { e: '#ff2a2a' } },
+    },
     'chat-noir': {
       pal: { y: '#25252b', d: '#18181c', k: '#000000' },
       overlay: { dx: 1, dy: 0, rows: ['.k.........k..', '.kk.......kk..', '..............', '..............', '..............', '.........e.e..'], pal: { k: '#000000', e: '#ffd84a' } },

@@ -56,6 +56,13 @@ const TRAINING = [
   [200, 'Marathonien du forage'],
 ];
 
+// Duels : lancés, relevés, adversaires variés. Les duels « à l'aise » (sans chrono) comptent ; seuls les exploits (invaincu,
+// duel parfait, remontada) demandent un duel standard.
+const ATTAQUANT = [[1, 'Attaquant'], [5, 'Attaquant aguerri'], [15, 'Gladiateur']];
+const DEFENSEUR = [[1, 'Défenseur'], [5, 'Défenseur aguerri'], [15, 'Rempart']];
+const DIPLOMATE = [[3, 'Diplomate'], [6, 'Grand diplomate']];
+const SENTINELLE = [[3, 'Sentinelle'], [6, 'Garde de la mine']];
+
 // Défis de la semaine réussis.
 const DEFIS = [
   [1, 'Défi relevé'],
@@ -200,6 +207,25 @@ TRAINING.forEach(([n, name]) => {
 DEFIS.forEach(([n, name]) => {
   define(`defi-${n}`, { category: 'defi', name, description: () => (n === 1 ? 'Réussir un défi de la semaine' : `Réussir ${n} défis de la semaine`), icon: 'fanion', label: n > 1 ? String(n) : null });
 });
+const DUEL_BODIES = { 'attaquant-15': 'gladiateur', 'defenseur-15': 'rempart' };
+ATTAQUANT.forEach(([n, name]) => {
+  define(`attaquant-${n}`, { category: 'duel', name, description: () => (n === 1 ? 'Lancer et terminer un premier duel' : `Lancer et terminer ${n} duels`), icon: 'sabre', label: n > 1 ? String(n) : null, unlock: DUEL_BODIES[`attaquant-${n}`] ? { type: 'body', id: DUEL_BODIES[`attaquant-${n}`] } : null });
+});
+DEFENSEUR.forEach(([n, name]) => {
+  define(`defenseur-${n}`, { category: 'duel', name, description: () => (n === 1 ? 'Relever et terminer un premier duel' : `Relever et terminer ${n} duels`), icon: 'bouclier', label: n > 1 ? String(n) : null, unlock: DUEL_BODIES[`defenseur-${n}`] ? { type: 'body', id: DUEL_BODIES[`defenseur-${n}`] } : null });
+});
+DIPLOMATE.forEach(([n, name]) => {
+  define(`diplomate-${n}`, { category: 'duel', name, description: () => `Défier ${n} joueurs différents`, icon: 'drapeau', label: String(n) });
+});
+SENTINELLE.forEach(([n, name]) => {
+  define(`sentinelle-${n}`, { category: 'duel', name, description: () => `Relever le défi de ${n} joueurs différents`, icon: 'oeil', label: String(n) });
+});
+define('rival', { category: 'duel', name: 'Rival', description: () => 'Terminer 5 duels contre le même joueur', icon: 'cible', label: '5' });
+define('souffre-douleur', { category: 'duel', name: 'Souffre-douleur', description: () => 'Battre 3 fois le même joueur en duel', icon: 'taupe', label: '3' });
+define('nemesis', { category: 'duel', name: 'Némésis', description: () => 'Perdre 3 fois contre le même joueur en duel : il est ta némésis', icon: 'fantome', label: '3', unlock: { type: 'body', id: 'nemesis' } });
+define('invaincu', { category: 'duel', name: 'Invaincu', description: () => 'Gagner 5 duels standard d\'affilée', icon: 'trophee', label: '5' });
+define('duel-parfait', { category: 'duel', name: 'Duel parfait', description: () => 'Gagner les 7 thèmes d\'un duel standard', icon: 'etoile-or', label: '7' });
+define('remontada', { category: 'duel', name: 'Remontada', description: () => 'Gagner un duel standard après avoir perdu les 3 premiers thèmes', icon: 'eclair' });
 define('lanterne-rallumee', { category: 'serie', name: 'Lanterne rallumée', description: () => "Reprendre le forage après avoir perdu une série d'au moins 7 jours", icon: 'lanterne-mineur', unlock: { type: 'timer', id: 'lanterne' } });
 define('mois-complet', { category: 'serie', name: 'Mois complet', description: () => 'Forer tous les jours d\'un même mois, du premier au dernier', icon: 'calendrier-plein', unlock: { type: 'timer', id: 'wagonnet' } });
 define('filon', { category: 'pepites', name: 'Filon', description: () => 'Trouver 2 pépites dans le même forage', icon: 'pepite', label: '2', unlock: { type: 'timer', id: 'meche' } });
@@ -227,6 +253,7 @@ const BODIES = [
   ['feu-artifice', "Feu d'artifice"], ['cupidon', 'Cupidon'], ['globe', 'Planète bleue'], ['oeuf', 'Œuf de Pâques'],
   ['tricolore', 'Tricolore'], ['fierte', 'Arc-en-ciel'], ['taupe', 'Taupe'], ['citrouille', 'Citrouille diabolique'], ['spectre', 'Spectre'],
   ['casque', 'Casque de mineur'], ['mitre', 'Mitre'], ['noel', 'Noël'], ['chat-noir', 'Chat noir'],
+  ['gladiateur', 'Gladiateur'], ['rempart', 'Rempart'], ['nemesis', 'Némésis'],
 ];
 // Apparences du décompte du chrono : la batterie de lampe est offerte, les autres se débloquent avec des badges.
 const TIMERS = [['batterie', 'Batterie de lampe'], ['meche', 'Mèche de dynamite'], ['wagonnet', 'Wagonnet'], ['lanterne', 'Lanterne']];
@@ -450,6 +477,54 @@ class BadgeService {
     THEMES.forEach(([n]) => seen >= n && this.give(userId, `themes-${n}`, '1', today));
     const training = this.db.prepare('SELECT games FROM training_stats WHERE user_id = ?').get(userId);
     TRAINING.forEach(([n]) => training && training.games >= n && this.give(userId, `entrainement-${n}`, '1', today));
+  }
+
+  /** Badges de duel, vérifiés quand un duel se termine (pour chacun des deux joueurs). */
+  awardDuels(userId, today) {
+    const give = (kind) => this.give(userId, kind, '1', today);
+    const launched = this.db
+      .prepare(
+        `SELECT d.opponent_id AS other FROM duels d JOIN games g ON g.id = d.challenger_game_id
+         WHERE d.challenger_id = ? AND g.finished_at IS NOT NULL AND d.status IN ('open', 'done')`,
+      )
+      .all(userId);
+    ATTAQUANT.forEach(([n]) => launched.length >= n && give(`attaquant-${n}`));
+    DIPLOMATE.forEach(([n]) => new Set(launched.map((r) => r.other)).size >= n && give(`diplomate-${n}`));
+    const done = this.db
+      .prepare("SELECT * FROM duels WHERE status = 'done' AND (challenger_id = ? OR opponent_id = ?) ORDER BY finished_at, id")
+      .all(userId, userId);
+    const defended = done.filter((d) => d.opponent_id === userId);
+    DEFENSEUR.forEach(([n]) => defended.length >= n && give(`defenseur-${n}`));
+    SENTINELLE.forEach(([n]) => new Set(defended.map((d) => d.challenger_id)).size >= n && give(`sentinelle-${n}`));
+    // Rapports avec un même adversaire.
+    const per = new Map();
+    for (const d of done) {
+      const other = d.challenger_id === userId ? d.opponent_id : d.challenger_id;
+      if (!per.has(other)) per.set(other, { n: 0, wins: 0, losses: 0 });
+      const p = per.get(other);
+      p.n++;
+      if (d.winner_id === userId) p.wins++;
+      else if (d.winner_id === other) p.losses++;
+    }
+    for (const p of per.values()) {
+      if (p.n >= 5) give('rival');
+      if (p.wins >= 3) give('souffre-douleur');
+      if (p.losses >= 3) give('nemesis');
+    }
+    // Exploits : seulement en duel standard.
+    const standard = done.filter((d) => d.mode === 'standard');
+    let streak = 0;
+    for (const d of standard) {
+      streak = d.winner_id === userId ? streak + 1 : 0;
+      if (streak >= 5) give('invaincu');
+    }
+    const pointsOf = (gameId) => this.db.prepare('SELECT slot, points FROM rounds WHERE game_id = ? ORDER BY slot').all(gameId).map((r) => r.points || 0);
+    for (const d of standard.filter((x) => x.winner_id === userId)) {
+      const mine = pointsOf(d.challenger_id === userId ? d.challenger_game_id : d.opponent_game_id);
+      const theirs = pointsOf(d.challenger_id === userId ? d.opponent_game_id : d.challenger_game_id);
+      if (mine.length === ROUNDS_PER_GAME && mine.every((p, i) => p > theirs[i])) give('duel-parfait');
+      if (mine.length >= 3 && [0, 1, 2].every((i) => mine[i] < theirs[i])) give('remontada');
+    }
   }
 
   /** Badge « Œil de lynx » : une réponse signalée par le joueur a été validée par le responsable. */

@@ -4,6 +4,8 @@ const crypto = require('node:crypto');
 const { ROUNDS_PER_GAME, TIMER_SECONDS, TIMER_GRACE_MS } = require('./config');
 const { dayKey, addDays, weekStart, monthStart, addMonths, monthEnd } = require('./dates');
 const { transaction } = require('./db');
+const { HttpError } = require('./errors');
+const { DuelService } = require('./duels');
 const { matchAnswer, toKey } = require('./matching');
 const { scoreAnswer, probabilities, pointsFor, tierFor } = require('./scoring');
 const { BadgeService } = require('./badges');
@@ -14,12 +16,6 @@ const PERIODS = ['day', 'week', 'month'];
 // Réactions possibles dans le comparatif.
 const REACTIONS = ['bienvu', 'coeur', 'creuse', 'audace', 'surprise'];
 
-class HttpError extends Error {
-  constructor(status, message) {
-    super(message);
-    this.status = status;
-  }
-}
 
 function shuffle(list) {
   const a = [...list];
@@ -37,6 +33,7 @@ class GameService {
     this.now = now;
     this.timerMs = TIMER_SECONDS * 1000;
     this.badges = new BadgeService(db, now);
+    this.duels = new DuelService(this);
   }
 
   today() {
@@ -102,7 +99,15 @@ class GameService {
     return this.db.prepare("SELECT * FROM games WHERE user_id = ? AND day = ? AND mode = 'daily'").get(userId, day);
   }
 
-  startGame(userId, mode) {
+  /** Tire `count` thèmes au hasard, en écartant ceux du jour (on ne s'entraîne pas sur les thèmes du forage). */
+  randomThemes(count, extra = 0) {
+    const excluded = new Set(this.dailyThemes(this.today()));
+    const pool = shuffle(this.activeThemeIds().filter((id) => !excluded.has(id)));
+    if (pool.length < count + extra) throw new HttpError(500, 'Pas assez de thèmes pour cette partie.');
+    return pool.slice(0, count + extra);
+  }
+
+  startGame(userId, mode, { noTimer = false } = {}) {
     const day = this.today();
     if (mode === 'daily') {
       const existing = this.dailyGameFor(userId, day);
@@ -110,21 +115,18 @@ class GameService {
       return this.state(this.createGame(userId, 'daily', day, this.dailyThemes(day)), userId);
     }
     if (mode === 'training') {
-      // Les thèmes du jour sont exclus pour ne pas pouvoir s'entraîner dessus.
-      const excluded = new Set(this.dailyThemes(day));
-      const pool = shuffle(this.activeThemeIds().filter((id) => !excluded.has(id)));
-      if (pool.length < ROUNDS_PER_GAME) throw new HttpError(500, 'Pas assez de thèmes pour un entraînement.');
+      const pool = this.randomThemes(ROUNDS_PER_GAME, 1);
       this.db.prepare("DELETE FROM games WHERE user_id = ? AND mode = 'training'").run(userId);
-      return this.state(this.createGame(userId, 'training', day, pool.slice(0, ROUNDS_PER_GAME), pool[ROUNDS_PER_GAME] || null), userId);
+      return this.state(this.createGame(userId, 'training', day, pool.slice(0, ROUNDS_PER_GAME), pool[ROUNDS_PER_GAME] || null, { noTimer }), userId);
     }
     throw new HttpError(400, 'Mode de jeu inconnu.');
   }
 
-  createGame(userId, mode, day, themeIds, spare = null) {
+  createGame(userId, mode, day, themeIds, spare = null, { duelId = null, noTimer = false } = {}) {
     return transaction(this.db, () => {
       const { lastInsertRowid } = this.db
-        .prepare('INSERT INTO games (user_id, mode, day, created_at, spare_theme) VALUES (?, ?, ?, ?, ?)')
-        .run(userId, mode, day, this.now(), spare);
+        .prepare('INSERT INTO games (user_id, mode, day, created_at, spare_theme, duel_id, no_timer) VALUES (?, ?, ?, ?, ?, ?, ?)')
+        .run(userId, mode, day, this.now(), spare, duelId, noTimer ? 1 : 0);
       const gameId = Number(lastInsertRowid);
       const insert = this.db.prepare('INSERT INTO rounds (game_id, slot, theme_id) VALUES (?, ?, ?)');
       themeIds.forEach((id, slot) => insert.run(gameId, slot, id));
@@ -142,6 +144,7 @@ class GameService {
   /** Clôture automatiquement un thème dont le chrono est dépassé. */
   expireIfNeeded(game, rounds) {
     const current = rounds.find((r) => r.answered_at == null);
+    if (game.no_timer) return false;
     if (current && current.served_at != null && this.now() > current.served_at + this.timerMs + TIMER_GRACE_MS) {
       this.finishRound(game, current, { outcome: 'timeout', points: 0 });
       return true;
@@ -173,10 +176,14 @@ class GameService {
       this.db
         .prepare('UPDATE games SET score = score + ?, finished_at = ? WHERE id = ?')
         .run(points, remaining === 0 ? now : null, game.id);
-      if (game.mode === 'training') this.recordTraining(game, round, { outcome, points, answer }, remaining === 0);
+      // Le mode « à l'aise » (sans chrono) ne compte ni pour les badges ni pour les statistiques.
+      if (game.mode === 'training' && !game.no_timer) this.recordTraining(game, round, { outcome, points, answer }, remaining === 0);
       return remaining === 0;
     });
-    if (finished) this.badges.awardForGame(game.id);
+    if (finished) {
+      this.badges.awardForGame(game.id);
+      if (game.mode === 'duel') this.duels.afterGame(game);
+    }
     this.badges.awardThemes(game.user_id, this.today());
   }
 
@@ -463,10 +470,31 @@ class GameService {
     return { rid: `${gameId}:${slot}`, reactions: counts, mine: kind };
   }
 
+  /** Vrai pour la partie d'un duel dont le résultat n'est pas encore révélé : ni points ni rareté d'ici là. */
+  duelHidden(game) {
+    if (!game || game.mode !== 'duel') return false;
+    const d = this.db.prepare('SELECT status FROM duels WHERE id = ?').get(game.duel_id);
+    return !d || d.status !== 'done';
+  }
+
   roundView(round, game) {
     const theme = this.themes.get(round.theme_id);
     const served = round.served_at != null;
     const done = round.answered_at != null;
+    if (this.duelHidden(game)) {
+      return {
+        slot: round.slot,
+        title: served ? (theme ? theme.title : 'Thème indisponible') : null,
+        status: done ? 'done' : served ? 'active' : 'pending',
+        input: done ? round.input : null,
+        answer: done ? round.answer_label : null,
+        points: null,
+        outcome: done ? round.outcome : null,
+        probability: null,
+        tier: null,
+        othersCount: null,
+      };
+    }
     return {
       slot: round.slot,
       title: served ? (theme ? theme.title : 'Thème indisponible') : null,
@@ -503,21 +531,34 @@ class GameService {
     if (this.expireIfNeeded(game, rounds)) ({ game, rounds } = this.loadGame(gameId, userId));
     const current = rounds.find((r) => r.answered_at == null && r.served_at != null);
     const finished = game.finished_at != null;
+    const hidden = this.duelHidden(game);
+    const duel = game.mode === 'duel' ? this.duelInfo(game) : null;
     return {
       id: game.id,
       mode: game.mode,
       day: game.day,
-      score: game.score,
+      score: hidden ? null : game.score,
       finished,
+      noTimer: !!game.no_timer,
+      duel,
       timerSeconds: TIMER_SECONDS,
       // Joker : on peut changer gratuitement un thème par partie ; ensuite, passer coûte le thème.
       joker: { available: !finished && !!this.spareFor(game) && !!current, used: !!game.joker_used },
       rounds: rounds.map((r) => this.roundView(r, game)),
       dayScores: finished && game.mode === 'daily' ? this.dayScores(game.day) : null,
       current: current
-        ? { slot: current.slot, remainingMs: Math.max(0, current.served_at + this.timerMs - this.now()) }
+        ? { slot: current.slot, remainingMs: game.no_timer ? null : Math.max(0, current.served_at + this.timerMs - this.now()) }
         : null,
     };
+  }
+
+  /** Duel auquel appartient la partie : numéro, mode et adversaire. */
+  duelInfo(game) {
+    const d = this.db.prepare('SELECT * FROM duels WHERE id = ?').get(game.duel_id);
+    if (!d) return null;
+    const otherId = d.challenger_id === game.user_id ? d.opponent_id : d.challenger_id;
+    const other = this.db.prepare('SELECT username FROM users WHERE id = ?').get(otherId);
+    return { id: d.id, mode: d.mode, opponent: other ? other.username : '?', status: d.status };
   }
 
   /** Révèle le thème suivant et démarre son chrono. */
@@ -554,7 +595,7 @@ class GameService {
       state: this.state(gameId, userId),
     });
 
-    if (this.now() > round.served_at + this.timerMs + TIMER_GRACE_MS) {
+    if (!game.no_timer && this.now() > round.served_at + this.timerMs + TIMER_GRACE_MS) {
       this.finishRound(game, round, { outcome: 'timeout', points: 0 });
       return resultFor('timeout');
     }
@@ -834,6 +875,7 @@ class GameService {
   themeAnswers(gameId, userId, slot) {
     const { game, rounds } = this.loadGame(gameId, userId);
     if (game.finished_at == null) throw new HttpError(409, 'Termine ta partie pour voir les réponses.');
+    if (this.duelHidden(game)) throw new HttpError(403, 'Les réponses seront visibles quand le duel sera terminé.');
     const round = rounds.find((r) => r.slot === slot);
     if (!round) throw new HttpError(404, 'Thème introuvable.');
     const theme = this.themes.get(round.theme_id);
@@ -857,7 +899,7 @@ class GameService {
 
   skip(gameId, userId) {
     const { game, round } = this.activeRound(gameId, userId);
-    const expired = this.now() >= round.served_at + this.timerMs;
+    const expired = !game.no_timer && this.now() >= round.served_at + this.timerMs;
     const spare = expired ? null : this.spareFor(game);
     if (spare && this.themes.get(spare)) {
       // Joker : le thème est remplacé (le même thème de remplacement pour tout le monde) et son chrono repart.
