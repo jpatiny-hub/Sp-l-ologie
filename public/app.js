@@ -60,6 +60,8 @@
     Sound.configure({ enabled: settings.sound, volume: settings.volume / 100 });
     Pixel.setColorblind(settings.colors);
     root.classList.toggle('colorblind', settings.colors !== 'normal');
+    if (settings.colors === 'normal') delete root.dataset.colors;
+    else root.dataset.colors = settings.colors;
     // Lecture facile : police lisible, espacements larges et fond crème doux (apparence claire).
     if (settings.lisible) root.dataset.lisible = '';
     else delete root.dataset.lisible;
