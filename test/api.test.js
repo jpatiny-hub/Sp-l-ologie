@@ -669,3 +669,49 @@ test('joker : un thème de remplacement commun à tous, en forage du jour comme 
     await app.close();
   }
 });
+
+test('comparaison : la galerie de secours apparaît sur le thème remplacé, et le thème de remplacement forme une rubrique à part', async () => {
+  const app = await startServer();
+  try {
+    const adam = client(app.base);
+    const eve = client(app.base);
+    await adam('/api/signup', { username: 'adam', password: 'secret123' });
+    await eve('/api/signup', { username: 'eve', password: 'secret123' });
+    const play = async (c, useJoker) => {
+      const { data: game } = await c('/api/game/start', { mode: 'daily' });
+      for (let i = 0; i < 7; i++) {
+        if (!(useJoker && i === 1 && (await c(`/api/game/${game.id}/skip`, {})).data.result === 'joker')) {
+          await c(`/api/game/${game.id}/reveal`, {});
+        }
+        await c(`/api/game/${game.id}/answer`, { text: answerFor(app.db, game.id, 1) });
+      }
+    };
+    await adam('/api/game/start', { mode: 'daily' });
+    await play(eve, false);
+    const adamGame = (await adam('/api/game/start', { mode: 'daily' })).data;
+    // Adam : thème 1 normal, thème 2 remplacé par la galerie de secours.
+    await adam(`/api/game/${adamGame.id}/reveal`, {});
+    await adam(`/api/game/${adamGame.id}/answer`, { text: answerFor(app.db, adamGame.id, 1) });
+    await adam(`/api/game/${adamGame.id}/reveal`, {});
+    assert.equal((await adam(`/api/game/${adamGame.id}/skip`, {})).data.result, 'joker');
+    await adam(`/api/game/${adamGame.id}/answer`, { text: answerFor(app.db, adamGame.id, 1) });
+    for (let i = 2; i < 7; i++) {
+      await adam(`/api/game/${adamGame.id}/reveal`, {});
+      await adam(`/api/game/${adamGame.id}/answer`, { text: answerFor(app.db, adamGame.id, 1) });
+    }
+    const data = (await adam('/api/compare?date=2026-10-14')).data;
+    assert.equal(data.themes.length, 8, '7 thèmes du jour + la rubrique de la galerie de secours');
+    assert.equal(data.themes[7].spare, true);
+    const a = data.players.find((p) => p.me);
+    const e = data.players.find((p) => !p.me);
+    const swapped = a.rounds.find((r) => r.outcome === 'joker');
+    assert.ok(swapped, 'le thème remplacé est signalé comme galerie de secours');
+    assert.equal(swapped.themeId, data.themes[1].themeId);
+    assert.equal(a.rounds.filter((r) => r.spare).length, 1);
+    assert.equal(e.rounds.filter((r) => r.spare || r.outcome === 'joker').length, 0, 'Eve n a pas utilisé la galerie');
+    assert.equal(a.rounds.length, 8);
+    assert.equal(e.rounds.length, 7);
+  } finally {
+    await app.close();
+  }
+});
