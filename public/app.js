@@ -248,7 +248,8 @@
 
   function show(view) {
     document.querySelectorAll('.view').forEach((v) => (v.hidden = v.id !== `view-${view}`));
-    $('stage').hidden = (view === 'podium' || view === 'profile') && window.innerWidth < 860;
+    // Sur téléphone, la scène de forage ne sert qu'en partie et dans les résultats : pas sur l'accueil.
+    $('stage').hidden = (view === 'podium' || view === 'profile' || view === 'home') && window.innerWidth < 860;
     if (view === 'profile') startPreview();
     if (view !== 'game') $('focus-keeper').blur();
     updateBanner();
