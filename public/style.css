@@ -942,3 +942,39 @@ canvas.avatar-head { width: 20px; height: auto; }
 .gazette .btn { color: #fff8ea; }
 
 .stat { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+
+/* Duels. */
+.tab-dot { display: inline-block; min-width: 16px; padding: 0 3px; margin-left: 4px; background: #e2553f; color: #fff; font-size: 11px; line-height: 16px; text-align: center; vertical-align: middle; }
+.mode-choice { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; margin: 8px 0; text-align: left; height: auto; padding: 10px 12px; }
+.mode-choice strong { color: inherit; font-family: 'Press Start 2P', monospace; font-size: calc(11px * var(--fs)); }
+.mode-choice span { font-size: calc(15px * var(--fs)); font-family: inherit; text-transform: none; letter-spacing: 0; font-weight: normal; white-space: normal; line-height: 1.3; }
+.info-dialog.sheet { max-width: 360px; width: calc(100% - 24px); }
+.opponents { list-style: none; padding: 0; margin: 8px 0; display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow: auto; }
+.opponents li { display: flex; align-items: center; gap: 10px; background: var(--panel-2); padding: 6px 8px; }
+.opponents .opp-id { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.opponents .btn { width: auto; padding: 6px 10px; font-size: calc(10px * var(--fs)); }
+.duel-section { margin-top: 12px; }
+.duel-section h3 { margin: 0 0 6px; font-size: calc(11px * var(--fs)); }
+.duel-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.duel-list > li { background: var(--panel-2); padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+.duel-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.duel-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.duel-actions .btn { width: auto; padding: 6px 10px; font-size: calc(10px * var(--fs)); }
+.duel-result { cursor: pointer; }
+.duel-result.win .duel-outcome { color: var(--ok); }
+.duel-result.loss .duel-outcome { color: var(--danger); }
+.duel-scenes { display: flex; justify-content: center; gap: 8px; margin: 8px 0; }
+.duel-side { text-align: center; min-width: 0; }
+.duel-side canvas { display: block; image-rendering: pixelated; box-shadow: 0 0 0 3px var(--line); }
+.duel-name { margin: 4px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.duel-total { margin: 0; color: var(--accent); font-family: 'Press Start 2P', monospace; font-size: calc(11px * var(--fs)); }
+.duel-lines { list-style: none; padding: 0; margin: 8px 0; display: flex; flex-direction: column; gap: 8px; }
+.duel-theme { margin: 0 0 2px; font-size: calc(15px * var(--fs)); color: var(--muted); }
+.duel-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.duel-cell { display: flex; align-items: center; gap: 5px; background: var(--panel-2); padding: 4px 6px; min-width: 0; }
+.duel-cell.best { box-shadow: inset 0 0 0 2px var(--accent); }
+.duel-cell .swatch { flex: none; width: 10px; height: 10px; }
+.duel-cell .what { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: calc(15px * var(--fs)); }
+.duel-cell .pts { flex: none; color: var(--accent); }
+.duel-banner { font-family: 'Press Start 2P', monospace; font-size: calc(12px * var(--fs)); line-height: 1.6; text-align: center; color: var(--accent); margin: 10px 0; }
+.notimer-note { margin: 0 0 8px; }

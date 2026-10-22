@@ -47,6 +47,19 @@
     </div>
   </dialog>
 
+  <dialog class="card info-dialog sheet" id="mode-dialog" aria-labelledby="mode-title">
+    <h2 id="mode-title"></h2>
+    <div id="mode-step-mode">
+      <p class="muted" id="mode-sub"></p>
+      <button class="btn mode-choice" id="mode-standard" type="button"><strong>Standard</strong><span id="mode-standard-text"></span></button>
+      <button class="btn secondary mode-choice" id="mode-aise" type="button"><strong>À l'aise</strong><span id="mode-aise-text"></span></button>
+    </div>
+    <div id="mode-step-opponent" hidden>
+      <p class="muted" id="mode-opponent-sub"></p>
+      <ul class="opponents" id="mode-opponents"></ul>
+    </div>
+    <button class="btn ghost" id="mode-cancel" type="button">Annuler</button>
+  </dialog>
   <dialog class="card info-dialog" id="freeze-dialog" aria-labelledby="freeze-title">
     <h2 id="freeze-title">Étais de galerie</h2>
     <p>Un étai de galerie sauve ta série si tu rates un jour : au lieu de s'éteindre, ta lanterne reste allumée.</p>
@@ -210,7 +223,8 @@
         <div class="card play-card">
           <h2>Jouer</h2>
           <div class="mini-tabs" id="mode-tabs" role="tablist">
-            <button class="tab active" type="button" role="tab" data-mode="daily" aria-selected="true">Forage du jour</button>
+            <button class="tab active" type="button" role="tab" data-mode="daily" aria-selected="true">Forage</button>
+            <button class="tab" type="button" role="tab" data-mode="duel" aria-selected="false">Duel <span class="tab-dot" id="duel-dot" hidden></span></button>
             <button class="tab" type="button" role="tab" data-mode="training" aria-selected="false">Infini</button>
           </div>
           <div id="mode-daily">
@@ -218,6 +232,11 @@
             <div id="today-status"></div>
             <button class="btn" id="btn-daily" type="button">Commencer le forage</button>
             <p class="muted small" id="next-reset"></p>
+          </div>
+          <div id="mode-duel" hidden>
+            <p>Défie un joueur sur 7 thèmes : chacun joue de son côté, et le résultat se révèle quand vous avez fini tous les deux.</p>
+            <button class="btn" id="btn-duel-new" type="button">Lancer un duel</button>
+            <div id="duel-lists"></div>
           </div>
           <div id="mode-training" hidden>
             <p>Des thèmes au hasard, autant que tu veux. Ça ne compte pas pour le podium.</p>
@@ -281,6 +300,29 @@
         <article class="gazette" id="recap-gazette" hidden></article>
       </div>
 
+      <!-- Duel : attente ou révélation du résultat -->
+      <div class="view" id="view-duel" hidden>
+        <div class="card" id="duel-wait" hidden>
+          <h2>Ton forage est terminé</h2>
+          <p id="duel-wait-text"></p>
+          <button class="btn" id="btn-duel-wait-home" type="button">Retour à l'accueil</button>
+        </div>
+        <div class="card" id="duel-reveal" hidden>
+          <h2 id="duel-title"></h2>
+          <div class="duel-scenes">
+            <div class="duel-side"><canvas id="duel-canvas-a" aria-label="Foreuse du premier joueur"></canvas><p class="duel-name" id="duel-name-a"></p><p class="duel-total" id="duel-total-a">0 pts</p></div>
+            <div class="duel-side"><canvas id="duel-canvas-b" aria-label="Foreuse du second joueur"></canvas><p class="duel-name" id="duel-name-b"></p><p class="duel-total" id="duel-total-b">0 pts</p></div>
+          </div>
+          <ul class="duel-lines" id="duel-lines"></ul>
+          <button class="btn secondary" id="btn-duel-skip" type="button">Passer l'animation</button>
+          <div id="duel-final" hidden>
+            <p class="duel-banner" id="duel-banner"></p>
+            <div class="badge-list" id="duel-badges" hidden></div>
+            <button class="btn" id="btn-duel-home" type="button">Retour à l'accueil</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Partie -->
       <div class="view" id="view-game" hidden>
         <div class="card game-head">
@@ -300,6 +342,7 @@
         <div class="card" id="pane-prompt" hidden>
           <p class="muted" id="prompt-index"></p>
           <h2 class="theme-title" id="prompt-title"></h2>
+          <p class="muted small notimer-note" id="notimer-note" hidden>Mode « À l'aise » : pas de chrono, prends ton temps.</p>
           <div class="timer" id="timer"><canvas id="timer-canvas" width="96" height="20" aria-hidden="true"></canvas><span class="timer-count" id="timer-count" aria-hidden="true"></span><span class="sr-only" id="timer-sr" role="timer"></span></div>
           <form id="form-answer" class="form answer-form" autocomplete="off">
             <input id="answer-input" name="text" maxlength="80" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Ta réponse…" aria-label="Ta réponse">

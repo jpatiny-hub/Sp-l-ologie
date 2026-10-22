@@ -249,7 +249,7 @@
   function show(view) {
     document.querySelectorAll('.view').forEach((v) => (v.hidden = v.id !== `view-${view}`));
     // Sur téléphone, la scène de forage ne sert qu'en partie et dans les résultats : pas sur l'accueil.
-    $('stage').hidden = (view === 'podium' || view === 'profile' || view === 'home' || view === 'recap') && window.innerWidth < 860;
+    $('stage').hidden = (view === 'podium' || view === 'profile' || view === 'home' || view === 'recap' || view === 'duel') && window.innerWidth < 860;
     if (view === 'profile') startPreview();
     if (view !== 'game') $('focus-keeper').blur();
     updateBanner();
@@ -285,7 +285,7 @@
   }
 
   function layersOf(state) {
-    return state.rounds.filter((r) => r.status === 'done').map((r) => ({ points: r.points, tier: r.tier.id }));
+    return state.rounds.filter((r) => r.status === 'done' && r.tier).map((r) => ({ points: r.points, tier: r.tier.id }));
   }
 
   function plural(n, one, many) {
@@ -474,6 +474,8 @@
         .catch(() => {});
     }
     renderStreak();
+    renderDuelDot();
+    if (!$('mode-duel').hidden) loadDuels();
     updateCountdown();
   }
 
@@ -696,11 +698,21 @@
         t.setAttribute('aria-selected', String(t === tab));
       });
       $('mode-daily').hidden = tab.dataset.mode !== 'daily';
+      $('mode-duel').hidden = tab.dataset.mode !== 'duel';
       $('mode-training').hidden = tab.dataset.mode !== 'training';
+      if (tab.dataset.mode === 'duel') loadDuels();
     }),
   );
   $('btn-daily').addEventListener('click', () => startGame('daily'));
-  $('btn-training').addEventListener('click', () => startGame('training'));
+  $('btn-training').addEventListener('click', async () => {
+    const choice = await askMode({
+      title: 'Infini',
+      sub: 'Des thèmes au hasard, autant que tu veux. Ça ne compte pas pour le podium.',
+      standardText: '30 secondes par thème, comme le forage du jour.',
+      aiseText: 'Sans chrono : réfléchis à ton aise. Ne compte ni pour les badges ni pour les statistiques.',
+    });
+    if (choice) startGame('training', { noTimer: choice.mode === 'aise' });
+  });
   $('btn-podium').addEventListener('click', () => openPodium(homePodiumPeriod, null));
 
   let homePodiumPeriod = 'day';
@@ -757,9 +769,9 @@
   // Toucher ces boutons ne doit pas retirer le focus du champ relais (sinon le clavier se ferme).
   ['btn-next', 'btn-reveal'].forEach((id) => $(id).addEventListener('mousedown', (event) => keyboardHeld() && event.preventDefault()));
 
-  async function startGame(mode) {
+  async function startGame(mode, options = {}) {
     try {
-      const state = await api('/api/game/start', { mode });
+      const state = await api('/api/game/start', { mode, ...options });
       enterGame(state);
     } catch (err) {
       showNotice(err.message);
@@ -781,6 +793,7 @@
     box.replaceChildren(
       ...state.rounds.map((r, i) => {
         const pip = el('span', { class: `pip${i === active ? ' now' : ''}` });
+        if (r.status === 'done' && !r.tier && state.mode === 'duel') pip.style.background = '#8aa0b8';
         if (r.status === 'done' && r.tier) {
           pip.style.background = Pixel.TIER_COLORS[r.tier.id] || '#4a4a4a';
           if (settings.colors !== 'normal') pip.textContent = Pixel.TIER_SYMBOLS[r.tier.id] || '';
@@ -795,9 +808,9 @@
     const s = app.game;
     renderPips(s);
     const done = s.rounds.filter((r) => r.status === 'done').length;
-    $('game-mode').textContent = s.mode === 'daily' ? 'Forage du jour' : 'Entraînement';
+    $('game-mode').textContent = s.mode === 'daily' ? 'Forage du jour' : s.mode === 'duel' ? `Duel contre ${s.duel ? s.duel.opponent : '?'}` : s.noTimer ? 'Entraînement · À l\'aise' : 'Entraînement';
     $('game-progress').textContent = `${Math.min(done + 1, ROUNDS)}/${ROUNDS}`;
-    $('game-score').textContent = pts(s.score);
+    $('game-score').textContent = s.score == null ? '—' : pts(s.score);
     setTimerSeconds(s.timerSeconds);
     $('pane-feedback').hidden = true;
 
@@ -840,7 +853,12 @@
     const input = $('answer-input');
     input.value = '';
     input.focus();
-    startTimer(remainingMs);
+    // Mode « À l'aise » : pas de chrono.
+    const noTimer = !!app.game.noTimer;
+    $('timer').hidden = noTimer;
+    $('notimer-note').hidden = !noTimer;
+    if (noTimer) stopTimer();
+    else startTimer(remainingMs);
   }
 
   function startTimer(remainingMs) {
@@ -1059,6 +1077,7 @@
   }
 
   function roundFinished({ round, state }) {
+    if (state.mode === 'duel') return duelRoundFinished({ round, state });
     stopTimer();
     app.game = state;
     holdKeyboard();
@@ -1099,6 +1118,38 @@
     paneChangedAt = performance.now();
   }
 
+  /** Pendant un duel : la réponse est validée (ou non), mais ni points ni rareté avant le résultat. */
+  function duelRoundFinished({ round, state }) {
+    stopTimer();
+    app.game = state;
+    holdKeyboard();
+    renderPips(state);
+    $('pane-prompt').hidden = true;
+    $('pane-ready').hidden = true;
+    $('pane-feedback').hidden = false;
+    updateBanner();
+    $('game-score').textContent = '—';
+    $('feedback-theme').textContent = round.title;
+    $('feedback-points').textContent = round.outcome === 'answer' ? '✓' : '—';
+    const tier = $('feedback-tier');
+    delete tier.dataset.tier;
+    tier.style.color = '';
+    tier.textContent = round.outcome === 'answer' ? 'Réponse validée' : 'Pas de réponse';
+    Sound.reveal();
+    if (round.outcome === 'answer') {
+      const understood = round.input && round.input.toLowerCase() !== round.answer.toLowerCase();
+      $('feedback-answer').textContent = `Ta réponse : ${round.answer}${understood ? ` (tu as écrit « ${round.input} »)` : ''}`;
+      $('feedback-odds').textContent = 'La rareté se révélera à la fin du duel.';
+    } else {
+      $('feedback-answer').textContent = round.outcome === 'timeout' ? 'Le chrono est arrivé à zéro.' : 'Tu as passé ce thème.';
+      $('feedback-odds').textContent = '';
+    }
+    $('feedback-others').textContent = '';
+    $('btn-next').textContent = state.finished ? 'Voir le duel' : 'Thème suivant';
+    if (!keyboardHeld()) $('btn-next').focus();
+    paneChangedAt = performance.now();
+  }
+
   $('btn-next').addEventListener('click', () => {
     if (app.game.finished) showResults(app.game);
     else renderGame();
@@ -1111,6 +1162,7 @@
   function showResults(state) {
     stopTimer();
     app.game = state;
+    if (state.mode === 'duel') return afterDuelGame(state);
     scene.setLayers(layersOf(state), false);
     scene.overview();
     renderResults(state);
@@ -2312,6 +2364,298 @@
   $('btn-week-prev').addEventListener('click', () => openPodium(app.podium.period, app.podium.prev));
   $('btn-week-next').addEventListener('click', () => app.podium.next && openPodium(app.podium.period, app.podium.next));
   $('btn-podium-home').addEventListener('click', () => goHome());
+
+  // ---------- Duels ----------
+  const MODE_NAMES = { standard: 'Standard', aise: "À l'aise" };
+
+  /** Fenêtre flottante : choix du mode (standard ou à l'aise), puis, pour un duel, de l'adversaire. Renvoie { mode, opponent } ou null. */
+  function askMode({ title, sub, standardText, aiseText, opponents = null }) {
+    return new Promise((resolve) => {
+      const dialog = $('mode-dialog');
+      const ac = new AbortController();
+      const on = (node, type, fn) => node.addEventListener(type, fn, { signal: ac.signal });
+      let result = null;
+      $('mode-title').textContent = title;
+      $('mode-sub').textContent = sub;
+      $('mode-standard-text').textContent = standardText;
+      $('mode-aise-text').textContent = aiseText;
+      $('mode-step-mode').hidden = false;
+      $('mode-step-opponent').hidden = true;
+      const finish = (value) => {
+        result = value;
+        dialog.close();
+      };
+      const pick = (mode) => {
+        if (!opponents) return finish({ mode });
+        $('mode-title').textContent = `Duel ${mode === 'standard' ? 'standard' : "à l'aise"} : qui défier ?`;
+        $('mode-step-mode').hidden = true;
+        $('mode-step-opponent').hidden = false;
+        $('mode-opponent-sub').textContent = opponents.length ? 'Ton adversaire jouera les mêmes 7 thèmes, quand il voudra.' : "Aucun autre joueur n'est inscrit pour l'instant.";
+        $('mode-opponents').replaceChildren(
+          ...opponents.map((o) => {
+            const record = o.wins + o.losses + o.draws ? `${o.wins} victoire${o.wins > 1 ? 's' : ''} · ${o.losses} défaite${o.losses > 1 ? 's' : ''}${o.draws ? ` · ${o.draws} égalité${o.draws > 1 ? 's' : ''}` : ''}` : 'jamais affronté';
+            const button = el('button', { class: 'btn', type: 'button' }, o.busy ? 'En cours' : 'Défier');
+            button.disabled = o.busy;
+            on(button, 'click', () => finish({ mode, opponent: o.username }));
+            return el('li', {}, avatarEl(o.avatar, 'head', 2), el('div', { class: 'opp-id' }, el('strong', {}, o.username), el('span', { class: 'muted small' }, record)), button);
+          }),
+        );
+      };
+      on($('mode-standard'), 'click', () => pick('standard'));
+      on($('mode-aise'), 'click', () => pick('aise'));
+      on($('mode-cancel'), 'click', () => finish(null));
+      on(dialog, 'click', (event) => event.target === dialog && finish(null));
+      dialog.addEventListener(
+        'close',
+        () => {
+          ac.abort();
+          resolve(result);
+        },
+        { once: true },
+      );
+      dialog.showModal();
+    });
+  }
+
+  function renderDuelDot() {
+    const d = app.me && app.me.duels;
+    const n = d ? d.invites + d.unseen : 0;
+    $('duel-dot').hidden = !n;
+    $('duel-dot').textContent = String(n);
+  }
+
+  async function loadDuels() {
+    try {
+      const data = await api('/api/duels');
+      app.duels = data;
+      app.me.duels = { invites: data.received.filter((r) => r.status === 'invited').length, unseen: data.results.filter((r) => !r.seen).length };
+      renderDuelDot();
+      renderDuels(data);
+    } catch (err) {
+      $('duel-lists').replaceChildren(el('p', { class: 'muted' }, err.message));
+    }
+  }
+
+  function renderDuels(data) {
+    const box = $('duel-lists');
+    const person = (o) => el('span', { class: 'who-av' }, avatarEl(o.avatar, 'head', 2), el('span', { class: 'who-name' }, o.username));
+    const section = (title, rows) => (rows.length ? el('div', { class: 'duel-section' }, el('h3', {}, title), el('ul', { class: 'duel-list' }, ...rows)) : null);
+    const act = (label, fn, secondary) => {
+      const b = el('button', { class: `btn${secondary ? ' secondary' : ''}`, type: 'button' }, label);
+      b.addEventListener('click', async () => {
+        b.disabled = true;
+        try {
+          await fn();
+        } catch (err) {
+          showNotice(err.message);
+          b.disabled = false;
+        }
+      });
+      return b;
+    };
+    const received = data.received.map((d) =>
+      el(
+        'li',
+        {},
+        el('div', { class: 'duel-row' }, person(d.other), el('span', { class: 'muted small' }, `te défie · ${MODE_NAMES[d.mode]}`)),
+        el(
+          'div',
+          { class: 'duel-actions' },
+          ...(d.status === 'invited'
+            ? [
+                act('Relever le défi', async () => enterGame(await api(`/api/duels/${d.id}/accept`, {}))),
+                act('Refuser', async () => {
+                  await api(`/api/duels/${d.id}/decline`, {});
+                  await loadDuels();
+                }, true),
+              ]
+            : [act('Reprendre', async () => enterGame(await api(`/api/game/${d.gameId}`)))]),
+        ),
+      ),
+    );
+    const sent = data.sent.map((d) =>
+      el(
+        'li',
+        {},
+        el('div', { class: 'duel-row' }, person(d.other), el('span', { class: 'muted small' }, d.status === 'waiting' ? `en attente de sa réponse · ${MODE_NAMES[d.mode]}` : `à finir · ${MODE_NAMES[d.mode]}`)),
+        d.status === 'playing' ? el('div', { class: 'duel-actions' }, act('Reprendre', async () => enterGame(await api(`/api/game/${d.gameId}`)))) : null,
+      ),
+    );
+    const results = data.results.map((d) => {
+      const label = d.outcome === 'win' ? 'Victoire' : d.outcome === 'loss' ? 'Défaite' : 'Égalité';
+      const row = el(
+        'li',
+        { class: `duel-result ${d.outcome}` },
+        el('div', { class: 'duel-row' }, person(d.other), el('span', { class: 'duel-outcome' }, `${label} ${d.myScore} – ${d.theirScore}`), d.seen ? null : el('span', { class: 'tab-dot' }, '!')),
+      );
+      row.tabIndex = 0;
+      row.setAttribute('role', 'button');
+      const open = () => openDuelResult(d.id);
+      row.addEventListener('click', open);
+      row.addEventListener('keydown', (event) => (event.key === 'Enter' || event.key === ' ') && (event.preventDefault(), open()));
+      return row;
+    });
+    const r = data.record;
+    box.replaceChildren(
+      ...[
+        section('À toi de jouer', received),
+        section('En cours', sent),
+        section('Résultats', results),
+        r.wins + r.losses + r.draws ? el('p', { class: 'muted small' }, `Bilan : ${r.wins} victoire${r.wins > 1 ? 's' : ''}, ${r.losses} défaite${r.losses > 1 ? 's' : ''}${r.draws ? `, ${r.draws} égalité${r.draws > 1 ? 's' : ''}` : ''}.`) : null,
+      ].filter(Boolean),
+    );
+  }
+
+  $('btn-duel-new').addEventListener('click', async () => {
+    let data = app.duels;
+    try {
+      data = await api('/api/duels');
+      app.duels = data;
+    } catch (err) {
+      return showNotice(err.message);
+    }
+    const choice = await askMode({
+      title: 'Lancer un duel',
+      sub: 'Sept thèmes, les mêmes pour vous deux. Chacun joue de son côté.',
+      standardText: '30 secondes par thème, comme le forage du jour.',
+      aiseText: "Sans chrono : prenez le temps de réfléchir. Les exploits (Invaincu, Duel parfait, Remontada) demandent un duel standard.",
+      opponents: data.opponents,
+    });
+    if (!choice || !choice.opponent) return;
+    try {
+      enterGame(await api('/api/duels', { opponent: choice.opponent, mode: choice.mode }));
+    } catch (err) {
+      showNotice(err.message);
+    }
+  });
+
+  // Fin de la partie d'un duel : en attente de l'adversaire, ou résultat à révéler.
+  async function afterDuelGame(state) {
+    try {
+      const result = await api(`/api/duels/${state.duel.id}/result`);
+      openDuelReveal(result);
+    } catch (err) {
+      if (err.status !== 409) return showNotice(err.message);
+      $('duel-wait-text').textContent = `${state.duel.opponent} n'a pas encore joué. Tu verras le résultat dans l'onglet « Duel » de l'accueil, dès que ce sera fait : la rareté de tes réponses reste secrète jusque-là.`;
+      $('duel-wait').hidden = false;
+      $('duel-reveal').hidden = true;
+      show('duel');
+    }
+  }
+
+  async function openDuelResult(id) {
+    try {
+      openDuelReveal(await api(`/api/duels/${id}/result`));
+    } catch (err) {
+      showNotice(err.message);
+    }
+  }
+
+  $('btn-duel-wait-home').addEventListener('click', () => goHome());
+  $('btn-duel-home').addEventListener('click', () => goHome());
+
+  let duelScenes = null;
+  let duelRun = 0;
+
+  /** Révélation : thème après thème, les deux foreuses creusent en même temps et les points s'ajoutent. */
+  async function openDuelReveal(result) {
+    const run = ++duelRun;
+    $('duel-wait').hidden = true;
+    $('duel-reveal').hidden = false;
+    $('duel-final').hidden = true;
+    $('duel-badges').hidden = true;
+    $('btn-duel-skip').hidden = false;
+    show('duel');
+    $('duel-title').textContent = `${result.a.username} contre ${result.b.username}`;
+    $('duel-name-a').textContent = result.a.username;
+    $('duel-name-b').textContent = result.b.username;
+    $('duel-total-a').textContent = '0 pts';
+    $('duel-total-b').textContent = '0 pts';
+    $('duel-lines').replaceChildren();
+    if (!duelScenes) duelScenes = [new Pixel.DrillScene($('duel-canvas-a')), new Pixel.DrillScene($('duel-canvas-b'))];
+    const scale = Math.max(1, Math.floor((($('duel-reveal').clientWidth || 340) - 40) / 2 / Pixel.WIDTH));
+    [$('duel-canvas-a'), $('duel-canvas-b')].forEach((canvas, i) => {
+      duelScenes[i].setViewHeight(150);
+      canvas.style.width = `${Pixel.WIDTH * scale}px`;
+      canvas.style.height = `${duelScenes[i].h * scale}px`;
+      duelScenes[i].setSkin(i ? result.b.skin : result.a.skin);
+      duelScenes[i].setAvatar(i ? result.b.avatar : result.a.avatar);
+      duelScenes[i].setLayers([], false);
+    });
+    const layers = [[], []];
+    const totals = [0, 0];
+    let skipping = false;
+    const skip = () => {
+      skipping = true;
+      $('btn-duel-skip').hidden = true;
+    };
+    $('btn-duel-skip').onclick = skip;
+    const settled = async () => {
+      const t0 = performance.now();
+      while (!skipping && duelRun === run && performance.now() - t0 < 9000) {
+        if (duelScenes.every((sc) => Math.abs(sc.depth - sc.target) < 0.8)) break;
+        await sleep(150);
+      }
+      if (!skipping && duelRun === run) await sleep(650);
+    };
+    const mineIsA = result.a.me;
+    for (const [i, t] of result.themes.entries()) {
+      if (duelRun !== run) return;
+      layers[0].push({ points: t.a.points, tier: t.a.tier });
+      layers[1].push({ points: t.b.points, tier: t.b.tier });
+      duelScenes[0].setLayers(layers[0], !skipping);
+      duelScenes[1].setLayers(layers[1], !skipping);
+      totals[0] += t.a.points;
+      totals[1] += t.b.points;
+      const line = (side, mark) => {
+        const swatch = el('span', { class: 'swatch' });
+        swatch.style.background = Pixel.TIER_COLORS[side.tier] || '#666';
+        const sym = settings.colors !== 'normal' ? Pixel.TIER_SYMBOLS[side.tier] || '' : '';
+        return el('span', { class: `duel-cell${mark ? ' best' : ''}` }, swatch, el('span', { class: 'what' }, `${sym ? `${sym} ` : ''}${side.outcome === 'answer' ? side.answer : side.outcome === 'timeout' ? 'temps écoulé' : 'passé'}`), el('span', { class: 'pts' }, `+${side.points}`));
+      };
+      $('duel-lines').append(
+        el('li', {}, el('p', { class: 'duel-theme' }, `${i + 1}. ${t.title}`), el('div', { class: 'duel-pair' }, line(t.a, t.a.points > t.b.points), line(t.b, t.b.points > t.a.points))),
+      );
+      const mine = mineIsA ? t.a : t.b;
+      if (!skipping) {
+        const pepites = (mineIsA ? layers[0] : layers[1]).filter((l) => l.tier === 'pepite').length;
+        Sound.tier(mine.tier, pepites);
+      }
+      await settled();
+      $('duel-total-a').textContent = pts(totals[0]);
+      $('duel-total-b').textContent = pts(totals[1]);
+      if (!skipping) window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+    if (duelRun !== run) return;
+    $('btn-duel-skip').hidden = true;
+    $('duel-total-a').textContent = pts(result.a.score);
+    $('duel-total-b').textContent = pts(result.b.score);
+    const me = mineIsA ? result.a : result.b;
+    const other = mineIsA ? result.b : result.a;
+    $('duel-banner').textContent =
+      result.winner == null
+        ? `Égalité parfaite : ${pts(me.score)} partout !`
+        : (result.winner === 'a') === mineIsA
+          ? `Victoire ! Tu bats ${other.username} : ${me.score} à ${other.score}.`
+          : `Défaite : ${other.username} gagne ${other.score} à ${me.score}.`;
+    $('duel-final').hidden = false;
+    api(`/api/duels/${result.id}/seen`, {}).catch(() => {});
+    if (app.me && app.me.duels) {
+      app.me.duels.unseen = Math.max(0, app.me.duels.unseen - 1);
+    }
+    try {
+      const profile = await api('/api/profile');
+      const fresh = profile.badges.filter((b) => b.isNew);
+      if (fresh.length && duelRun === run && !$('view-duel').hidden) {
+        app.profile = profile;
+        $('duel-badges').replaceChildren(el('h3', {}, 'Nouveaux badges'), ...fresh.map(badgeItem));
+        $('duel-badges').hidden = false;
+        Sound.badge();
+      }
+    } catch {
+      /* les badges restent visibles dans le profil */
+    }
+  }
 
   // ---------- Récap du lundi : feu d'artifice, puis la Gazette de la mine ----------
   let recapTimer = null;

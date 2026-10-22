@@ -85,6 +85,30 @@ const NEWS = [
       'Les réponses que tu signales reçoivent une réponse : dans « Proposer un thème », la liste « Mes réponses signalées » indique si elle est acceptée, avec un message, et les points éventuellement accordés.',
     ],
   },
+  {
+    id: 7,
+    date: '2026-10-23',
+    title: 'Duels, défi collectif et nouvel accueil',
+    highlights: [
+      { icon: 'sabre', text: "Duels : défie un joueur sur 7 thèmes, au chrono ou « À l'aise » (sans chrono)" },
+      { icon: 'diamant', text: 'Défi collectif du mois : 10 000 points à creuser ensemble jusqu\'au diamant' },
+      { icon: 'coeur', text: 'Réactions aux réponses des autres, dans le comparatif' },
+      { icon: 'trophee', text: 'Le lundi, le récap de la semaine : la Gazette de la mine' },
+      { icon: 'lanterne-mineur', text: 'Nouvel accueil : ton profil en premier, une lanterne dont la flamme grandit avec ta série' },
+      { icon: 'horloge', text: 'Les nouveaux thèmes arrivent maintenant à 2 h du matin' },
+    ],
+    items: [
+      'Duels : onglet « Duel » de l\'accueil. Choisis un adversaire parmi les joueurs, vous jouez les mêmes 7 thèmes chacun de votre côté. Pendant la partie, tes réponses sont « validées » sans révéler leur rareté : le résultat se révèle thème par thème, avec les deux foreuses qui creusent en direct, quand vous avez fini tous les deux.',
+      'Deux modes : Standard (30 secondes par thème) et « À l\'aise » (sans chrono). Le mode « À l\'aise » existe aussi dans l\'onglet Infini ; il ne compte ni pour les statistiques ni pour les badges de forage, ni pour les classements.',
+      'Nouveaux badges de duel : Attaquant, Défenseur, Diplomate, Sentinelle, Rival, Souffre-douleur, Némésis, Invaincu, Duel parfait (gagner les 7 thèmes) et Remontada (gagner après avoir perdu les 3 premiers thèmes), avec de nouvelles apparences de foreuse à débloquer.',
+      'Défi collectif : chaque point de ton forage du jour fait avancer la foreuse dans un tunnel commun. Objectif : 10 000 points avant la fin du mois. Chaque joueur a sa couleur dans le tunnel, et un tas de diamants t\'attend au bout. Les défis de la semaine et du mois sont réunis dans l\'encadré « Défis ».',
+      'Comparatif : touche un symbole sous la réponse d\'un autre joueur pour réagir (bien vu, j\'aime, bien creusé, audacieux, surprenant).',
+      'Récap du lundi : à la première ouverture de la semaine, le podium de la semaine écoulée sous un feu d\'artifice, puis la Gazette de la mine avec les moments forts et ton bilan.',
+      'Accueil : ton profil passe en premier avec ta série (la lanterne s\'enflamme de plus en plus jusqu\'à un mois d\'affilée), tes étais (touche-les pour tout savoir), les prochains badges à obtenir, puis les modes de jeu, les défis et le podium (jour, semaine ou mois).',
+      'Modes daltoniens : les décors du forage, les graphiques et toute l\'interface sont désormais adaptés.',
+      'Le changement de jour se fait maintenant à 2 h du matin au lieu de minuit : les nouveaux thèmes, les séries et les défis changent à ce moment-là.',
+    ],
+  },
 ];
 
 const LATEST_NEWS_ID = NEWS[NEWS.length - 1].id;
