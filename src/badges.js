@@ -352,7 +352,7 @@ class BadgeService {
     const timed = this.db
       .prepare(
         `SELECT r.served_at, r.answered_at FROM rounds r
-         WHERE r.game_id = ? AND r.outcome = 'answer' AND r.served_at IS NOT NULL AND r.answered_at IS NOT NULL
+         WHERE r.game_id = ? AND r.outcome = 'answer' AND r.served_at IS NOT NULL AND r.answered_at IS NOT NULL AND r.credited = 0
            AND NOT EXISTS (SELECT 1 FROM answer_reports a WHERE a.game_id = r.game_id AND a.slot = r.slot AND a.credit = 'credited')`,
       )
       .all(gameId);
