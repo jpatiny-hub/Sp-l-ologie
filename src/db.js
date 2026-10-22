@@ -228,10 +228,15 @@ function allowDuelMode(db, file) {
   db.exec('PRAGMA foreign_keys = OFF');
   try {
     transaction(db, () => {
+      // Le compteur d'identifiants est gardé : un identifiant supprimé ne doit pas être réattribué.
+      const seq = db.prepare("SELECT seq FROM sqlite_sequence WHERE name = 'games'").get();
       db.exec(sql);
       db.exec('INSERT INTO games_new SELECT * FROM games');
       db.exec('DROP TABLE games');
       db.exec('ALTER TABLE games_new RENAME TO games');
+      if (seq) {
+        db.prepare("UPDATE sqlite_sequence SET seq = MAX(seq, ?) WHERE name = 'games'").run(seq.seq);
+      }
       db.exec(
         "CREATE UNIQUE INDEX IF NOT EXISTS games_one_daily ON games(user_id, day) WHERE mode = 'daily'; CREATE INDEX IF NOT EXISTS games_by_day ON games(mode, day);",
       );

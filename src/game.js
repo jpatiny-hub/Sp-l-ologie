@@ -876,6 +876,14 @@ class GameService {
     const { game, rounds } = this.loadGame(gameId, userId);
     if (game.finished_at == null) throw new HttpError(409, 'Termine ta partie pour voir les réponses.');
     if (this.duelHidden(game)) throw new HttpError(403, 'Les réponses seront visibles quand le duel sera terminé.');
+    if (game.mode !== 'daily') {
+      // Un thème d'entraînement ou de duel qui est aussi un thème du jour : réponses cachées tant que le forage du jour n'est pas fini.
+      const round = this.db.prepare('SELECT theme_id FROM rounds WHERE game_id = ? AND slot = ?').get(game.id, slot);
+      const today = this.dailyGameFor(userId, this.today());
+      if (round && (!today || today.finished_at == null) && this.dailyThemes(this.today()).includes(round.theme_id)) {
+        throw new HttpError(403, 'Termine ton forage du jour pour voir les réponses de ce thème.');
+      }
+    }
     const round = rounds.find((r) => r.slot === slot);
     if (!round) throw new HttpError(404, 'Thème introuvable.');
     const theme = this.themes.get(round.theme_id);

@@ -30,7 +30,8 @@ class DuelService {
 
   /** Les duels laissés trop longtemps sans réponse sont abandonnés. */
   expire() {
-    this.db.prepare("UPDATE duels SET status = 'expired' WHERE status = 'open' AND expires_at < ?").run(this.now());
+    // Un duel dont l'adversaire a commencé sa partie n'expire plus : il pourra la finir.
+    this.db.prepare("UPDATE duels SET status = 'expired' WHERE status = 'open' AND opponent_game_id IS NULL AND expires_at < ?").run(this.now());
   }
 
   userRow(id) {
