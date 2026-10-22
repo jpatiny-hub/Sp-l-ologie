@@ -36,6 +36,14 @@ le **centre de la Terre**.
   listées sont acceptées, un thème trop large refuserait de bonnes réponses. Plus de 15 000 réponses,
   avec une difficulté estimée pour un public belge.
 
+- Jour de jeu : il commence à 2 h, heure de Bruxelles (`DAY_START_HOUR` dans `src/config.js`), pas à minuit.
+- Accueil : profil en premier (série avec une lanterne dont la flamme grandit jusqu'à 30 jours, étais en pastille discrète avec fenêtre d'explication, prochains badges), puis « Jouer » (onglets Forage, Duel, Infini), « Défis » (semaine et mois), « Podium » (jour, semaine, mois), règles. Courte note « Quoi de neuf ? » (`highlights` dans `src/news.js`) avec le détail repliable.
+- Duels (`src/duels.js`, tables `duels`, `duel_themes`, parties en mode `duel`) : un joueur en défie un autre sur 7 thèmes tirés au sort, chacun joue sa partie quand il veut. Pendant la partie, ni points ni rareté (les réponses sont seulement « validées ») ; le résultat se révèle quand les deux ont fini, thème après thème avec les deux foreuses. Deux modes : standard (30 s) et « à l'aise » (sans chrono, `games.no_timer`, aussi proposé en mode illimité ; ne compte ni pour les statistiques ni pour les badges de forage). Un duel sans réponse expire au bout de 4 jours ; 3 duels ouverts au plus par joueur. Badges de duel (attaquant, défenseur, diplomate, sentinelle, rival, souffre-douleur, némésis, invaincu, duel parfait, remontada) et apparences de foreuse associées. L'ancienne base est migrée au démarrage pour accepter le mode `duel` (copie `.avant-duels` à côté du fichier).
+- Réactions (`POST /api/reactions`, table `reactions`) : une par réponse des autres dans le comparatif.
+- Défi collectif du mois (`src/collective.js`) : tous les points des forages du jour du mois s'additionnent vers 10 000 ; un tunnel avec la part de chaque joueur et un tas de diamants au bout. Première édition : du 23 au 31 octobre 2026.
+- Récap du lundi (`src/recap.js`, `users.recap_seen`) : à la première ouverture de la nouvelle semaine, podium sous un feu d'artifice puis « La Gazette de la mine » (moments forts, bilan personnel).
+- Modes daltoniens : filtre de couleur sur toute la page (`filter` sur `<html>`, voir `style.css`) plus symboles de rareté.
+
 Aucune dépendance externe : Node.js ≥ 22.13 suffit (base SQLite intégrée à Node).
 
 ## Lancer en local
@@ -180,7 +188,10 @@ Le site n'est pas référencé par les moteurs de recherche, et il faut se conne
 | Fichier | Rôle |
 | --- | --- |
 | `server.js` | Serveur HTTP, routes de l'API, sessions |
-| `src/game.js` | Thèmes du jour, parties, chrono, podium |
+| `src/game.js` | Thèmes du jour, parties, chrono, podium, réactions |
+| `src/duels.js` | Duels : défis, parties jumelles, résultat |
+| `src/collective.js` | Défi collectif du mois |
+| `src/recap.js` | Récap du lundi (Gazette de la mine) |
 | `src/scoring.js` | Modèle probabiliste de rareté |
 | `src/matching.js` | Normalisation et tolérance orthographique |
 | `src/themes.js` | Lecture des fichiers de thèmes |

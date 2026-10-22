@@ -213,13 +213,18 @@ const MIGRATIONS = [
  * Les bases créées avant les duels n'acceptent que les modes « daily » et « training » pour une partie.
  * SQLite ne sait pas modifier une contrainte : on recrée la table (procédure officielle, clés étrangères suspendues).
  */
-function allowDuelMode(db) {
+function allowDuelMode(db, file) {
   const row = db.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'games'").get();
   if (!row || row.sql.includes("'duel'")) return;
   const sql = row.sql
     .replace("CHECK (mode IN ('daily', 'training'))", "CHECK (mode IN ('daily', 'training', 'duel'))")
     .replace(/^CREATE TABLE (IF NOT EXISTS )?"?games"?/i, 'CREATE TABLE games_new');
   if (!sql.includes("'duel'")) throw new Error('Migration des parties impossible : définition inattendue.');
+  // Filet de sécurité : copie de la base avant de recréer la table.
+  if (file && file !== ':memory:') {
+    db.exec('PRAGMA wal_checkpoint(TRUNCATE)');
+    fs.copyFileSync(file, `${file}.avant-duels`);
+  }
   db.exec('PRAGMA foreign_keys = OFF');
   try {
     transaction(db, () => {
@@ -243,7 +248,7 @@ function openDb(file) {
   const db = new DatabaseSync(file);
   db.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;');
   db.exec(SCHEMA);
-  allowDuelMode(db);
+  allowDuelMode(db, file);
   for (const [table, column, type] of MIGRATIONS) {
     const exists = db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === column);
     if (!exists) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
