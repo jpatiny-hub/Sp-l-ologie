@@ -7,11 +7,17 @@
   <meta name="theme-color" content="#1b1410">
   <title>Spéléologie</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Spéléologie">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <!-- Modes daltoniens : filtres de couleur appliqués à toute l'interface et aux décors (voir style.css). -->
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <svg class="cb-filters" width="0" height="0" aria-hidden="true" focusable="false">
     <filter id="cb-rouge-vert" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="1 0 0 0 0  0.163 0.725 0.112 0 0  0.455 -0.645 1.191 0 0  0 0 0 1 0"/></filter>
     <filter id="cb-bleu-jaune" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0.741 -0.407 0.666 0 0  0.075 0.585 0.34 0 0  0 0 1 0 0  0 0 0 1 0"/></filter>
   </svg>
@@ -47,6 +53,26 @@
     </div>
   </dialog>
 
+  <dialog class="card info-dialog sheet" id="mode-dialog" aria-labelledby="mode-title">
+    <h2 id="mode-title"></h2>
+    <div id="mode-step-mode">
+      <p class="muted" id="mode-sub"></p>
+      <button class="btn mode-choice" id="mode-standard" type="button"><strong>Standard</strong><span id="mode-standard-text"></span></button>
+      <button class="btn secondary mode-choice" id="mode-aise" type="button"><strong>À l'aise</strong><span id="mode-aise-text"></span></button>
+    </div>
+    <div id="mode-step-opponent" hidden>
+      <p class="muted" id="mode-opponent-sub"></p>
+      <ul class="opponents" id="mode-opponents"></ul>
+    </div>
+    <button class="btn ghost" id="mode-cancel" type="button">Annuler</button>
+  </dialog>
+  <dialog class="card info-dialog" id="freeze-dialog" aria-labelledby="freeze-title">
+    <h2 id="freeze-title">Étais de galerie</h2>
+    <p>Un étai de galerie sauve ta série si tu rates un jour : au lieu de s'éteindre, ta lanterne reste allumée.</p>
+    <p class="muted">Tu en gagnes un tous les 7 jours forés d'affilée, et tu peux en garder 3 au maximum. Ils se mettent en place tout seuls dès que tu fores après un jour manqué.</p>
+    <p id="freeze-note"></p>
+    <button class="btn" id="freeze-close" type="button">Compris</button>
+  </dialog>
   <dialog class="card assign-dialog" id="assign-dialog" aria-labelledby="assign-title">
     <h2 id="assign-title">Associer une réponse</h2>
     <p class="muted small" id="assign-sub"></p>
@@ -94,6 +120,11 @@
           <label><input type="radio" name="colors" value="gris"> Niveaux de gris (achromatopsie)</label>
         </div>
         <p class="hint">Dans les modes daltoniens, chaque niveau de rareté a aussi son propre symbole : la couleur n'est jamais la seule information.</p>
+      </fieldset>
+      <fieldset id="install-box">
+        <legend>Installer l'application</legend>
+        <p class="hint" id="install-text">Ajoute le jeu à l'écran d'accueil de ton téléphone : il s'ouvre en plein écran, comme une application.</p>
+        <button class="btn secondary" id="btn-install" type="button" hidden>Installer</button>
       </fieldset>
       <p class="hint">Ces réglages sont propres à cet appareil.</p>
       <button class="btn" value="close">Fermer</button>
@@ -174,53 +205,113 @@
 
       <!-- Accueil -->
       <div class="view" id="view-home" hidden>
+        <div class="card announce" id="announce-card" hidden>
+          <h2>Message du Contre maître</h2>
+          <div id="announce-list"></div>
+          <button class="btn secondary" id="btn-announce-ok" type="button">Compris !</button>
+        </div>
         <div class="card news" id="news-card" hidden>
           <h2 id="news-title">Nouveautés</h2>
+          <ul class="news-quick" id="news-quick"></ul>
+          <details class="news-more" id="news-more" hidden>
+            <summary>Voir le détail</summary>
+            <ul class="news-list" id="news-detail-list"></ul>
+          </details>
           <ul class="news-list" id="news-list"></ul>
           <button class="btn secondary" id="btn-news-ok" type="button">Compris, merci !</button>
         </div>
-        <div class="card streak" id="streak-card" hidden>
-          <canvas class="streak-lantern" id="streak-lantern" width="16" height="16" aria-hidden="true"></canvas>
-          <div class="streak-text">
-            <p class="streak-count" id="streak-count"></p>
-            <p class="muted small" id="streak-note"></p>
-            <p class="streak-next small" id="streak-next"></p>
+        <div class="card profile-card">
+          <div class="home-profile">
+            <div id="home-avatar" aria-hidden="true"></div>
+            <div class="home-id">
+              <p class="home-name"><span id="home-name"></span> <span class="new-dot" id="carnet-dot" hidden>nouveau !</span></p>
+              <p id="carnet-summary" class="muted small"></p>
+            </div>
           </div>
-        </div>
-        <div class="card freezes" id="freeze-card" hidden>
-          <div class="freeze-row">
-            <span class="freeze-title">Étais de galerie</span>
-            <span class="freeze-icons" id="freeze-icons"></span>
+          <div class="home-chips">
+            <div class="streak" id="streak-card" hidden>
+              <canvas class="streak-lantern" id="streak-lantern" width="16" height="16" aria-hidden="true"></canvas>
+              <span class="streak-count" id="streak-count"></span>
+            </div>
+            <button class="freezes" id="freeze-card" type="button" aria-label="Étais de galerie : en savoir plus" hidden>
+              <span class="freeze-icons" id="freeze-icons"></span>
+              <span class="freeze-info" aria-hidden="true">?</span>
+            </button>
           </div>
-          <p class="muted small" id="freeze-note"></p>
-        </div>
-        <div class="card challenge" id="challenge-card" hidden>
-          <h2>Défi de la semaine</h2>
-          <p id="challenge-text"></p>
-          <div class="progress" id="challenge-bar" role="progressbar" aria-valuemin="0"><div class="progress-fill" id="challenge-fill"></div></div>
-          <p class="muted small" id="challenge-note"></p>
-        </div>
-        <div class="card">
-          <h2>Forage du jour</h2>
-          <p class="muted" id="today-date"></p>
-          <div id="today-status"></div>
-          <button class="btn" id="btn-daily" type="button">Commencer le forage</button>
-          <p class="muted small" id="next-reset"></p>
-        </div>
-        <div class="card">
-          <h2>Podium de la semaine</h2>
-          <ol class="mini-podium" id="mini-podium"></ol>
-          <button class="btn secondary" id="btn-podium" type="button">Voir le classement</button>
-        </div>
-        <div class="card">
-          <h2>Ton profil <span class="new-dot" id="carnet-dot" hidden>nouveau !</span></h2>
-          <div class="home-profile"><div id="home-avatar" aria-hidden="true"></div><p id="carnet-summary" class="muted">Personnage, badges, séries de forages et apparences de ta foreuse.</p></div>
+          <p class="muted small" id="streak-note"></p>
+          <div class="next-badges" id="next-badges" hidden>
+            <p class="small next-title">Prochains badges</p>
+            <ul id="next-badges-list"></ul>
+          </div>
           <button class="btn secondary" id="btn-carnet" type="button">Profil, badges et atelier</button>
         </div>
-        <div class="card">
-          <h2>Entraînement</h2>
-          <p>Des thèmes au hasard, autant que tu veux. Ça ne compte pas pour le podium.</p>
-          <button class="btn secondary" id="btn-training" type="button">S'entraîner</button>
+        <div class="card play-card">
+          <h2>Jouer</h2>
+          <div class="mini-tabs" id="mode-tabs" role="tablist">
+            <button class="tab active" type="button" role="tab" data-mode="daily" aria-selected="true">Forage</button>
+            <button class="tab" type="button" role="tab" data-mode="duel" aria-selected="false">Duel <span class="tab-dot" id="duel-dot" hidden></span></button>
+            <button class="tab" type="button" role="tab" data-mode="training" aria-selected="false">Infini</button>
+          </div>
+          <div id="mode-daily">
+            <p class="muted" id="today-date"></p>
+            <div id="today-status"></div>
+            <button class="btn" id="btn-daily" type="button">Commencer le forage</button>
+            <p class="muted small" id="next-reset"></p>
+          </div>
+          <div id="mode-duel" hidden>
+            <p>Défie un joueur sur 7 thèmes : chacun joue de son côté, et le résultat se révèle quand vous avez fini tous les deux.</p>
+            <button class="btn" id="btn-duel-new" type="button">Lancer un duel</button>
+            <div id="duel-lists"></div>
+          </div>
+          <div id="mode-training" hidden>
+            <p>Des thèmes au hasard, autant que tu veux. Ça ne compte pas pour le podium.</p>
+            <button class="btn" id="btn-training" type="button">S'entraîner</button>
+          </div>
+        </div>
+        <div class="card challenge" id="challenge-card" hidden>
+          <h2>Défis</h2>
+          <div class="mini-tabs" id="challenge-tabs" role="tablist">
+            <button class="tab active" type="button" role="tab" data-challenge="week" aria-selected="true">Semaine</button>
+            <button class="tab" type="button" role="tab" data-challenge="month" aria-selected="false" id="challenge-tab-month" hidden>Mois</button>
+          </div>
+          <div id="challenge-week">
+            <p id="challenge-text"></p>
+            <div class="progress" id="challenge-bar" role="progressbar" aria-valuemin="0"><div class="progress-fill" id="challenge-fill"></div></div>
+            <p class="muted small" id="challenge-note"></p>
+          </div>
+          <div id="challenge-month" hidden>
+            <p id="collective-title"></p>
+            <canvas class="collective-canvas" id="collective-canvas" width="110" height="40" role="img" aria-label="Tunnel creusé ensemble jusqu'au diamant"></canvas>
+            <div class="stat"><strong id="collective-total"></strong><span id="collective-left"></span></div>
+            <ul class="collective-legend" id="collective-legend"></ul>
+            <p class="muted small" id="collective-note"></p>
+          </div>
+        </div>
+        <div class="card podium-card">
+          <h2>Podium</h2>
+          <div class="mini-tabs" id="home-podium-tabs" role="tablist">
+            <button class="tab active" type="button" role="tab" data-period="day" aria-selected="true">Jour</button>
+            <button class="tab" type="button" role="tab" data-period="week" aria-selected="false">Semaine</button>
+            <button class="tab" type="button" role="tab" data-period="month" aria-selected="false">Mois</button>
+          </div>
+          <div class="podium mini" id="mini-podium"></div>
+          <p class="muted small" id="mini-podium-me"></p>
+          <button class="btn secondary" id="btn-podium" type="button">Voir le classement</button>
+        </div>
+        <div class="card museum-card">
+          <h2>Musée des pépites</h2>
+          <p class="muted small" id="museum-note">Toutes les réponses que personne n'avait trouvées avant.</p>
+          <button class="btn secondary" id="btn-museum" type="button">Visiter le musée</button>
+        </div>
+        <details class="card fold feed-fold" id="feed-fold">
+          <summary><span class="fold-t"><h2>Le Petit Mineur</h2><span class="sub">les dernières nouvelles de la mine</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <ul class="feed-list" id="feed-list"></ul>
+          <button class="btn secondary" id="btn-feed-more" type="button" hidden>Plus de nouvelles</button>
+        </details>
+        <div class="card admin-home" id="admin-home" hidden>
+          <h2>Contre maître</h2>
+          <p class="muted small" id="admin-home-note">Réservé au responsable du jeu : signalements, thèmes proposés, tableau de bord.</p>
+          <button class="btn secondary" id="btn-admin" type="button">Ouvrir</button>
         </div>
         <details class="card rules">
           <summary>Règles du jeu</summary>
@@ -235,6 +326,42 @@
             <li>Les podiums additionnent tes forages du jour, de la semaine (lundi → dimanche) ou du mois.</li>
           </ul>
         </details>
+      </div>
+
+      <!-- Récap du lundi -->
+      <div class="view" id="view-recap" hidden>
+        <div id="recap-fireworks">
+          <p class="recap-title">Bravo les mineurs !</p>
+          <p class="muted recap-sub" id="recap-sub"></p>
+          <canvas class="recap-canvas" id="recap-canvas" width="160" height="190" role="img" aria-label="Le podium de la semaine sous un feu d'artifice"></canvas>
+          <div class="recap-names" id="recap-names"></div>
+          <button class="btn" id="btn-recap-next" type="button">Voir la Gazette de la mine</button>
+        </div>
+        <article class="gazette" id="recap-gazette" hidden></article>
+      </div>
+
+      <!-- Duel : attente ou révélation du résultat -->
+      <div class="view" id="view-duel" hidden>
+        <div class="card" id="duel-wait" hidden>
+          <h2>Ton forage est terminé</h2>
+          <p id="duel-wait-text"></p>
+          <button class="btn" id="btn-duel-wait-home" type="button">Retour à l'accueil</button>
+        </div>
+        <div class="card" id="duel-reveal" hidden>
+          <h2 id="duel-title"></h2>
+          <div class="duel-scenes">
+            <div class="duel-side"><canvas id="duel-canvas-a" aria-label="Foreuse du premier joueur"></canvas><p class="duel-name" id="duel-name-a"></p><p class="duel-total" id="duel-total-a">0 pts</p></div>
+            <div class="duel-side"><canvas id="duel-canvas-b" aria-label="Foreuse du second joueur"></canvas><p class="duel-name" id="duel-name-b"></p><p class="duel-total" id="duel-total-b">0 pts</p></div>
+          </div>
+          <ul class="duel-lines" id="duel-lines"></ul>
+          <button class="btn secondary" id="btn-duel-skip" type="button">Passer l'animation</button>
+          <div id="duel-final" hidden>
+            <p class="duel-banner" id="duel-banner"></p>
+            <div class="badge-list" id="duel-badges" hidden></div>
+            <button class="btn" id="btn-duel-rematch" type="button">Revanche</button>
+            <button class="btn secondary" id="btn-duel-home" type="button">Retour à l'accueil</button>
+          </div>
+        </div>
       </div>
 
       <!-- Partie -->
@@ -256,6 +383,7 @@
         <div class="card" id="pane-prompt" hidden>
           <p class="muted" id="prompt-index"></p>
           <h2 class="theme-title" id="prompt-title"></h2>
+          <p class="muted small notimer-note" id="notimer-note" hidden>Mode « À l'aise » : pas de chrono, prends ton temps.</p>
           <div class="timer" id="timer"><canvas id="timer-canvas" width="96" height="20" aria-hidden="true"></canvas><span class="timer-count" id="timer-count" aria-hidden="true"></span><span class="sr-only" id="timer-sr" role="timer"></span></div>
           <form id="form-answer" class="form answer-form" autocomplete="off">
             <input id="answer-input" name="text" maxlength="80" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Ta réponse…" aria-label="Ta réponse">
@@ -420,6 +548,46 @@
           <ul class="report-list" id="suggest-mine"></ul>
           <h3 id="report-mine-title" hidden>Mes réponses signalées</h3>
           <ul class="report-list" id="report-mine"></ul>
+        </details>
+      </div>
+
+      <!-- Musée des pépites -->
+      <div class="view" id="view-museum" hidden>
+        <button class="btn ghost back-btn" id="btn-museum-home" type="button">◀ Retour à l'accueil</button>
+        <div class="card museum">
+          <h2>Musée des pépites</h2>
+          <p class="muted" id="museum-intro"></p>
+          <h3>Les collectionneurs</h3>
+          <ul class="museum-players" id="museum-players"></ul>
+          <input type="search" id="museum-search" placeholder="Chercher une réponse, un thème, un joueur…" aria-label="Chercher dans le musée" autocomplete="off" autocapitalize="off" spellcheck="false">
+          <div id="museum-list"></div>
+        </div>
+      </div>
+
+      <!-- Contre maître : réservé au responsable du jeu -->
+      <div class="view" id="view-admin" hidden>
+        <button class="btn ghost back-btn" id="btn-admin-home" type="button">◀ Retour à l'accueil</button>
+        <div class="card">
+          <h2>Contre maître</h2>
+          <p class="muted small">Réservé au responsable du jeu : réponses signalées, thèmes proposés et tableau de bord.</p>
+        </div>
+        <details class="card fold" data-fold="annonces" id="admin-announcements" hidden>
+          <summary><span class="fold-t"><h2>Annonces</h2><span class="sub">un message à tous les joueurs</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <form id="form-announce" class="form">
+            <label for="announce-text">Ton message</label>
+            <textarea id="announce-text" rows="3" maxlength="600" placeholder="Par exemple : un thème spécial arrive ce soir !" required></textarea>
+            <label for="announce-days">Visible pendant</label>
+            <select id="announce-days">
+              <option value="1">1 jour</option>
+              <option value="3">3 jours</option>
+              <option value="7" selected>7 jours</option>
+              <option value="14">14 jours</option>
+              <option value="30">30 jours</option>
+            </select>
+            <button class="btn" type="submit">Publier l'annonce</button>
+          </form>
+          <p class="muted small" id="announce-status" role="status"></p>
+          <ul class="report-list" id="announce-admin-list"></ul>
         </details>
         <details class="card fold" data-fold="suggestions" id="admin-suggestions" hidden>
           <summary><span class="fold-t"><h2>Thèmes proposés</h2><span class="sub">réservé au responsable du jeu</span></span><span class="pm" aria-hidden="true"></span></summary>

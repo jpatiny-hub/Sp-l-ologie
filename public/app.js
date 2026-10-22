@@ -117,6 +117,7 @@
     settingsForm.elements.theme.value = settings.theme;
     settingsForm.elements.lisible.checked = settings.lisible;
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
+    renderInstall();
     $('settings').showModal();
   });
   settingsForm.addEventListener('input', () => {
@@ -248,7 +249,8 @@
 
   function show(view) {
     document.querySelectorAll('.view').forEach((v) => (v.hidden = v.id !== `view-${view}`));
-    $('stage').hidden = (view === 'podium' || view === 'profile') && window.innerWidth < 860;
+    // Sur téléphone, la scène de forage ne sert qu'en partie et dans les résultats : pas sur l'accueil.
+    $('stage').hidden = (view === 'podium' || view === 'profile' || view === 'home' || view === 'recap' || view === 'duel' || view === 'admin' || view === 'museum') && window.innerWidth < 860;
     if (view === 'profile') startPreview();
     if (view !== 'game') $('focus-keeper').blur();
     updateBanner();
@@ -284,7 +286,7 @@
   }
 
   function layersOf(state) {
-    return state.rounds.filter((r) => r.status === 'done').map((r) => ({ points: r.points, tier: r.tier.id }));
+    return state.rounds.filter((r) => r.status === 'done' && r.tier).map((r) => ({ points: r.points, tier: r.tier.id }));
   }
 
   function plural(n, one, many) {
@@ -396,11 +398,13 @@
     showMyAvatar();
     setTimerSeconds(app.me.timerSeconds);
     $('who').textContent = app.me.user.username;
+    $('home-name').textContent = app.me.user.username;
     $('settings-user').textContent = app.me.user.username;
     renderHome();
     show('home');
     loadMiniPodium();
     loadCarnetSummary();
+    if (app.me.recap) openRecap(app.me.recap);
   }
 
   async function loadCarnetSummary() {
@@ -408,19 +412,31 @@
     try {
       const profile = await api('/api/profile');
       const earned = profile.badges.filter((b) => b.count).length;
-      const streak = profile.stats.currentStreak;
-      $('carnet-summary').textContent = `${streak ? `Série en cours : ${plural(streak, 'jour', 'jours')}` : 'Pas de série en cours'} · ${plural(earned, 'badge', 'badges')} sur ${profile.badges.length}`;
+      $('carnet-summary').textContent = `${plural(earned, 'badge', 'badges')} sur ${profile.badges.length}`;
     } catch {
       /* résumé facultatif */
     }
   }
 
+  /** Une note peut avoir un résumé en quelques lignes (`highlights`) : le détail passe alors dans « Voir le détail ». */
   function renderNews() {
     const news = (app.me && app.me.news) || [];
     $('news-card').hidden = !news.length;
     if (!news.length) return;
-    $('news-title').textContent = news.length === 1 ? news[0].title : 'Nouveautés du jeu';
-    $('news-list').replaceChildren(...news.flatMap((n) => n.items.map((text) => el('li', {}, text))));
+    const quick = news.flatMap((n) => n.highlights || []);
+    const detailed = news.filter((n) => n.highlights && n.highlights.length);
+    const plain = news.filter((n) => !(n.highlights && n.highlights.length));
+    $('news-title').textContent = quick.length ? 'Quoi de neuf ?' : news.length === 1 ? news[0].title : 'Nouveautés du jeu';
+    $('news-quick').replaceChildren(
+      ...quick.map((h) => {
+        const c = el('canvas', { class: 'news-icon', width: '16', height: '16', 'aria-hidden': 'true' });
+        Icons.drawIcon(c, h.icon);
+        return el('li', {}, c, el('span', {}, h.text));
+      }),
+    );
+    $('news-more').hidden = !detailed.length;
+    $('news-detail-list').replaceChildren(...detailed.flatMap((n) => n.items.map((text) => el('li', {}, text))));
+    $('news-list').replaceChildren(...plain.flatMap((n) => n.items.map((text) => el('li', {}, text))));
   }
 
   $('btn-news-ok').addEventListener('click', async () => {
@@ -433,6 +449,7 @@
   });
 
   function renderHome() {
+    renderAnnouncements();
     renderNews();
     const today = app.me.today;
     $('today-date').textContent = formatDay(today.day, { weekday: 'long', day: 'numeric', month: 'long' });
@@ -459,6 +476,11 @@
         .catch(() => {});
     }
     renderStreak();
+    renderDuelDot();
+    renderAdminHome();
+    loadFeed(3);
+    loadMuseumNote();
+    if (!$('mode-duel').hidden) loadDuels();
     updateCountdown();
   }
 
@@ -476,12 +498,13 @@
     card.classList.toggle('lit', st.current > 0 && !atRisk);
     card.classList.toggle('risk', atRisk);
     card.classList.toggle('out', st.current === 0);
-    Icons.drawIcon($('streak-lantern'), 'lanterne-mineur', { dim: st.current === 0 });
-    $('streak-count').textContent = st.current > 0 ? plural(st.current, 'jour d\'affilée', 'jours d\'affilée') : 'Aucune série en cours';
+    Icons.drawLantern($('streak-lantern'), st.current, { dim: st.current === 0 });
+    $('streak-lantern').dataset.level = String(Icons.lanternLevel(st.current));
+    $('streak-count').textContent = st.current > 0 ? plural(st.current, 'jour', 'jours') : 'Pas de série';
     if (st.current === 0) $('streak-note').textContent = 'Fore aujourd\'hui pour rallumer ta lanterne.';
     else if (st.playedToday) $('streak-note').textContent = 'Ta lanterne brille : reviens demain pour la garder allumée.';
     else $('streak-note').textContent = st.freezes > 0 ? `Il reste ${formatDuration(left)} pour forer aujourd'hui.` : `Plus que ${formatDuration(left)} pour ne pas perdre ta série.`;
-    // Étais de galerie (gels de série).
+    // Étais de galerie (gels de série) : discrets sur le profil, le détail s'ouvre au toucher.
     const freezeCard = $('freeze-card');
     freezeCard.hidden = st.freezes == null;
     if (st.freezes != null) {
@@ -492,14 +515,19 @@
           return c;
         }),
       );
-      let note = 'Un étai sauve ta série si tu rates un jour. Tu en gagnes un tous les 7 jours forés d\'affilée (3 au maximum).';
+      let note = `Tu as ${plural(st.freezes, 'étai', 'étais')} en réserve.`;
       if (st.pendingFreezes > 0) note = `Tu as manqué ${plural(st.pendingFreezes, 'jour', 'jours')} : ${st.pendingFreezes > 1 ? 'des étais seront utilisés' : 'un étai sera utilisé'} dès que tu fores.`;
       else if (st.frozenRecently && st.frozenRecently.length) note = `Un étai a sauvé ta série le ${formatDay(st.frozenRecently[st.frozenRecently.length - 1], { day: 'numeric', month: 'long' })}.`;
       else if (atRisk && st.freezes > 0) note = 'Si tu rates aujourd\'hui, un étai protégera ta série.';
       $('freeze-note').textContent = note;
     }
     const ch = st.challenge;
-    $('challenge-card').hidden = !ch;
+    const collective = app.me.collective;
+    $('challenge-card').hidden = !ch && !collective;
+    $('challenge-tab-month').hidden = !collective;
+    $('challenge-week').hidden = !ch || (challengeTab === 'month' && !!collective);
+    $('challenge-month').hidden = !collective || challengeTab !== 'month' && !!ch;
+    renderCollective();
     if (ch) {
       $('challenge-text').textContent = ch.text;
       $('challenge-fill').style.width = `${Math.round((ch.progress / ch.goal) * 100)}%`;
@@ -509,9 +537,153 @@
         ? 'Défi réussi, bravo ! Un nouveau t\'attend lundi.'
         : `${ch.progress} sur ${ch.goal} · ${plural(ch.daysLeft, 'jour restant', 'jours restants')} (aujourd'hui compris).`;
     }
-    const next = st.next;
-    $('streak-next').textContent = next ? `Plus que ${next.remaining} ${next.unit} avant le badge « ${next.name} ».` : '';
+    const nexts = st.nexts || (st.next ? [st.next] : []);
+    $('next-badges').hidden = !nexts.length;
+    $('next-badges-list').replaceChildren(
+      ...nexts.map((n) => {
+        const c = el('canvas', { class: 'next-badge-icon', width: '16', height: '16', 'aria-hidden': 'true' });
+        Icons.drawIcon(c, n.icon);
+        return el('li', {}, c, el('span', {}, el('strong', {}, n.name), ` : encore ${n.remaining} ${n.unit}`));
+      }),
+    );
   }
+
+  // ---------- Défi collectif du mois ----------
+  let challengeTab = 'week';
+  document.querySelectorAll('#challenge-tabs .tab').forEach((tab) =>
+    tab.addEventListener('click', () => {
+      challengeTab = tab.dataset.challenge;
+      document.querySelectorAll('#challenge-tabs .tab').forEach((t) => {
+        t.classList.toggle('active', t === tab);
+        t.setAttribute('aria-selected', String(t === tab));
+      });
+      renderStreak();
+    }),
+  );
+
+  const COLLECTIVE_COLORS = ['#e0b020', '#6fb5f0', '#e86aa8', '#7fcf5a', '#b28cff', '#ff8a4a', '#5ee0d0', '#c9ced6'];
+  const CW = 110;
+  const CH = 40;
+  const DRILL_SIDE = ['..yyyyyyyy......', '.yyyyyyyyyy.....', 'yyyykkkkyyy.....', 'yyyykwwkyyy.ggg.', 'yyyykkkkyyyggggg', '.yyyyyyyyyy.ggg.', '..tttttttt......', '.tt.tt.tt.tt....'];
+  const DRILL_PAL = { y: '#f2c230', k: '#1b1410', w: '#8ad0ff', g: '#c9ced6', t: '#444444' };
+  const DIAMOND = ['..ccc..', '.cwwcc.', 'ccccccc', '.ccccc.', '..ccc..', '...c...'];
+  let collectiveRock = null;
+
+  function collectiveBackdrop() {
+    if (collectiveRock) return collectiveRock;
+    const c = document.createElement('canvas');
+    c.width = CW;
+    c.height = CH;
+    const ctx = c.getContext('2d');
+    const base = ['#4a2f1a', '#5a3a20', '#6b4627', '#3b2414'];
+    for (let y = 0; y < CH; y += 2) {
+      for (let x = 0; x < CW; x += 2) {
+        const v = Math.abs(Math.sin(x * 12.9898 + y * 78.233) * 43758.5453) % 1;
+        ctx.fillStyle = v < 0.3 ? base[0] : v < 0.6 ? base[1] : v < 0.85 ? base[2] : base[3];
+        ctx.fillRect(x, y, 2, 2);
+      }
+    }
+    collectiveRock = c;
+    return c;
+  }
+
+  function sprite(ctx, rows, pal, x0, y0) {
+    rows.forEach((row, y) =>
+      [...row].forEach((ch, x) => {
+        if (ch === '.') return;
+        ctx.fillStyle = pal[ch];
+        ctx.fillRect(x0 + x, y0 + y, 1, 1);
+      }),
+    );
+  }
+
+  /** Tunnel creusé ensemble : la foreuse avance avec les points du mois, chaque joueur a sa couleur, un tas de diamants au bout. */
+  function drawCollective(canvas, data, t) {
+    const ctx = canvas.getContext('2d');
+    const ty = 8;
+    const th = 24;
+    const pile = CW - 26;
+    const reach = pile - 18;
+    const f = Math.min(1, data.total / data.goal);
+    const head = Math.round(2 + (reach - 2) * f);
+    ctx.drawImage(collectiveBackdrop(), 0, 0);
+    // Tunnel creusé jusqu'à la foreuse, puis cavité autour des diamants.
+    ctx.fillStyle = '#120d0a';
+    ctx.fillRect(0, ty, head + 16, th);
+    ctx.fillRect(pile - 4, ty - 2, CW - pile + 4, th + 4);
+    ctx.fillStyle = '#2a1a0c';
+    ctx.fillRect(0, ty + th, head + 16, 1);
+    for (let x = 14; x < head; x += 22) {
+      ctx.fillStyle = '#8a5a2b';
+      ctx.fillRect(x, ty - 1, 2, th + 1);
+    }
+    // Plancher coloré : la part de tunnel creusée par chaque joueur.
+    let from = 0;
+    const span = head + 14;
+    data.players.forEach((p, i) => {
+      const w = i === data.players.length - 1 ? span - from : Math.round((span * p.points) / Math.max(1, data.total));
+      ctx.fillStyle = COLLECTIVE_COLORS[i % COLLECTIVE_COLORS.length];
+      ctx.fillRect(from, ty + th - 4, Math.max(0, w), 3);
+      from += w;
+    });
+    const bob = Math.round(Math.sin(t * 10));
+    sprite(ctx, DRILL_SIDE, DRILL_PAL, head, ty + 8 + bob);
+    if (!data.reached) for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = '#f2c230';
+      ctx.fillRect(head + 16 + i * 3, ty + 11 + ((i + Math.floor(t * 10)) % 3), 1, 1);
+    }
+    // Tas de diamants : 3 + 2 + 1, plus ou moins brillants selon la progression.
+    const lit = data.reached ? 1 : 0.55 + 0.45 * f;
+    ctx.globalAlpha = lit;
+    [[0, 17], [8, 17], [16, 17], [4, 11], [12, 11], [8, 5]].forEach(([dx, dy]) => sprite(ctx, DIAMOND, { c: '#5ee0ff', w: '#ffffff' }, pile + dx, ty + dy - 1));
+    ctx.globalAlpha = 1;
+    const spark = (x, y, k) => {
+      const a = (Math.sin(t * 6 + k) + 1) / 2;
+      ctx.fillStyle = `rgba(255,255,255,${(data.reached ? 1 : 0.5) * a})`;
+      ctx.fillRect(x, y - 2, 1, 5);
+      ctx.fillRect(x - 2, y, 5, 1);
+    };
+    spark(pile + 3, ty + 6, 0);
+    spark(pile + 18, ty + 12, 2);
+    spark(pile + 11, ty + 2, 4);
+    if (data.reached) {
+      spark(pile + 6, ty + 20, 1);
+      spark(pile + 21, ty + 3, 3);
+    }
+  }
+
+  function renderCollective() {
+    const data = app.me && app.me.collective;
+    if (!data) return;
+    $('collective-title').textContent = data.reached ? 'Le diamant est atteint, bravo à tous !' : `Creusons ensemble ${data.goal.toLocaleString('fr-BE')} points avant la fin du mois.`;
+    $('collective-total').textContent = `${data.total.toLocaleString('fr-BE')} / ${data.goal.toLocaleString('fr-BE')} points`;
+    $('collective-left').textContent = data.daysLeft > 0 ? plural(data.daysLeft, 'jour restant', 'jours restants') : '';
+    $('collective-legend').replaceChildren(
+      ...data.players.map((p, i) => {
+        const swatch = el('span', { class: 'swatch' });
+        swatch.style.background = COLLECTIVE_COLORS[i % COLLECTIVE_COLORS.length];
+        return el('li', { class: p.me ? 'me' : '' }, swatch, avatarEl(p.avatar, 'head', 2), el('span', { class: 'who-name' }, p.username), el('span', {}, pts(p.points)));
+      }),
+    );
+    $('collective-note').textContent = data.reached
+      ? `Objectif atteint le ${formatDay(data.reachedOn, { day: 'numeric', month: 'long' })}. Continuez à creuser, le tas de diamants brille pour tout le monde !`
+      : 'Chaque point de ton forage du jour fait avancer la foreuse. Chaque couleur est la part de tunnel creusée par un joueur.';
+    const canvas = $('collective-canvas');
+    const scale = Math.max(1, Math.min(4, Math.floor((canvas.parentElement.clientWidth || 330) / CW)));
+    canvas.style.width = `${CW * scale}px`;
+    canvas.style.height = `${CH * scale}px`;
+    drawCollective(canvas, data, 0);
+  }
+  setInterval(() => {
+    const data = app.me && app.me.collective;
+    if (!data || $('view-home').hidden || $('challenge-month').hidden || document.hidden) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    drawCollective($('collective-canvas'), data, performance.now() / 1000);
+  }, 100);
+
+  $('freeze-card').addEventListener('click', () => $('freeze-dialog').showModal());
+  $('freeze-close').addEventListener('click', () => $('freeze-dialog').close());
+  $('freeze-dialog').addEventListener('click', (event) => event.target === $('freeze-dialog') && $('freeze-dialog').close());
 
   function updateCountdown() {
     if (!app.me) return;
@@ -524,23 +696,58 @@
   }
   setInterval(updateCountdown, 1000);
 
+  document.querySelectorAll('#mode-tabs .tab').forEach((tab) =>
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('#mode-tabs .tab').forEach((t) => {
+        t.classList.toggle('active', t === tab);
+        t.setAttribute('aria-selected', String(t === tab));
+      });
+      $('mode-daily').hidden = tab.dataset.mode !== 'daily';
+      $('mode-duel').hidden = tab.dataset.mode !== 'duel';
+      $('mode-training').hidden = tab.dataset.mode !== 'training';
+      if (tab.dataset.mode === 'duel') loadDuels();
+    }),
+  );
   $('btn-daily').addEventListener('click', () => startGame('daily'));
-  $('btn-training').addEventListener('click', () => startGame('training'));
-  $('btn-podium').addEventListener('click', () => openPodium('week', null));
+  $('btn-training').addEventListener('click', async () => {
+    const choice = await askMode({
+      title: 'Infini',
+      sub: 'Des thèmes au hasard, autant que tu veux. Ça ne compte pas pour le podium.',
+      standardText: '30 secondes par thème, comme le forage du jour.',
+      aiseText: 'Sans chrono : réfléchis à ton aise. Ne compte ni pour les badges ni pour les statistiques.',
+    });
+    if (choice) startGame('training', { noTimer: choice.mode === 'aise' });
+  });
+  $('btn-podium').addEventListener('click', () => openPodium(homePodiumPeriod, null));
+
+  let homePodiumPeriod = 'day';
+
+  document.querySelectorAll('#home-podium-tabs .tab').forEach((tab) =>
+    tab.addEventListener('click', () => {
+      homePodiumPeriod = tab.dataset.period;
+      loadMiniPodium();
+    }),
+  );
 
   async function loadMiniPodium() {
-    const list = $('mini-podium');
+    const box = $('mini-podium');
+    document.querySelectorAll('#home-podium-tabs .tab').forEach((t) => {
+      t.classList.toggle('active', t.dataset.period === homePodiumPeriod);
+      t.setAttribute('aria-selected', String(t.dataset.period === homePodiumPeriod));
+    });
     try {
-      const board = await api('/api/leaderboard');
-      list.replaceChildren();
-      const medals = ['🥇', '🥈', '🥉'];
-      board.entries.slice(0, 3).forEach((e) => {
-        list.append(el('li', { class: e.me ? 'me' : '' }, el('span', { class: 'who-av' }, `${medals[e.rank - 1] || e.rank + '.'} `, avatarEl(e.avatar), el('span', { class: 'who-name' }, e.username)), el('span', {}, pts(e.score))));
-      });
-      if (!board.entries.length) list.append(el('li', {}, 'Personne n\'a encore creusé cette semaine.'));
-      if (board.me && board.me.rank > 3) list.append(el('li', { class: 'me' }, el('span', {}, `${board.me.rank}. toi`), el('span', {}, pts(board.me.score))));
+      const board = await api(`/api/leaderboard?period=${homePodiumPeriod}`);
+      if (board.period !== homePodiumPeriod) return;
+      buildPodium(box, board.entries, 2);
+      const when = { day: 'aujourd\'hui', week: 'cette semaine', month: 'ce mois-ci' }[homePodiumPeriod];
+      $('mini-podium-me').textContent = !board.entries.length
+        ? `Personne n'a encore creusé ${when}.`
+        : board.me
+          ? `Ton rang : ${board.me.rank === 1 ? '1er' : `${board.me.rank}e`} · ${pts(board.me.score)}`
+          : `Tu n'as pas encore joué ${when}.`;
     } catch {
-      list.replaceChildren(el('li', {}, 'Classement indisponible.'));
+      box.replaceChildren();
+      $('mini-podium-me').textContent = 'Classement indisponible.';
     }
   }
 
@@ -567,9 +774,9 @@
   // Toucher ces boutons ne doit pas retirer le focus du champ relais (sinon le clavier se ferme).
   ['btn-next', 'btn-reveal'].forEach((id) => $(id).addEventListener('mousedown', (event) => keyboardHeld() && event.preventDefault()));
 
-  async function startGame(mode) {
+  async function startGame(mode, options = {}) {
     try {
-      const state = await api('/api/game/start', { mode });
+      const state = await api('/api/game/start', { mode, ...options });
       enterGame(state);
     } catch (err) {
       showNotice(err.message);
@@ -591,6 +798,7 @@
     box.replaceChildren(
       ...state.rounds.map((r, i) => {
         const pip = el('span', { class: `pip${i === active ? ' now' : ''}` });
+        if (r.status === 'done' && !r.tier && state.mode === 'duel') pip.style.background = '#8aa0b8';
         if (r.status === 'done' && r.tier) {
           pip.style.background = Pixel.TIER_COLORS[r.tier.id] || '#4a4a4a';
           if (settings.colors !== 'normal') pip.textContent = Pixel.TIER_SYMBOLS[r.tier.id] || '';
@@ -605,9 +813,9 @@
     const s = app.game;
     renderPips(s);
     const done = s.rounds.filter((r) => r.status === 'done').length;
-    $('game-mode').textContent = s.mode === 'daily' ? 'Forage du jour' : 'Entraînement';
+    $('game-mode').textContent = s.mode === 'daily' ? 'Forage du jour' : s.mode === 'duel' ? `Duel contre ${s.duel ? s.duel.opponent : '?'}` : s.noTimer ? 'Entraînement · À l\'aise' : 'Entraînement';
     $('game-progress').textContent = `${Math.min(done + 1, ROUNDS)}/${ROUNDS}`;
-    $('game-score').textContent = pts(s.score);
+    $('game-score').textContent = s.score == null ? '—' : pts(s.score);
     setTimerSeconds(s.timerSeconds);
     $('pane-feedback').hidden = true;
 
@@ -650,7 +858,12 @@
     const input = $('answer-input');
     input.value = '';
     input.focus();
-    startTimer(remainingMs);
+    // Mode « À l'aise » : pas de chrono.
+    const noTimer = !!app.game.noTimer;
+    $('timer').hidden = noTimer;
+    $('notimer-note').hidden = !noTimer;
+    if (noTimer) stopTimer();
+    else startTimer(remainingMs);
   }
 
   function startTimer(remainingMs) {
@@ -869,6 +1082,7 @@
   }
 
   function roundFinished({ round, state }) {
+    if (state.mode === 'duel') return duelRoundFinished({ round, state });
     stopTimer();
     app.game = state;
     holdKeyboard();
@@ -909,6 +1123,38 @@
     paneChangedAt = performance.now();
   }
 
+  /** Pendant un duel : la réponse est validée (ou non), mais ni points ni rareté avant le résultat. */
+  function duelRoundFinished({ round, state }) {
+    stopTimer();
+    app.game = state;
+    holdKeyboard();
+    renderPips(state);
+    $('pane-prompt').hidden = true;
+    $('pane-ready').hidden = true;
+    $('pane-feedback').hidden = false;
+    updateBanner();
+    $('game-score').textContent = '—';
+    $('feedback-theme').textContent = round.title;
+    $('feedback-points').textContent = round.outcome === 'answer' ? '✓' : '—';
+    const tier = $('feedback-tier');
+    delete tier.dataset.tier;
+    tier.style.color = '';
+    tier.textContent = round.outcome === 'answer' ? 'Réponse validée' : 'Pas de réponse';
+    Sound.reveal();
+    if (round.outcome === 'answer') {
+      const understood = round.input && round.input.toLowerCase() !== round.answer.toLowerCase();
+      $('feedback-answer').textContent = `Ta réponse : ${round.answer}${understood ? ` (tu as écrit « ${round.input} »)` : ''}`;
+      $('feedback-odds').textContent = 'La rareté se révélera à la fin du duel.';
+    } else {
+      $('feedback-answer').textContent = round.outcome === 'timeout' ? 'Le chrono est arrivé à zéro.' : 'Tu as passé ce thème.';
+      $('feedback-odds').textContent = '';
+    }
+    $('feedback-others').textContent = '';
+    $('btn-next').textContent = state.finished ? 'Voir le duel' : 'Thème suivant';
+    if (!keyboardHeld()) $('btn-next').focus();
+    paneChangedAt = performance.now();
+  }
+
   $('btn-next').addEventListener('click', () => {
     if (app.game.finished) showResults(app.game);
     else renderGame();
@@ -921,6 +1167,7 @@
   function showResults(state) {
     stopTimer();
     app.game = state;
+    if (state.mode === 'duel') return afterDuelGame(state);
     scene.setLayers(layersOf(state), false);
     scene.overview();
     renderResults(state);
@@ -1226,7 +1473,7 @@
 
   // ---------- Carnet : badges et atelier ----------
   const CATEGORIES = [
-    ['exploit', 'Exploits'], ['serie', 'Séries de forages'], ['profondeur', 'Profondeur'], ['pepites', 'Pépites'], ['themes', 'Thèmes rencontrés'], ['entrainement', 'Entraînement'], ['defi', 'Défis de la semaine'], ['podium', 'Podiums'], ['calendrier', 'Jours particuliers'],
+    ['exploit', 'Exploits'], ['serie', 'Séries de forages'], ['profondeur', 'Profondeur'], ['pepites', 'Pépites'], ['themes', 'Thèmes rencontrés'], ['entrainement', 'Entraînement'], ['duel', 'Duels'], ['reactions', 'Réactions'], ['defi', 'Défis de la semaine'], ['podium', 'Podiums'], ['calendrier', 'Jours particuliers'],
   ];
 
   function longDay(day) {
@@ -1289,8 +1536,8 @@
     });
   }
 
-  function initFolds() {
-    const view = $('view-profile');
+  function initFolds(viewId = 'view-profile') {
+    const view = $(viewId);
     view.querySelectorAll('details.fold').forEach((d) => {
       d.open = foldOpen(d.dataset.fold, d.dataset.fold === 'profil');
     });
@@ -1432,16 +1679,196 @@
       renderProfile(profile);
       show('profile');
       initFolds();
-      loadReports();
       loadSuggestions();
       loadBilan(app.bilanMonth || null);
-      loadDashboard();
       if (profile.badges.some((b) => b.isNew)) {
         api('/api/profile/seen', {}).catch(() => {});
         if (app.me) app.me.unseenBadges = 0;
       }
     } catch (err) {
       showNotice(err.message);
+    }
+  }
+
+  // ---------- Musée des pépites ----------
+  async function openMuseum() {
+    try {
+      const data = await api('/api/museum');
+      app.museum = data;
+      renderMuseum();
+      show('museum');
+    } catch (err) {
+      showNotice(err.message);
+    }
+  }
+
+  function renderMuseum() {
+    const d = app.museum;
+    $('museum-intro').textContent = `${plural(d.total, 'pépite découverte', 'pépites découvertes')} par le groupe${d.todayCount ? ` (et ${plural(d.todayCount, 'nouvelle', 'nouvelles')} aujourd'hui, à dévoiler demain)` : ''}.`;
+    const top = Math.max(1, ...d.players.map((p) => p.count));
+    $('museum-players').replaceChildren(
+      ...d.players.map((p) => {
+        const fill = el('span', { class: 'fill' });
+        fill.style.width = `${Math.round((p.count / top) * 100)}%`;
+        return el('li', { class: p.me ? 'me' : '' }, el('span', { class: 'who' }, avatarEl(p.avatar, 'head', 2), p.username), el('span', { class: 'track' }, fill), el('span', { class: 'n' }, String(p.count)));
+      }),
+    );
+    if (!d.players.length) $('museum-players').append(el('li', { class: 'muted' }, 'Aucune pépite pour l\'instant : à vous de creuser !'));
+    const q = $('museum-search').value.trim().toLowerCase();
+    const shown = d.entries.filter((e) => !q || `${e.answer} ${e.theme} ${e.username}`.toLowerCase().includes(q));
+    const box = $('museum-list');
+    box.replaceChildren();
+    let day = null;
+    let list = null;
+    for (const e of shown) {
+      if (e.day !== day) {
+        day = e.day;
+        box.append(el('h3', {}, formatDay(day, { weekday: 'long', day: 'numeric', month: 'long' })));
+        list = el('ul', { class: 'museum-list' });
+        box.append(list);
+      }
+      const gem = el('canvas', { class: 'museum-gem', width: '16', height: '16', 'aria-hidden': 'true' });
+      Icons.drawIcon(gem, 'pepite');
+      list.append(el('li', { class: e.me ? 'me' : '' }, gem, el('div', { class: 'museum-what' }, el('strong', {}, e.answer), el('span', { class: 'muted small' }, e.theme)), el('span', { class: 'who' }, avatarEl(e.avatar, 'head', 2), e.username)));
+    }
+    if (!shown.length && d.entries.length) box.append(el('p', { class: 'muted' }, 'Rien ne correspond à cette recherche.'));
+  }
+
+  $('btn-museum').addEventListener('click', () => openMuseum());
+  $('btn-museum-home').addEventListener('click', () => goHome());
+  $('museum-search').addEventListener('input', () => app.museum && renderMuseum());
+
+  async function loadMuseumNote() {
+    try {
+      const d = await api('/api/museum');
+      $('museum-note').textContent = d.total
+        ? `${plural(d.total, 'pépite découverte', 'pépites découvertes')} par le groupe${d.todayCount ? `, et ${plural(d.todayCount, 'nouvelle', 'nouvelles')} aujourd'hui à dévoiler demain` : ''}.`
+        : "Toutes les réponses que personne n'avait trouvées avant.";
+    } catch {
+      /* la note reste générique */
+    }
+  }
+
+  // ---------- Le Petit Mineur : les dernières nouvelles de la mine ----------
+  function ago(ts, now) {
+    const min = Math.max(0, Math.round((now - ts) / 60000));
+    if (min < 2) return "à l'instant";
+    if (min < 60) return `il y a ${min} min`;
+    const h = Math.round(min / 60);
+    if (h < 24) return `il y a ${h} h`;
+    const d = Math.round(h / 24);
+    return d === 1 ? 'hier' : `il y a ${d} jours`;
+  }
+
+  async function loadFeed(limit = 3) {
+    try {
+      const { events, now } = await api(`/api/feed?limit=${limit}`);
+      app.feedLimit = limit;
+      $('feed-list').replaceChildren(
+        ...events.map((e) => {
+          const icon = el('canvas', { class: 'feed-icon', width: '16', height: '16', 'aria-hidden': 'true' });
+          Icons.drawIcon(icon, e.icon);
+          return el('li', {}, icon, e.user ? avatarEl(e.user.avatar, 'head', 2) : null, el('div', { class: 'feed-text' }, el('span', {}, e.text), el('span', { class: 'feed-ago' }, ago(e.ts, now))));
+        }),
+      );
+      if (!events.length) $('feed-list').append(el('li', { class: 'muted' }, "Pas encore de nouvelles : la mine est calme."));
+      $('btn-feed-more').hidden = limit >= 10 || events.length < limit;
+    } catch {
+      /* le journal est facultatif */
+    }
+  }
+  $('btn-feed-more').addEventListener('click', () => loadFeed(10));
+
+  // ---------- Annonces du responsable ----------
+  function renderAnnouncements() {
+    const list = (app.me && app.me.announcements) || [];
+    $('announce-card').hidden = !list.length;
+    $('announce-list').replaceChildren(...list.map((a) => el('p', { class: 'announce-text' }, a.text)));
+  }
+
+  $('btn-announce-ok').addEventListener('click', () => {
+    const list = (app.me && app.me.announcements) || [];
+    if (!list.length) return;
+    const last = Math.max(...list.map((a) => a.id));
+    app.me.announcements = [];
+    renderAnnouncements();
+    api('/api/announcements/seen', { id: last }).catch(() => {});
+  });
+
+  async function loadAdminAnnouncements() {
+    const card = $('admin-announcements');
+    card.hidden = !(app.me && app.me.isAdmin);
+    if (card.hidden) return;
+    try {
+      const { announcements } = await api('/api/admin/announcements');
+      const state = { active: 'en ligne', expired: 'terminée', removed: 'retirée' };
+      $('announce-admin-list').replaceChildren(
+        ...announcements.map((a) => {
+          const row = el('li', { class: 'report' }, el('p', {}, a.text), el('p', { class: 'muted small' }, `${formatDay(new Date(a.createdAt).toISOString().slice(0, 10), { day: 'numeric', month: 'long' })} · ${state[a.status]}${a.status === 'active' ? ` jusqu'au ${formatDay(new Date(a.expiresAt).toISOString().slice(0, 10), { day: 'numeric', month: 'long' })}` : ''}`));
+          if (a.status === 'active') {
+            const remove = el('button', { class: 'btn ghost small-btn', type: 'button' }, 'Retirer');
+            remove.addEventListener('click', async () => {
+              remove.disabled = true;
+              try {
+                await api('/api/admin/announcements/remove', { id: a.id });
+                loadAdminAnnouncements();
+              } catch (err) {
+                $('announce-status').textContent = err.message;
+                remove.disabled = false;
+              }
+            });
+            row.append(remove);
+          }
+          return row;
+        }),
+      );
+    } catch (err) {
+      $('announce-status').textContent = err.message;
+    }
+  }
+
+  $('form-announce').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const status = $('announce-status');
+    status.textContent = '';
+    try {
+      await api('/api/admin/announcements', { text: $('announce-text').value, days: Number($('announce-days').value) });
+      $('announce-text').value = '';
+      status.textContent = 'Annonce publiée : les joueurs la verront à leur prochaine ouverture du jeu.';
+      loadAdminAnnouncements();
+    } catch (err) {
+      status.textContent = err.message;
+    }
+  });
+
+  // ---------- Contre maître (responsable du jeu) ----------
+  async function openAdmin() {
+    if (!app.me || !app.me.isAdmin) return;
+    stopTimer();
+    show('admin');
+    initFolds('view-admin');
+    loadAdminAnnouncements();
+    loadReports();
+    loadAdminSuggestions();
+    loadDashboard();
+  }
+  $('btn-admin').addEventListener('click', () => openAdmin());
+  $('btn-admin-home').addEventListener('click', () => goHome());
+
+  /** Bouton de l'accueil, visible seulement pour le responsable : nombre de signalements et de propositions à traiter. */
+  async function renderAdminHome() {
+    const card = $('admin-home');
+    card.hidden = !(app.me && app.me.isAdmin);
+    if (card.hidden) return;
+    try {
+      const [dash, sug] = await Promise.all([api('/api/admin/dashboard'), api('/api/admin/theme-suggestions')]);
+      const pending = (sug.suggestions || []).filter((x) => !x.handled).length;
+      const bits = [];
+      if (dash.pendingReports) bits.push(plural(dash.pendingReports, 'signalement à vérifier', 'signalements à vérifier'));
+      if (pending) bits.push(plural(pending, 'thème proposé à examiner', 'thèmes proposés à examiner'));
+      $('admin-home-note').textContent = bits.length ? bits.join(' · ') : 'Rien à traiter pour le moment.';
+    } catch {
+      /* le bouton reste utilisable sans ces compteurs */
     }
   }
 
@@ -1919,6 +2346,9 @@
     } catch {
       /* la section reste vide */
     }
+  }
+
+  async function loadAdminSuggestions() {
     const card = $('admin-suggestions');
     card.hidden = !(app.me && app.me.isAdmin);
     if (card.hidden) return;
@@ -2074,24 +2504,28 @@
     return `${board.isCurrent ? 'Cette semaine' : 'Semaine'} · du ${start} au ${end}`;
   }
 
+  /** Trois marches avec le personnage de chacun ; `scale` règle la taille des personnages. */
+  function buildPodium(podium, entries, scale) {
+    podium.replaceChildren();
+    [2, 1, 3].forEach((place) => {
+      const entry = entries.filter((e) => e.rank === place)[0] || null;
+      const step = el('div', { class: `step p${place}${entry ? '' : ' empty'}` });
+      step.append(
+        el('span', { class: 'name' }, entry ? entry.username : '—'),
+        el('span', { class: 'score' }, entry ? pts(entry.score) : ''),
+        el('span', { class: 'avatar-slot' }, entry ? avatarEl(entry.avatar, 'full', scale) : null),
+        el('div', { class: 'block' }, String(place)),
+      );
+      podium.append(step);
+    });
+  }
+
   function renderPodium(board) {
     document.querySelectorAll('#period-tabs .tab').forEach((t) => t.classList.toggle('active', t.dataset.period === board.period));
     $('week-label').textContent = periodLabel(board);
     $('btn-week-next').disabled = !board.next;
 
-    const podium = $('podium');
-    podium.replaceChildren();
-    [2, 1, 3].forEach((place) => {
-      const entry = board.entries.filter((e) => e.rank === place)[0] || null;
-      const step = el('div', { class: `step p${place}${entry ? '' : ' empty'}` });
-      step.append(
-        el('span', { class: 'name' }, entry ? entry.username : '—'),
-        el('span', { class: 'score' }, entry ? pts(entry.score) : ''),
-        el('span', { class: 'avatar-slot' }, entry ? avatarEl(entry.avatar, 'full', 3) : null),
-        el('div', { class: 'block' }, String(place)),
-      );
-      podium.append(step);
-    });
+    buildPodium($('podium'), board.entries, 3);
 
     const ranking = $('ranking');
     ranking.replaceChildren();
@@ -2118,6 +2552,528 @@
   $('btn-week-prev').addEventListener('click', () => openPodium(app.podium.period, app.podium.prev));
   $('btn-week-next').addEventListener('click', () => app.podium.next && openPodium(app.podium.period, app.podium.next));
   $('btn-podium-home').addEventListener('click', () => goHome());
+
+  // ---------- Duels ----------
+  const MODE_NAMES = { standard: 'Standard', aise: "À l'aise" };
+
+  /** Fenêtre flottante : choix du mode (standard ou à l'aise), puis, pour un duel, de l'adversaire. Renvoie { mode, opponent } ou null. */
+  function askMode({ title, sub, standardText, aiseText, opponents = null }) {
+    return new Promise((resolve) => {
+      const dialog = $('mode-dialog');
+      const ac = new AbortController();
+      const on = (node, type, fn) => node.addEventListener(type, fn, { signal: ac.signal });
+      let result = null;
+      $('mode-title').textContent = title;
+      $('mode-sub').textContent = sub;
+      $('mode-standard-text').textContent = standardText;
+      $('mode-aise-text').textContent = aiseText;
+      $('mode-step-mode').hidden = false;
+      $('mode-step-opponent').hidden = true;
+      const finish = (value) => {
+        result = value;
+        dialog.close();
+      };
+      const pick = (mode) => {
+        if (!opponents) return finish({ mode });
+        $('mode-title').textContent = `Duel ${mode === 'standard' ? 'standard' : "à l'aise"} : qui défier ?`;
+        $('mode-step-mode').hidden = true;
+        $('mode-step-opponent').hidden = false;
+        $('mode-opponent-sub').textContent = opponents.length ? 'Ton adversaire jouera les mêmes 7 thèmes, quand il voudra.' : "Aucun autre joueur n'est inscrit pour l'instant.";
+        $('mode-opponents').replaceChildren(
+          ...opponents.map((o) => {
+            const record = o.wins + o.losses + o.draws ? `${o.wins} victoire${o.wins > 1 ? 's' : ''} · ${o.losses} défaite${o.losses > 1 ? 's' : ''}${o.draws ? ` · ${o.draws} égalité${o.draws > 1 ? 's' : ''}` : ''}` : 'jamais affronté';
+            const button = el('button', { class: 'btn', type: 'button' }, o.busy ? 'En cours' : 'Défier');
+            button.disabled = o.busy;
+            on(button, 'click', () => finish({ mode, opponent: o.username }));
+            return el('li', {}, avatarEl(o.avatar, 'head', 2), el('div', { class: 'opp-id' }, el('strong', {}, o.username), el('span', { class: 'muted small' }, record)), button);
+          }),
+        );
+      };
+      on($('mode-standard'), 'click', () => pick('standard'));
+      on($('mode-aise'), 'click', () => pick('aise'));
+      on($('mode-cancel'), 'click', () => finish(null));
+      on(dialog, 'click', (event) => event.target === dialog && finish(null));
+      dialog.addEventListener(
+        'close',
+        () => {
+          ac.abort();
+          resolve(result);
+        },
+        { once: true },
+      );
+      dialog.showModal();
+    });
+  }
+
+  function renderDuelDot() {
+    const d = app.me && app.me.duels;
+    const n = d ? d.invites + d.unseen : 0;
+    $('duel-dot').hidden = !n;
+    $('duel-dot').textContent = String(n);
+  }
+
+  async function loadDuels() {
+    try {
+      const data = await api('/api/duels');
+      app.duels = data;
+      app.me.duels = { invites: data.received.filter((r) => r.status === 'invited').length, unseen: data.results.filter((r) => !r.seen).length };
+      renderDuelDot();
+      renderDuels(data);
+    } catch (err) {
+      $('duel-lists').replaceChildren(el('p', { class: 'muted' }, err.message));
+    }
+  }
+
+  function renderDuels(data) {
+    const box = $('duel-lists');
+    const person = (o) => el('span', { class: 'who-av' }, avatarEl(o.avatar, 'head', 2), el('span', { class: 'who-name' }, o.username));
+    const section = (title, rows) => (rows.length ? el('div', { class: 'duel-section' }, el('h3', {}, title), el('ul', { class: 'duel-list' }, ...rows)) : null);
+    const act = (label, fn, secondary) => {
+      const b = el('button', { class: `btn${secondary ? ' secondary' : ''}`, type: 'button' }, label);
+      b.addEventListener('click', async () => {
+        b.disabled = true;
+        try {
+          await fn();
+        } catch (err) {
+          showNotice(err.message);
+          b.disabled = false;
+        }
+      });
+      return b;
+    };
+    const received = data.received.map((d) =>
+      el(
+        'li',
+        {},
+        el('div', { class: 'duel-row' }, person(d.other), el('span', { class: 'muted small' }, `te défie · ${MODE_NAMES[d.mode]}`)),
+        el(
+          'div',
+          { class: 'duel-actions' },
+          ...(d.status === 'invited'
+            ? [
+                act('Relever le défi', async () => enterGame(await api(`/api/duels/${d.id}/accept`, {}))),
+                act('Refuser', async () => {
+                  await api(`/api/duels/${d.id}/decline`, {});
+                  await loadDuels();
+                }, true),
+              ]
+            : [act('Reprendre', async () => enterGame(await api(`/api/game/${d.gameId}`)))]),
+        ),
+      ),
+    );
+    const sent = data.sent.map((d) =>
+      el(
+        'li',
+        {},
+        el('div', { class: 'duel-row' }, person(d.other), el('span', { class: 'muted small' }, d.status === 'waiting' ? `en attente de sa réponse · ${MODE_NAMES[d.mode]}` : `à finir · ${MODE_NAMES[d.mode]}`)),
+        d.status === 'playing' ? el('div', { class: 'duel-actions' }, act('Reprendre', async () => enterGame(await api(`/api/game/${d.gameId}`)))) : null,
+      ),
+    );
+    const results = data.results.map((d) => {
+      const label = d.outcome === 'win' ? 'Victoire' : d.outcome === 'loss' ? 'Défaite' : 'Égalité';
+      const row = el(
+        'li',
+        { class: `duel-result ${d.outcome}` },
+        el('div', { class: 'duel-row' }, person(d.other), el('span', { class: 'duel-outcome' }, `${label} ${d.myScore} – ${d.theirScore}`), d.seen ? null : el('span', { class: 'tab-dot' }, '!')),
+      );
+      row.tabIndex = 0;
+      row.setAttribute('role', 'button');
+      const open = () => openDuelResult(d.id);
+      row.addEventListener('click', open);
+      row.addEventListener('keydown', (event) => (event.key === 'Enter' || event.key === ' ') && (event.preventDefault(), open()));
+      return row;
+    });
+    const r = data.record;
+    box.replaceChildren(
+      ...[
+        section('À toi de jouer', received),
+        section('En cours', sent),
+        section('Résultats', results),
+        r.wins + r.losses + r.draws ? el('p', { class: 'muted small' }, `Bilan : ${r.wins} victoire${r.wins > 1 ? 's' : ''}, ${r.losses} défaite${r.losses > 1 ? 's' : ''}${r.draws ? `, ${r.draws} égalité${r.draws > 1 ? 's' : ''}` : ''}.`) : null,
+      ].filter(Boolean),
+    );
+  }
+
+  $('btn-duel-new').addEventListener('click', async () => {
+    let data = app.duels;
+    try {
+      data = await api('/api/duels');
+      app.duels = data;
+    } catch (err) {
+      return showNotice(err.message);
+    }
+    const choice = await askMode({
+      title: 'Lancer un duel',
+      sub: 'Sept thèmes, les mêmes pour vous deux. Chacun joue de son côté.',
+      standardText: '30 secondes par thème, comme le forage du jour.',
+      aiseText: "Sans chrono : prenez le temps de réfléchir. Les exploits (Invaincu, Duel parfait, Remontada) demandent un duel standard.",
+      opponents: data.opponents,
+    });
+    if (!choice || !choice.opponent) return;
+    try {
+      enterGame(await api('/api/duels', { opponent: choice.opponent, mode: choice.mode }));
+    } catch (err) {
+      showNotice(err.message);
+    }
+  });
+
+  // Fin de la partie d'un duel : en attente de l'adversaire, ou résultat à révéler.
+  async function afterDuelGame(state) {
+    try {
+      const result = await api(`/api/duels/${state.duel.id}/result`);
+      openDuelReveal(result);
+    } catch (err) {
+      if (err.status !== 409) return showNotice(err.message);
+      $('duel-wait-text').textContent = `${state.duel.opponent} n'a pas encore joué. Tu verras le résultat dans l'onglet « Duel » de l'accueil, dès que ce sera fait : la rareté de tes réponses reste secrète jusque-là.`;
+      $('duel-wait').hidden = false;
+      $('duel-reveal').hidden = true;
+      show('duel');
+    }
+  }
+
+  async function openDuelResult(id) {
+    try {
+      openDuelReveal(await api(`/api/duels/${id}/result`));
+    } catch (err) {
+      showNotice(err.message);
+    }
+  }
+
+  $('btn-duel-wait-home').addEventListener('click', () => goHome());
+  $('btn-duel-home').addEventListener('click', () => goHome());
+
+  let duelScenes = null;
+  let duelRun = 0;
+
+  /** Révélation : thème après thème, les deux foreuses creusent en même temps et les points s'ajoutent. */
+  async function openDuelReveal(result) {
+    const run = ++duelRun;
+    $('duel-wait').hidden = true;
+    $('duel-reveal').hidden = false;
+    $('duel-final').hidden = true;
+    $('duel-badges').hidden = true;
+    $('btn-duel-skip').hidden = false;
+    show('duel');
+    $('duel-title').textContent = `${result.a.username} contre ${result.b.username}`;
+    $('duel-name-a').textContent = result.a.username;
+    $('duel-name-b').textContent = result.b.username;
+    $('duel-total-a').textContent = '0 pts';
+    $('duel-total-b').textContent = '0 pts';
+    $('duel-lines').replaceChildren();
+    if (!duelScenes) duelScenes = [new Pixel.DrillScene($('duel-canvas-a')), new Pixel.DrillScene($('duel-canvas-b'))];
+    const scale = Math.max(1, Math.floor((($('duel-reveal').clientWidth || 340) - 40) / 2 / Pixel.WIDTH));
+    [$('duel-canvas-a'), $('duel-canvas-b')].forEach((canvas, i) => {
+      duelScenes[i].setViewHeight(150);
+      canvas.style.width = `${Pixel.WIDTH * scale}px`;
+      canvas.style.height = `${duelScenes[i].h * scale}px`;
+      duelScenes[i].setSkin(i ? result.b.skin : result.a.skin);
+      duelScenes[i].setAvatar(i ? result.b.avatar : result.a.avatar);
+      duelScenes[i].setLayers([], false);
+    });
+    const layers = [[], []];
+    const totals = [0, 0];
+    let skipping = false;
+    const skip = () => {
+      skipping = true;
+      $('btn-duel-skip').hidden = true;
+    };
+    $('btn-duel-skip').onclick = skip;
+    const settled = async () => {
+      const t0 = performance.now();
+      while (!skipping && duelRun === run && performance.now() - t0 < 9000) {
+        if (duelScenes.every((sc) => Math.abs(sc.depth - sc.target) < 0.8)) break;
+        await sleep(150);
+      }
+      if (!skipping && duelRun === run) await sleep(650);
+    };
+    const mineIsA = result.a.me;
+    for (const [i, t] of result.themes.entries()) {
+      if (duelRun !== run) return;
+      layers[0].push({ points: t.a.points, tier: t.a.tier });
+      layers[1].push({ points: t.b.points, tier: t.b.tier });
+      duelScenes[0].setLayers(layers[0], !skipping);
+      duelScenes[1].setLayers(layers[1], !skipping);
+      totals[0] += t.a.points;
+      totals[1] += t.b.points;
+      const line = (side, mark) => {
+        const swatch = el('span', { class: 'swatch' });
+        swatch.style.background = Pixel.TIER_COLORS[side.tier] || '#666';
+        const sym = settings.colors !== 'normal' ? Pixel.TIER_SYMBOLS[side.tier] || '' : '';
+        return el('span', { class: `duel-cell${mark ? ' best' : ''}` }, swatch, el('span', { class: 'what' }, `${sym ? `${sym} ` : ''}${side.outcome === 'answer' ? side.answer : side.outcome === 'timeout' ? 'temps écoulé' : 'passé'}`), el('span', { class: 'pts' }, `+${side.points}`));
+      };
+      $('duel-lines').append(
+        el('li', {}, el('p', { class: 'duel-theme' }, `${i + 1}. ${t.title}`), el('div', { class: 'duel-pair' }, line(t.a, t.a.points > t.b.points), line(t.b, t.b.points > t.a.points))),
+      );
+      const mine = mineIsA ? t.a : t.b;
+      if (!skipping) {
+        const pepites = (mineIsA ? layers[0] : layers[1]).filter((l) => l.tier === 'pepite').length;
+        Sound.tier(mine.tier, pepites);
+      }
+      await settled();
+      $('duel-total-a').textContent = pts(totals[0]);
+      $('duel-total-b').textContent = pts(totals[1]);
+      if (!skipping) window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+    if (duelRun !== run) return;
+    $('btn-duel-skip').hidden = true;
+    $('duel-total-a').textContent = pts(result.a.score);
+    $('duel-total-b').textContent = pts(result.b.score);
+    const me = mineIsA ? result.a : result.b;
+    const other = mineIsA ? result.b : result.a;
+    $('duel-banner').textContent =
+      result.winner == null
+        ? `Égalité parfaite : ${pts(me.score)} partout !`
+        : (result.winner === 'a') === mineIsA
+          ? `Victoire ! Tu bats ${other.username} : ${me.score} à ${other.score}.`
+          : `Défaite : ${other.username} gagne ${other.score} à ${me.score}.`;
+    $('duel-final').hidden = false;
+    // Revanche en un clic : un nouveau duel contre le même joueur, avec les mêmes règles.
+    const rematch = $('btn-duel-rematch');
+    rematch.disabled = false;
+    rematch.textContent = `Revanche contre ${other.username}`;
+    rematch.onclick = async () => {
+      rematch.disabled = true;
+      try {
+        enterGame(await api('/api/duels', { opponent: other.username, mode: result.mode }));
+      } catch (err) {
+        showNotice(err.message);
+        rematch.disabled = false;
+      }
+    };
+    api(`/api/duels/${result.id}/seen`, {}).catch(() => {});
+    if (app.me && app.me.duels) {
+      app.me.duels.unseen = Math.max(0, app.me.duels.unseen - 1);
+    }
+    try {
+      const profile = await api('/api/profile');
+      const fresh = profile.badges.filter((b) => b.isNew);
+      if (fresh.length && duelRun === run && !$('view-duel').hidden) {
+        app.profile = profile;
+        $('duel-badges').replaceChildren(el('h3', {}, 'Nouveaux badges'), ...fresh.map(badgeItem));
+        $('duel-badges').hidden = false;
+        Sound.badge();
+      }
+    } catch {
+      /* les badges restent visibles dans le profil */
+    }
+  }
+
+  // ---------- Récap du lundi : feu d'artifice, puis la Gazette de la mine ----------
+  let recapTimer = null;
+
+  function medalCanvas(place) {
+    const colors = { 1: ['#c8941c', '#ffd84a'], 2: ['#8a8f98', '#d6dbe3'], 3: ['#8a5a2b', '#c98a4b'] }[place];
+    const c = el('canvas', { class: 'medal', width: '14', height: '18', 'aria-hidden': 'true' });
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#c0392b';
+    ctx.fillRect(3, 0, 3, 5);
+    ctx.fillStyle = '#2a5db0';
+    ctx.fillRect(8, 0, 3, 5);
+    ctx.fillStyle = colors[0];
+    ctx.fillRect(2, 5, 10, 11);
+    ctx.fillRect(3, 4, 8, 13);
+    ctx.fillStyle = colors[1];
+    ctx.fillRect(4, 7, 6, 7);
+    ctx.fillStyle = colors[0];
+    ctx.fillRect(6, 8, 2, 5);
+    return c;
+  }
+
+  async function openRecap(week) {
+    try {
+      const data = await api(`/api/recap?week=${week}`);
+      app.recap = data;
+      renderRecap(data);
+      show('recap');
+      startFireworks(data);
+    } catch {
+      /* le récap est un bonus : s'il échoue, on reste sur l'accueil */
+    }
+  }
+
+  function startFireworks(data) {
+    clearInterval(recapTimer);
+    const canvas = $('recap-canvas');
+    const ctx = canvas.getContext('2d');
+    const scale = Math.max(1, Math.min(3, Math.floor((canvas.parentElement.clientWidth || 320) / 160)));
+    canvas.style.width = `${160 * scale}px`;
+    canvas.style.height = `${190 * scale}px`;
+    const sprites = {};
+    [1, 2, 3].forEach((place) => {
+      const e = data.entries.find((x) => x.rank === place);
+      if (e && window.Avatar) sprites[place] = Avatar.sprite(e.avatar);
+    });
+    const hash = (n) => Math.abs(Math.sin(n * 12.9898) * 43758.5453) % 1;
+    const bursts = [[34, 40, '#ffd84a', 0], [124, 34, '#ff6a8a', 0.8], [80, 66, '#5ee0ff', 1.5], [140, 84, '#b28cff', 2.2], [18, 90, '#7fcf5a', 2.8]];
+    const steps = [[2, 14, 40, 150, '#9aa0aa'], [1, 60, 40, 140, '#e0b020'], [3, 106, 40, 160, '#b27a3e']]; // [place, x, largeur, haut, couleur]
+    const draw = (t) => {
+      for (let y = 0; y < 190; y += 2) {
+        ctx.fillStyle = y < 70 ? '#0b1026' : y < 125 ? '#121a3d' : '#1b2552';
+        ctx.fillRect(0, y, 160, 2);
+      }
+      for (let i = 0; i < 36; i++) {
+        ctx.fillStyle = Math.sin(t * 3 + i) > 0 ? '#ffffff' : '#6a73a0';
+        ctx.fillRect(Math.floor(hash(i + 1) * 160), Math.floor(hash(i + 50) * 100), 1, 1);
+      }
+      bursts.forEach(([cx, cy, color, phase]) => {
+        const k = (t * 0.9 + phase / 3) % 1;
+        const r = k * 24;
+        for (let i = 0; i < 14; i++) {
+          const a = (i / 14) * Math.PI * 2;
+          ctx.fillStyle = color;
+          ctx.fillRect(Math.round(cx + Math.cos(a) * r), Math.round(cy + Math.sin(a) * r + k * k * 10), 2, 2);
+          if (k < 0.7) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(Math.round(cx + Math.cos(a) * r * 0.6), Math.round(cy + Math.sin(a) * r * 0.6 + k * k * 8), 1, 1);
+          }
+        }
+      });
+      ctx.fillStyle = '#2a1a0c';
+      ctx.fillRect(0, 170, 160, 20);
+      steps.forEach(([place, x, w, top, color]) => {
+        ctx.fillStyle = color;
+        ctx.fillRect(x, top + 20, w, 190 - top - 20);
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.fillRect(x, top + 20, w, 3);
+        const sprite = sprites[place];
+        if (sprite) {
+          const jump = Math.round(Math.abs(Math.sin(t * 5 + place * 1.4)) * 8);
+          ctx.drawImage(sprite, x + w / 2 - 8, top + 20 - 28 - jump);
+        }
+      });
+    };
+    draw(0);
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    recapTimer = setInterval(() => {
+      if ($('view-recap').hidden || document.hidden) return;
+      draw(performance.now() / 1000);
+    }, 80);
+  }
+
+  function renderRecap(data) {
+    $('recap-sub').textContent = `Semaine du ${formatDay(data.start, { day: 'numeric', month: 'long' })} au ${formatDay(data.end, { day: 'numeric', month: 'long' })}`;
+    $('recap-fireworks').hidden = false;
+    $('recap-gazette').hidden = true;
+    $('recap-names').replaceChildren(
+      ...[2, 1, 3].map((place) => {
+        const e = data.entries.find((x) => x.rank === place);
+        return el('div', { class: `recap-name p${place}` }, el('span', { class: 'who-name' }, e ? e.username : '—'), el('span', { class: 'score' }, e ? pts(e.score) : ''));
+      }),
+    );
+    // Gazette
+    const g = $('recap-gazette');
+    const champ = data.champion;
+    const line = (label, value) => el('div', { class: 'gz-line' }, el('span', {}, label), el('span', {}, value));
+    const mine = data.me;
+    g.replaceChildren(
+      el('h2', { class: 'gz-title' }, 'La Gazette de la mine'),
+      el('p', { class: 'gz-date' }, `Semaine du ${formatDay(data.start, { day: 'numeric', month: 'long' })} au ${formatDay(data.end, { day: 'numeric', month: 'long' })}`),
+      champ ? el('p', { class: 'gz-headline' }, `${champ.username} remporte la semaine avec ${pts(champ.score)} !`) : null,
+      el(
+        'ul',
+        { class: 'gz-ranking' },
+        ...data.entries.map((e) =>
+          el(
+            'li',
+            { class: e.me ? 'me' : '' },
+            e.rank <= 3 ? medalCanvas(e.rank) : el('span', { class: 'gz-rank' }, `${e.rank}.`),
+            avatarEl(e.avatar, 'head', 2),
+            el('span', { class: 'who-name' }, e.username),
+            el('span', {}, `${pts(e.score)} · ${e.days} j`),
+          ),
+        ),
+      ),
+      el(
+        'div',
+        { class: 'gz-moments' },
+        el('h3', {}, 'Les moments forts'),
+        data.best ? line('Meilleur forage', `${data.best.username}, ${pts(data.best.score)} (${formatDay(data.best.day, { weekday: 'long' })})`) : null,
+        data.rarest ? line('Réponse la plus rare', `« ${data.rarest.answer} » (${data.rarest.username}, ${pts(data.rarest.points)})`) : null,
+        data.applauded ? line('Réponse la plus applaudie', `« ${data.applauded.answer} » (${data.applauded.username}, ${data.applauded.reactions} réaction${data.applauded.reactions > 1 ? 's' : ''})`) : null,
+        line('Pépites trouvées', String(data.pepites)),
+        line('Forages terminés', `${data.games} par ${plural(data.players, 'joueur', 'joueurs')}`),
+      ),
+      mine
+        ? el(
+            'div',
+            { class: 'gz-moments' },
+            el('h3', {}, 'Ta semaine'),
+            line('Ton rang', `${mine.rank === 1 ? '1er' : `${mine.rank}e`} sur ${data.players}`),
+            line('Forages', `${mine.days} sur 7`),
+            line('Ton meilleur forage', pts(mine.best)),
+            line('Pépites / réponses rares', `${mine.pepites} / ${mine.rares}`),
+          )
+        : el('p', { class: 'gz-date' }, "Tu n'as pas creusé cette semaine : rendez-vous cette semaine !"),
+      el('button', { class: 'btn', id: 'btn-recap-done', type: 'button' }, 'À la mine !'),
+    );
+    $('btn-recap-done').addEventListener('click', finishRecap);
+  }
+
+  $('btn-recap-next').addEventListener('click', () => {
+    $('recap-fireworks').hidden = true;
+    $('recap-gazette').hidden = false;
+    window.scrollTo(0, 0);
+  });
+
+  async function finishRecap() {
+    clearInterval(recapTimer);
+    if (app.recap) api('/api/recap/seen', { week: app.recap.start }).catch(() => {});
+    if (app.me) app.me.recap = null;
+    app.recap = null;
+    show('home');
+  }
+
+  // ---------- Réactions aux réponses des autres ----------
+  const REACTIONS = [
+    { id: 'bienvu', label: 'Bien vu', pal: { c: '#5ee0ff', w: '#ffffff' }, map: ['..ccc...', '.ccwcc..', 'ccccccc.', '.ccccc..', '..ccc...', '...c....', '........', '........'] },
+    { id: 'coeur', label: "J'aime", pal: { r: '#e2553f' }, map: ['.rr.rr..', 'rrrrrrr.', 'rrrrrrr.', '.rrrrr..', '..rrr...', '...r....', '........', '........'] },
+    { id: 'creuse', label: 'Bien creusé', pal: { g: '#c9ced6', b: '#8a5a2b' }, map: ['.ggg....', 'g...g...', '....gb..', '...gb...', '..gb....', '.gb.....', 'gb......', 'b.......'] },
+    { id: 'audace', label: 'Audacieux', pal: { o: '#e8742a', y: '#ffd84a' }, map: ['...o....', '..oo.o..', '.ooyoo..', '.ooyyo..', 'ooyyyoo.', '.oyyyo..', '..ooo...', '........'] },
+    { id: 'surprise', label: 'Surprenant', pal: { y: '#f2c230', k: '#1b1410' }, map: ['.yyyyy..', 'yyyyyyy.', 'yk.y.ky.', 'yyyyyyy.', 'yyykyyy.', 'yyykyyy.', '.yyyyy..', '........'] },
+  ];
+
+  function reactionIcon(def) {
+    const c = el('canvas', { class: 'react-icon', width: '8', height: '8', 'aria-hidden': 'true' });
+    const ctx = c.getContext('2d');
+    def.map.forEach((row, y) =>
+      [...row].forEach((ch, x) => {
+        if (ch === '.') return;
+        ctx.fillStyle = def.pal[ch];
+        ctx.fillRect(x, y, 1, 1);
+      }),
+    );
+    return c;
+  }
+
+  /** Ligne de réactions sous une réponse : on peut réagir à celle des autres, pas à la sienne. */
+  function reactionRow(r, own) {
+    const row = el('li', { class: 'reaction-row' });
+    const state = { counts: { ...r.reactions }, mine: r.mine };
+    const draw = () => {
+      row.replaceChildren(
+        ...REACTIONS.filter((def) => !own || state.counts[def.id]).map((def) => {
+          const n = state.counts[def.id] || 0;
+          const button = el('button', { type: 'button', class: `react${state.mine === def.id ? ' on' : ''}`, title: def.label, 'aria-label': `${def.label}${n ? ` (${n})` : ''}`, 'aria-pressed': String(state.mine === def.id) }, reactionIcon(def), n ? String(n) : null);
+          if (own) button.disabled = true;
+          else
+            button.addEventListener('click', async () => {
+              const kind = state.mine === def.id ? null : def.id;
+              try {
+                const res = await api('/api/reactions', { rid: r.rid, kind });
+                state.counts = res.reactions;
+                state.mine = res.mine;
+                draw();
+              } catch (err) {
+                showNotice(err.message);
+              }
+            });
+          return button;
+        }),
+      );
+    };
+    draw();
+    return row;
+  }
 
   // ---------- Comparaison des réponses d'un jour ----------
   /** Responsable : associe après coup une réponse du thème à la manche d'un joueur qui n'en avait pas de valide. */
@@ -2192,7 +3148,7 @@
         const top = Math.max(1, ...data.players.map((p) => p.score));
         body.append(
           el('h3', {}, 'Scores du jour'),
-          el('p', { class: 'muted small' }, '★ : seul(e) à avoir donné cette réponse · = toi : même réponse que la tienne.'),
+          el('p', { class: 'muted small' }, '★ : seul(e) à avoir donné cette réponse · = toi : même réponse que la tienne. Touche un symbole sous une réponse pour réagir.'),
           el(
             'div',
             { class: 'score-bars' },
@@ -2236,6 +3192,7 @@
                 app.me && app.me.isAdmin && (r.outcome === 'timeout' || r.outcome === 'skip') ? assignButton(day, back, p, r, th) : null,
               ),
             );
+            if (r.rid && r.outcome === 'answer' && (!p.me || Object.keys(r.reactions || {}).length)) list.append(reactionRow(r, p.me));
           });
         body.append(el('h3', {}, th.spare ? `${i + 1}. Galerie de secours : ${th.title}` : `${i + 1}. ${th.title}`), list);
       });
@@ -2260,6 +3217,41 @@
     event.preventDefault();
     rows[at === -1 ? 0 : next].focus();
   });
+
+  // ---------- Installation sur l'écran d'accueil ----------
+  let installPrompt = null;
+  const standalone = () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+  function renderInstall() {
+    if (standalone()) {
+      $('install-text').textContent = 'Le jeu est déjà installé sur cet appareil.';
+      $('btn-install').hidden = true;
+      return;
+    }
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    $('btn-install').hidden = !installPrompt;
+    $('install-text').textContent = installPrompt
+      ? "Ajoute le jeu à l'écran d'accueil : il s'ouvre en plein écran, comme une application."
+      : ios
+        ? "Sur iPhone : touche le bouton Partager du navigateur, puis « Sur l'écran d'accueil »."
+        : "Dans le menu de ton navigateur, choisis « Installer l'application » ou « Ajouter à l'écran d'accueil ».";
+  }
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    installPrompt = event;
+    renderInstall();
+  });
+  window.addEventListener('appinstalled', () => {
+    installPrompt = null;
+    renderInstall();
+  });
+  $('btn-install').addEventListener('click', async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    await installPrompt.userChoice.catch(() => {});
+    installPrompt = null;
+    renderInstall();
+  });
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
   // ---------- Démarrage ----------
   fitCanvas();

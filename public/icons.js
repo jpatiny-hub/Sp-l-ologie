@@ -12,7 +12,7 @@
   };
 
   const TOKENS = {
-    serie: '#3f5c7a', profondeur: '#6e2818', pepites: '#6b5520', exploit: '#2f5a3a', podium: '#5a3a6e', calendrier: '#4f3f2c', themes: '#2f5f6e', entrainement: '#6e4a2f', defi: '#2f4f7a',
+    serie: '#3f5c7a', profondeur: '#6e2818', pepites: '#6b5520', exploit: '#2f5a3a', podium: '#5a3a6e', calendrier: '#4f3f2c', themes: '#2f5f6e', entrainement: '#6e4a2f', defi: '#2f4f7a', duel: '#6e2f2f', reactions: '#7a2f5a',
   };
 
   // Coupe de la Terre : la couche atteinte est mise en valeur.
@@ -140,5 +140,54 @@
     });
   }
 
-  global.Icons = { drawBadge, drawIcon };
+  /** Niveau de la flamme de la lanterne selon la série : de 1 (braise) à 5 (30 jours d'affilée ou plus). */
+  function lanternLevel(days) {
+    return days >= 30 ? 5 : days >= 14 ? 4 : days >= 7 ? 3 : days >= 3 ? 2 : days >= 1 ? 1 : 0;
+  }
+
+  // Intérieur de la lanterne (rangées 5 à 8, 6 colonnes) pour chaque niveau de flamme.
+  const FLAMES = {
+    0: ['SSSSSS', 'SSSSSS', 'SSSSSS', 'SSSSSS'],
+    1: ['SSSSSS', 'SSSSSS', 'SSSSSS', 'SSooSS'],
+    2: ['SSSSSS', 'SSSSSS', 'SSyySS', 'SyWWyS'],
+    3: ['yyWWyy', 'yWWWWy', 'yWWWWy', 'yyWWyy'],
+    4: ['yWWWWy', 'WWWWWW', 'WWWWWW', 'yWWWWy'],
+    5: ['WWWWWW', 'WWWWWW', 'WWWWWW', 'WWWWWW'],
+  };
+
+  /** Lanterne de mineur dont la flamme grandit avec la série (jusqu'à un mois d'affilée). */
+  function drawLantern(canvas, days, { dim = false } = {}) {
+    canvas.width = 16;
+    canvas.height = 16;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, 16, 16);
+    const level = lanternLevel(days);
+    const rows = ICONS['lanterne-mineur'].slice();
+    FLAMES[level].forEach((inner, i) => {
+      const row = rows[5 + i];
+      rows[5 + i] = row.slice(0, 3) + inner + row.slice(9);
+    });
+    rows.forEach((row, y) => {
+      for (let x = 0; x < 12; x++) {
+        const ch = row[x];
+        if (!ch || ch === '.') continue;
+        ctx.fillStyle = dim ? '#4a403a' : PAL[ch];
+        ctx.fillRect(x + 2, y + 2, 1, 1);
+      }
+    });
+    // Étincelles autour de la lanterne quand la flamme est bien vive.
+    if (!dim && level >= 4) {
+      ctx.fillStyle = PAL.W;
+      ctx.fillRect(1, 5, 1, 1);
+      ctx.fillRect(14, 8, 1, 1);
+      if (level === 5) {
+        ctx.fillStyle = PAL.y;
+        ctx.fillRect(0, 9, 1, 1);
+        ctx.fillRect(15, 4, 1, 1);
+        ctx.fillRect(2, 0, 1, 1);
+      }
+    }
+  }
+
+  global.Icons = { drawBadge, drawIcon, drawLantern, lanternLevel };
 })(window);
