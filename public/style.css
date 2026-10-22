@@ -849,3 +849,9 @@ canvas.avatar-head { width: 20px; height: auto; }
 :root[data-lisible] .gallery-frame, :root[data-lisible] .gallery-body { background-color: #fffdf6; }
 :root[data-lisible] .gallery-dialog, :root[data-lisible] .gallery-body p, :root[data-lisible] .gallery-body .muted { color: #2b2620; }
 :root[data-lisible] .gallery-body h2 { color: #946800; }
+
+/* Comparaison : les lignes de la galerie de secours sont translucides, pour les distinguer d'une réponse standard. */
+.compare-list li.joker { opacity: 0.45; font-style: italic; background: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0 6px, transparent 6px 12px); }
+.compare-list li.joker .swatch { opacity: 0.6; }
+.compare-list li.spare { opacity: 0.8; box-shadow: inset 3px 0 0 rgba(242, 194, 48, 0.5); }
+:root[data-theme='clair'] .compare-list li.joker { background: repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.05) 0 6px, transparent 6px 12px); }

@@ -2166,7 +2166,7 @@
             list.append(
               el(
                 'li',
-                { class: `${p.me ? 'me' : ''}${mark}` },
+                { class: `${p.me ? 'me' : ''}${mark}${r.outcome === 'joker' ? ' joker' : ''}${r.spare ? ' spare' : ''}` },
                 el('span', { class: 'swatch', style: { background: Pixel.TIER_COLORS[r.tier] || '#666' } }),
                 el('span', { class: 'who' }, avatarEl(p.avatar, 'head', 2), p.username),
                 el('span', { class: 'what' }, what),
