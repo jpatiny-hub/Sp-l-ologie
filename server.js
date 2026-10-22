@@ -13,6 +13,10 @@ const { msUntilNextDay, isDay, addDays: addDaysIso, weekStart: weekStartIso } = 
 const auth = require('./src/auth');
 const Avatar = require('./src/avatar');
 const { collectiveStatus } = require('./src/collective');
+const { scheduleBackups } = require('./src/backup');
+const { AnnouncementService } = require('./src/announcements');
+const { museum } = require('./src/museum');
+const { feed } = require('./src/feed');
 const { pendingRecap, markRecapSeen, weeklyRecap } = require('./src/recap');
 const { unseenNews, LATEST_NEWS_ID } = require('./src/news');
 
@@ -29,6 +33,7 @@ const MIME = {
   '.ico': 'image/x-icon',
   '.woff2': 'font/woff2',
   '.txt': 'text/plain; charset=utf-8',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
 };
 
 const SECURITY_HEADERS = {
@@ -69,6 +74,7 @@ function createApp({
   version = interfaceVersion(publicDir),
 }) {
   const game = new GameService(db, themes, now);
+  const announcements = new AnnouncementService(db, now);
   game.badges.backfill();
   const loginLimiter = new auth.RateLimiter(10, 15 * 60 * 1000);
   const signupLimiter = new auth.RateLimiter(10, 60 * 60 * 1000);
@@ -296,6 +302,7 @@ function createApp({
         collective: collectiveStatus(db, game.today(), user.id),
         recap: pendingRecap(db, user.id, game.today()),
         duels: game.duels.summary(user.id),
+        announcements: announcements.unseen(user.id),
         nextResetMs: msUntilNextDay(now()),
         timerSeconds: config.TIMER_SECONDS,
       });
@@ -357,6 +364,41 @@ function createApp({
       const user = requireUser(req, res);
       await readJson(req);
       json(res, 200, game.duels.markSeen(id, user.id));
+    },
+
+    // Musée des pépites et fil de nouvelles de la mine.
+    'GET /api/museum': async (req, res) => {
+      const user = requireUser(req, res);
+      json(res, 200, museum(game, user.id));
+    },
+
+    'GET /api/feed': async (req, res, _id, url) => {
+      const user = requireUser(req, res);
+      json(res, 200, feed(game, user.id, Number(url.searchParams.get('limit')) || 3));
+    },
+
+    // Annonces du responsable : lecture par les joueurs, gestion par le responsable.
+    'POST /api/announcements/seen': async (req, res) => {
+      const user = requireUser(req, res);
+      const { id } = await readJson(req);
+      json(res, 200, announcements.markSeen(user.id, id));
+    },
+
+    'GET /api/admin/announcements': async (req, res) => {
+      requireAdmin(req, res);
+      json(res, 200, { announcements: announcements.list() });
+    },
+
+    'POST /api/admin/announcements': async (req, res) => {
+      requireAdmin(req, res);
+      const { text, days } = await readJson(req);
+      json(res, 200, announcements.publish(text, days));
+    },
+
+    'POST /api/admin/announcements/remove': async (req, res) => {
+      requireAdmin(req, res);
+      const { id } = await readJson(req);
+      json(res, 200, announcements.remove(id));
     },
 
     // Récap de la semaine écoulée (la Gazette de la mine).
@@ -636,6 +678,7 @@ function main() {
     for (const warning of theme.warnings) console.warn(`[thème ${theme.id}] ${warning}`);
   }
   const db = openDb(path.join(config.DATA_DIR, 'speleologie.sqlite'));
+  scheduleBackups(db);
   const handler = createApp({ db, themes, secureCookies: process.env.NODE_ENV === 'production' });
   // HOST=127.0.0.1 : seul le proxy de la machine peut joindre le jeu.
   const server = http.createServer(handler).listen(config.PORT, config.HOST, () => {

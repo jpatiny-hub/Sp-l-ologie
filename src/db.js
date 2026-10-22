@@ -168,6 +168,15 @@ CREATE TABLE IF NOT EXISTS duel_themes (
   PRIMARY KEY (duel_id, slot)
 );
 
+-- Annonces du responsable, affichées sur l'accueil des joueurs jusqu'à leur date de fin (ou leur retrait).
+CREATE TABLE IF NOT EXISTS announcements (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  text       TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  expires_at INTEGER NOT NULL,
+  removed_at INTEGER
+);
+
 -- Thèmes proposés par les joueurs, à examiner par le responsable du jeu.
 CREATE TABLE IF NOT EXISTS theme_suggestions (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -190,6 +199,8 @@ const MIGRATIONS = [
   ['users', 'username_changed_at', 'INTEGER'],
   // Dernière semaine (lundi) dont le récap a été vu.
   ['users', 'recap_seen', 'TEXT'],
+  // Dernière annonce du responsable vue par le joueur.
+  ['users', 'announce_seen', 'INTEGER NOT NULL DEFAULT 0'],
   // Joker : un thème à changer gratuitement par partie (thème de remplacement et thème remplacé).
   ['games', 'joker_used', 'INTEGER NOT NULL DEFAULT 0'],
   ['games', 'spare_theme', 'TEXT'],

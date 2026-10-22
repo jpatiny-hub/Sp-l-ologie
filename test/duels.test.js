@@ -101,6 +101,8 @@ test('duel : les deux jouent les mêmes thèmes sans voir la rareté, puis le r�
     assert.ok(badgesA.includes('attaquant-1') && badgesA.includes('diplomate-3') === false);
     assert.ok(badgesE.includes('defenseur-1'));
     assert.equal((await adam('/api/leaderboard?period=day')).data.entries.length, 0, 'un duel ne compte pas au podium');
+    // Revanche : un nouveau duel contre le même joueur est possible une fois le premier terminé.
+    assert.equal((await adam('/api/duels', { opponent: 'eve', mode: 'standard' })).status, 200);
   } finally {
     await app.close();
   }

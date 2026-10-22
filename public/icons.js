@@ -12,7 +12,7 @@
   };
 
   const TOKENS = {
-    serie: '#3f5c7a', profondeur: '#6e2818', pepites: '#6b5520', exploit: '#2f5a3a', podium: '#5a3a6e', calendrier: '#4f3f2c', themes: '#2f5f6e', entrainement: '#6e4a2f', defi: '#2f4f7a', duel: '#6e2f2f',
+    serie: '#3f5c7a', profondeur: '#6e2818', pepites: '#6b5520', exploit: '#2f5a3a', podium: '#5a3a6e', calendrier: '#4f3f2c', themes: '#2f5f6e', entrainement: '#6e4a2f', defi: '#2f4f7a', duel: '#6e2f2f', reactions: '#7a2f5a',
   };
 
   // Coupe de la Terre : la couche atteinte est mise en valeur.

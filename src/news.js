@@ -109,6 +109,26 @@ const NEWS = [
       'Le changement de jour se fait maintenant à 2 h du matin au lieu de minuit : les nouveaux thèmes, les séries et les défis changent à ce moment-là.',
     ],
   },
+  {
+    id: 8,
+    date: '2026-10-23',
+    title: 'Revanche, musée des pépites et journal de la mine',
+    highlights: [
+      { icon: 'sabre', text: 'Revanche en un clic à la fin d\'un duel' },
+      { icon: 'pepite', text: 'Le musée des pépites : toutes les réponses introuvables, trouvées par le groupe' },
+      { icon: 'livre', text: 'Le Petit Mineur : les dernières nouvelles de la mine, sur l\'accueil' },
+      { icon: 'coeur', text: 'Badges de réactions (Public conquis, Star de la mine, Supporter, Meilleur fan) et deux nouvelles foreuses' },
+      { icon: 'galerie', text: 'Installe le jeu sur l\'écran d\'accueil de ton téléphone (Paramètres)' },
+    ],
+    items: [
+      'Revanche : à la fin d\'un duel, un bouton relance tout de suite un duel contre le même joueur, avec les mêmes règles.',
+      'Musée des pépites : une nouvelle section de l\'accueil qui liste, jour après jour, les réponses que personne n\'avait trouvées avant, avec le thème et le joueur. Les pépites du jour apparaissent le lendemain.',
+      'Le Petit Mineur : sur l\'accueil, une section dépliable avec les trois nouvelles les plus récentes (duels, pépites, badges, défi collectif) ; le bouton « Plus de nouvelles » en montre dix. Une pépite est annoncée sans dire laquelle.',
+      'Badges de réactions : « Public conquis » (10 réactions reçues), « Star de la mine » (50 : foreuse Ovation), « Supporter » (20 réactions données) et « Meilleur fan » (100 : foreuse Claque).',
+      'Messages du Contre maître : le responsable du jeu peut maintenant passer une annonce à tous les joueurs, affichée en haut de l\'accueil jusqu\'à ce que chacun l\'ait lue.',
+      'Installation : dans les Paramètres, « Installer l\'application » ajoute le jeu à l\'écran d\'accueil de ton téléphone ; il s\'ouvre alors en plein écran.',
+    ],
+  },
 ];
 
 const LATEST_NEWS_ID = NEWS[NEWS.length - 1].id;

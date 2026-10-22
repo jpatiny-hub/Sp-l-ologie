@@ -462,6 +462,10 @@ class GameService {
         )
         .run(gameId, slot, userId, kind, this.now());
     }
+    if (kind !== null) {
+      this.badges.awardReactions(userId, this.today());
+      this.badges.awardReactions(target.user_id, this.today());
+    }
     const counts = {};
     this.db
       .prepare('SELECT kind, COUNT(*) AS n FROM reactions WHERE game_id = ? AND slot = ? GROUP BY kind')

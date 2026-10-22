@@ -117,6 +117,7 @@
     settingsForm.elements.theme.value = settings.theme;
     settingsForm.elements.lisible.checked = settings.lisible;
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
+    renderInstall();
     $('settings').showModal();
   });
   settingsForm.addEventListener('input', () => {
@@ -249,7 +250,7 @@
   function show(view) {
     document.querySelectorAll('.view').forEach((v) => (v.hidden = v.id !== `view-${view}`));
     // Sur téléphone, la scène de forage ne sert qu'en partie et dans les résultats : pas sur l'accueil.
-    $('stage').hidden = (view === 'podium' || view === 'profile' || view === 'home' || view === 'recap' || view === 'duel' || view === 'admin') && window.innerWidth < 860;
+    $('stage').hidden = (view === 'podium' || view === 'profile' || view === 'home' || view === 'recap' || view === 'duel' || view === 'admin' || view === 'museum') && window.innerWidth < 860;
     if (view === 'profile') startPreview();
     if (view !== 'game') $('focus-keeper').blur();
     updateBanner();
@@ -448,6 +449,7 @@
   });
 
   function renderHome() {
+    renderAnnouncements();
     renderNews();
     const today = app.me.today;
     $('today-date').textContent = formatDay(today.day, { weekday: 'long', day: 'numeric', month: 'long' });
@@ -476,6 +478,8 @@
     renderStreak();
     renderDuelDot();
     renderAdminHome();
+    loadFeed(3);
+    loadMuseumNote();
     if (!$('mode-duel').hidden) loadDuels();
     updateCountdown();
   }
@@ -1469,7 +1473,7 @@
 
   // ---------- Carnet : badges et atelier ----------
   const CATEGORIES = [
-    ['exploit', 'Exploits'], ['serie', 'Séries de forages'], ['profondeur', 'Profondeur'], ['pepites', 'Pépites'], ['themes', 'Thèmes rencontrés'], ['entrainement', 'Entraînement'], ['duel', 'Duels'], ['defi', 'Défis de la semaine'], ['podium', 'Podiums'], ['calendrier', 'Jours particuliers'],
+    ['exploit', 'Exploits'], ['serie', 'Séries de forages'], ['profondeur', 'Profondeur'], ['pepites', 'Pépites'], ['themes', 'Thèmes rencontrés'], ['entrainement', 'Entraînement'], ['duel', 'Duels'], ['reactions', 'Réactions'], ['defi', 'Défis de la semaine'], ['podium', 'Podiums'], ['calendrier', 'Jours particuliers'],
   ];
 
   function longDay(day) {
@@ -1686,12 +1690,164 @@
     }
   }
 
+  // ---------- Musée des pépites ----------
+  async function openMuseum() {
+    try {
+      const data = await api('/api/museum');
+      app.museum = data;
+      renderMuseum();
+      show('museum');
+    } catch (err) {
+      showNotice(err.message);
+    }
+  }
+
+  function renderMuseum() {
+    const d = app.museum;
+    $('museum-intro').textContent = `${plural(d.total, 'pépite découverte', 'pépites découvertes')} par le groupe${d.todayCount ? ` (et ${plural(d.todayCount, 'nouvelle', 'nouvelles')} aujourd'hui, à dévoiler demain)` : ''}.`;
+    const top = Math.max(1, ...d.players.map((p) => p.count));
+    $('museum-players').replaceChildren(
+      ...d.players.map((p) => {
+        const fill = el('span', { class: 'fill' });
+        fill.style.width = `${Math.round((p.count / top) * 100)}%`;
+        return el('li', { class: p.me ? 'me' : '' }, el('span', { class: 'who' }, avatarEl(p.avatar, 'head', 2), p.username), el('span', { class: 'track' }, fill), el('span', { class: 'n' }, String(p.count)));
+      }),
+    );
+    if (!d.players.length) $('museum-players').append(el('li', { class: 'muted' }, 'Aucune pépite pour l\'instant : à vous de creuser !'));
+    const q = $('museum-search').value.trim().toLowerCase();
+    const shown = d.entries.filter((e) => !q || `${e.answer} ${e.theme} ${e.username}`.toLowerCase().includes(q));
+    const box = $('museum-list');
+    box.replaceChildren();
+    let day = null;
+    let list = null;
+    for (const e of shown) {
+      if (e.day !== day) {
+        day = e.day;
+        box.append(el('h3', {}, formatDay(day, { weekday: 'long', day: 'numeric', month: 'long' })));
+        list = el('ul', { class: 'museum-list' });
+        box.append(list);
+      }
+      const gem = el('canvas', { class: 'museum-gem', width: '16', height: '16', 'aria-hidden': 'true' });
+      Icons.drawIcon(gem, 'pepite');
+      list.append(el('li', { class: e.me ? 'me' : '' }, gem, el('div', { class: 'museum-what' }, el('strong', {}, e.answer), el('span', { class: 'muted small' }, e.theme)), el('span', { class: 'who' }, avatarEl(e.avatar, 'head', 2), e.username)));
+    }
+    if (!shown.length && d.entries.length) box.append(el('p', { class: 'muted' }, 'Rien ne correspond à cette recherche.'));
+  }
+
+  $('btn-museum').addEventListener('click', () => openMuseum());
+  $('btn-museum-home').addEventListener('click', () => goHome());
+  $('museum-search').addEventListener('input', () => app.museum && renderMuseum());
+
+  async function loadMuseumNote() {
+    try {
+      const d = await api('/api/museum');
+      $('museum-note').textContent = d.total
+        ? `${plural(d.total, 'pépite découverte', 'pépites découvertes')} par le groupe${d.todayCount ? `, et ${plural(d.todayCount, 'nouvelle', 'nouvelles')} aujourd'hui à dévoiler demain` : ''}.`
+        : "Toutes les réponses que personne n'avait trouvées avant.";
+    } catch {
+      /* la note reste générique */
+    }
+  }
+
+  // ---------- Le Petit Mineur : les dernières nouvelles de la mine ----------
+  function ago(ts, now) {
+    const min = Math.max(0, Math.round((now - ts) / 60000));
+    if (min < 2) return "à l'instant";
+    if (min < 60) return `il y a ${min} min`;
+    const h = Math.round(min / 60);
+    if (h < 24) return `il y a ${h} h`;
+    const d = Math.round(h / 24);
+    return d === 1 ? 'hier' : `il y a ${d} jours`;
+  }
+
+  async function loadFeed(limit = 3) {
+    try {
+      const { events, now } = await api(`/api/feed?limit=${limit}`);
+      app.feedLimit = limit;
+      $('feed-list').replaceChildren(
+        ...events.map((e) => {
+          const icon = el('canvas', { class: 'feed-icon', width: '16', height: '16', 'aria-hidden': 'true' });
+          Icons.drawIcon(icon, e.icon);
+          return el('li', {}, icon, e.user ? avatarEl(e.user.avatar, 'head', 2) : null, el('div', { class: 'feed-text' }, el('span', {}, e.text), el('span', { class: 'feed-ago' }, ago(e.ts, now))));
+        }),
+      );
+      if (!events.length) $('feed-list').append(el('li', { class: 'muted' }, "Pas encore de nouvelles : la mine est calme."));
+      $('btn-feed-more').hidden = limit >= 10 || events.length < limit;
+    } catch {
+      /* le journal est facultatif */
+    }
+  }
+  $('btn-feed-more').addEventListener('click', () => loadFeed(10));
+
+  // ---------- Annonces du responsable ----------
+  function renderAnnouncements() {
+    const list = (app.me && app.me.announcements) || [];
+    $('announce-card').hidden = !list.length;
+    $('announce-list').replaceChildren(...list.map((a) => el('p', { class: 'announce-text' }, a.text)));
+  }
+
+  $('btn-announce-ok').addEventListener('click', () => {
+    const list = (app.me && app.me.announcements) || [];
+    if (!list.length) return;
+    const last = Math.max(...list.map((a) => a.id));
+    app.me.announcements = [];
+    renderAnnouncements();
+    api('/api/announcements/seen', { id: last }).catch(() => {});
+  });
+
+  async function loadAdminAnnouncements() {
+    const card = $('admin-announcements');
+    card.hidden = !(app.me && app.me.isAdmin);
+    if (card.hidden) return;
+    try {
+      const { announcements } = await api('/api/admin/announcements');
+      const state = { active: 'en ligne', expired: 'terminée', removed: 'retirée' };
+      $('announce-admin-list').replaceChildren(
+        ...announcements.map((a) => {
+          const row = el('li', { class: 'report' }, el('p', {}, a.text), el('p', { class: 'muted small' }, `${formatDay(new Date(a.createdAt).toISOString().slice(0, 10), { day: 'numeric', month: 'long' })} · ${state[a.status]}${a.status === 'active' ? ` jusqu'au ${formatDay(new Date(a.expiresAt).toISOString().slice(0, 10), { day: 'numeric', month: 'long' })}` : ''}`));
+          if (a.status === 'active') {
+            const remove = el('button', { class: 'btn ghost small-btn', type: 'button' }, 'Retirer');
+            remove.addEventListener('click', async () => {
+              remove.disabled = true;
+              try {
+                await api('/api/admin/announcements/remove', { id: a.id });
+                loadAdminAnnouncements();
+              } catch (err) {
+                $('announce-status').textContent = err.message;
+                remove.disabled = false;
+              }
+            });
+            row.append(remove);
+          }
+          return row;
+        }),
+      );
+    } catch (err) {
+      $('announce-status').textContent = err.message;
+    }
+  }
+
+  $('form-announce').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const status = $('announce-status');
+    status.textContent = '';
+    try {
+      await api('/api/admin/announcements', { text: $('announce-text').value, days: Number($('announce-days').value) });
+      $('announce-text').value = '';
+      status.textContent = 'Annonce publiée : les joueurs la verront à leur prochaine ouverture du jeu.';
+      loadAdminAnnouncements();
+    } catch (err) {
+      status.textContent = err.message;
+    }
+  });
+
   // ---------- Contre maître (responsable du jeu) ----------
   async function openAdmin() {
     if (!app.me || !app.me.isAdmin) return;
     stopTimer();
     show('admin');
     initFolds('view-admin');
+    loadAdminAnnouncements();
     loadReports();
     loadAdminSuggestions();
     loadDashboard();
@@ -2671,6 +2827,19 @@
           ? `Victoire ! Tu bats ${other.username} : ${me.score} à ${other.score}.`
           : `Défaite : ${other.username} gagne ${other.score} à ${me.score}.`;
     $('duel-final').hidden = false;
+    // Revanche en un clic : un nouveau duel contre le même joueur, avec les mêmes règles.
+    const rematch = $('btn-duel-rematch');
+    rematch.disabled = false;
+    rematch.textContent = `Revanche contre ${other.username}`;
+    rematch.onclick = async () => {
+      rematch.disabled = true;
+      try {
+        enterGame(await api('/api/duels', { opponent: other.username, mode: result.mode }));
+      } catch (err) {
+        showNotice(err.message);
+        rematch.disabled = false;
+      }
+    };
     api(`/api/duels/${result.id}/seen`, {}).catch(() => {});
     if (app.me && app.me.duels) {
       app.me.duels.unseen = Math.max(0, app.me.duels.unseen - 1);
@@ -3048,6 +3217,41 @@
     event.preventDefault();
     rows[at === -1 ? 0 : next].focus();
   });
+
+  // ---------- Installation sur l'écran d'accueil ----------
+  let installPrompt = null;
+  const standalone = () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+  function renderInstall() {
+    if (standalone()) {
+      $('install-text').textContent = 'Le jeu est déjà installé sur cet appareil.';
+      $('btn-install').hidden = true;
+      return;
+    }
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    $('btn-install').hidden = !installPrompt;
+    $('install-text').textContent = installPrompt
+      ? "Ajoute le jeu à l'écran d'accueil : il s'ouvre en plein écran, comme une application."
+      : ios
+        ? "Sur iPhone : touche le bouton Partager du navigateur, puis « Sur l'écran d'accueil »."
+        : "Dans le menu de ton navigateur, choisis « Installer l'application » ou « Ajouter à l'écran d'accueil ».";
+  }
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    installPrompt = event;
+    renderInstall();
+  });
+  window.addEventListener('appinstalled', () => {
+    installPrompt = null;
+    renderInstall();
+  });
+  $('btn-install').addEventListener('click', async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    await installPrompt.userChoice.catch(() => {});
+    installPrompt = null;
+    renderInstall();
+  });
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
   // ---------- Démarrage ----------
   fitCanvas();

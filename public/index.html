@@ -7,6 +7,12 @@
   <meta name="theme-color" content="#1b1410">
   <title>Spéléologie</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Spéléologie">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -115,6 +121,11 @@
         </div>
         <p class="hint">Dans les modes daltoniens, chaque niveau de rareté a aussi son propre symbole : la couleur n'est jamais la seule information.</p>
       </fieldset>
+      <fieldset id="install-box">
+        <legend>Installer l'application</legend>
+        <p class="hint" id="install-text">Ajoute le jeu à l'écran d'accueil de ton téléphone : il s'ouvre en plein écran, comme une application.</p>
+        <button class="btn secondary" id="btn-install" type="button" hidden>Installer</button>
+      </fieldset>
       <p class="hint">Ces réglages sont propres à cet appareil.</p>
       <button class="btn" value="close">Fermer</button>
       <div class="account" id="settings-account" hidden>
@@ -194,6 +205,11 @@
 
       <!-- Accueil -->
       <div class="view" id="view-home" hidden>
+        <div class="card announce" id="announce-card" hidden>
+          <h2>Message du Contre maître</h2>
+          <div id="announce-list"></div>
+          <button class="btn secondary" id="btn-announce-ok" type="button">Compris !</button>
+        </div>
         <div class="card news" id="news-card" hidden>
           <h2 id="news-title">Nouveautés</h2>
           <ul class="news-quick" id="news-quick"></ul>
@@ -282,6 +298,16 @@
           <p class="muted small" id="mini-podium-me"></p>
           <button class="btn secondary" id="btn-podium" type="button">Voir le classement</button>
         </div>
+        <div class="card museum-card">
+          <h2>Musée des pépites</h2>
+          <p class="muted small" id="museum-note">Toutes les réponses que personne n'avait trouvées avant.</p>
+          <button class="btn secondary" id="btn-museum" type="button">Visiter le musée</button>
+        </div>
+        <details class="card fold feed-fold" id="feed-fold">
+          <summary><span class="fold-t"><h2>Le Petit Mineur</h2><span class="sub">les dernières nouvelles de la mine</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <ul class="feed-list" id="feed-list"></ul>
+          <button class="btn secondary" id="btn-feed-more" type="button" hidden>Plus de nouvelles</button>
+        </details>
         <div class="card admin-home" id="admin-home" hidden>
           <h2>Contre maître</h2>
           <p class="muted small" id="admin-home-note">Réservé au responsable du jeu : signalements, thèmes proposés, tableau de bord.</p>
@@ -332,7 +358,8 @@
           <div id="duel-final" hidden>
             <p class="duel-banner" id="duel-banner"></p>
             <div class="badge-list" id="duel-badges" hidden></div>
-            <button class="btn" id="btn-duel-home" type="button">Retour à l'accueil</button>
+            <button class="btn" id="btn-duel-rematch" type="button">Revanche</button>
+            <button class="btn secondary" id="btn-duel-home" type="button">Retour à l'accueil</button>
           </div>
         </div>
       </div>
@@ -524,6 +551,19 @@
         </details>
       </div>
 
+      <!-- Musée des pépites -->
+      <div class="view" id="view-museum" hidden>
+        <button class="btn ghost back-btn" id="btn-museum-home" type="button">◀ Retour à l'accueil</button>
+        <div class="card museum">
+          <h2>Musée des pépites</h2>
+          <p class="muted" id="museum-intro"></p>
+          <h3>Les collectionneurs</h3>
+          <ul class="museum-players" id="museum-players"></ul>
+          <input type="search" id="museum-search" placeholder="Chercher une réponse, un thème, un joueur…" aria-label="Chercher dans le musée" autocomplete="off" autocapitalize="off" spellcheck="false">
+          <div id="museum-list"></div>
+        </div>
+      </div>
+
       <!-- Contre maître : réservé au responsable du jeu -->
       <div class="view" id="view-admin" hidden>
         <button class="btn ghost back-btn" id="btn-admin-home" type="button">◀ Retour à l'accueil</button>
@@ -531,6 +571,24 @@
           <h2>Contre maître</h2>
           <p class="muted small">Réservé au responsable du jeu : réponses signalées, thèmes proposés et tableau de bord.</p>
         </div>
+        <details class="card fold" data-fold="annonces" id="admin-announcements" hidden>
+          <summary><span class="fold-t"><h2>Annonces</h2><span class="sub">un message à tous les joueurs</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <form id="form-announce" class="form">
+            <label for="announce-text">Ton message</label>
+            <textarea id="announce-text" rows="3" maxlength="600" placeholder="Par exemple : un thème spécial arrive ce soir !" required></textarea>
+            <label for="announce-days">Visible pendant</label>
+            <select id="announce-days">
+              <option value="1">1 jour</option>
+              <option value="3">3 jours</option>
+              <option value="7" selected>7 jours</option>
+              <option value="14">14 jours</option>
+              <option value="30">30 jours</option>
+            </select>
+            <button class="btn" type="submit">Publier l'annonce</button>
+          </form>
+          <p class="muted small" id="announce-status" role="status"></p>
+          <ul class="report-list" id="announce-admin-list"></ul>
+        </details>
         <details class="card fold" data-fold="suggestions" id="admin-suggestions" hidden>
           <summary><span class="fold-t"><h2>Thèmes proposés</h2><span class="sub">réservé au responsable du jeu</span></span><span class="pm" aria-hidden="true"></span></summary>
           <div class="tabs" role="tablist" id="suggestion-tabs">

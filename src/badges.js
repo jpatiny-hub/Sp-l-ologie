@@ -63,6 +63,10 @@ const DEFENSEUR = [[1, 'Défenseur'], [5, 'Défenseur aguerri'], [15, 'Rempart']
 const DIPLOMATE = [[3, 'Diplomate'], [6, 'Grand diplomate']];
 const SENTINELLE = [[3, 'Sentinelle'], [6, 'Garde de la mine']];
 
+// Réactions reçues et données dans le comparatif.
+const PUBLIC = [[10, 'Public conquis'], [50, 'Star de la mine']];
+const SUPPORTER = [[20, 'Supporter'], [100, 'Meilleur fan']];
+
 // Défis de la semaine réussis.
 const DEFIS = [
   [1, 'Défi relevé'],
@@ -226,6 +230,12 @@ define('nemesis', { category: 'duel', name: 'Némésis', description: () => 'Per
 define('invaincu', { category: 'duel', name: 'Invaincu', description: () => 'Gagner 5 duels standard d\'affilée', icon: 'trophee', label: '5' });
 define('duel-parfait', { category: 'duel', name: 'Duel parfait', description: () => 'Gagner les 7 thèmes d\'un duel standard', icon: 'etoile-or', label: '7' });
 define('remontada', { category: 'duel', name: 'Remontada', description: () => 'Gagner un duel standard après avoir perdu les 3 premiers thèmes', icon: 'eclair' });
+PUBLIC.forEach(([n, name]) => {
+  define(`public-${n}`, { category: 'reactions', name, description: () => `Recevoir ${n} réactions à tes réponses dans le comparatif`, icon: n >= 50 ? 'etoile-or' : 'coeur', label: String(n), unlock: n === 50 ? { type: 'body', id: 'ovation' } : null });
+});
+SUPPORTER.forEach(([n, name]) => {
+  define(`supporter-${n}`, { category: 'reactions', name, description: () => `Donner ${n} réactions aux réponses des autres joueurs`, icon: n >= 100 ? 'medaille' : 'fanion', label: String(n), unlock: n === 100 ? { type: 'body', id: 'claque' } : null });
+});
 define('lanterne-rallumee', { category: 'serie', name: 'Lanterne rallumée', description: () => "Reprendre le forage après avoir perdu une série d'au moins 7 jours", icon: 'lanterne-mineur', unlock: { type: 'timer', id: 'lanterne' } });
 define('mois-complet', { category: 'serie', name: 'Mois complet', description: () => 'Forer tous les jours d\'un même mois, du premier au dernier', icon: 'calendrier-plein', unlock: { type: 'timer', id: 'wagonnet' } });
 define('filon', { category: 'pepites', name: 'Filon', description: () => 'Trouver 2 pépites dans le même forage', icon: 'pepite', label: '2', unlock: { type: 'timer', id: 'meche' } });
@@ -253,7 +263,7 @@ const BODIES = [
   ['feu-artifice', "Feu d'artifice"], ['cupidon', 'Cupidon'], ['globe', 'Planète bleue'], ['oeuf', 'Œuf de Pâques'],
   ['tricolore', 'Tricolore'], ['fierte', 'Arc-en-ciel'], ['taupe', 'Taupe'], ['citrouille', 'Citrouille diabolique'], ['spectre', 'Spectre'],
   ['casque', 'Casque de mineur'], ['mitre', 'Mitre'], ['noel', 'Noël'], ['chat-noir', 'Chat noir'],
-  ['gladiateur', 'Gladiateur'], ['rempart', 'Rempart'], ['nemesis', 'Némésis'],
+  ['gladiateur', 'Gladiateur'], ['rempart', 'Rempart'], ['nemesis', 'Némésis'], ['ovation', 'Ovation'], ['claque', 'Claque'],
 ];
 // Apparences du décompte du chrono : la batterie de lampe est offerte, les autres se débloquent avec des badges.
 const TIMERS = [['batterie', 'Batterie de lampe'], ['meche', 'Mèche de dynamite'], ['wagonnet', 'Wagonnet'], ['lanterne', 'Lanterne']];
@@ -477,6 +487,16 @@ class BadgeService {
     THEMES.forEach(([n]) => seen >= n && this.give(userId, `themes-${n}`, '1', today));
     const training = this.db.prepare('SELECT games FROM training_stats WHERE user_id = ?').get(userId);
     TRAINING.forEach(([n]) => training && training.games >= n && this.give(userId, `entrainement-${n}`, '1', today));
+  }
+
+  /** Badges de réactions : celles que le joueur a données et celles que ses réponses ont reçues. */
+  awardReactions(userId, today) {
+    const given = this.db.prepare('SELECT COUNT(*) AS n FROM reactions WHERE reactor_id = ?').get(userId).n;
+    const received = this.db
+      .prepare('SELECT COUNT(*) AS n FROM reactions rx JOIN games g ON g.id = rx.game_id WHERE g.user_id = ?')
+      .get(userId).n;
+    SUPPORTER.forEach(([n]) => given >= n && this.give(userId, `supporter-${n}`, '1', today));
+    PUBLIC.forEach(([n]) => received >= n && this.give(userId, `public-${n}`, '1', today));
   }
 
   /** Badges de duel, vérifiés quand un duel se termine (pour chacun des deux joueurs). */

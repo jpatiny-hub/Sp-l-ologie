@@ -658,6 +658,16 @@
       pal: { y: '#1a1a20', d: '#0c0c10', k: '#000000' },
       overlay: { dx: 9, dy: 4, rows: ['ee.ee', 'ee.ee'], pal: { e: '#ff2a2a' } },
     },
+    // Réactions : la foreuse « Ovation » (confettis) et la foreuse « Claque » (pompons de supporter).
+    ovation: {
+      pal: { y: '#ff9ad0', d: '#b0306e' },
+      overlay: { dx: 2, dy: 3, rows: ['a..b..c..a.b', '.c..a..b.c..', 'b..c..a..b.c'], pal: { a: '#5ee0ff', b: '#ffd84a', c: '#ffffff' } },
+      sparkle: '#ffffff',
+    },
+    claque: {
+      pal: { y: '#2f7fd0', d: '#e2553f' },
+      overlay: { dx: 2, dy: -3, rows: ['.rr......rr.', 'rrrr....rrrr', '.rr......rr.'], pal: { r: '#ffd84a' } },
+    },
     'chat-noir': {
       pal: { y: '#25252b', d: '#18181c', k: '#000000' },
       overlay: { dx: 1, dy: 0, rows: ['.k.........k..', '.kk.......kk..', '..............', '..............', '..............', '.........e.e..'], pal: { k: '#000000', e: '#ffd84a' } },
