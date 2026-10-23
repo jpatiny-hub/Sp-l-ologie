@@ -121,6 +121,13 @@
   };
   scene.setLayers([], false);
   applySettings();
+  initFolds('view-home');
+  $('challenge-card').addEventListener('toggle', () => {
+    if ($('challenge-card').open) {
+      renderCollective();
+      renderWeekly();
+    }
+  });
 
   $('btn-sound').addEventListener('click', () => {
     settings.sound = !settings.sound;
@@ -149,6 +156,32 @@
     }
   }
   document.querySelectorAll('[data-invite]').forEach((b) => b.addEventListener('click', shareApp));
+
+  // Tiroir « Plus » : musée, Petit Mineur, règles, invitation et Contre maître, hors de l'accueil.
+  const FEED_SEEN_KEY = 'speleo-feed-seen';
+  function updateDrawerDot() {
+    const n = app.drawerNews || {};
+    $('drawer-dot').hidden = !(n.admin || n.feed);
+  }
+  $('drawer-tab').addEventListener('click', () => {
+    $('drawer').showModal();
+    app.drawerNews = app.drawerNews || {};
+    if (app.feedNewest) {
+      try {
+        localStorage.setItem(FEED_SEEN_KEY, String(app.feedNewest));
+      } catch {
+        /* stockage indisponible : la pastille reviendra */
+      }
+      app.drawerNews.feed = false;
+      updateDrawerDot();
+    }
+  });
+  $('btn-drawer-close').addEventListener('click', () => $('drawer').close());
+  $('drawer').addEventListener('click', (event) => {
+    if (event.target === $('drawer')) return $('drawer').close();
+    const button = event.target.closest('button.btn');
+    if (button && button.id !== 'btn-feed-more') $('drawer').close();
+  });
 
   const settingsForm = $('form-settings');
   $('btn-settings').addEventListener('click', () => {
@@ -300,6 +333,8 @@
     updateBanner();
     $('who').hidden = !app.me;
     $('btn-invite').hidden = !app.me;
+    $('drawer-tab').hidden = !(view === 'home' && app.me);
+    if ($('drawer').open) $('drawer').close();
     $('settings-account').hidden = !app.me;
     fitCanvas();
     window.scrollTo(0, 0);
@@ -573,6 +608,13 @@
     $('challenge-tab-month').hidden = !collective;
     $('challenge-week').hidden = !ch || (challengeTab === 'month' && !!collective);
     $('challenge-month').hidden = !collective || challengeTab !== 'month' && !!ch;
+    // Résumé toujours visible quand le bloc des défis est replié.
+    const bits = [];
+    if (ch) bits.push(ch.done ? 'Semaine réussie !' : `Semaine ${ch.progress}/${ch.goal}`);
+    if (collective) bits.push(`Mois ${Math.min(100, Math.round((collective.total / collective.goal) * 100))} %`);
+    $('challenge-sub').textContent = bits.join(' · ');
+    const frac = ch ? ch.progress / ch.goal : collective ? collective.total / collective.goal : 0;
+    $('challenge-mini').style.width = `${Math.max(0, Math.min(100, Math.round(frac * 100)))}%`;
     renderCollective();
     renderWeekly();
     if (ch) {
@@ -1949,6 +1991,17 @@
     try {
       const { events, now } = await api(`/api/feed?limit=${limit}`);
       app.feedLimit = limit;
+      app.feedNewest = events.reduce((m, e) => Math.max(m, e.ts || 0), 0);
+      let seen = 0;
+      try {
+        seen = Number(localStorage.getItem(FEED_SEEN_KEY)) || 0;
+      } catch {
+        /* sans stockage : pas de pastille pour le journal */
+        seen = app.feedNewest;
+      }
+      app.drawerNews = app.drawerNews || {};
+      app.drawerNews.feed = app.feedNewest > seen;
+      updateDrawerDot();
       $('feed-list').replaceChildren(
         ...events.map((e) => {
           const icon = el('canvas', { class: 'feed-icon', width: '16', height: '16', 'aria-hidden': 'true' });
@@ -2052,6 +2105,9 @@
       if (dash.pendingReports) bits.push(plural(dash.pendingReports, 'signalement à vérifier', 'signalements à vérifier'));
       if (pending) bits.push(plural(pending, 'thème proposé à examiner', 'thèmes proposés à examiner'));
       $('admin-home-note').textContent = bits.length ? bits.join(' · ') : 'Rien à traiter pour le moment.';
+      app.drawerNews = app.drawerNews || {};
+      app.drawerNews.admin = bits.length > 0;
+      updateDrawerDot();
     } catch {
       /* le bouton reste utilisable sans ces compteurs */
     }
