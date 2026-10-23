@@ -1,7 +1,7 @@
 titre: Une marque de bonbons ou de confiserie sucrée
-# Marques de bonbons, sucettes, pastilles, chewing-gums et dragées vendues en Europe ou aux États-Unis ; les marques de chocolat (tablettes, pralines, dragées chocolatées comme Smarties) sont exclues.
+# Marques de bonbons, sucettes, pastilles, chewing-gums et dragées vendues en Europe ou aux États-Unis ; les marques de chocolat (tablettes, pralines, dragées chocolatées comme Smarties) sont exclues ; exception : le Chokotoff, caramel enrobé de chocolat, reste une confiserie.
 1: Haribo; Chupa Chups; Skittles; Mentos; Carambar; Lutti; Tic Tac
 2: Werther's Original = Werther's = Werthers; Jelly Belly; Nerds; Maoam; Fisherman's Friend; Halls; Fruittella; Starburst; Twizzlers; Hubba Bubba; Bazooka; Pez; Malabar; Trolli; Sour Patch Kids; Mamba; Sugus; Têtes Brûlées; Vichy = Pastilles Vichy; Airwaves; Stimorol; Wrigley's = Wrigley; Hollywood; Mike and Ike
-3: Sweethearts = Sweet Hearts; Airheads; Warheads; Jolly Rancher; Life Savers; Altoids; Ring Pop; Tootsie Roll; Dots; Laffy Taffy; Brach's; Katjes; Storck; Ricola; Krema; La Pie qui chante; Arlequin; Cachou Lajaunie = Lajaunie; Pierrot Gourmand; Chewits; Swizzels; Love Hearts; Fox's Glacier Mints; Polo; Dentyne; Trident; Freedent; Verquin; Lombard; Red Vines; Pastilles Valda = Valda
+3: Chokotoff = Chocotoff = Chocotof = Choko Toff; Sweethearts = Sweet Hearts; Airheads; Warheads; Jolly Rancher; Life Savers; Altoids; Ring Pop; Tootsie Roll; Dots; Laffy Taffy; Brach's; Katjes; Storck; Ricola; Krema; La Pie qui chante; Arlequin; Cachou Lajaunie = Lajaunie; Pierrot Gourmand; Chewits; Swizzels; Love Hearts; Fox's Glacier Mints; Polo; Dentyne; Trident; Freedent; Verquin; Lombard; Red Vines; Pastilles Valda = Valda
 4: Hitschler; Toffifee; Meltis; Dandy; Nimm 2; Bassett's; Maynards; Barratt; Wine Gums; Sherbet Dip Dab; Fini; Zotz
 5: Lakrids; Jelly Bean Factory
