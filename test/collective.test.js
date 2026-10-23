@@ -5,25 +5,27 @@ const assert = require('node:assert/strict');
 const { startServer, client, playDaily } = require('./helpers');
 const { collectiveStatus, GOAL } = require('../src/collective');
 
-test('défi collectif : rien avant la première édition, puis les points de tous les joueurs s\'additionnent', async () => {
+test('défi collectif : les forages du mois, même d\'avant la mise en place du défi, s\'additionnent', async () => {
   const app = await startServer();
   try {
     const adam = client(app.base);
     const eve = client(app.base);
     await adam('/api/signup', { username: 'adam', password: 'secret123' });
     await eve('/api/signup', { username: 'eve', password: 'secret123' });
-    assert.equal((await adam('/api/me')).data.collective, null, 'pas de défi avant le 23 octobre');
+    // Un forage joué le 14 octobre (avant la mise en place du défi) compte déjà pour le mois.
+    const early = await playDaily(app, eve, 2);
+    assert.equal((await adam('/api/me')).data.collective.total, early.score);
 
     app.clock.now = Date.UTC(2026, 9, 24, 10, 0);
     const a = await playDaily(app, adam, 1);
     let me = (await adam('/api/me')).data.collective;
-    assert.equal(me.total, a.score);
+    assert.equal(me.total, early.score + a.score);
     assert.equal(me.goal, GOAL);
     assert.equal(me.reached, false);
-    assert.equal(me.players.length, 1);
+    assert.equal(me.players.length, 2, 'Eve (14 octobre) et Adam (24 octobre)');
     const e = await playDaily(app, eve, 3);
     me = (await adam('/api/me')).data.collective;
-    assert.equal(me.total, a.score + e.score);
+    assert.equal(me.total, early.score + a.score + e.score);
     assert.equal(me.players.length, 2);
     assert.equal(me.players.filter((p) => p.me).length, 1);
     assert.equal(me.daysLeft, 8, 'du 24 au 31 octobre, jour courant compris');

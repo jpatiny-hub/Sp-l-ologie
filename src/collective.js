@@ -6,16 +6,14 @@ const Avatar = require('./avatar');
 /*
  * Défi collectif du mois : tous les joueurs creusent ensemble un tunnel jusqu'au diamant.
  * Chaque point marqué en forage du jour fait avancer la foreuse ; rien n'est stocké, tout se calcule
- * à partir des forages du mois. La première édition commence le jour de sa mise en ligne, et couvre le reste d'octobre.
+ * à partir des forages du mois, y compris ceux joués avant la mise en place du défi.
  */
 const GOAL = 10000;
-const FIRST_START = '2026-10-23';
 
 function collectiveStatus(db, today, userId) {
   const month = monthStart(today);
-  const start = month < FIRST_START ? FIRST_START : month;
+  const start = month;
   const end = monthEnd(today);
-  if (today < start) return null;
   const rows = db
     .prepare(
       `SELECT u.id AS userId, u.username, u.avatar, SUM(g.score) AS points
@@ -54,4 +52,4 @@ function collectiveStatus(db, today, userId) {
   };
 }
 
-module.exports = { collectiveStatus, GOAL, FIRST_START };
+module.exports = { collectiveStatus, GOAL };
