@@ -220,6 +220,11 @@ const MIGRATIONS = [
   ['answer_reports', 'message', 'TEXT'],
   ['answer_reports', 'updated_at', 'INTEGER'],
   ['answer_reports', 'seen_at', 'INTEGER'],
+  // Duel dont le résultat a été révisé après coup (points accordés sur un signalement) : date et résultat d'origine.
+  ['duels', 'revised_at', 'INTEGER'],
+  ['duels', 'old_challenger_score', 'INTEGER'],
+  ['duels', 'old_opponent_score', 'INTEGER'],
+  ['duels', 'old_winner_id', 'INTEGER'],
 ];
 
 /**

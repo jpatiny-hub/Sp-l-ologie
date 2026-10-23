@@ -548,6 +548,14 @@ function createApp({
       json(res, 200, game.creditManually(themeId, inputKey, username, answerKey));
     },
 
+    // Signalement accepté : points rendus à tous les signalants (forages et duels), retour envoyé, signalement traité.
+    'POST /api/admin/reports/grant': async (req, res) => {
+      requireAdmin(req, res);
+      const { themeId, inputKey, answerKey, message } = await readJson(req);
+      if (typeof themeId !== 'string' || typeof inputKey !== 'string') throw new HttpError(400, 'Signalement inconnu.');
+      json(res, 200, game.grantReport(themeId, inputKey, typeof answerKey === 'string' ? answerKey : undefined, typeof message === 'string' ? message.trim().slice(0, 600) : ''));
+    },
+
     // Le responsable associe après coup une réponse à la manche d'un joueur (depuis le comparatif d'un jour).
     'POST /api/admin/assign': async (req, res) => {
       requireAdmin(req, res);
