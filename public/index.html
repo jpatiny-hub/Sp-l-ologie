@@ -28,6 +28,9 @@
       <button class="icon-btn" id="btn-sound" type="button" aria-pressed="true" aria-label="Couper le son" title="Son">
         <svg viewBox="0 0 12 12" aria-hidden="true"><path class="on" d="M1 4h2v4H1zM3 3h1v6H3zM4 2h1v8H4zM5 1h1v10H5zM8 3h1v1H8zM9 4h1v4H9zM8 8h1v1H8zM10 2h1v1h-1zM11 3h1v6h-1zM10 9h1v1h-1z"/><path class="off" d="M1 4h2v4H1zM3 3h1v6H3zM4 2h1v8H4zM5 1h1v10H5zM8 4h1v1H8zM9 5h1v2H9zM10 4h1v1h-1zM10 7h1v1h-1zM8 7h1v1H8z"/></svg>
       </button>
+      <button class="icon-btn" id="btn-invite" data-invite type="button" aria-label="Inviter des amis : partager le lien du jeu" title="Inviter des amis" hidden>
+        <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M9 0h3v3H9zM0 4h3v3H0zM9 9h3v3H9zM3 5h1v1H3zM4 4h2v1H4zM6 3h2v1H6zM8 2h1v1H8zM3 6h1v1H3zM4 7h2v1H4zM6 8h2v1H6zM8 9h1v1H8z"/></svg>
+      </button>
       <button class="icon-btn" id="btn-settings" type="button" aria-label="Paramètres" title="Paramètres">
         <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M5 0h2v2H5zM5 10h2v2H5zM0 5h2v2H0zM10 5h2v2h-2zM2 1h2v2H2zM8 1h2v2H8zM2 9h2v2H2zM8 9h2v2H8zM3 3h6v6H3z"/><path class="hole" d="M5 5h2v2H5z"/></svg>
       </button>
@@ -121,6 +124,11 @@
           <label><input type="radio" name="colors" value="gris"> Niveaux de gris (achromatopsie)</label>
         </div>
         <p class="hint">Dans les modes daltoniens, chaque niveau de rareté a aussi son propre symbole : la couleur n'est jamais la seule information.</p>
+      </fieldset>
+      <fieldset id="share-box">
+        <legend>Inviter des amis</legend>
+        <p class="hint">Envoie le lien du jeu à tes amis : ils créent leur compte en quelques secondes et rejoignent la mine.</p>
+        <button class="btn secondary" data-invite type="button">Partager le lien du jeu</button>
       </fieldset>
       <fieldset id="install-box">
         <legend>Installer l'application</legend>

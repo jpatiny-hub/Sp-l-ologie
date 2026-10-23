@@ -129,6 +129,27 @@
     if (settings.sound) Sound.reveal();
   });
 
+  // Inviter des amis : feuille de partage du téléphone, ou copie du lien du jeu.
+  async function shareApp() {
+    const url = `${location.origin}/`;
+    const data = { title: 'Spéléologie', text: 'Rejoins-moi dans la mine : 7 thèmes par jour, des réponses à trouver et un podium entre amis.', url };
+    try {
+      if (navigator.share) {
+        await navigator.share(data);
+        return;
+      }
+    } catch (err) {
+      if (err && err.name === 'AbortError') return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      showNotice('Lien du jeu copié : colle-le dans un message à tes amis.');
+    } catch {
+      showNotice(`Lien du jeu : ${url}`);
+    }
+  }
+  document.querySelectorAll('[data-invite]').forEach((b) => b.addEventListener('click', shareApp));
+
   const settingsForm = $('form-settings');
   $('btn-settings').addEventListener('click', () => {
     settingsForm.elements.text.value = settings.text;
@@ -278,6 +299,7 @@
     if (view !== 'game') $('focus-keeper').blur();
     updateBanner();
     $('who').hidden = !app.me;
+    $('btn-invite').hidden = !app.me;
     $('settings-account').hidden = !app.me;
     fitCanvas();
     window.scrollTo(0, 0);
