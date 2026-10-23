@@ -2431,6 +2431,29 @@
     }),
   );
 
+  // Décisions en lot : aperçu d'abord, puis application.
+  async function runDecisions(dryRun) {
+    const out = $('decisions-result');
+    let decisions;
+    try {
+      decisions = JSON.parse($('decisions-text').value);
+    } catch {
+      return out.replaceChildren(el('li', {}, 'Le texte collé n\'est pas du JSON valide.'));
+    }
+    if (!dryRun && !window.confirm(`Appliquer ${plural(decisions.length, 'décision', 'décisions')} ? Les points seront accordés et les retours envoyés.`)) return;
+    try {
+      const { results } = await api('/api/admin/reports/decisions', { decisions, dryRun });
+      out.replaceChildren(
+        ...results.map((r) => el('li', { class: `report ${r.ok ? 'handled' : 'pending'}` }, el('strong', {}, `${r.ok ? '✓' : '✗'} « ${r.input} »`), el('span', { class: 'muted' }, ` ${r.themeId} — ${r.note}`))),
+      );
+      if (!dryRun) loadReports();
+    } catch (err) {
+      out.replaceChildren(el('li', {}, err.message));
+    }
+  }
+  $('btn-decisions-preview').addEventListener('click', () => runDecisions(true));
+  $('btn-decisions-apply').addEventListener('click', () => runDecisions(false));
+
   $('btn-copy-reports').addEventListener('click', async () => {
     const pending = (app.reports || []).filter((r) => r.status === 'pending');
     const text = pending.length

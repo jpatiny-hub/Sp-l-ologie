@@ -124,6 +124,7 @@ est reconnue par le thème, la liste propose « Accorder les points » pour chaq
 manche où le signalement a été fait, ou à défaut sa dernière manche sans réponse valide sur ce thème).
 Les points suivent la rareté du moment, une seule fois par signalement.
 Les manches de duel se créditent de la même façon : le résultat du duel est alors révisé (scores, vainqueur, badges) et les deux joueurs le revoient avec la mention « révisé ». Le bouton « Accepter » (`POST /api/admin/reports/grant`) accorde les points à tous les signalants, envoie le retour « acceptée » et classe le signalement.
+Décisions en lot (`POST /api/admin/reports/decisions`) : le responsable colle une liste JSON `{ themeId, input, verdict: "accepter" | "refuser", answer?, message? }` ; « Aperçu » ne modifie rien, « Appliquer » accorde les points, envoie les retours et classe les signalements.
 
 ## Administration
 

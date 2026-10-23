@@ -67,3 +67,43 @@ test("points accordés sur un duel : manche corrigée, résultat révisé, note 
     await app.close();
   }
 });
+
+test('décisions en lot : aperçu, refus, acceptation avec réponse du thème', async () => {
+  const app = await startServer();
+  try {
+    const adam = client(app.base);
+    const eve = client(app.base);
+    await adam('/api/signup', { username: 'adam', password: 'secret123' });
+    await eve('/api/signup', { username: 'eve', password: 'secret123' });
+    const g = (await eve('/api/game/start', { mode: 'training' })).data;
+    await eve(`/api/game/${g.id}/reveal`, {});
+    const round = app.db.prepare('SELECT theme_id FROM rounds WHERE game_id = ? AND slot = 0').get(g.id);
+    await eve(`/api/game/${g.id}/report`, { text: 'ma bonne reponse' });
+    await eve(`/api/game/${g.id}/report`, { text: 'autre idee' });
+    const best = THEMES.get(round.theme_id).answers.find((a) => a.level === 1);
+    const base = { themeId: round.theme_id };
+    assert.equal((await eve('/api/admin/reports/decisions', { decisions: [] })).status, 403);
+    assert.equal((await adam('/api/admin/reports/decisions', { decisions: [] })).status, 400);
+    const decisions = [
+      { ...base, input: 'ma bonne reponse', verdict: 'accepter', answer: best.label, message: 'Bien vu !' },
+      { ...base, input: 'autre idee', verdict: 'refuser', message: 'Non, désolé.' },
+      { ...base, input: 'inconnu', verdict: 'refuser' },
+      { ...base, input: 'ma bonne reponse', verdict: 'accepter', answer: 'Réponse qui n\'existe pas' },
+    ];
+    const preview = (await adam('/api/admin/reports/decisions', { decisions })).data.results;
+    assert.deepEqual(preview.map((r) => r.ok), [true, true, false, false]);
+    assert.equal(app.db.prepare("SELECT COUNT(*) AS n FROM answer_reports WHERE handled_at IS NOT NULL").get().n, 0, 'aperçu : rien de modifié');
+    const done = (await adam('/api/admin/reports/decisions', { decisions, dryRun: false })).data.results;
+    assert.equal(done[0].ok, true);
+    assert.equal(done[1].ok, true);
+    const mine = (await eve('/api/reports/mine')).data.reports;
+    const accepted = mine.find((r) => r.input === 'ma bonne reponse');
+    const refused = mine.find((r) => r.input === 'autre idee');
+    assert.equal(accepted.verdict, 'accepted');
+    assert.equal(accepted.message, 'Bien vu !');
+    assert.equal(refused.verdict, 'refused');
+    assert.equal(app.db.prepare("SELECT COUNT(*) AS n FROM answer_reports WHERE handled_at IS NOT NULL").get().n, 2);
+  } finally {
+    await app.close();
+  }
+});
