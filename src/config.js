@@ -18,6 +18,14 @@ module.exports = {
   SESSION_DAYS: 90,
   // Étais de galerie (gels de série) : un jour manqué n'est pardonné que s'il tombe à cette date ou après.
   FREEZE_FROM: process.env.FREEZE_FROM || '2026-10-21',
+  // Décors de saison (interface et scène de forage) : actifs du jour de jeu `from` au jour `to` inclus (le jour change à 2 h).
+  // Halloween : dès le nouveau jour du 24 octobre (2 h) jusqu'au changement de jour du 31 octobre au 1er novembre ; Toussaint : le 1er novembre.
+  SEASONS: [
+    { id: 'halloween', from: '2026-10-24', to: '2026-10-31' },
+    { id: 'toussaint', from: '2026-11-01', to: '2026-11-01' },
+  ],
+  // Jours aux thèmes imposés (par exemple Halloween) : voir data/special-days.json.
+  SPECIAL_DAYS_FILE: path.join(ROOT, 'data', 'special-days.json'),
   PORT: Number(process.env.PORT) || 3000,
   // Interface d'écoute (toutes par défaut ; 127.0.0.1 derrière un proxy).
   HOST: process.env.HOST || undefined,
