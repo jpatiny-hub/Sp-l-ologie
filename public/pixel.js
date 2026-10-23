@@ -240,6 +240,28 @@
     });
   }
 
+
+  // Halloween : crânes, côtes et os longs enfouis à toutes les profondeurs, à l'écart du puits.
+  const SKULL = ['.######.', '########', '#..##..#', '#..##..#', '########', '.#.##.#.', '..####..'];
+  const RIBS = ['#.#####.#', '.#.###.#.', '#.#####.#', '.#.###.#.', '..#####..'];
+  const LONGBONE = ['##.........##', '.###########.', '##.........##'];
+  const HW_GHOST = ['..www..', '.wwwww.', 'wwkwkww', 'wwwwwww', 'wwwwwww', 'wwwwwww', 'w.www.w'];
+
+  function haunt(set) {
+    const spots = [
+      [SKULL, 46, 12], [LONGBONE, 24, 40], [RIBS, 120, 30], [SKULL, 112, 46], [RIBS, 6, 52], [SKULL, 14, 66],
+      [LONGBONE, 140, 70], [LONGBONE, 40, 84], [SKULL, 130, 92], [RIBS, 40, 100], [LONGBONE, 104, 110], [SKULL, 50, 122],
+      [RIBS, 140, 140], [LONGBONE, 4, 150], [SKULL, 108, 160], [RIBS, 10, 180], [LONGBONE, 120, 190], [SKULL, 20, 205],
+      [RIBS, 112, 220], [LONGBONE, 30, 240], [SKULL, 136, 250], [RIBS, 36, 280], [LONGBONE, 138, 300], [SKULL, 56, 300],
+      [RIBS, 132, 330], [SKULL, 104, 350], [LONGBONE, 14, 360], [RIBS, 8, 390], [SKULL, 24, 410], [LONGBONE, 106, 420],
+      [RIBS, 110, 440], [SKULL, 128, 470], [LONGBONE, 44, 500], [LONGBONE, 126, 520],
+    ];
+    spots.forEach(([pattern, x, d]) => {
+      const bone = d > 250 ? '#b8ad94' : '#ddd3b8';
+      stamp(set, pattern, x, at(d), { '#': bone });
+    });
+  }
+
   function buildWorld() {
     const canvas = document.createElement('canvas');
     canvas.width = W;
@@ -371,6 +393,7 @@
     }
 
     decorate(set);
+    if (season === 'halloween') haunt(set);
     ctx.putImageData(img, 0, 0);
     return canvas;
   }
@@ -1067,6 +1090,23 @@
       }
     }
 
+    /** Halloween : des fantômes translucides survolent l'écran pendant que la foreuse creuse. */
+    drawGhosts(ctx, time) {
+      if (season !== 'halloween' || !this.drilling) return;
+      if (global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      ctx.save();
+      ctx.globalAlpha = 0.5;
+      for (let i = 0; i < 3; i++) {
+        const dir = i % 2 ? -1 : 1;
+        const span = W + 24;
+        const raw = (time * (7 + i * 2) + i * 53) % span;
+        const x = Math.round(dir > 0 ? raw - 12 : span - raw - 12);
+        const y = Math.round(10 + i * 24 + Math.sin(time * 1.6 + i * 2) * 5);
+        drawPattern(ctx, HW_GHOST, x, y, { w: '#e8e0ff', k: '#241437' });
+      }
+      ctx.restore();
+    }
+
     draw(time) {
       if (this.mode === 'overview') {
         this.drawOverview(time);
@@ -1163,6 +1203,7 @@
         }
       }
       ctx.restore();
+      this.drawGhosts(ctx, time);
 
       // Ambiance chaude dans les profondeurs.
       const heat = Math.max(0, Math.min(1, (this.depth - 220) / 380));
