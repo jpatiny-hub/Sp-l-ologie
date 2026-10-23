@@ -1,6 +1,14 @@
 {
   "2026-10-31": {
     "name": "Halloween",
-    "themes": []
+    "themes": [
+      "phobies",
+      "vampires-celebres",
+      "objets-sorcieres",
+      "choses-halloween",
+      "fantomes-celebres",
+      "chair-de-poule",
+      "croquemitaines-cinema"
+    ]
   }
 }
