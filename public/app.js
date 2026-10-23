@@ -2344,15 +2344,17 @@
             `${plural(r.players, 'joueur', 'joueurs')} · ${labels[r.status]}${r.inTheme ? ` · reconnue par le thème comme « ${r.inTheme} »` : ''}${r.credited ? ` · points accordés à ${r.credited}` : ''}`,
           ),
         );
+        // Réponse non reconnue : le responsable désigne la réponse visée (geste ponctuel, les règles ne changent pas).
+        // Une seule liste par signalement, partagée par « Accorder les points » et « Accepter ».
+        let pick = null;
+        if (!r.inTheme && ((r.reporters || []).some((p) => p.creditableDay) || r.status === 'pending')) {
+          pick = el('select', { 'aria-label': 'Réponse visée' }, el('option', { value: '' }, 'Réponse visée…'));
+          api(`/api/admin/theme-answers?themeId=${encodeURIComponent(r.themeId)}`)
+            .then(({ answers }) => answers.forEach((a) => pick.append(el('option', { value: a.key }, a.label))))
+            .catch(() => {});
+          item.append(pick);
+        }
         (r.reporters || []).filter((p) => p.creditableDay).forEach((p) => {
-          // Réponse non reconnue : le responsable désigne la réponse visée (geste ponctuel, les règles ne changent pas).
-          let pick = null;
-          if (!r.inTheme) {
-            pick = el('select', { 'aria-label': 'Réponse visée' }, el('option', { value: '' }, 'Réponse visée…'));
-            api(`/api/admin/theme-answers?themeId=${encodeURIComponent(r.themeId)}`)
-              .then(({ answers }) => answers.forEach((a) => pick.append(el('option', { value: a.key }, a.label))))
-              .catch(() => {});
-          }
           const give = el('button', { class: 'link', type: 'button' }, `Accorder les points à ${p.username} (${p.duel ? 'duel' : 'forage'} du ${longDay(p.creditableDay)})`);
           give.addEventListener('click', async () => {
             const answerKey = pick ? pick.value : undefined;
@@ -2370,7 +2372,6 @@
               showNotice(err.message);
             }
           });
-          if (pick) item.append(pick);
           item.append(give);
         });
         // Retour aux joueurs : verdict et message, visibles dans leur onglet « Mes signalements ».
@@ -2393,17 +2394,10 @@
         item.append(msg, el('span', {}, send('accepted', 'Envoyer : acceptée'), ' · ', send('refused', 'Envoyer : refusée')), status);
         // Un seul geste : points à tous les signalants (forages et duels), retour « acceptée » et signalement traité.
         if ((r.reporters || []).some((p) => p.creditableDay) || r.status === 'pending') {
-          let pickAll = null;
-          if (!r.inTheme) {
-            pickAll = el('select', { 'aria-label': 'Réponse visée pour tous' }, el('option', { value: '' }, 'Réponse visée…'));
-            api(`/api/admin/theme-answers?themeId=${encodeURIComponent(r.themeId)}`)
-              .then(({ answers }) => answers.forEach((a) => pickAll.append(el('option', { value: a.key }, a.label))))
-              .catch(() => {});
-          }
           const all = el('button', { class: 'link', type: 'button' }, 'Accepter : points à tous + retour + traité');
           all.addEventListener('click', async () => {
-            const answerKey = pickAll ? pickAll.value : undefined;
-            if (pickAll && !answerKey) return showNotice('Choisis d\'abord la réponse visée.');
+            const answerKey = pick ? pick.value : undefined;
+            if (pick && !answerKey) return showNotice('Choisis d\'abord la réponse visée.');
             if (!window.confirm(`Accepter « ${r.input} » : accorder les points à tous les signalants qui peuvent les recevoir (les duels concernés seront révisés) et envoyer le retour ?`)) return;
             try {
               const res = await api('/api/admin/reports/grant', { themeId: r.themeId, inputKey: r.inputKey, answerKey, message: msg.value });
@@ -2413,7 +2407,6 @@
               showNotice(err.message);
             }
           });
-          if (pickAll) item.append(pickAll);
           item.append(all);
         }
         if (r.status === 'pending') {
@@ -2437,6 +2430,29 @@
       renderReports();
     }),
   );
+
+  // Décisions en lot : aperçu d'abord, puis application.
+  async function runDecisions(dryRun) {
+    const out = $('decisions-result');
+    let decisions;
+    try {
+      decisions = JSON.parse($('decisions-text').value);
+    } catch {
+      return out.replaceChildren(el('li', {}, 'Le texte collé n\'est pas du JSON valide.'));
+    }
+    if (!dryRun && !window.confirm(`Appliquer ${plural(decisions.length, 'décision', 'décisions')} ? Les points seront accordés et les retours envoyés.`)) return;
+    try {
+      const { results } = await api('/api/admin/reports/decisions', { decisions, dryRun });
+      out.replaceChildren(
+        ...results.map((r) => el('li', { class: `report ${r.ok ? 'handled' : 'pending'}` }, el('strong', {}, `${r.ok ? '✓' : '✗'} « ${r.input} »`), el('span', { class: 'muted' }, ` ${r.themeId} — ${r.note}`))),
+      );
+      if (!dryRun) loadReports();
+    } catch (err) {
+      out.replaceChildren(el('li', {}, err.message));
+    }
+  }
+  $('btn-decisions-preview').addEventListener('click', () => runDecisions(true));
+  $('btn-decisions-apply').addEventListener('click', () => runDecisions(false));
 
   $('btn-copy-reports').addEventListener('click', async () => {
     const pending = (app.reports || []).filter((r) => r.status === 'pending');

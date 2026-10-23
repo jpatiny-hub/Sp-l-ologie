@@ -819,6 +819,56 @@ class GameService {
   }
 
   /**
+   * Décisions prises en lot sur des signalements : [{ themeId, input, verdict: 'accepter' | 'refuser', answer?, message? }].
+   * `answer` (nom d'une réponse du thème) n'est nécessaire que si le thème ne reconnaît pas encore la saisie.
+   * Avec `dryRun`, rien n'est modifié : on décrit seulement ce qui se passerait.
+   */
+  applyDecisions(decisions, dryRun = false) {
+    if (!Array.isArray(decisions) || !decisions.length) throw new HttpError(400, 'Aucune décision.');
+    if (decisions.length > 100) throw new HttpError(400, '100 décisions au plus à la fois.');
+    return decisions.map((d) => {
+      const item = { themeId: d && d.themeId, input: d && d.input, verdict: d && d.verdict };
+      try {
+        if (!d || typeof d.themeId !== 'string' || typeof d.input !== 'string') throw new HttpError(400, 'Décision incomplète.');
+        if (d.verdict !== 'accepter' && d.verdict !== 'refuser') throw new HttpError(400, 'Verdict : « accepter » ou « refuser ».');
+        const theme = this.themes.get(d.themeId);
+        if (!theme) throw new HttpError(404, 'Thème introuvable.');
+        const inputKey = toKey(d.input);
+        const reports = this.db
+          .prepare('SELECT a.rowid AS id, a.*, u.username FROM answer_reports a JOIN users u ON u.id = a.user_id WHERE a.theme_id = ? AND a.input_key = ?')
+          .all(d.themeId, inputKey);
+        if (!reports.length) throw new HttpError(404, 'Signalement introuvable.');
+        const message = typeof d.message === 'string' ? d.message.trim().slice(0, 600) : '';
+        if (d.verdict === 'refuser') {
+          if (!dryRun) {
+            this.replyToReport(d.themeId, inputKey, 'refused', message);
+            this.markReportHandled(d.themeId, inputKey);
+          }
+          return { ...item, ok: true, note: `refusée (${reports.length} signalement(s))` };
+        }
+        let answerKey;
+        const known = matchAnswer(theme, d.input);
+        let target = known && known.answer;
+        if (!target) {
+          target = typeof d.answer === 'string' ? theme.index.get(toKey(d.answer)) : null;
+          if (!target) throw new HttpError(409, 'Réponse du thème non reconnue : précise « answer » (nom d\'une réponse du thème) ou ajoute-la au thème.');
+          answerKey = target.key;
+        }
+        const credit = reports.filter((r) => r.credit !== 'credited');
+        const creditable = credit.filter((r) => this.creditTarget(r));
+        if (dryRun) {
+          return { ...item, ok: true, note: `acceptée comme « ${target.label} » : points à ${creditable.length} joueur(s) sur ${reports.length}` };
+        }
+        const res = this.grantReport(d.themeId, inputKey, answerKey, message);
+        return { ...item, ok: true, note: `acceptée comme « ${target.label} » : ${res.granted.length} joueur(s) crédité(s), ${res.skipped.length} sans manche à créditer` };
+      } catch (err) {
+        if (!(err instanceof HttpError)) throw err;
+        return { ...item, ok: false, note: err.message };
+      }
+    });
+  }
+
+  /**
    * Le responsable associe après coup une réponse du thème à la manche d'un joueur qui n'avait pas de réponse valide
    * (chrono écoulé, thème passé) ce jour-là. Les points suivent la rareté actuelle de la réponse.
    */

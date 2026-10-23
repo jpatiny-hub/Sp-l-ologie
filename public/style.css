@@ -1015,3 +1015,6 @@ canvas.avatar-head { width: 20px; height: auto; }
 .feed-text { display: flex; flex-direction: column; min-width: 0; }
 .feed-ago { font-size: calc(14px * var(--fs)); opacity: 0.7; }
 .feed-fold h2 { font-family: 'Press Start 2P', monospace; }
+
+.fold-inner { margin-top: 14px; }
+.fold-inner > summary { cursor: pointer; padding: 8px 0; text-decoration: underline; }

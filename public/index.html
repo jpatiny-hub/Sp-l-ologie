@@ -610,6 +610,16 @@
           <button class="btn secondary" id="btn-copy-reports" type="button">Copier les signalements à traiter</button>
           <p class="muted small" id="reports-status" role="status"></p>
           <ul class="report-list" id="report-list"></ul>
+          <details class="fold-inner" id="decisions-box">
+            <summary>Appliquer des décisions en lot</summary>
+            <p class="muted small">Colle ici le bloc de décisions (JSON). « Aperçu » ne change rien ; « Appliquer » accorde les points, envoie les retours et classe les signalements.</p>
+            <textarea id="decisions-text" rows="8" aria-label="Décisions en lot" placeholder='[{"themeId":"…","input":"…","verdict":"accepter","answer":"…","message":"…"}]'></textarea>
+            <div class="row">
+              <button class="btn secondary" id="btn-decisions-preview" type="button">Aperçu</button>
+              <button class="btn" id="btn-decisions-apply" type="button">Appliquer</button>
+            </div>
+            <ul class="report-list" id="decisions-result"></ul>
+          </details>
         </details>
         <details class="card fold" data-fold="tableau" id="admin-dashboard" hidden>
           <summary><span class="fold-t"><h2>Tableau de bord</h2><span class="sub">réservé au responsable du jeu</span></span><span class="pm" aria-hidden="true"></span></summary>

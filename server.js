@@ -556,6 +556,13 @@ function createApp({
       json(res, 200, game.grantReport(themeId, inputKey, typeof answerKey === 'string' ? answerKey : undefined, typeof message === 'string' ? message.trim().slice(0, 600) : ''));
     },
 
+    // Décisions en lot (acceptées / refusées) sur des signalements, avec aperçu.
+    'POST /api/admin/reports/decisions': async (req, res) => {
+      requireAdmin(req, res);
+      const { decisions, dryRun } = await readJson(req);
+      json(res, 200, { results: game.applyDecisions(decisions, dryRun !== false) });
+    },
+
     // Le responsable associe après coup une réponse à la manche d'un joueur (depuis le comparatif d'un jour).
     'POST /api/admin/assign': async (req, res) => {
       requireAdmin(req, res);
