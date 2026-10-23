@@ -1018,3 +1018,37 @@ canvas.avatar-head { width: 20px; height: auto; }
 
 .fold-inner { margin-top: 14px; }
 .fold-inner > summary { cursor: pointer; padding: 8px 0; text-decoration: underline; }
+/* Décor de saison : Halloween (interface sombre uniquement). */
+:root[data-season='halloween']:not([data-theme='clair']):not([data-lisible]) {
+  --bg: #140a1c;
+  --panel: #221230;
+  --panel-2: #331a47;
+  --ink: #f6eaff;
+  --muted: #b79fd0;
+  --accent: #ff8a1f;
+  --accent-dark: #b35a0a;
+  --line: #07030c;
+  --well: #0d0615;
+  --ok: #9be564;
+}
+:root[data-season='halloween'] .logo::before { content: ''; display: inline-block; width: 20px; height: 20px; margin-right: 8px; vertical-align: -3px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' shape-rendering='crispEdges'%3E%3Cpath fill='%234c7a34' d='M4 0h2v2H4z'/%3E%3Cpath fill='%23f07a1a' d='M1 2h8v7H1z'/%3E%3Cpath fill='%23c25410' d='M4 2h2v7H4z'/%3E%3Cpath fill='%232a1206' d='M2 4h2v1H2zM6 4h2v1H6zM3 6h4v1H3z'/%3E%3C/svg%3E") no-repeat center / contain; image-rendering: pixelated; }
+:root[data-season='halloween'] .logo::after { content: ''; display: inline-block; width: 24px; height: 14px; margin-left: 8px; vertical-align: -2px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 7' shape-rendering='crispEdges'%3E%3Cpath fill='%23b79fd0' d='M0 0h2v2H0zM10 0h2v2h-2zM2 2h2v2H2zM8 2h2v2H8zM4 3h4v3H4zM3 4h1v1H3zM8 4h1v1H8z'/%3E%3C/svg%3E") no-repeat center / contain; image-rendering: pixelated; }
+:root[data-season='halloween'] .card { box-shadow: 0 calc(-1 * var(--px)) 0 0 var(--line), 0 var(--px) 0 0 var(--line), calc(-1 * var(--px)) 0 0 0 var(--line), var(--px) 0 0 0 var(--line), inset 0 var(--px) 0 0 rgba(255, 138, 31, 0.12), inset 0 calc(-1 * var(--px)) 0 0 rgba(0, 0, 0, 0.35); }
+.check { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+
+/* Décor de saison : Toussaint (interface sombre uniquement) : gris-bleu du crépuscule, lueur de bougie. */
+:root[data-season='toussaint']:not([data-theme='clair']):not([data-lisible]) {
+  --bg: #12161d;
+  --panel: #1d232d;
+  --panel-2: #2a3240;
+  --ink: #eef1f6;
+  --muted: #a1adbd;
+  --accent: #ffd277;
+  --accent-dark: #b58a2b;
+  --line: #07090d;
+  --well: #0c0f14;
+  --ok: #bfe3a0;
+}
+:root[data-season='toussaint'] .logo::before { content: ''; display: inline-block; width: 14px; height: 24px; margin-right: 8px; vertical-align: -5px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 12' shape-rendering='crispEdges'%3E%3Cpath fill='%23ff9a2a' d='M3 0h1v1H3z'/%3E%3Cpath fill='%23ffd84a' d='M3 1h1v2H3zM2 2h1v1H2zM4 2h1v1H4z'/%3E%3Cpath fill='%23f4efe0' d='M2 4h3v8H2z'/%3E%3Cpath fill='%23d8d0b8' d='M4 4h1v8H4z'/%3E%3C/svg%3E") no-repeat center / contain; image-rendering: pixelated; }
+:root[data-season='toussaint'] .logo::after { content: ''; display: inline-block; width: 20px; height: 20px; margin-left: 8px; vertical-align: -3px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 9 9' shape-rendering='crispEdges'%3E%3Cpath fill='%23ffffff' d='M3 0h3v1H3zM1 1h2v1H1zM6 1h2v1H6zM0 3h1v3H0zM8 3h1v3H8zM1 7h2v1H1zM6 7h2v1H6zM3 8h3v1H3z'/%3E%3Cpath fill='%23f2c230' d='M3 2h3v5H3zM2 3h5v3H2z'/%3E%3C/svg%3E") no-repeat center / contain; image-rendering: pixelated; }
+:root[data-season='toussaint'] .card { box-shadow: 0 calc(-1 * var(--px)) 0 0 var(--line), 0 var(--px) 0 0 var(--line), calc(-1 * var(--px)) 0 0 0 var(--line), var(--px) 0 0 0 var(--line), inset 0 var(--px) 0 0 rgba(255, 210, 119, 0.10), inset 0 calc(-1 * var(--px)) 0 0 rgba(0, 0, 0, 0.35); }

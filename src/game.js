@@ -6,6 +6,8 @@ const { dayKey, addDays, weekStart, monthStart, addMonths, monthEnd } = require(
 const { transaction } = require('./db');
 const { HttpError } = require('./errors');
 const { DuelService } = require('./duels');
+const { loadSpecialDays } = require('./specialdays');
+const config = require('./config');
 const { matchAnswer, toKey } = require('./matching');
 const { scoreAnswer, probabilities, pointsFor, tierFor } = require('./scoring');
 const { BadgeService } = require('./badges');
@@ -27,7 +29,8 @@ function shuffle(list) {
 }
 
 class GameService {
-  constructor(db, themes, now = Date.now) {
+  constructor(db, themes, now = Date.now, specialDays = loadSpecialDays(config.SPECIAL_DAYS_FILE, themes)) {
+    this.specialDays = specialDays;
     this.db = db;
     this.themes = themes;
     this.now = now;
@@ -48,6 +51,16 @@ class GameService {
   dailyThemes(day) {
     const rows = this.db.prepare('SELECT theme_id FROM daily_themes WHERE day = ? ORDER BY slot').all(day);
     if (rows.length === ROUNDS_PER_GAME) return rows.map((r) => r.theme_id);
+    // Jour spécial (Halloween…) : les thèmes sont imposés.
+    const special = this.specialDays.get(day);
+    if (special) {
+      transaction(this.db, () => {
+        this.db.prepare('DELETE FROM daily_themes WHERE day = ?').run(day);
+        const insert = this.db.prepare('INSERT INTO daily_themes (day, slot, theme_id) VALUES (?, ?, ?)');
+        special.themes.forEach((id, slot) => insert.run(day, slot, id));
+      });
+      return special.themes.slice();
+    }
 
     const lastUsed = new Map(
       this.db

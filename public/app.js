@@ -53,12 +53,28 @@
     }
   }
 
+  /** Décor de saison (Halloween…) : interface et scène de forage, sauf en lecture facile et en thème clair. */
+  function applySeason() {
+    const id = app.me && app.me.season && settings.season !== false ? app.me.season : null;
+    const plain = settings.lisible || settings.theme === 'clair';
+    const root = document.documentElement;
+    if (id && !plain) root.dataset.season = id;
+    else delete root.dataset.season;
+    const wanted = id && !plain ? id : null;
+    if ((Pixel.currentSeason || null) !== wanted) {
+      Pixel.currentSeason = wanted;
+      Pixel.setSeason(wanted);
+      if (typeof scene !== 'undefined') scene.rebuild();
+    }
+  }
+
   function applySettings() {
     const root = document.documentElement;
     if (settings.text === 'normal') delete root.dataset.text;
     else root.dataset.text = settings.text;
     Sound.configure({ enabled: settings.sound, volume: settings.volume / 100 });
     Pixel.setColorblind(settings.colors);
+    applySeason();
     root.classList.toggle('colorblind', settings.colors !== 'normal');
     if (settings.colors === 'normal') delete root.dataset.colors;
     else root.dataset.colors = settings.colors;
@@ -116,6 +132,7 @@
     settingsForm.elements.colors.value = settings.colors;
     settingsForm.elements.theme.value = settings.theme;
     settingsForm.elements.lisible.checked = settings.lisible;
+    settingsForm.elements.season.checked = settings.season !== false;
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
     renderInstall();
     $('settings').showModal();
@@ -128,6 +145,7 @@
     settings.colors = settingsForm.elements.colors.value || 'normal';
     settings.theme = settingsForm.elements.theme.value || 'sombre';
     settings.lisible = settingsForm.elements.lisible.checked;
+    settings.season = settingsForm.elements.season.checked;
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
     applySettings();
     saveSettings();
@@ -392,6 +410,7 @@
     }
     app.me = me;
     app.meLoadedAt = Date.now();
+    applySeason();
     app.game = null;
     app.skin = me.skin;
     scene.setSkin(me.skin);
