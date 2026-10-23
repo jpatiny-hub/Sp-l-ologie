@@ -149,6 +149,47 @@
   </div>
   <p class="notice" id="notice" role="alert" hidden></p>
 
+  <button class="drawer-tab" id="drawer-tab" type="button" aria-haspopup="dialog" aria-controls="drawer" hidden><span>Plus</span><span class="tab-dot" id="drawer-dot" hidden></span></button>
+  <dialog class="drawer" id="drawer" aria-label="Plus">
+    <div class="drawer-frame">
+      <div class="drawer-head">
+        <h2>Plus</h2>
+        <button class="icon-btn" id="btn-drawer-close" type="button" aria-label="Fermer"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h2v2H1zM3 3h2v2H3zM5 5h2v2H5zM7 7h2v2H7zM9 9h2v2H9zM9 1h2v2H9zM7 3h2v2H7zM3 7h2v2H3zM1 9h2v2H1z"/></svg></button>
+      </div>
+      <div class="drawer-body">
+        <div class="card museum-card">
+          <h2>Musée des pépites</h2>
+          <p class="muted small" id="museum-note">Toutes les réponses que personne n'avait trouvées avant.</p>
+          <button class="btn secondary" id="btn-museum" type="button">Visiter le musée</button>
+        </div>
+        <details class="card fold feed-fold" id="feed-fold">
+          <summary><span class="fold-t"><h2>Le Petit Mineur</h2><span class="sub">les dernières nouvelles de la mine</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <ul class="feed-list" id="feed-list"></ul>
+          <button class="btn secondary" id="btn-feed-more" type="button" hidden>Plus de nouvelles</button>
+        </details>
+        <div class="card admin-home" id="admin-home" hidden>
+          <h2>Contre maître</h2>
+          <p class="muted small" id="admin-home-note">Réservé au responsable du jeu : signalements, thèmes proposés, tableau de bord.</p>
+          <button class="btn secondary" id="btn-admin" type="button">Ouvrir</button>
+        </div>
+        <details class="card rules">
+          <summary>Règles du jeu</summary>
+          <ul>
+            <li>Chaque jour, <strong>7 thèmes</strong>, les mêmes pour tout le monde.</li>
+            <li>Pour chaque thème, tu as <strong><span class="timer-seconds">30</span> secondes</strong> pour donner une réponse qui y correspond.</li>
+            <li>Plus ta réponse est <strong>improbable</strong>, plus tu marques : de 10 points (gravier) à 90 (rubis).</li>
+            <li>Une réponse rare que <strong>personne n'avait encore trouvée</strong> est une pépite : 100 points.</li>
+            <li>Les petites fautes d'orthographe sont tolérées : si ta saisie ressemble à une réponse connue, le jeu te la propose et c'est toi qui valides. Si ta réponse n'est pas reconnue, tu peux réessayer tant que le chrono tourne.</li>
+            <li>Un <strong>étai de galerie</strong> sauve ta série si tu rates un jour. Tu en gagnes un tous les 7 jours forés d'affilée (3 au maximum).</li>
+            <li>Chaque point fait creuser ta foreuse. <strong>600 points = le centre de la Terre.</strong></li>
+            <li>Les podiums additionnent tes forages du jour, de la semaine (lundi → dimanche) ou du mois.</li>
+          </ul>
+        </details>
+        <button class="btn secondary" data-invite type="button">Inviter des amis</button>
+      </div>
+    </div>
+  </dialog>
+
   <main class="layout">
     <section class="stage" id="stage">
       <div class="stage-frame">
@@ -247,11 +288,11 @@
             </button>
           </div>
           <p class="muted small" id="streak-note"></p>
-          <div class="next-badges" id="next-badges" hidden>
-            <p class="small next-title">Prochains badges</p>
+          <details class="next-badges" id="next-badges" hidden>
+            <summary class="small next-title">Prochains badges</summary>
             <ul id="next-badges-list"></ul>
-          </div>
-          <button class="btn secondary" id="btn-carnet" type="button">Profil</button>
+          </details>
+          <button class="btn secondary small-btn" id="btn-carnet" type="button">Profil</button>
         </div>
         <div class="card play-card">
           <h2>Jouer</h2>
@@ -276,8 +317,8 @@
             <button class="btn" id="btn-training" type="button">S'entraîner</button>
           </div>
         </div>
-        <div class="card challenge" id="challenge-card" hidden>
-          <h2>Défis</h2>
+        <details class="card challenge fold" id="challenge-card" data-fold="defis" hidden>
+          <summary><span class="fold-t"><h2>Défis</h2><span class="sub" id="challenge-sub"></span><span class="mini-bar" aria-hidden="true"><span class="mini-fill" id="challenge-mini"></span></span></span><span class="pm" aria-hidden="true"></span></summary>
           <div class="mini-tabs" id="challenge-tabs" role="tablist">
             <button class="tab active" type="button" role="tab" data-challenge="week" aria-selected="true">Semaine</button>
             <button class="tab" type="button" role="tab" data-challenge="month" aria-selected="false" id="challenge-tab-month" hidden>Mois</button>
@@ -295,7 +336,7 @@
             <ul class="collective-legend" id="collective-legend"></ul>
             <p class="muted small" id="collective-note"></p>
           </div>
-        </div>
+        </details>
         <div class="card podium-card">
           <h2>Podium</h2>
           <div class="mini-tabs" id="home-podium-tabs" role="tablist">
@@ -307,34 +348,6 @@
           <p class="muted small" id="mini-podium-me"></p>
           <button class="btn secondary" id="btn-podium" type="button">Voir le classement</button>
         </div>
-        <div class="card museum-card">
-          <h2>Musée des pépites</h2>
-          <p class="muted small" id="museum-note">Toutes les réponses que personne n'avait trouvées avant.</p>
-          <button class="btn secondary" id="btn-museum" type="button">Visiter le musée</button>
-        </div>
-        <details class="card fold feed-fold" id="feed-fold">
-          <summary><span class="fold-t"><h2>Le Petit Mineur</h2><span class="sub">les dernières nouvelles de la mine</span></span><span class="pm" aria-hidden="true"></span></summary>
-          <ul class="feed-list" id="feed-list"></ul>
-          <button class="btn secondary" id="btn-feed-more" type="button" hidden>Plus de nouvelles</button>
-        </details>
-        <div class="card admin-home" id="admin-home" hidden>
-          <h2>Contre maître</h2>
-          <p class="muted small" id="admin-home-note">Réservé au responsable du jeu : signalements, thèmes proposés, tableau de bord.</p>
-          <button class="btn secondary" id="btn-admin" type="button">Ouvrir</button>
-        </div>
-        <details class="card rules">
-          <summary>Règles du jeu</summary>
-          <ul>
-            <li>Chaque jour, <strong>7 thèmes</strong>, les mêmes pour tout le monde.</li>
-            <li>Pour chaque thème, tu as <strong><span class="timer-seconds">30</span> secondes</strong> pour donner une réponse qui y correspond.</li>
-            <li>Plus ta réponse est <strong>improbable</strong>, plus tu marques : de 10 points (gravier) à 90 (rubis).</li>
-            <li>Une réponse rare que <strong>personne n'avait encore trouvée</strong> est une pépite : 100 points.</li>
-            <li>Les petites fautes d'orthographe sont tolérées : si ta saisie ressemble à une réponse connue, le jeu te la propose et c'est toi qui valides. Si ta réponse n'est pas reconnue, tu peux réessayer tant que le chrono tourne.</li>
-            <li>Un <strong>étai de galerie</strong> sauve ta série si tu rates un jour. Tu en gagnes un tous les 7 jours forés d'affilée (3 au maximum).</li>
-            <li>Chaque point fait creuser ta foreuse. <strong>600 points = le centre de la Terre.</strong></li>
-            <li>Les podiums additionnent tes forages du jour, de la semaine (lundi → dimanche) ou du mois.</li>
-          </ul>
-        </details>
       </div>
 
       <!-- Récap du lundi -->
