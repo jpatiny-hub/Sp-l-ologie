@@ -307,6 +307,7 @@ function createApp({
         duels: game.duels.summary(user.id),
         announcements: announcements.unseen(user.id),
         season: seasonFor(game.today(), seasons),
+        skullDay: game.skulls.isSkullDay(game.today()),
         nextResetMs: msUntilNextDay(now()),
         timerSeconds: config.TIMER_SECONDS,
       });
@@ -315,7 +316,7 @@ function createApp({
     // Carnet du joueur : badges, statistiques et apparences de la foreuse.
     'GET /api/profile': async (req, res) => {
       const user = requireUser(req, res);
-      json(res, 200, { ...game.badges.profile(user.id, game.today()), playerStats: game.playerStats(user.id) });
+      json(res, 200, { ...game.badges.profile(user.id, game.today()), playerStats: game.playerStats(user.id), skulls: { ...game.skulls.collection(user.id), active: game.skulls.isSkullDay(game.today()) } });
     },
 
     // Bilan d'un mois (AAAA-MM, le mois courant par défaut).

@@ -71,6 +71,8 @@
       if (typeof scene !== 'undefined') scene.rebuild();
     }
     hauntSync();
+    Pixel.setSkullMode(!!(app.me && app.me.skullDay));
+    $('skull-banner').hidden = !(app.me && app.me.skullDay);
   }
 
   function applySettings() {
@@ -2316,6 +2318,26 @@
     renderCharts(profile.playerStats.charts, st.bestScore);
     renderBadgeSections();
     renderWorkshop();
+    renderSkulls(profile.skulls);
+  }
+
+  /** Collection de crânes (jours de collection) : un compteur par qualité, et les récompenses à atteindre. */
+  function renderSkulls(sk) {
+    const fold = $('fold-cranes');
+    fold.hidden = !sk || (!sk.total && !sk.active);
+    if (fold.hidden) return;
+    const order = ['evident', 'courant', 'original', 'rare', 'pepite'];
+    $('skull-grid').replaceChildren(
+      ...order.map((tier) => {
+        const icon = el('canvas', { class: `skull-icon${sk.counts[tier] ? '' : ' none'}`, width: '8', height: '7', 'aria-hidden': 'true' });
+        sprite(icon.getContext('2d'), HW_SKULL, { '#': Pixel.TIER_COLORS[tier] || '#888' }, 0, 0);
+        return el('div', { class: 'skull-cell' }, icon, el('strong', {}, String(sk.counts[tier])), el('span', { class: 'muted small' }, sk.labels[tier]));
+      }),
+    );
+    $('skulls-sub').textContent = `${plural(sk.total, 'crâne', 'crânes')} au total`;
+    $('skull-note').textContent = sk.complete
+      ? "Les cinq qualités sont réunies : l'apparence « Jack-o'-lantern » est à toi."
+      : `${Math.min(sk.total, sk.target)} / ${sk.target} crânes pour le badge « Collectionneur de crânes » · réunis les cinq qualités pour l'apparence « Jack-o'-lantern ».`;
   }
 
   // Recherche et filtre des badges du carnet.

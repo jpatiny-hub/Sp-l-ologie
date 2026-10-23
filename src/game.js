@@ -6,6 +6,7 @@ const { dayKey, addDays, weekStart, monthStart, addMonths, monthEnd } = require(
 const { transaction } = require('./db');
 const { HttpError } = require('./errors');
 const { DuelService } = require('./duels');
+const { SkullService } = require('./skulls');
 const { loadSpecialDays } = require('./specialdays');
 const config = require('./config');
 const { matchAnswer, toKey } = require('./matching');
@@ -37,6 +38,7 @@ class GameService {
     this.timerMs = TIMER_SECONDS * 1000;
     this.badges = new BadgeService(db, now);
     this.duels = new DuelService(this);
+    this.skulls = new SkullService(db, this);
   }
 
   today() {
@@ -193,6 +195,10 @@ class GameService {
       if (game.mode === 'training' && !game.no_timer) this.recordTraining(game, round, { outcome, points, answer }, remaining === 0);
       return remaining === 0;
     });
+    if (answer && outcome === 'answer' && this.skulls.isSkullDay(game.day)) {
+      this.skulls.record(game, round.slot, points);
+      if (game.mode !== 'duel') this.skulls.award(game.user_id, game.day);
+    }
     if (finished) {
       this.badges.awardForGame(game.id);
       if (game.mode === 'duel') this.duels.afterGame(game);
@@ -521,7 +527,7 @@ class GameService {
       points: done ? round.points : null,
       outcome: done ? round.outcome : null,
       probability: done ? round.probability : null,
-      tier: done ? tierFor(round.points, round.outcome) : null,
+      tier: done ? this.skulls.relabel(tierFor(round.points, round.outcome), game && game.day) : null,
       othersCount: done && game && round.answer_key ? this.othersCount(game, round) : null,
     };
   }
@@ -737,6 +743,11 @@ class GameService {
         )
         .run(theme.id, match.answer.key);
     });
+    const creditedGame = this.db.prepare('SELECT * FROM games WHERE id = ?').get(gameId);
+    if (creditedGame && this.skulls.isSkullDay(creditedGame.day)) {
+      this.skulls.record(creditedGame, slot, score.points);
+      if (creditedGame.mode !== 'duel') this.skulls.award(creditedGame.user_id, creditedGame.day);
+    }
     this.badges.awardForGame(gameId);
     // Partie de duel : si le duel est terminé, son résultat est revu avec les nouveaux points.
     this.duels.revise(gameId);

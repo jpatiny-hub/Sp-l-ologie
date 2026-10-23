@@ -77,6 +77,7 @@
     drapeau: ['.k..........', '.kNNNyyyrrr.', '.kNNNyyyrrr.', '.kNNNyyyrrr.', '.kNNNyyyrrr.', '.kNNNyyyrrr.', '.k..........', '.k..........', '.k..........', '.k..........', 'kkk.........', '............'],
     taupe: ['............', '............', '...mmmmm....', '..mmmmmmm...', '.mmkmmmmmm..', '.mmmmmmmmmpp', '.mmmmmmmmmpp', '..mmmmmmmm..', '..w.w..w.w..', '............', '............', '............'],
     citrouille: ['......G.....', '.....GG.....', '..kkkkkkkk..', '.kooOooOook.', '.kyyooooyyok', '.koyooooyook', '.koooooooook', '.koyyyyyyyok', '.kooyoyoyook', '..kkkkkkkk..', '............', '............'],
+    crane: ['............', '...kkkkkk...', '..kwwwwwwk..', '.kwwwwwwwwk.', '.kwkkwwkkwk.', '.kwkkwwkkwk.', '.kwwwwwwwwk.', '..kwwkkwwk..', '..kwkwkwwk..', '...kkkkkk...', '............', '............'],
     fantome: ['...kkkkkk...', '..kwwwwwwk..', '.kwwwwwwwwk.', '.kwkkwwkkwk.', '.kwkkwwkkwk.', '.kwwwwwwwwk.', '.kwwwkkwwwk.', '.kwwwwwwwwk.', '.kwwwwwwwwk.', '.kwkwkwkwkk.', '.k.k.k.k.k..', '............'],
     coquelicot: ['............', '...rr..rr...', '..rrrrrrrr..', '..rrrkkrrr..', '..rrkkkkrr..', '..rrrkkrrr..', '...rrrrrr...', '.....g......', '.....g..g...', '.....g.gg...', '.....gg.....', '.....g......'],
     casque: ['............', '....kkkk....', '...kyyyyk...', '..kyywwyyk..', '..kyyWWyyk..', '.kyyyyyyyyk.', 'kkkkkkkkkkkk', 'kYYYYYYYYYYk', '.kkkkkkkkkk.', '............', '............', '............'],

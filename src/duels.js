@@ -128,6 +128,7 @@ class DuelService {
     const today = this.game.today();
     this.game.badges.awardDuels(d.challenger_id, today);
     this.game.badges.awardDuels(d.opponent_id, today);
+    [d.challenger_id, d.opponent_id].forEach((id) => this.game.skulls.award(id, today));
   }
 
   /**
@@ -164,6 +165,7 @@ class DuelService {
     const today = this.game.today();
     this.game.badges.awardDuels(d.challenger_id, today);
     this.game.badges.awardDuels(d.opponent_id, today);
+    [d.challenger_id, d.opponent_id].forEach((id) => this.game.skulls.award(id, today));
   }
 
   /** Phrase pour le joueur dont le signalement a révisé un duel (ou null si la partie n'est pas un duel révisé). */

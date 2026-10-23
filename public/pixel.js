@@ -202,6 +202,13 @@
     season = id || null;
   }
 
+  // Jours de collection : les repères de fin de thème sont des crânes de la couleur de la rareté.
+  let skullMode = false;
+  function setSkullMode(on) {
+    skullMode = !!on;
+  }
+  const SKULL5 = ['.###.', '#####', '#.#.#', '.###.', '.#.#.'];
+
   function skyColor(x, y) {
     const bands = season === 'halloween'
       ? ['#0f0820', '#170d33', '#22123f', '#34174d', '#5a2a5a', '#a0442e']
@@ -655,6 +662,23 @@
     '...kssssssssk...',
     '...kkkkkkkkkk...',
   ];
+  // Jack-o'-lantern : citrouille creusée dont le visage brille de la bougie posée à l'intérieur.
+  const JACK = [
+    '.......f........',
+    '......fnn.......',
+    '...kkknnkkkkk...',
+    '..kyydyyyydyyk..',
+    '.kyyyydyydyyyyk.',
+    '.kyeeyyyyyyeeyk.',
+    '.kyeeeyyyyeeeyk.',
+    '.kyyyyyyyyyyyyk.',
+    '.kyeyeeeeeeyeyk.',
+    '.kyyeyeyyeyeyyk.',
+    '.kyyyeeeeeeyyyk.',
+    '..kkkkkkkkkkkk..',
+    '...kssssssssk...',
+    '...kkkkkkkkkk...',
+  ];
   const GHOST = [
     '................',
     '.....kkkkkk.....',
@@ -721,6 +745,7 @@
     tricolore: { overlay: { dx: 2, dy: 3, rows: TRICOLORE, pal: { n: '#1b1b1f', j: '#f6d32d', r: '#e22b2b' } } },
     taupe: { pal: { y: '#5a4e4e', d: '#3b3333' }, overlay: { dx: 11, dy: 4, rows: ['k...', '....', '..pp', '..pp'], pal: { k: '#000000', p: '#f0a3a3' } } },
     citrouille: { rows: PUMPKIN, pal: { y: '#f07a1a', d: '#c25410', e: '#ffe14d', n: '#4c7a34', h: '#b3121b', k: '#2a1206' } },
+    'jack-o-lantern': { rows: JACK, pal: { y: '#f58a1f', d: '#c25410', e: '#ffe14d', n: '#4c7a34', f: '#ff5a1f', k: '#2a1206' }, sparkle: '#ffe14d' },
     spectre: { rows: GHOST, pal: { y: '#e8eef5', k: '#3b4252' }, alpha: 0.85 },
     casque: {
       pal: { y: '#3b5ea8', d: '#26407a' },
@@ -1172,7 +1197,8 @@
         ctx.fillStyle = '#000';
         ctx.fillRect(fx - 1, y - 4, 7, 7);
         ctx.fillStyle = TIER_COLORS[layer.tier] || '#888';
-        ctx.fillRect(fx, y - 3, 5, 5);
+        if (skullMode) drawPattern(ctx, SKULL5.map((row) => row.replace(/#/g, 'c')), fx, y - 3, { c: TIER_COLORS[layer.tier] || '#888' });
+        else ctx.fillRect(fx, y - 3, 5, 5);
         if (colorblind && TIER_GLYPHS[layer.tier]) drawPattern(ctx, TIER_GLYPHS[layer.tier], fx, y - 3, { '#': '#000' });
         drawDigit(ctx, i + 1, SHAFT_X + SHAFT_W + 4 + stagger * 5, y - 3, '#fff');
       });
@@ -1215,6 +1241,6 @@
   }
 
   global.Pixel = {
-    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, formatRemaining, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, setSeason, drawDrill, WIDTH: W, HEIGHT: H,
+    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, formatRemaining, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, setSeason, setSkullMode, drawDrill, WIDTH: W, HEIGHT: H,
   };
 })(window);
