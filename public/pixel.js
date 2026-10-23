@@ -196,8 +196,18 @@
     }
   }
 
+  // Décor de saison (« halloween » : nuit violette, pleine lune, chauves-souris, citrouilles ; « toussaint » : crépuscule gris-bleu, nuages, bougies et chrysanthèmes) ; null = décor habituel.
+  let season = null;
+  function setSeason(id) {
+    season = id || null;
+  }
+
   function skyColor(x, y) {
-    const bands = ['#4f9fd3', '#5eaedb', '#70bde2', '#86cbe8', '#a0d8ee', '#bfe6f3'];
+    const bands = season === 'halloween'
+      ? ['#0f0820', '#170d33', '#22123f', '#34174d', '#5a2a5a', '#a0442e']
+      : season === 'toussaint'
+        ? ['#262e3c', '#303a4c', '#3c485c', '#4d5c71', '#6a7a8d', '#97a2b0']
+        : ['#4f9fd3', '#5eaedb', '#70bde2', '#86cbe8', '#a0d8ee', '#bfe6f3'];
     const h = (SKY - 6) / bands.length;
     const b = Math.min(bands.length - 1, Math.floor(y / h));
     const within = y - b * h;
@@ -230,6 +240,28 @@
     });
   }
 
+
+  // Halloween : crânes, côtes et os longs enfouis à toutes les profondeurs, à l'écart du puits.
+  const SKULL = ['.######.', '########', '#..##..#', '#..##..#', '########', '.#.##.#.', '..####..'];
+  const RIBS = ['#.#####.#', '.#.###.#.', '#.#####.#', '.#.###.#.', '..#####..'];
+  const LONGBONE = ['##.........##', '.###########.', '##.........##'];
+  const HW_GHOST = ['..www..', '.wwwww.', 'wwkwkww', 'wwwwwww', 'wwwwwww', 'wwwwwww', 'w.www.w'];
+
+  function haunt(set) {
+    const spots = [
+      [SKULL, 46, 12], [LONGBONE, 24, 40], [RIBS, 120, 30], [SKULL, 112, 46], [RIBS, 6, 52], [SKULL, 14, 66],
+      [LONGBONE, 140, 70], [LONGBONE, 40, 84], [SKULL, 130, 92], [RIBS, 40, 100], [LONGBONE, 104, 110], [SKULL, 50, 122],
+      [RIBS, 140, 140], [LONGBONE, 4, 150], [SKULL, 108, 160], [RIBS, 10, 180], [LONGBONE, 120, 190], [SKULL, 20, 205],
+      [RIBS, 112, 220], [LONGBONE, 30, 240], [SKULL, 136, 250], [RIBS, 36, 280], [LONGBONE, 138, 300], [SKULL, 56, 300],
+      [RIBS, 132, 330], [SKULL, 104, 350], [LONGBONE, 14, 360], [RIBS, 8, 390], [SKULL, 24, 410], [LONGBONE, 106, 420],
+      [RIBS, 110, 440], [SKULL, 128, 470], [LONGBONE, 44, 500], [LONGBONE, 126, 520],
+    ];
+    spots.forEach(([pattern, x, d]) => {
+      const bone = d > 250 ? '#b8ad94' : '#ddd3b8';
+      stamp(set, pattern, x, at(d), { '#': bone });
+    });
+  }
+
   function buildWorld() {
     const canvas = document.createElement('canvas');
     canvas.width = W;
@@ -256,6 +288,32 @@
       }
     }
 
+    if (season === 'halloween') {
+      // Étoiles, pleine lune et chauves-souris à la place du soleil et des nuages.
+      for (let i = 0; i < 26; i++) set(Math.floor(hash(i, 5, 71) * W), Math.floor(hash(i, 9, 72) * (SKY - 24)), hash(i, 3, 73) > 0.5 ? '#ffffff' : '#9a86c4');
+      for (let y = -7; y <= 7; y++) for (let x = -7; x <= 7; x++) if (x * x + y * y <= 40) set(W - 26 + x, 16 + y, '#ffeeb0');
+      [[-3, -2, 1], [2, 1, 1], [-1, 3, 1], [3, -3, 1]].forEach(([dx, dy]) => set(W - 26 + dx, 16 + dy, '#e8cf86'));
+      const bat = (bx, by) => {
+        ['#05030a'].forEach((col) => {
+          set(bx, by, col); set(bx + 1, by, col); set(bx + 2, by, col);
+          set(bx - 2, by - 1, col); set(bx - 1, by, col); set(bx + 3, by, col); set(bx + 4, by - 1, col);
+          set(bx - 3, by - 2, col); set(bx + 5, by - 2, col);
+          set(bx, by - 1, col); set(bx + 2, by - 1, col);
+        });
+      };
+      [[22, 34], [58, 30], [102, 22], [82, 40]].forEach(([bx, by]) => bat(bx, by));
+    } else if (season === 'toussaint') {
+      // Soleil voilé et gros nuages gris.
+      for (let y = -6; y <= 6; y++) for (let x = -6; x <= 6; x++) if (x * x + y * y <= 30) set(W - 26 + x, 16 + y, '#b9c2cf');
+      [[10, 12, 34], [70, 8, 40], [118, 20, 30], [38, 28, 26]].forEach(([cx, cy, w]) => {
+        for (let x = 0; x < w; x++) {
+          set(cx + x, cy, '#7d8999');
+          set(cx + x, cy + 1, '#6a7686');
+          if (x > 3 && x < w - 3) set(cx + x, cy - 1, '#8a96a6');
+          if (x > 7 && x < w - 6) set(cx + x, cy - 2, '#97a2b0');
+        }
+      });
+    } else {
     // Soleil et nuages.
     for (let y = -6; y <= 6; y++) for (let x = -6; x <= 6; x++) if (x * x + y * y <= 30) set(W - 26 + x, 14 + y, '#ffe27a');
     [[18, 10, 18], [92, 18, 14]].forEach(([cx, cy, w]) => {
@@ -266,6 +324,7 @@
         if (x > 6 && x < w - 5) set(cx + x, cy - 2, '#ffffff');
       }
     });
+    }
 
     // Terril à gauche (clin d'œil aux anciens charbonnages wallons).
     for (let y = 0; y < 24; y++) {
@@ -302,12 +361,39 @@
 
     // Herbe.
     for (let x = 0; x < W; x++) {
-      set(x, SKY - 1, '#5fa83a');
-      set(x, SKY, '#4b8c2c');
-      if (hash(x, 1, 9) > 0.65) set(x, SKY - 2, '#6dbb45');
+      set(x, SKY - 1, season === 'halloween' ? '#3d6b2a' : season === 'toussaint' ? '#566b3c' : '#5fa83a');
+      set(x, SKY, season === 'halloween' ? '#2f5a20' : season === 'toussaint' ? '#465a30' : '#4b8c2c');
+      if (hash(x, 1, 9) > 0.65) set(x, SKY - 2, season === 'halloween' ? '#4a7d32' : season === 'toussaint' ? '#62784a' : '#6dbb45');
+    }
+    if (season === 'toussaint') {
+      // Chrysanthèmes (blanc, jaune, rouille, pourpre) et bougies allumées le long du sol.
+      [[100, '#ffffff'], [110, '#f2c230'], [121, '#e8742a'], [132, '#b0306e'], [143, '#ffffff'], [60, '#f2c230'], [72, '#ffffff'], [14, '#e8742a'], [48, '#b0306e']].forEach(([fx, col], i) => {
+        const w = 5 + (i % 2);
+        for (let y = 0; y < 4; y++) for (let x = 0; x < w; x++) if (!((y === 0 || y === 3) && (x === 0 || x === w - 1))) set(fx + x, SKY - 5 + y, hash(fx + x, y, 51) > 0.8 ? '#fff7d6' : col);
+        set(fx + 2, SKY - 2, '#3f5a2c');
+      });
+      [[90, 3], [118, 4], [150, 3], [30, 3], [84, 4]].forEach(([cx0, h]) => {
+        for (let y = 0; y < h; y++) set(cx0, SKY - 1 - y, '#f4efe0');
+        set(cx0, SKY - 2 - h, '#ffd84a');
+        set(cx0, SKY - 3 - h, '#ff9a2a');
+        set(cx0 - 1, SKY - 2 - h, '#7a5d1f');
+        set(cx0 + 1, SKY - 2 - h, '#7a5d1f');
+      });
+    }
+    if (season === 'halloween') {
+      // Citrouilles devant les maisons et au pied du chevalement.
+      [[106, 4], [128, 5], [66, 4], [150, 4]].forEach(([px0, w]) => {
+        for (let y = 0; y < 4; y++) for (let x = 0; x < w; x++) set(px0 + x, SKY - 5 + y, y === 0 && x > 0 && x < w - 1 ? '#c25410' : '#f07a1a');
+        set(px0 + Math.floor(w / 2), SKY - 6, '#4c7a34');
+        set(px0 + 1, SKY - 4, '#2a1206');
+        set(px0 + w - 2, SKY - 4, '#2a1206');
+        set(px0 + 1, SKY - 2, '#2a1206');
+        set(px0 + w - 2, SKY - 2, '#2a1206');
+      });
     }
 
     decorate(set);
+    if (season === 'halloween') haunt(set);
     ctx.putImageData(img, 0, 0);
     return canvas;
   }
@@ -773,6 +859,11 @@
       requestAnimationFrame(this.frame);
     }
 
+    /** Reconstruit le décor (changement de saison). */
+    rebuild() {
+      this.world = buildWorld();
+    }
+
     /** layers : [{ points, tier }] dans l'ordre des thèmes. */
     setLayers(layers, animate) {
       this.layers = layers.slice();
@@ -999,6 +1090,23 @@
       }
     }
 
+    /** Halloween : des fantômes translucides survolent l'écran pendant que la foreuse creuse. */
+    drawGhosts(ctx, time) {
+      if (season !== 'halloween' || !this.drilling) return;
+      if (global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      ctx.save();
+      ctx.globalAlpha = 0.5;
+      for (let i = 0; i < 3; i++) {
+        const dir = i % 2 ? -1 : 1;
+        const span = W + 24;
+        const raw = (time * (7 + i * 2) + i * 53) % span;
+        const x = Math.round(dir > 0 ? raw - 12 : span - raw - 12);
+        const y = Math.round(10 + i * 24 + Math.sin(time * 1.6 + i * 2) * 5);
+        drawPattern(ctx, HW_GHOST, x, y, { w: '#e8e0ff', k: '#241437' });
+      }
+      ctx.restore();
+    }
+
     draw(time) {
       if (this.mode === 'overview') {
         this.drawOverview(time);
@@ -1095,6 +1203,7 @@
         }
       }
       ctx.restore();
+      this.drawGhosts(ctx, time);
 
       // Ambiance chaude dans les profondeurs.
       const heat = Math.max(0, Math.min(1, (this.depth - 220) / 380));
@@ -1106,6 +1215,6 @@
   }
 
   global.Pixel = {
-    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, formatRemaining, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, drawDrill, WIDTH: W, HEIGHT: H,
+    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, formatRemaining, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, setSeason, drawDrill, WIDTH: W, HEIGHT: H,
   };
 })(window);

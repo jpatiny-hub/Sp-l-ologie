@@ -17,6 +17,7 @@ const { scheduleBackups } = require('./src/backup');
 const { AnnouncementService } = require('./src/announcements');
 const { museum } = require('./src/museum');
 const { feed } = require('./src/feed');
+const { seasonFor } = require('./src/specialdays');
 const { pendingRecap, markRecapSeen, weeklyRecap } = require('./src/recap');
 const { unseenNews, LATEST_NEWS_ID } = require('./src/news');
 
@@ -72,8 +73,10 @@ function createApp({
   clientIpHeader = config.CLIENT_IP_HEADER,
   adminUsers = config.ADMIN_USERS,
   version = interfaceVersion(publicDir),
+  specialDays = undefined,
+  seasons = config.SEASONS,
 }) {
-  const game = new GameService(db, themes, now);
+  const game = new GameService(db, themes, now, specialDays);
   const announcements = new AnnouncementService(db, now);
   game.badges.backfill();
   const loginLimiter = new auth.RateLimiter(10, 15 * 60 * 1000);
@@ -303,6 +306,7 @@ function createApp({
         recap: pendingRecap(db, user.id, game.today()),
         duels: game.duels.summary(user.id),
         announcements: announcements.unseen(user.id),
+        season: seasonFor(game.today(), seasons),
         nextResetMs: msUntilNextDay(now()),
         timerSeconds: config.TIMER_SECONDS,
       });

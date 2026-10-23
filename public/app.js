@@ -53,12 +53,33 @@
     }
   }
 
+  const isHalloween = () => document.documentElement.dataset.season === 'halloween';
+  const reducedMotion = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  let hauntTimer = null;
+
+  /** Décor de saison (Halloween…) : interface et scène de forage, sauf en lecture facile et en thème clair. */
+  function applySeason() {
+    const id = app.me && app.me.season && settings.season !== false ? app.me.season : null;
+    const plain = settings.lisible || settings.theme === 'clair';
+    const root = document.documentElement;
+    if (id && !plain) root.dataset.season = id;
+    else delete root.dataset.season;
+    const wanted = id && !plain ? id : null;
+    if ((Pixel.currentSeason || null) !== wanted) {
+      Pixel.currentSeason = wanted;
+      Pixel.setSeason(wanted);
+      if (typeof scene !== 'undefined') scene.rebuild();
+    }
+    hauntSync();
+  }
+
   function applySettings() {
     const root = document.documentElement;
     if (settings.text === 'normal') delete root.dataset.text;
     else root.dataset.text = settings.text;
     Sound.configure({ enabled: settings.sound, volume: settings.volume / 100 });
     Pixel.setColorblind(settings.colors);
+    applySeason();
     root.classList.toggle('colorblind', settings.colors !== 'normal');
     if (settings.colors === 'normal') delete root.dataset.colors;
     else root.dataset.colors = settings.colors;
@@ -116,6 +137,7 @@
     settingsForm.elements.colors.value = settings.colors;
     settingsForm.elements.theme.value = settings.theme;
     settingsForm.elements.lisible.checked = settings.lisible;
+    settingsForm.elements.season.checked = settings.season !== false;
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
     renderInstall();
     $('settings').showModal();
@@ -128,6 +150,7 @@
     settings.colors = settingsForm.elements.colors.value || 'normal';
     settings.theme = settingsForm.elements.theme.value || 'sombre';
     settings.lisible = settingsForm.elements.lisible.checked;
+    settings.season = settingsForm.elements.season.checked;
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
     applySettings();
     saveSettings();
@@ -392,6 +415,7 @@
     }
     app.me = me;
     app.meLoadedAt = Date.now();
+    applySeason();
     app.game = null;
     app.skin = me.skin;
     scene.setSkin(me.skin);
@@ -598,6 +622,54 @@
     );
   }
 
+  // ---------- Halloween : éléments macabres des défis, yeux qui clignent ----------
+  const HW_SKULL = ['.######.', '########', '#..##..#', '#..##..#', '########', '.#.##.#.', '..####..'];
+  const HW_BONE = ['##.....##', '.#######.', '##.....##'];
+  const HW_GHOST = ['..www..', '.wwwww.', 'wwkwkww', 'wwwwwww', 'wwwwwww', 'wwwwwww', 'w.www.w'];
+
+  function drawHorror(ctx, w, h, t, opts) {
+    const bone = { '#': '#d9cfb4' };
+    opts.skulls.forEach(([x, y]) => sprite(ctx, HW_SKULL, bone, x, y));
+    opts.bones.forEach(([x, y]) => sprite(ctx, HW_BONE, bone, x, y));
+    if (opts.eyes) {
+      // Deux yeux rouges qui clignent lentement dans le noir du tunnel.
+      const [ex, ey] = opts.eyes;
+      if (Math.sin(t * 1.3) > -0.55) {
+        ctx.fillStyle = '#ff3b3b';
+        ctx.fillRect(ex, ey, 2, 1);
+        ctx.fillRect(ex + 5, ey, 2, 1);
+      }
+    }
+    // Un fantôme translucide traverse le tunnel.
+    ctx.globalAlpha = 0.5;
+    const gx = Math.round(((t * 9) % (w + 16)) - 8);
+    sprite(ctx, HW_GHOST, { w: '#e8e0ff', k: '#241437' }, gx, opts.ghostY + Math.round(Math.sin(t * 2) * 2));
+    ctx.globalAlpha = 1;
+  }
+
+  function spawnEyes() {
+    if (document.hidden || !isHalloween() || reducedMotion()) return;
+    // Pas pendant une manche : le chrono doit rester équitable.
+    if (!$('view-game').hidden || document.querySelector('dialog[open]')) return;
+    const eyes = el('div', { class: 'haunt-eyes', 'aria-hidden': 'true' });
+    const left = Math.random() < 0.5;
+    eyes.style.top = `${8 + Math.random() * 80}%`;
+    if (left) eyes.style.left = '1%';
+    else eyes.style.right = '1%';
+    document.body.append(eyes);
+    setTimeout(() => eyes.remove(), 3800);
+  }
+  function hauntSync() {
+    const on = isHalloween();
+    if (on && !hauntTimer) {
+      setTimeout(spawnEyes, 4000);
+      hauntTimer = setInterval(spawnEyes, 13000);
+    } else if (!on && hauntTimer) {
+      clearInterval(hauntTimer);
+      hauntTimer = null;
+    }
+  }
+
   // ---------- Défi de la semaine : ton personnage creuse à la pioche vers un diamant ----------
   const WW = 110;
   const WH = 44;
@@ -647,6 +719,7 @@
     ctx.fillStyle = `rgba(255,255,255,${(ch.done ? 1 : 0.5) * a})`;
     ctx.fillRect(WW - 12, floor - 10, 1, 5);
     ctx.fillRect(WW - 14, floor - 8, 5, 1);
+    if (isHalloween()) drawHorror(ctx, WW, WH, t, { skulls: [[WW - 34, floor - 6]], bones: [[WW - 50, floor - 2], [WW - 70, floor - 2]], eyes: [WW - 44, ty + 14], ghostY: ty + 6 });
     // Le personnage, sans son objet habituel.
     const who = window.Avatar ? Avatar.sprite({ ...(avatar || {}), objet: 'aucun' }) : null;
     if (who) ctx.drawImage(who, x0, floor - 28 + 1);
@@ -724,6 +797,7 @@
     ctx.globalAlpha = lit;
     [[0, 17], [8, 17], [16, 17], [4, 11], [12, 11], [8, 5]].forEach(([dx, dy]) => sprite(ctx, DIAMOND, { c: '#5ee0ff', w: '#ffffff' }, pile + dx, ty + dy - 1));
     ctx.globalAlpha = 1;
+    if (isHalloween()) drawHorror(ctx, CW, CH, t, { skulls: [[28, 0], [66, 0], [10, 33], [46, 33]], bones: [[88, 34], [24, 34]], eyes: [pile - 18, ty + 4], ghostY: ty + 12 });
     const spark = (x, y, k) => {
       const a = (Math.sin(t * 6 + k) + 1) / 2;
       ctx.fillStyle = `rgba(255,255,255,${(data.reached ? 1 : 0.5) * a})`;
