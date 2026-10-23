@@ -1,4 +1,5 @@
 titre: Un pays, royaume, empire ou territoire d'Afrique (actuel ou ancien)
+# Seuls comptent les États et territoires dont la zone principale est en Afrique : un empire ou un royaume centré hors d'Afrique (Empire ottoman, Empire britannique…) est exclu, même s'il a dominé une partie du continent.
 1: Maroc; Algérie; Tunisie; Congo = RDC = République démocratique du Congo; Égypte; Sénégal; Afrique du Sud; Rwanda
 2: Burundi; Côte d'Ivoire; Cameroun; Mali; Kenya; Nigeria; Madagascar; Éthiopie; Ghana; Libye; Tanzanie; Angola; Niger; Burkina Faso; Guinée; Bénin; Togo; Mauritanie; Tchad; Soudan; Somalie; Ouganda; Zimbabwe; Mozambique
 3: Gabon; République du Congo = Congo-Brazzaville; Centrafrique = République centrafricaine; Zambie; Namibie; Botswana; Malawi; Érythrée; Djibouti; Soudan du Sud; Sierra Leone; Liberia; Gambie; Guinée-Bissau; Guinée équatoriale; Cap-Vert; Maurice = Île Maurice; Seychelles; Comores; Lesotho; Eswatini = Swaziland; Sahara occidental; Zaïre; Haute-Volta; Dahomey
