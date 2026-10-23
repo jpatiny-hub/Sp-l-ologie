@@ -2,5 +2,5 @@ titre: Un fruit (au sens culinaire) plus gros qu'une pomme
 # Fruits dont la taille ou le poids habituel dépasse celui d'une pomme moyenne (environ 8 cm, 200 g). Fruits au sens culinaire du terme : les légumes-fruits (courges, concombres, tomates…) n'en font pas partie.
 1: Pastèque; Melon; Ananas; Pamplemousse; Papaye; Noix de coco; Mangue; Pomelo
 2: Cantaloup; Charentais; Galia; Melon miel = Honeydew; Melon jaune canari; Jacquier = Jaque; Durian; Corossol; Chérimole = Cherimoya; Fruit à pain = Arbre à pain; Melon d'eau; Pastèque jaune; Pastèque sans pépins; Melon de Cavaillon; Melon brodé; Fruit de la passion géant = Grenadille géante; Courgette?
-3: Cédrat; Pitaya = Fruit du dragon; Sapote; Pomme-cannelle = Annone; Nashi
+3: Cédrat; Piel de sapo = Melon piel de sapo = Peau de crapaud; Pitaya = Fruit du dragon; Sapote; Pomme-cannelle = Annone; Nashi
 4: Mamey; Sapote blanche; Ugli; Cupuaçu; Atemoya; Pastèque carrée; Jacquier géant
