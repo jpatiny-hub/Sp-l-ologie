@@ -528,6 +528,7 @@
     $('challenge-week').hidden = !ch || (challengeTab === 'month' && !!collective);
     $('challenge-month').hidden = !collective || challengeTab !== 'month' && !!ch;
     renderCollective();
+    renderWeekly();
     if (ch) {
       $('challenge-text').textContent = ch.text;
       $('challenge-fill').style.width = `${Math.round((ch.progress / ch.goal) * 100)}%`;
@@ -595,6 +596,92 @@
         ctx.fillRect(x0 + x, y0 + y, 1, 1);
       }),
     );
+  }
+
+  // ---------- Défi de la semaine : ton personnage creuse à la pioche vers un diamant ----------
+  const WW = 110;
+  const WH = 44;
+  let weeklyRock = null;
+
+  function weeklyBackdrop() {
+    if (weeklyRock) return weeklyRock;
+    const c = document.createElement('canvas');
+    c.width = WW;
+    c.height = WH;
+    const ctx = c.getContext('2d');
+    const base = ['#4a2f1a', '#5a3a20', '#6b4627', '#3b2414'];
+    for (let y = 0; y < WH; y += 2) {
+      for (let x = 0; x < WW; x += 2) {
+        const v = Math.abs(Math.sin(x * 4.1414 + y * 91.717) * 43758.5453) % 1;
+        ctx.fillStyle = v < 0.3 ? base[0] : v < 0.6 ? base[1] : v < 0.85 ? base[2] : base[3];
+        ctx.fillRect(x, y, 2, 2);
+      }
+    }
+    weeklyRock = c;
+    return c;
+  }
+
+  /** Le personnage du joueur (sans objet en main) avance dans un tunnel, pioche en main, vers un diamant : l'avancée suit le défi. */
+  function drawWeekly(canvas, ch, avatar, t) {
+    const ctx = canvas.getContext('2d');
+    const ty = 6;
+    const th = 34;
+    const floor = ty + th - 2;
+    const f = Math.min(1, ch.progress / ch.goal);
+    const reach = WW - 52;
+    const x0 = Math.round(4 + (reach - 4) * f);
+    ctx.drawImage(weeklyBackdrop(), 0, 0);
+    // Tunnel creusé jusqu'au personnage, cavité autour du diamant.
+    ctx.fillStyle = '#120d0a';
+    ctx.fillRect(0, ty, x0 + 26, th);
+    ctx.fillRect(WW - 22, ty + 8, 22, th - 8);
+    ctx.fillStyle = '#2a1a0c';
+    ctx.fillRect(0, ty + th, x0 + 26, 1);
+    for (let x = 12; x < x0; x += 24) {
+      ctx.fillStyle = '#8a5a2b';
+      ctx.fillRect(x, ty - 1, 2, th + 1);
+    }
+    // Le diamant, au bout.
+    sprite(ctx, DIAMOND, { c: '#5ee0ff', w: '#ffffff' }, WW - 15, floor - 6);
+    const a = (Math.sin(t * 6) + 1) / 2;
+    ctx.fillStyle = `rgba(255,255,255,${(ch.done ? 1 : 0.5) * a})`;
+    ctx.fillRect(WW - 12, floor - 10, 1, 5);
+    ctx.fillRect(WW - 14, floor - 8, 5, 1);
+    // Le personnage, sans son objet habituel.
+    const who = window.Avatar ? Avatar.sprite({ ...(avatar || {}), objet: 'aucun' }) : null;
+    if (who) ctx.drawImage(who, x0, floor - 28 + 1);
+    // Coup de pioche : levée, milieu, impact, milieu (immobile et levée quand le défi est réussi).
+    const frame = ch.done ? 0 : [0, 1, 2, 1][Math.floor(t * 4) % 4];
+    const hx = x0 + 12;
+    const hy = floor - 28 + 17;
+    const handle = '#8a5a2b';
+    const iron = '#c9ced6';
+    const px = (x, y, color) => {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, 1, 1);
+    };
+    if (frame === 0) {
+      for (let i = 0; i < 8; i++) px(hx + 1 + Math.floor(i * 0.7), hy - i, handle);
+      for (let i = -3; i <= 3; i++) px(hx + 6 + i, hy - 8 + (Math.abs(i) === 3 ? 1 : 0), iron);
+    } else if (frame === 1) {
+      for (let i = 0; i < 9; i++) px(hx + 1 + i, hy - Math.floor(i * 0.3), handle);
+      for (let i = -3; i <= 3; i++) px(hx + 10, hy - 3 + i, iron);
+    } else {
+      for (let i = 0; i < 9; i++) px(hx + 1 + i, hy + Math.floor(i * 0.5), handle);
+      for (let i = -3; i <= 3; i++) px(hx + 10 + Math.floor(Math.abs(i) * 0.3), hy + 4 + i, iron);
+      // Éclats de roche à l'impact.
+      [[13, 2], [14, 5], [15, 0], [12, 7]].forEach(([dx, dy], k) => px(hx + dx + ((k + Math.floor(t * 8)) % 2), hy + dy - ((k + Math.floor(t * 8)) % 3), '#c9a46b'));
+    }
+  }
+
+  function renderWeekly() {
+    const ch = app.me && app.me.streak && app.me.streak.challenge;
+    if (!ch) return;
+    const canvas = $('weekly-canvas');
+    const scale = Math.max(1, Math.min(4, Math.floor((canvas.parentElement.clientWidth || 330) / WW)));
+    canvas.style.width = `${WW * scale}px`;
+    canvas.style.height = `${WH * scale}px`;
+    drawWeekly(canvas, ch, app.me.avatar, 0);
   }
 
   /** Tunnel creusé ensemble : la foreuse avance avec les points du mois, chaque joueur a sa couleur, un tas de diamants au bout. */
@@ -675,10 +762,12 @@
     drawCollective(canvas, data, 0);
   }
   setInterval(() => {
-    const data = app.me && app.me.collective;
-    if (!data || $('view-home').hidden || $('challenge-month').hidden || document.hidden) return;
+    if (!app.me || $('view-home').hidden || document.hidden) return;
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    drawCollective($('collective-canvas'), data, performance.now() / 1000);
+    const data = app.me.collective;
+    if (data && !$('challenge-month').hidden) drawCollective($('collective-canvas'), data, performance.now() / 1000);
+    const ch = app.me.streak && app.me.streak.challenge;
+    if (ch && !$('challenge-week').hidden) drawWeekly($('weekly-canvas'), ch, app.me.avatar, performance.now() / 1000);
   }, 100);
 
   $('freeze-card').addEventListener('click', () => $('freeze-dialog').showModal());
