@@ -2353,12 +2353,12 @@
               .then(({ answers }) => answers.forEach((a) => pick.append(el('option', { value: a.key }, a.label))))
               .catch(() => {});
           }
-          const give = el('button', { class: 'link', type: 'button' }, `Accorder les points à ${p.username} (forage du ${longDay(p.creditableDay)})`);
+          const give = el('button', { class: 'link', type: 'button' }, `Accorder les points à ${p.username} (${p.duel ? 'duel' : 'forage'} du ${longDay(p.creditableDay)})`);
           give.addEventListener('click', async () => {
             const answerKey = pick ? pick.value : undefined;
             if (pick && !answerKey) return showNotice('Choisis d\'abord la réponse visée.');
             const what = pick ? pick.selectedOptions[0].textContent : r.input;
-            if (!window.confirm(`Accorder à ${p.username} les points de « ${what} » pour le forage du ${longDay(p.creditableDay)} ?`)) return;
+            if (!window.confirm(`Accorder à ${p.username} les points de « ${what} » pour ${p.duel ? 'son duel' : 'le forage'} du ${longDay(p.creditableDay)} ?${p.duel ? ' Le résultat du duel sera révisé.' : ''}`)) return;
             try {
               const res = await api('/api/admin/reports/credit', { themeId: r.themeId, inputKey: r.inputKey, username: p.username, answerKey });
               p.creditableDay = null;
@@ -2391,6 +2391,31 @@
           return b;
         };
         item.append(msg, el('span', {}, send('accepted', 'Envoyer : acceptée'), ' · ', send('refused', 'Envoyer : refusée')), status);
+        // Un seul geste : points à tous les signalants (forages et duels), retour « acceptée » et signalement traité.
+        if ((r.reporters || []).some((p) => p.creditableDay) || r.status === 'pending') {
+          let pickAll = null;
+          if (!r.inTheme) {
+            pickAll = el('select', { 'aria-label': 'Réponse visée pour tous' }, el('option', { value: '' }, 'Réponse visée…'));
+            api(`/api/admin/theme-answers?themeId=${encodeURIComponent(r.themeId)}`)
+              .then(({ answers }) => answers.forEach((a) => pickAll.append(el('option', { value: a.key }, a.label))))
+              .catch(() => {});
+          }
+          const all = el('button', { class: 'link', type: 'button' }, 'Accepter : points à tous + retour + traité');
+          all.addEventListener('click', async () => {
+            const answerKey = pickAll ? pickAll.value : undefined;
+            if (pickAll && !answerKey) return showNotice('Choisis d\'abord la réponse visée.');
+            if (!window.confirm(`Accepter « ${r.input} » : accorder les points à tous les signalants qui peuvent les recevoir (les duels concernés seront révisés) et envoyer le retour ?`)) return;
+            try {
+              const res = await api('/api/admin/reports/grant', { themeId: r.themeId, inputKey: r.inputKey, answerKey, message: msg.value });
+              showNotice(`${plural(res.granted.length, 'joueur crédité', 'joueurs crédités')}${res.skipped.length ? `, ${res.skipped.length} sans manche à créditer` : ''}.`);
+              await loadReports();
+            } catch (err) {
+              showNotice(err.message);
+            }
+          });
+          if (pickAll) item.append(pickAll);
+          item.append(all);
+        }
         if (r.status === 'pending') {
           const done = el('button', { class: 'link', type: 'button' }, 'Marquer comme traitée');
           done.addEventListener('click', async () => {
@@ -2470,6 +2495,7 @@
             el('span', { class: 'what' }, el('strong', {}, `« ${r.input} »`), el('span', { class: 'muted' }, r.themeTitle)),
             el('span', { class: 'muted' }, `${state}${r.points != null ? ` · +${r.points} points accordés` : ''}`),
             r.message ? el('span', {}, r.message) : null,
+            r.duel ? el('span', {}, r.duel) : null,
           );
         }),
       );
@@ -2763,7 +2789,7 @@
       const row = el(
         'li',
         { class: `duel-result ${d.outcome}` },
-        el('div', { class: 'duel-row' }, person(d.other), el('span', { class: 'duel-outcome' }, `${label} ${d.myScore} – ${d.theirScore}`), d.seen ? null : el('span', { class: 'tab-dot' }, '!')),
+        el('div', { class: 'duel-row' }, person(d.other), el('span', { class: 'duel-outcome' }, `${label} ${d.myScore} – ${d.theirScore}${d.revised ? ' (révisé)' : ''}`), d.seen ? null : el('span', { class: 'tab-dot' }, '!')),
       );
       row.tabIndex = 0;
       row.setAttribute('role', 'button');
@@ -2915,6 +2941,11 @@
         : (result.winner === 'a') === mineIsA
           ? `Victoire ! Tu bats ${other.username} : ${me.score} à ${other.score}.`
           : `Défaite : ${other.username} gagne ${other.score} à ${me.score}.`;
+    if (result.revision) {
+      const was = result.revision.winner == null ? 'égalité' : (result.revision.winner === 'a') === mineIsA ? 'victoire' : 'défaite';
+      const old = mineIsA ? `${result.revision.a} à ${result.revision.b}` : `${result.revision.b} à ${result.revision.a}`;
+      $('duel-banner').textContent += ` Résultat révisé après un signalement accepté (avant : ${was}, ${old}).`;
+    }
     $('duel-final').hidden = false;
     // Revanche en un clic : un nouveau duel contre le même joueur, avec les mêmes règles.
     const rematch = $('btn-duel-rematch');

@@ -130,6 +130,57 @@ class DuelService {
     this.game.badges.awardDuels(d.opponent_id, today);
   }
 
+  /**
+   * Des points ont été accordés après coup sur une partie de duel : si le duel est terminé, les scores et le vainqueur
+   * sont recalculés (le résultat d'origine est conservé), le résultat redevient « à voir » pour les deux joueurs
+   * et les badges de duel sont revérifiés.
+   */
+  revise(gameId) {
+    const game = this.db.prepare('SELECT duel_id FROM games WHERE id = ?').get(gameId);
+    if (!game || game.duel_id == null) return;
+    const d = this.db.prepare('SELECT * FROM duels WHERE id = ?').get(game.duel_id);
+    if (!d || d.status !== 'done') return;
+    const cg = this.db.prepare('SELECT score FROM games WHERE id = ?').get(d.challenger_game_id);
+    const og = this.db.prepare('SELECT score FROM games WHERE id = ?').get(d.opponent_game_id);
+    if (!cg || !og) return;
+    const winner = cg.score > og.score ? d.challenger_id : og.score > cg.score ? d.opponent_id : null;
+    const first = d.revised_at == null;
+    this.db
+      .prepare(
+        `UPDATE duels SET challenger_score = ?, opponent_score = ?, winner_id = ?, revised_at = ?,
+           old_challenger_score = ?, old_opponent_score = ?, old_winner_id = ?,
+           challenger_seen_at = NULL, opponent_seen_at = NULL WHERE id = ?`,
+      )
+      .run(
+        cg.score,
+        og.score,
+        winner,
+        this.now(),
+        first ? d.challenger_score : d.old_challenger_score,
+        first ? d.opponent_score : d.old_opponent_score,
+        first ? d.winner_id : d.old_winner_id,
+        d.id,
+      );
+    const today = this.game.today();
+    this.game.badges.awardDuels(d.challenger_id, today);
+    this.game.badges.awardDuels(d.opponent_id, today);
+  }
+
+  /** Phrase pour le joueur dont le signalement a révisé un duel (ou null si la partie n'est pas un duel révisé). */
+  revisionNote(gameId, userId) {
+    if (gameId == null) return null;
+    const g = this.db.prepare('SELECT duel_id FROM games WHERE id = ?').get(gameId);
+    const d = g && g.duel_id != null && this.db.prepare('SELECT * FROM duels WHERE id = ?').get(g.duel_id);
+    if (!d || d.revised_at == null) return null;
+    const mine = d.challenger_id === userId;
+    const other = this.person(mine ? d.opponent_id : d.challenger_id).username;
+    const label = (winner) => (winner == null ? 'une égalité' : winner === userId ? 'une victoire' : 'une défaite');
+    const now = mine ? `${d.challenger_score} à ${d.opponent_score}` : `${d.opponent_score} à ${d.challenger_score}`;
+    const before = label(d.old_winner_id);
+    const after = label(d.winner_id);
+    return `Ton duel contre ${other} a été révisé : ${after} (${now})${before === after ? '' : `, au lieu de ${before}`}.`;
+  }
+
   /** Les adversaires possibles, avec le bilan des duels déjà joués contre eux. */
   opponents(userId) {
     const users = this.db.prepare('SELECT id, username, avatar FROM users WHERE id <> ? ORDER BY username_key').all(userId);
@@ -173,7 +224,7 @@ class DuelService {
       if (d.status === 'done') {
         const myScore = mineIsChallenger ? d.challenger_score : d.opponent_score;
         const theirScore = mineIsChallenger ? d.opponent_score : d.challenger_score;
-        results.push({ ...base, finishedAt: d.finished_at, myScore, theirScore, outcome: d.winner_id == null ? 'draw' : d.winner_id === userId ? 'win' : 'loss', seen: (mineIsChallenger ? d.challenger_seen_at : d.opponent_seen_at) != null });
+        results.push({ ...base, finishedAt: d.finished_at, myScore, theirScore, outcome: d.winner_id == null ? 'draw' : d.winner_id === userId ? 'win' : 'loss', revised: d.revised_at != null, seen: (mineIsChallenger ? d.challenger_seen_at : d.opponent_seen_at) != null });
         continue;
       }
       if (mineIsChallenger) {
@@ -260,6 +311,7 @@ class DuelService {
       a: strip(a),
       b: strip(b),
       winner: d.winner_id == null ? null : d.winner_id === d.challenger_id ? 'a' : 'b',
+      revision: d.revised_at == null ? null : { at: d.revised_at, a: d.old_challenger_score, b: d.old_opponent_score, winner: d.old_winner_id == null ? null : d.old_winner_id === d.challenger_id ? 'a' : 'b' },
       themes,
     };
   }

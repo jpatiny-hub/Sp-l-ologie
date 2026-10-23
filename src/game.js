@@ -683,7 +683,7 @@ class GameService {
         .all(r.theme_id, r.input_key)
         .map((p) => {
           const target = p.credit !== 'credited' ? this.creditTarget(p) : null;
-          return { username: p.username, credited: p.credit === 'credited', creditableDay: target ? target.day : null };
+          return { username: p.username, credited: p.credit === 'credited', creditableDay: target ? target.day : null, duel: !!(target && target.mode === 'duel') };
         });
       return {
         reporters,
@@ -725,6 +725,8 @@ class GameService {
         .run(theme.id, match.answer.key);
     });
     this.badges.awardForGame(gameId);
+    // Partie de duel : si le duel est terminé, son résultat est revu avec les nouveaux points.
+    this.duels.revise(gameId);
     return score.points;
   }
 
@@ -732,7 +734,7 @@ class GameService {
   creditableRound(userId, themeId) {
     return this.db
       .prepare(
-        `SELECT g.id AS gameId, g.day, r.slot FROM rounds r JOIN games g ON g.id = r.game_id
+        `SELECT g.id AS gameId, g.day, g.mode, r.slot FROM rounds r JOIN games g ON g.id = r.game_id
          WHERE g.user_id = ? AND g.mode = 'daily' AND r.theme_id = ? AND r.answered_at IS NOT NULL AND r.outcome <> 'answer'
          ORDER BY g.day DESC LIMIT 1`,
       )
@@ -744,8 +746,8 @@ class GameService {
     if (report.game_id != null && report.slot != null) {
       const exact = this.db
         .prepare(
-          `SELECT g.id AS gameId, g.day, r.slot FROM rounds r JOIN games g ON g.id = r.game_id
-           WHERE g.id = ? AND r.slot = ? AND g.mode = 'daily' AND r.answered_at IS NOT NULL AND r.outcome <> 'answer'`,
+          `SELECT g.id AS gameId, g.day, g.mode, r.slot FROM rounds r JOIN games g ON g.id = r.game_id
+           WHERE g.id = ? AND r.slot = ? AND g.mode IN ('daily', 'duel') AND r.answered_at IS NOT NULL AND r.outcome <> 'answer'`,
         )
         .get(report.game_id, report.slot);
       if (exact) return exact;
@@ -788,6 +790,32 @@ class GameService {
     this.db.prepare('UPDATE answer_reports SET points = ?, updated_at = ? WHERE rowid = ?').run(points, this.now(), report.id);
     this.badges.awardLynx(report.user_id, this.today());
     return { points, day: target.day };
+  }
+
+  /**
+   * Un seul geste pour un signalement accepté : points rendus à tous les joueurs qui peuvent les recevoir
+   * (forages du jour et duels, dont le résultat est alors révisé), retour « acceptée » et signalement traité.
+   */
+  grantReport(themeId, inputKey, answerKey, message) {
+    const reports = this.db
+      .prepare('SELECT a.*, u.username FROM answer_reports a JOIN users u ON u.id = a.user_id WHERE a.theme_id = ? AND a.input_key = ?')
+      .all(themeId, inputKey);
+    if (!reports.length) throw new HttpError(404, 'Signalement introuvable.');
+    const granted = [];
+    const skipped = [];
+    for (const r of reports) {
+      if (r.credit === 'credited') continue;
+      try {
+        const res = this.creditManually(themeId, inputKey, r.username, answerKey);
+        granted.push({ username: r.username, points: res.points, day: res.day });
+      } catch (err) {
+        if (!(err instanceof HttpError) || err.status === 409 && /Choisis/.test(err.message)) throw err;
+        skipped.push({ username: r.username, reason: err.message });
+      }
+    }
+    this.replyToReport(themeId, inputKey, 'accepted', message || 'Réponse acceptée : merci pour ton signalement !');
+    this.markReportHandled(themeId, inputKey);
+    return { granted, skipped };
   }
 
   /**
@@ -834,7 +862,7 @@ class GameService {
   myReports(userId) {
     const rows = this.db
       .prepare(
-        `SELECT theme_id, input, created_at, handled_at, credit, points, verdict, message, updated_at, seen_at
+        `SELECT theme_id, input, created_at, handled_at, credit, points, verdict, message, updated_at, seen_at, game_id
          FROM answer_reports WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
       )
       .all(userId);
@@ -848,6 +876,7 @@ class GameService {
         verdict: r.verdict || null,
         message: r.message || null,
         points: r.credit === 'credited' ? r.points : null,
+        duel: r.credit === 'credited' ? this.duels.revisionNote(r.game_id, userId) : null,
         unread: r.updated_at != null && (r.seen_at == null || r.seen_at < r.updated_at),
       };
     });
