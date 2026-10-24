@@ -653,6 +653,7 @@
     }),
   );
 
+  const MAX_LISTED_ANSWERS = 300;
   const COLLECTIVE_COLORS = ['#e0b020', '#6fb5f0', '#e86aa8', '#7fcf5a', '#b28cff', '#ff8a4a', '#5ee0d0', '#c9ced6'];
   const CW = 110;
   const CH = 40;
@@ -1630,7 +1631,9 @@
         .filter((x) => x.hit.ok)
         .reverse();
       if (!shown.length) list.append(el('li', { class: 'muted none' }, query ? 'Aucune réponse ne correspond. Elle manque peut-être : tu peux la signaler plus bas.' : 'Aucune réponse.'));
-      shown.forEach(({ a, hit }) => {
+      // Les très grands thèmes (plusieurs milliers de réponses) ne s'affichent pas d'un bloc : on guide vers la recherche.
+      const hidden = Math.max(0, shown.length - MAX_LISTED_ANSWERS);
+      shown.slice(0, MAX_LISTED_ANSWERS).forEach(({ a, hit }) => {
           list.append(
             el(
               'li',
@@ -1642,6 +1645,7 @@
             ),
           );
       });
+      if (hidden) list.append(el('li', { class: 'muted none' }, `… et ${plural(hidden, 'autre réponse', 'autres réponses')} : précise ta recherche pour les voir.`));
       chips.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b.dataset.filter === filter));
     };
     const chip = (id, text, n) => {

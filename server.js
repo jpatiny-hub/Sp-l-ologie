@@ -113,7 +113,13 @@ function createApp({
     const out = {};
     for (const part of String(req.headers.cookie || '').split(';')) {
       const i = part.indexOf('=');
-      if (i > 0) out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim());
+      if (i > 0) {
+        try {
+          out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim());
+        } catch {
+          /* cookie mal encodé : ignoré, sans faire échouer la requête */
+        }
+      }
     }
     return out;
   }
