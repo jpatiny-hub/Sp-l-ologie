@@ -2,7 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { toKey } = require('./matching');
+const { toKey, numberKey } = require('./matching');
 const { LEVEL_WEIGHTS } = require('./scoring');
 
 /*
@@ -64,6 +64,11 @@ function addAnswer(theme, level, names, line) {
       continue;
     }
     theme.index.set(key, answer);
+  }
+  // Même réponse écrite avec des chiffres (« mille temps » = « 1000 temps »), sans jamais bousculer une autre réponse.
+  for (const name of names) {
+    const key = numberKey(name);
+    if (key && !theme.index.has(key)) theme.index.set(key, answer);
   }
 }
 
