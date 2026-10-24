@@ -1,4 +1,4 @@
-titre: Quelque chose que l'on trouve dans un jardin (plante, animal ou objet)
+titre: Quelque chose que l'on trouve dans un jardin
 # Large : plantes, animaux, aménagements et objets de jardin. Complète le thème « outil ou aménagement de jardin ».
 1: Pelouse = Gazon; Arbre; Fleur = Fleurs; Haie; Tondeuse; Râteau; Arrosoir; Tuyau d'arrosage = Tuyau; Potager; Terrasse; Barbecue; Balançoire; Cabanon = Abri de jardin; Portail; Clôture; Escargot; Ver de terre; Pomme de terre; Rosier = Rose
 2: Bêche; Pelle; Binette; Sécateur; Brouette; Composteur = Compost; Serre; Mare = Bassin; Fontaine; Nain de jardin; Salon de jardin = Table de jardin; Parasol; Hamac; Piscine; Trampoline; Fruitier = Arbre fruitier; Pommier; Cerisier; Noyer; Tomate; Laitue; Carotte; Fraisier; Framboisier; Groseillier; Lavande; Tulipe; Pâquerette; Pissenlit; Ortie; Mousse; Lierre; Oiseau; Merle; Mésange; Moineau; Hérisson; Taupe; Limace; Papillon; Abeille; Coccinelle; Fourmi; Araignée; Chat; Chien; Grenouille

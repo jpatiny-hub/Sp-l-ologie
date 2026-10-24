@@ -1,4 +1,4 @@
-titre: Quelque chose qui contient de l'information (support, objet ou structure)
+titre: Quelque chose qui contient de l'information
 # Supports d'information : numériques, analogiques, biologiques, géologiques, écrits et visuels.
 1: Clé USB = Clé; Disque dur; Disquette; CD = CD-ROM = Disque compact; DVD; Livre; Image = Photo = Photographie; ADN; Cerveau; Journal; Lettre; Carte = Carte géographique; Panneau; QR code = QR; Code-barres; Carte mémoire = Carte SD; Ordinateur; Téléphone; Site web = Page web
 2: SSD; Blu-ray; Cassette = Cassette audio; VHS = Cassette vidéo; Disque vinyle = Vinyle; Bande magnétique; Carte à puce; Carte SIM; Puce RFID = RFID; Mémoire vive = RAM; Mémoire morte = ROM; Mémoire flash; Papyrus; Tablette d'argile = Tablette cunéiforme; Parchemin; Manuscrit; Pierre de Rosette; Hiéroglyphes; Base de données; Fichier; Étiquette; Panneau de signalisation; Affiche; Tableau = Peinture; Dessin; Plan; Radiographie; Film = Pellicule; Négatif; Diapositive; Microfilm; Hologramme; Ruban perforé; Carte perforée; ARN
