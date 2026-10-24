@@ -122,6 +122,54 @@ function editDistance(a, b, max) {
   return prev[b.length];
 }
 
+// Mots de liaison ignorés quand on compare des mots-clés (« rouler à contre-sens » ↔ « rouler en sens inverse »).
+const FILLER_WORDS = new Set([
+  'a', 'au', 'aux', 'avec', 'sans', 'sur', 'sous', 'dans', 'en', 'et', 'ou', 'par', 'pour', 'chez', 'vers',
+  'qui', 'que', 'qu', 'ne', 'pas', 'se', 's', 'y', 'on', 'il', 'elle', 'je', 'ai', 'est', 'son', 'sa', 'ses',
+  'mon', 'ma', 'mes', 'ce', 'cet', 'cette', 'de', 'du', 'des', 'd', 'le', 'la', 'les', 'l', 'un', 'une',
+]);
+
+/** Mots-clés d'une saisie : mots normalisés, sans mots de liaison, sans doublon. */
+function keywords(words) {
+  return [...new Set(words.filter((w) => !FILLER_WORDS.has(w)))];
+}
+
+function sameKeyword(a, b) {
+  if (a === b) return true;
+  return a.length >= 6 && b.length >= 6 && editDistance(a, b, 1) <= 1;
+}
+
+const keywordCache = new WeakMap();
+
+/** Réponses « longues » (au moins 3 mots-clés) avec les mots-clés de chacun de leurs noms. */
+function keywordIndex(theme) {
+  let index = keywordCache.get(theme);
+  if (index) return index;
+  index = [];
+  for (const answer of theme.answers) {
+    const sets = (answer.names || [answer.label]).map((name) => keywords(normalizeWords(name))).filter((k) => k.length >= 3);
+    if (sets.length) index.push({ answer, sets });
+  }
+  keywordCache.set(theme, index);
+  return index;
+}
+
+/**
+ * Repli pour les réponses longues : la saisie donne au moins 2 mots-clés, tous présents dans une seule
+ * réponse du thème (« sens inverse circulation » → « Circulation en sens inverse »). Ambigu → rien.
+ */
+function keywordMatch(theme, words) {
+  const wanted = keywords(words);
+  if (wanted.length < 2) return null;
+  let found = null;
+  for (const { answer, sets } of keywordIndex(theme)) {
+    if (!sets.some((set) => wanted.every((w) => set.some((k) => sameKeyword(w, k))))) continue;
+    if (found) return null;
+    found = answer;
+  }
+  return found ? { answer: found, distance: 0, approximate: true } : null;
+}
+
 const surnameCache = new WeakMap();
 
 /** Dernier mot (normalisé) → réponse, uniquement quand un seul nom du thème se termine par ce mot. */
@@ -167,7 +215,7 @@ function matchAnswer(theme, input) {
   }
 
   const max = maxEdits(key.length);
-  if (max === 0) return null;
+  if (max === 0) return keywordMatch(theme, words);
   let best = null;
   let bestDistance = max + 1;
   for (const [candidate, answer] of theme.index) {
@@ -180,7 +228,7 @@ function matchAnswer(theme, input) {
       bestDistance = d;
     }
   }
-  return best ? { answer: best, distance: bestDistance, approximate: true } : null;
+  return best ? { answer: best, distance: bestDistance, approximate: true } : keywordMatch(theme, words);
 }
 
 module.exports = { normalizeWords, toKey, maxEdits, editDistance, matchAnswer };

@@ -97,3 +97,16 @@ test('nom de famille seul, quand il est unique dans le thème', () => {
   assert.equal(matchAnswer(t, 'Chirac'), null, 'ambigu : deux Chirac');
   assert.equal(matchAnswer(t, 'Francois'), null, 'le prénom seul reste refusé');
 });
+
+test('réponses longues : quelques mots-clés suffisent, sauf si plusieurs réponses conviennent', () => {
+  const theme = parseTheme('t', [
+    'titre: Test',
+    '1: Circulation en sens inverse; Sens interdit; Excès de vitesse de plus de 50 km/h; Stationnement sur piste cyclable; Stationnement sur trottoir',
+  ].join('\n'));
+  assert.equal(matchAnswer(theme, 'sens inverse circulation').answer.label, 'Circulation en sens inverse');
+  assert.equal(matchAnswer(theme, 'sens inverse circulation').approximate, true);
+  assert.equal(matchAnswer(theme, 'piste cyclable stationnement').answer.label, 'Stationnement sur piste cyclable');
+  assert.equal(matchAnswer(theme, 'vitesse 50 km').answer.label, 'Excès de vitesse de plus de 50 km/h');
+  assert.equal(matchAnswer(theme, 'stationnement'), null, 'un seul mot-clé ne suffit pas');
+  assert.equal(matchAnswer(theme, 'rouler stationnement sur le sol'), null);
+});
