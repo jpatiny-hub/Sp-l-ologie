@@ -238,3 +238,58 @@ test('badges de duel : exploits (duel parfait, remontada, invaincu) et rivalité
     await app.close();
   }
 });
+
+test('badges de victoire écrasante et d\'égalité en duel', async () => {
+  const { BadgeService } = require('../src/badges');
+  const app = await startServer();
+  try {
+    const adam = client(app.base);
+    const eve = client(app.base);
+    await adam('/api/signup', { username: 'adam', password: 'secret123' });
+    await eve('/api/signup', { username: 'eve', password: 'secret123' });
+    const idOf = (name) => app.db.prepare('SELECT id FROM users WHERE username = ?').get(name).id;
+    const a = idOf('adam');
+    const e = idOf('eve');
+    const badges = new BadgeService(app.db, () => Date.now());
+    const now = Date.now();
+    const game = (user, points) => {
+      const id = app.db.prepare("INSERT INTO games (user_id, mode, day, score, created_at, finished_at) VALUES (?, 'duel', '2026-10-24', ?, ?, ?)").run(user, points.reduce((s, p) => s + p, 0), now, now).lastInsertRowid;
+      points.forEach((p, i) => app.db.prepare("INSERT INTO rounds (game_id, slot, theme_id, points) VALUES (?, ?, 'x', ?)").run(id, i, p));
+      return id;
+    };
+    const duel = (challenger, opponent, cp, op) => {
+      const cg = game(challenger, cp);
+      const og = game(opponent, op);
+      const cs = cp.reduce((s, p) => s + p, 0);
+      const os = op.reduce((s, p) => s + p, 0);
+      app.db
+        .prepare("INSERT INTO duels (challenger_id, opponent_id, mode, status, created_at, expires_at, finished_at, challenger_game_id, opponent_game_id, winner_id, challenger_score, opponent_score) VALUES (?, ?, 'standard', 'done', ?, ?, ?, ?, ?, ?, ?, ?)")
+        .run(challenger, opponent, now, now, now, cg, og, cs > os ? challenger : os > cs ? opponent : null, cs, os);
+    };
+    const kinds = (user) => app.db.prepare('SELECT kind FROM badges WHERE user_id = ?').all(user).map((r) => r.kind);
+    // Adam attaque et gagne 5 thèmes sur 7 avec 140 points d'avance : coup de boutoir seulement.
+    duel(a, e, [60, 60, 60, 60, 60, 0, 0], [20, 20, 20, 20, 20, 20, 20]);
+    badges.awardDuels(a, '2026-10-24');
+    badges.awardDuels(e, '2026-10-24');
+    assert.ok(kinds(a).includes('coup-de-boutoir'));
+    assert.ok(!kinds(a).includes('annihilation'));
+    assert.ok(!kinds(e).includes('coup-de-boutoir'));
+    // Eve défend et gagne 6 thèmes sur 7 avec 240 points d'avance : imprenable et muraille de Troie.
+    duel(a, e, [10, 0, 0, 0, 0, 0, 30], [60, 60, 60, 60, 60, 60, 0]);
+    badges.awardDuels(e, '2026-10-24');
+    assert.ok(kinds(e).includes('imprenable'));
+    assert.ok(kinds(e).includes('muraille-de-troie'));
+    // Égalité parfaite : frères d'armes et jumeaux ; deux égalités de plus : match miroir.
+    duel(a, e, [10, 20, 30, 10, 20, 30, 10], [10, 20, 30, 10, 20, 30, 10]);
+    badges.awardDuels(a, '2026-10-24');
+    assert.ok(kinds(a).includes('freres-d-armes'));
+    assert.ok(kinds(a).includes('jumeaux'));
+    assert.ok(!kinds(a).includes('match-miroir'));
+    duel(a, e, [10, 20, 30, 10, 20, 30, 10], [30, 10, 10, 20, 20, 30, 10]);
+    duel(a, e, [10, 20, 30, 10, 20, 30, 10], [10, 20, 30, 30, 10, 20, 10]);
+    badges.awardDuels(a, '2026-10-24');
+    assert.ok(kinds(a).includes('match-miroir'));
+  } finally {
+    await app.close();
+  }
+});
