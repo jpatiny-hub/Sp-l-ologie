@@ -183,6 +183,12 @@ CREATE TABLE IF NOT EXISTS skulls (
 CREATE INDEX IF NOT EXISTS idx_skulls_user ON skulls(user_id);
 
 -- Annonces du responsable, affichées sur l'accueil des joueurs jusqu'à leur date de fin (ou leur retrait).
+-- Réglages du jeu modifiables par le responsable (par exemple le code d'invitation demandé à l'inscription).
+CREATE TABLE IF NOT EXISTS settings (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS announcements (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
   text       TEXT NOT NULL,

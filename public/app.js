@@ -422,6 +422,13 @@
     document.querySelectorAll('[data-pane]').forEach((f) => (f.hidden = f.dataset.pane !== tab));
     document.querySelectorAll('[data-pane] .error').forEach((e) => (e.textContent = ''));
   }
+  // Le code d'invitation n'est demandé que si le responsable en a défini un.
+  function refreshSignupInfo() {
+    api('/api/signup-info')
+      .then((info) => ($('invite-field').hidden = !info.inviteRequired))
+      .catch(() => {});
+  }
+  refreshSignupInfo();
   document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => showAuthTab(t.dataset.tab)));
   document.querySelectorAll('[data-tab-link]').forEach((t) => t.addEventListener('click', () => showAuthTab(t.dataset.tabLink)));
 
@@ -449,9 +456,9 @@
     await goHome();
   });
 
-  bindForm('form-signup', async ({ username, password, confirm }, form) => {
+  bindForm('form-signup', async ({ username, password, confirm, inviteCode }, form) => {
     if (password !== confirm) throw new Error('Les deux mots de passe ne correspondent pas.');
-    const data = await api('/api/signup', { username, password });
+    const data = await api('/api/signup', { username, password, inviteCode });
     form.reset();
     showRecoveryCode(data.recoveryCode);
   });
@@ -2127,6 +2134,7 @@
     initFolds('view-admin');
     loadAdminAnnouncements();
     loadReports();
+    loadInvite();
     loadUnknownAnswers();
     loadAdminSuggestions();
     loadDashboard();
@@ -2677,6 +2685,30 @@
       $('reports-status').textContent = `${plural(pending.length, 'signalement copié', 'signalements copiés')} : colle-les dans la conversation.`;
     } catch {
       $('reports-status').textContent = text;
+    }
+  });
+
+  // ---------- Code d'invitation (responsable du jeu) ----------
+  async function loadInvite() {
+    const card = $('admin-invite');
+    card.hidden = !(app.me && app.me.isAdmin);
+    if (card.hidden) return;
+    try {
+      const { code } = await api('/api/admin/invite-code');
+      $('invite-input').value = code || '';
+      $('invite-sub').textContent = code ? 'inscriptions sur invitation' : 'inscriptions libres';
+    } catch (err) {
+      $('invite-status').textContent = err.message;
+    }
+  }
+  $('form-invite').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    try {
+      const { code } = await api('/api/admin/invite-code', { code: $('invite-input').value });
+      $('invite-sub').textContent = code ? 'inscriptions sur invitation' : 'inscriptions libres';
+      $('invite-status').textContent = code ? `Code enregistré : « ${code} ». Donne-le aux personnes que tu invites.` : 'Plus de code : les inscriptions sont libres.';
+    } catch (err) {
+      $('invite-status').textContent = err.message;
     }
   });
 

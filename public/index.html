@@ -222,10 +222,11 @@
           </form>
 
           <form id="form-signup" class="form" data-pane="signup" hidden>
+            <label id="invite-field" hidden>Code d'invitation <input name="inviteCode" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="40"></label>
             <label>Identifiant <input name="username" autocomplete="username" required minlength="3" maxlength="20" autocapitalize="off" spellcheck="false"></label>
-            <label>Mot de passe <input name="password" type="password" autocomplete="new-password" required minlength="6"></label>
-            <label>Confirmer le mot de passe <input name="confirm" type="password" autocomplete="new-password" required minlength="6"></label>
-            <p class="hint">3 à 20 caractères : lettres, chiffres, « _ », « - » ou « . ».</p>
+            <label>Mot de passe <input name="password" type="password" autocomplete="new-password" required minlength="8"></label>
+            <label>Confirmer le mot de passe <input name="confirm" type="password" autocomplete="new-password" required minlength="8"></label>
+            <p class="hint">Identifiant de 3 à 20 caractères : lettres, chiffres, « _ », « - » ou « . ». Mot de passe : au moins 8 caractères.</p>
             <p class="error" role="alert"></p>
             <button class="btn" type="submit">Créer mon compte</button>
           </form>
@@ -234,7 +235,7 @@
             <p class="hint">Saisis le code de récupération reçu à l'inscription pour choisir un nouveau mot de passe.</p>
             <label>Identifiant <input name="username" autocomplete="username" required autocapitalize="off" spellcheck="false"></label>
             <label>Code de récupération <input name="recoveryCode" required placeholder="XXXX-XXXX-XXXX" autocapitalize="characters" spellcheck="false"></label>
-            <label>Nouveau mot de passe <input name="newPassword" type="password" autocomplete="new-password" required minlength="6"></label>
+            <label>Nouveau mot de passe <input name="newPassword" type="password" autocomplete="new-password" required minlength="8"></label>
             <p class="error" role="alert"></p>
             <button class="btn" type="submit">Changer mon mot de passe</button>
             <button class="link" type="button" data-tab-link="login">Retour à la connexion</button>
@@ -652,6 +653,15 @@
             </div>
             <ul class="report-list" id="decisions-result"></ul>
           </details>
+        </details>
+        <details class="card fold" data-fold="invitation" id="admin-invite" hidden>
+          <summary><span class="fold-t"><h2>Code d'invitation</h2><span class="sub" id="invite-sub">inscriptions libres</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <p class="muted small">Avec un code, seules les personnes à qui tu le donnes peuvent créer un compte. Les comptes existants ne changent pas. Laisse vide pour rouvrir les inscriptions.</p>
+          <form id="form-invite" class="form">
+            <label>Code <input id="invite-input" maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+            <button class="btn" type="submit">Enregistrer</button>
+          </form>
+          <p class="muted small" id="invite-status" role="status"></p>
         </details>
         <details class="card fold" data-fold="refusees" id="admin-unknown" hidden>
           <summary><span class="fold-t"><h2>Réponses refusées</h2><span class="sub">les saisies les plus fréquentes, pour compléter les thèmes</span></span><span class="pm" aria-hidden="true"></span></summary>

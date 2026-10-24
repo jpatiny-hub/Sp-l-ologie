@@ -1,7 +1,7 @@
 titre: Un fruit dont le nom commence par la lettre M
 # Fruits (sens culinaire ou botanique) commençant par M, réutilisés de la liste générale des fruits et complétés.
 1: Mangue; Melon
-2: Mandarine; Myrtille; Mûre; Mirabelle; Melon d\'eau = Pastèque; Mûre sauvage; Maracudja = Maracuja
+2: Mandarine; Myrtille; Mûre; Mirabelle; Melon d'eau = Pastèque; Mûre sauvage; Maracudja = Maracuja
 3: Myrtille sauvage; Mombin; Muscat = Raisin muscat; Mandarine satsuma = Satsuma; Mangue verte; Mirabelle de Nancy; Mirabelle de Metz
 4: Mangoustan; Main de Bouddha; Mûre de mûrier; Mûre blanche; Mûre noire; Mûre rouge; Mûre de Boysen = Boysenberry; Mûre de Logan = Loganberry; Mangoustan violet; Mamão = Papaye; Mamoncillo = Quenette; Mangue cogshall
 5: Marula; Mamey; Myrte; Mûre arctique

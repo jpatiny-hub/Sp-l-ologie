@@ -44,3 +44,30 @@ test('réponses refusées : liste réservée au responsable, ignorer une saisie'
     await app.close();
   }
 });
+
+test("code d'invitation : inscription libre par défaut, puis code exigé une fois défini", async () => {
+  const app = await startServer();
+  try {
+    const adam = client(app.base);
+    const eve = client(app.base);
+    const guest = client(app.base);
+    assert.equal((await guest('/api/signup-info')).data.inviteRequired, false);
+    await adam('/api/signup', { username: 'adam', password: 'secret123' });
+    assert.equal((await eve('/api/admin/invite-code', { code: 'mine2026' })).status, 401);
+    await eve('/api/signup', { username: 'eve', password: 'secret123' });
+    assert.equal((await eve('/api/admin/invite-code', { code: 'mine2026' })).status, 403, 'réservé au responsable');
+    assert.equal((await adam('/api/admin/invite-code', { code: 'abc' })).status, 400, 'trop court');
+    assert.equal((await adam('/api/admin/invite-code', { code: 'Mine 2026' })).status, 200);
+    assert.equal((await adam('/api/admin/invite-code')).data.code, 'Mine 2026');
+    assert.equal((await guest('/api/signup-info')).data.inviteRequired, true);
+    assert.equal((await guest('/api/signup', { username: 'zoe', password: 'secret123' })).status, 403, 'sans code');
+    assert.equal((await guest('/api/signup', { username: 'zoe', password: 'secret123', inviteCode: 'autre' })).status, 403, 'mauvais code');
+    assert.equal((await guest('/api/signup', { username: 'zoe', password: 'secret123', inviteCode: ' mine2026 ' })).status, 201, 'code accepté sans tenir compte de la casse ni des espaces');
+    // Les comptes existants se connectent sans code.
+    assert.equal((await client(app.base)('/api/login', { username: 'eve', password: 'secret123' })).status, 200);
+    assert.equal((await adam('/api/admin/invite-code', { code: '' })).data.code, null);
+    assert.equal((await client(app.base)('/api/signup', { username: 'leo', password: 'secret123' })).status, 201, 'inscriptions rouvertes');
+  } finally {
+    await app.close();
+  }
+});

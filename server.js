@@ -81,6 +81,14 @@ function createApp({
   game.badges.backfill();
   const loginLimiter = new auth.RateLimiter(10, 15 * 60 * 1000);
   const signupLimiter = new auth.RateLimiter(10, 60 * 60 * 1000);
+  const inviteLimiter = new auth.RateLimiter(10, 60 * 60 * 1000);
+
+  /** Code d'invitation demandé à l'inscription (aucun : l'inscription reste libre). */
+  function inviteCode() {
+    const row = db.prepare("SELECT value FROM settings WHERE key = 'invite_code'").get();
+    return row && row.value ? row.value : null;
+  }
+  const inviteKey = (text) => crypto.createHash('sha256').update(String(text || '').normalize('NFC').toLowerCase().replace(/\s+/g, '')).digest();
 
   function send(res, status, body, headers = {}) {
     res.writeHead(status, { ...SECURITY_HEADERS, 'Cache-Control': 'no-store', 'X-App-Version': version, ...headers });
@@ -211,7 +219,15 @@ function createApp({
     'POST /api/signup': async (req, res) => {
       const ip = clientIp(req);
       if (signupLimiter.blocked(ip, now())) throw new HttpError(429, 'Trop de comptes créés. Réessaie plus tard.');
-      const { username, password } = await readJson(req);
+      const { username, password, inviteCode: given } = await readJson(req);
+      const wanted = inviteCode();
+      if (wanted) {
+        if (inviteLimiter.blocked(ip, now())) throw new HttpError(429, "Trop d'essais de code d'invitation. Réessaie plus tard.");
+        if (!crypto.timingSafeEqual(inviteKey(given), inviteKey(wanted))) {
+          inviteLimiter.fail(ip, now());
+          throw new HttpError(403, "Code d'invitation incorrect.");
+        }
+      }
       const problem = auth.validateUsername(username) || auth.validatePassword(password);
       if (problem) throw new HttpError(400, problem);
       const display = username.normalize('NFC').trim();
@@ -242,6 +258,26 @@ function createApp({
       db.prepare('UPDATE users SET news_seen = ? WHERE id = ?').run(LATEST_NEWS_ID, userId);
       signupLimiter.fail(ip, now());
       json(res, 201, { user: userView({ username: display }), recoveryCode }, { 'Set-Cookie': createSession(userId) });
+    },
+
+    // L'écran d'inscription demande un code d'invitation seulement si le responsable en a défini un.
+    'GET /api/signup-info': async (req, res) => {
+      json(res, 200, { inviteRequired: !!inviteCode() });
+    },
+
+    'GET /api/admin/invite-code': async (req, res) => {
+      requireAdmin(req, res);
+      json(res, 200, { code: inviteCode() });
+    },
+
+    'POST /api/admin/invite-code': async (req, res) => {
+      requireAdmin(req, res);
+      const { code } = await readJson(req);
+      const value = typeof code === 'string' ? code.trim() : '';
+      if (value && (value.length < 4 || value.length > 40)) throw new HttpError(400, 'Le code doit faire de 4 à 40 caractères (ou être vide pour libérer les inscriptions).');
+      if (value) db.prepare("INSERT INTO settings (key, value) VALUES ('invite_code', ?) ON CONFLICT (key) DO UPDATE SET value = excluded.value").run(value);
+      else db.prepare("DELETE FROM settings WHERE key = 'invite_code'").run();
+      json(res, 200, { code: value || null });
     },
 
     'POST /api/login': async (req, res) => {
