@@ -490,6 +490,7 @@
 
   async function loadCarnetSummary() {
     $('carnet-dot').hidden = !app.me.unseenBadges;
+    $('report-banner').hidden = !app.me.unreadReports;
     try {
       const profile = await api('/api/profile');
       const earned = profile.badges.filter((b) => b.count).length;
@@ -2755,6 +2756,13 @@
   });
 
   $('btn-carnet').addEventListener('click', () => openProfile());
+  $('report-banner').addEventListener('click', async () => {
+    await openProfile();
+    const fold = $('fold-proposer');
+    fold.open = true;
+    fold.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (app.me) app.me.unreadReports = 0;
+  });
   $('btn-results-carnet').addEventListener('click', () => openProfile());
   $('btn-profile-home').addEventListener('click', () => goHome());
 

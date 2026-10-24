@@ -1123,3 +1123,5 @@ dialog.drawer::backdrop { background: rgba(0, 0, 0, 0.62); }
   :root[data-season='halloween'] .home-profile::after { animation: none; }
   :root[data-season='halloween'] body::before, .haunt-eyes { display: none; }
 }
+
+.report-banner { display: block; width: 100%; text-align: left; cursor: pointer; font: inherit; color: inherit; border: 2px solid var(--accent, currentColor); }
