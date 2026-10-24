@@ -168,6 +168,20 @@ CREATE TABLE IF NOT EXISTS duel_themes (
   PRIMARY KEY (duel_id, slot)
 );
 
+-- Collection de crânes (jours spéciaux) : un crâne par réponse valide, de la qualité de la rareté. Sans clé étrangère :
+-- les parties du mode illimité sont effacées, la collection reste.
+CREATE TABLE IF NOT EXISTS skulls (
+  game_id INTEGER NOT NULL,
+  slot    INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  day     TEXT NOT NULL,
+  tier    TEXT NOT NULL,
+  mode    TEXT NOT NULL,
+  duel_id INTEGER,
+  PRIMARY KEY (game_id, slot)
+);
+CREATE INDEX IF NOT EXISTS idx_skulls_user ON skulls(user_id);
+
 -- Annonces du responsable, affichées sur l'accueil des joueurs jusqu'à leur date de fin (ou leur retrait).
 CREATE TABLE IF NOT EXISTS announcements (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,

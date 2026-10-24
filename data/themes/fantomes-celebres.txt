@@ -1,0 +1,8 @@
+titre: Un fantôme célèbre (littérature, cinéma, séries, dessins animés, jeux)
+actif: non
+# Thème d'Halloween (31 octobre). Fantômes et spectres de la fiction et du folklore connu ; Fantômette (une héroïne, pas un fantôme) et les personnages simplement morts (Rebecca…) ne comptent pas.
+1: Casper; Le Fantôme de l'Opéra = Fantôme de l'Opéra = Erik; Beetlejuice; Slimer; Nick Quasi-Sans-Tête = Sir Nicholas de Mimsy-Porpington = Nick; Mimi Geignarde = Moaning Myrtle; Boo; Belphégor = Le Fantôme du Louvre
+2: Le Baron sanglant = Baron sanglant; La Dame grise = Dame grise; Le Moine gras = Moine gras; Peeves; Jacob Marley = Marley; Le Fantôme de Canterville = Sir Simon de Canterville; Sam Wheat = Sam (Ghost); Blinky = Fantôme rouge; Pinky = Fantôme rose; Inky = Fantôme bleu; Clyde = Fantôme orange; Danny Phantom = Danny Fenton; Samara = Samara Morgan; La Dame blanche = Dame blanche
+3: Le Cavalier sans tête = Cavalier sans tête = Cavalier sans tête de Sleepy Hollow; Sadako; Kayako; Bloody Mary; Le Fantôme du roi Hamlet = Père d'Hamlet = Spectre du père d'Hamlet; Esprit des Noëls passés = Fantôme des Noëls passés; Esprit des Noëls présents = Fantôme des Noëls présents; Esprit des Noëls futurs = Fantôme des Noëls futurs; King Boo = Roi Boo; Banquo; Catherine Earnshaw = Cathy
+4: La Dame en noir = Jennet Humfrye; Les jumelles Grady = Jumelles Grady = Jumelles de Shining; La Llorona; Le Petit Fantôme; Toshio; Mr. Grady = Delbert Grady
+5: Stretch; Stinkie; Fatso

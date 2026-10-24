@@ -298,6 +298,7 @@
         </div>
         <div class="card play-card">
           <h2>Jouer</h2>
+          <p class="skull-banner" id="skull-banner" hidden>Aujourd'hui, chaque réponse te rapporte un crâne : os, jauni, bronze, rubis ou or. Collectionne-les en forage, en duel et en mode infini !</p>
           <div class="mini-tabs" id="mode-tabs" role="tablist">
             <button class="tab active" type="button" role="tab" data-mode="daily" aria-selected="true">Forage</button>
             <button class="tab" type="button" role="tab" data-mode="duel" aria-selected="false">Duel <span class="tab-dot" id="duel-dot" hidden></span></button>
@@ -506,6 +507,11 @@
           <h3>Ton personnage</h3>
           <div id="avatar-options"></div>
           <p class="muted small" id="avatar-status" role="status"></p>
+        </details>
+        <details class="card fold" data-fold="cranes" id="fold-cranes" hidden>
+          <summary><span class="fold-t"><h2>Collection de crânes</h2><span class="sub" id="skulls-sub"></span></span><span class="pm" aria-hidden="true"></span></summary>
+          <div class="skull-grid" id="skull-grid"></div>
+          <p class="muted small" id="skull-note"></p>
         </details>
         <details class="card fold" data-fold="badges">
           <summary><span class="fold-t"><h2>Badges</h2></span><span class="pm" aria-hidden="true"></span></summary>

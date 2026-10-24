@@ -1,0 +1,8 @@
+titre: Un vampire célèbre (littérature, cinéma, séries, dessins animés, jeux)
+actif: non
+# Thème d'Halloween (31 octobre). Personnages de fiction explicitement vampires (ou mi-vampires comme Blade ou Mavis) ; les personnages historiques (Vlad l'Empaleur, Élisabeth Báthory) ne comptent pas.
+1: Dracula = Comte Dracula; Edward Cullen = Edward; Lestat = Lestat de Lioncourt; Nosferatu = Comte Orlok = Orlok; Blade; Angel = Angelus; Spike = William le Sanglant
+2: Damon Salvatore = Damon; Stefan Salvatore = Stefan; Carmilla = Mircalla Karnstein; Louis de Pointe du Lac = Louis; Selene; Eric Northman = Eric; Mavis = Mavis Dracula; Marceline = Marceline la reine des vampires; Alucard; Count von Count = Le Comte; Comte Duckula = Count Duckula
+3: Drusilla; Claudia; Armand; Akasha; Carlisle Cullen = Carlisle; Alice Cullen = Alice; Jasper Hale = Jasper; Rosalie Hale = Rosalie; Emmett Cullen = Emmett; Bill Compton = Bill; Barnabas Collins = Barnabas; Nandor; Laszlo Cravensworth = Laszlo; Nadja; Lucy Westenra = Lucy; Klaus Mikaelson = Klaus; Vampirella; Eli; Comte Chocula = Count Chocula
+4: Darla; Deacon Frost; Lord Ruthven = Ruthven; Sir Francis Varney = Varney = Varney le vampire; Kurt Barlow = Barlow; Jerry Dandrige; Colin Robinson; Bunnicula; Viktor; Dio Brando = DIO; Elijah Mikaelson = Elijah
+5: Marcus Corvinus; Kain; Les Épouses de Dracula = Épouses de Dracula
