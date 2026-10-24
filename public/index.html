@@ -663,6 +663,18 @@
           </form>
           <p class="muted small" id="invite-status" role="status"></p>
         </details>
+        <details class="card fold" data-fold="essai" id="admin-probe" hidden>
+          <summary><span class="fold-t"><h2>Tester un thème</h2><span class="sub">voir comment le jeu réagit à une réponse</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <p class="muted small">Choisis un thème et tape une ou plusieurs réponses (une par ligne). Rien n'est enregistré, aucun point n'est donné.</p>
+          <form id="form-probe" class="form">
+            <label>Thème <input id="probe-theme" list="probe-themes" autocomplete="off" placeholder="Commence à taper le titre…"></label>
+            <datalist id="probe-themes"></datalist>
+            <label>Réponses à essayer <textarea id="probe-inputs" rows="4" maxlength="2000" spellcheck="false"></textarea></label>
+            <button class="btn" type="submit">Tester</button>
+          </form>
+          <p class="muted small" id="probe-status" role="status"></p>
+          <ul class="report-list" id="probe-list"></ul>
+        </details>
         <details class="card fold" data-fold="refusees" id="admin-unknown" hidden>
           <summary><span class="fold-t"><h2>Réponses refusées</h2><span class="sub">les saisies les plus fréquentes, pour compléter les thèmes</span></span><span class="pm" aria-hidden="true"></span></summary>
           <p class="muted small">Ce que les joueurs tapent le plus souvent sans être reconnus (forage du jour). Utile pour ajouter des variantes avant même un signalement.</p>
