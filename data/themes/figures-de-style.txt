@@ -1,0 +1,6 @@
+titre: Une figure de style
+# Figures de style classiques (rhétorique et poétique).
+1: Métaphore; Comparaison; Métonymie; Hyperbole; Litote; Ironie; Allégorie; Personnification; Antithèse; Oxymore; Euphémisme; Anaphore; Périphrase; Gradation; Pléonasme; Paradoxe; Synecdoque; Antiphrase; Prosopopée; Allitération; Assonance; Chiasme; Épithète
+2: Zeugme; Syllepse; Anacoluthe; Asyndète; Polysyndète; Ellipse; Hypallage; Hyperbate; Épanadiplose; Épiphore; Épizeuxe; Anadiplose; Symploque; Parallélisme; Accumulation; Énumération; Prétérition; Aposiopèse = Réticence; Apostrophe; Interrogation rhétorique = Question rhétorique; Exclamation; Concession; Gradation descendante = Climax; Anticlimax = Bathos; Calembour; Jeu de mots; Paronomase; Antanaclase; Pointe; Métalepse; Catachrèse; Tautologie; Syllogisme; Dilemme; Paradoxisme; Épigramme; Maxime; Sentence
+3: Hendiadys; Hystéron-protéron; Tmèse; Paragoge; Apocope; Aphérèse; Syncope; Métathèse; Prothèse; Épenthèse; Diérèse; Synérèse; Synalèphe; Hiatus; Élision; Enjambement; Rejet; Contre-rejet; Rime; Cacophonie; Euphonie; Onomatopée
+4: Harmonie imitative; Tautogramme; Lipogramme; Palindrome; Anagramme; Acrostiche; Holorime; Rime riche; Rime équivoquée; Antonomase; Épitrope; Diaphore; Épanorthose; Épiphonème; Hypotypose; Ecphrasis; Éthopée; Prosographie; Chronographie; Topographie; Prolepse; Analepse
