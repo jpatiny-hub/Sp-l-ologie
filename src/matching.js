@@ -247,7 +247,7 @@ function keywordMatch(theme, words) {
     if (found) return null;
     found = answer;
   }
-  return found ? { answer: found, distance: 0, approximate: true } : null;
+  return found ? { answer: found, distance: 0, approximate: true, via: 'mots-clés' } : null;
 }
 
 const surnameCache = new WeakMap();
@@ -286,15 +286,15 @@ function matchAnswer(theme, input) {
   const key = toKey(input);
   if (!key) return null;
   const exact = theme.index.get(key);
-  if (exact) return { answer: exact, distance: 0, approximate: key !== exact.key };
+  if (exact) return { answer: exact, distance: 0, approximate: key !== exact.key, via: key === exact.key ? 'nom exact' : 'variante' };
   const nkey = numberKey(input);
   const viaNumbers = nkey !== key && theme.index.get(nkey);
-  if (viaNumbers) return { answer: viaNumbers, distance: 0, approximate: nkey !== numberKey(viaNumbers.label) };
+  if (viaNumbers) return { answer: viaNumbers, distance: 0, approximate: nkey !== numberKey(viaNumbers.label), via: 'nombres' };
 
   const words = normalizeWords(input);
   if (words.length === 1) {
     const surname = surnameIndex(theme).get(words[0]);
-    if (surname) return { answer: surname, distance: 0, approximate: true };
+    if (surname) return { answer: surname, distance: 0, approximate: true, via: 'nom de famille' };
   }
 
   const max = maxEdits(key.length);
@@ -311,7 +311,7 @@ function matchAnswer(theme, input) {
       bestDistance = d;
     }
   }
-  return best ? { answer: best, distance: bestDistance, approximate: true } : keywordMatch(theme, normalizeWords(input, true));
+  return best ? { answer: best, distance: bestDistance, approximate: true, via: 'faute de frappe' } : keywordMatch(theme, normalizeWords(input, true));
 }
 
 module.exports = { normalizeWords, toKey, numberKey, maxEdits, editDistance, matchAnswer };
