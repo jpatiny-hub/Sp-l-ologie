@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { toKey, editDistance, matchAnswer } = require('../src/matching');
+const { toKey, numberKey, editDistance, matchAnswer } = require('../src/matching');
 const { parseTheme } = require('../src/themes');
 
 const theme = parseTheme(
@@ -96,4 +96,36 @@ test('nom de famille seul, quand il est unique dans le thème', () => {
   assert.equal(m.approximate, true, 'confirmation demandée');
   assert.equal(matchAnswer(t, 'Chirac'), null, 'ambigu : deux Chirac');
   assert.equal(matchAnswer(t, 'Francois'), null, 'le prénom seul reste refusé');
+});
+
+test('réponses longues : quelques mots-clés suffisent, sauf si plusieurs réponses conviennent', () => {
+  const theme = parseTheme('t', [
+    'titre: Test',
+    '1: Circulation en sens inverse; Sens interdit; Excès de vitesse de plus de 50 km/h; Stationnement sur piste cyclable; Stationnement sur trottoir',
+  ].join('\n'));
+  assert.equal(matchAnswer(theme, 'sens inverse circulation').answer.label, 'Circulation en sens inverse');
+  assert.equal(matchAnswer(theme, 'sens inverse circulation').approximate, true);
+  assert.equal(matchAnswer(theme, 'piste cyclable stationnement').answer.label, 'Stationnement sur piste cyclable');
+  assert.equal(matchAnswer(theme, 'vitesse 50 km').answer.label, 'Excès de vitesse de plus de 50 km/h');
+  assert.equal(matchAnswer(theme, 'stationnement'), null, 'un seul mot-clé ne suffit pas');
+  assert.equal(matchAnswer(theme, 'rouler stationnement sur le sol'), null);
+});
+
+test('nombres : chiffres et lettres sont équivalents, y compris septante/nonante et les ordinaux', () => {
+  const theme = parseTheme('t', [
+    'titre: Test',
+    '1: La valse à mille temps; Vingt mille lieues sous les mers; Mille-feuille; Le deuxième sexe; Quatre-vingt-treize; Les 101 dalmatiens',
+  ].join('\n'));
+  const label = (input) => matchAnswer(theme, input)?.answer.label;
+  assert.equal(label('La valse à 1000 temps'), 'La valse à mille temps');
+  assert.equal(label('la valse a 1 000 temps'), 'La valse à mille temps');
+  assert.equal(label('20000 lieues sous les mers'), 'Vingt mille lieues sous les mers');
+  assert.equal(label('Millefeuille'), 'Mille-feuille');
+  assert.equal(label('Le 2ème sexe'), 'Le deuxième sexe');
+  assert.equal(label('93'), 'Quatre-vingt-treize');
+  assert.equal(label('Quatre vingt treize'), 'Quatre-vingt-treize');
+  assert.equal(label('Cent un dalmatiens'), 'Les 101 dalmatiens');
+  assert.equal(numberKey('nonante neuf'), '99');
+  assert.equal(numberKey('septante et un'), '71');
+  assert.equal(numberKey('deux trois'), '23');
 });
