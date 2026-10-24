@@ -954,7 +954,14 @@ class GameService {
     // Réponse désormais reconnue par le thème : les joueurs qui l'avaient signalée reçoivent « Œil de lynx ».
     const theme = this.themes.get(themeId);
     const reports = this.db.prepare('SELECT user_id, input FROM answer_reports WHERE theme_id = ? AND input_key = ? AND handled_at IS NULL').all(themeId, inputKey);
-    if (theme && reports.length && matchAnswer(theme, reports[0].input)) reports.forEach((r) => this.badges.awardLynx(r.user_id, this.today()));
+    const recognised = theme && reports.length && matchAnswer(theme, reports[0].input);
+    if (recognised) reports.forEach((r) => this.badges.awardLynx(r.user_id, this.today()));
+    if (recognised) {
+      // Les joueurs reçoivent un retour (et un point rouge), sans écraser un retour déjà rédigé.
+      this.db
+        .prepare("UPDATE answer_reports SET verdict = 'accepted', message = 'Réponse ajoutée au thème : merci pour ton signalement !', updated_at = ? WHERE theme_id = ? AND input_key = ? AND verdict IS NULL")
+        .run(this.now(), themeId, inputKey);
+    }
     this.db
       .prepare('UPDATE answer_reports SET handled_at = ? WHERE theme_id = ? AND input_key = ? AND handled_at IS NULL')
       .run(this.now(), themeId, inputKey);

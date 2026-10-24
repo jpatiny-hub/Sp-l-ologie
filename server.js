@@ -306,6 +306,7 @@ function createApp({
         recap: pendingRecap(db, user.id, game.today()),
         duels: game.duels.summary(user.id),
         announcements: announcements.unseen(user.id),
+        unreadReports: game.myReports(user.id).unread,
         season: seasonFor(game.today(), seasons),
         nextResetMs: msUntilNextDay(now()),
         timerSeconds: config.TIMER_SECONDS,
