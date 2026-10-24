@@ -1,0 +1,6 @@
+titre: Quelque chose que l'on trouve dans une trousse d'écolier
+# Fournitures scolaires typiques de la trousse (primaire et secondaire).
+1: Stylo = Stylos; Crayon = Crayon à papier = Crayons; Gomme; Taille-crayon = Taille-crayons; Règle; Crayons de couleur; Feutres; Ciseaux; Colle; Bic = Stylo Bic; Surligneur = Stabilo; Compas; Équerre; Rapporteur; Effaceur; Correcteur = Blanco; Cartouches d'encre = Cartouche; Plume; Stylo-plume; Stylo à bille = Bille; Stylo quatre couleurs = Bic quatre couleurs; Marqueur; Crayon gras; Mine; Porte-mine = Portemines; Trombone = Trombones
+2: Agrafeuse; Agrafes; Perforatrice; Scotch = Ruban adhésif; Cutter; Gomme à effacer; Ardoise; Craie; Pâte à fixe; Pastilles adhésives; Étiquettes; Post-it; Bloc-notes; Carnet; Calculatrice; Latte; Pistolet à colle; Colle en bâton = Bâton de colle; Colle liquide; Colle blanche; Ruban correcteur; Roller correcteur; Stylo effaçable = Frixion; Crayon de papier HB; Mine 2B; Crayon 2B; Fusain; Pastels; Craies grasses; Peinture; Pinceau; Aquarelle; Palette; Feutres fins; Feutres épais; Feutres pointe fine; Stylos gel; Stylos roller; Stylo rollerball; Stylo-plume jetable
+3: Taille-crayon électrique; Boîte à compas; Compas à mine; Double décimètre; Règle graduée; Règle plate
+4: Règle flexible; Boîte de gommettes; Gommettes; Autocollants; Stickers; Mouchoirs en papier
