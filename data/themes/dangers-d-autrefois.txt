@@ -1,7 +1,7 @@
 titre: Une pratique, un produit ou une substance utilisé autrefois et reconnu aujourd'hui comme dangereux
 # Choses courantes, médicales ou commerciales autrefois jugées normales voire bénéfiques, aujourd'hui interdites ou déconseillées en raison de leur dangerosité. Liste de mémoire.
 1: Saignée = Saignées; Lobotomie; Peinture au plomb = Plomb = Céruse; Radium = Radium girls = Peinture au radium; Amiante; Cigarette = Tabac = Cigarette en pharmacie; DDT; Éther = Éther anesthésique; Mercure = Thermomètre au mercure; Arsenic
-2: Chloroforme; Cocaïne = Coca-Cola à la cocaïne; Héroïne = Sirop à l'héroïne; Thalidomide; Fluoroscope = Radioscopie des pieds = Rayons X pour chaussures; Essence au plomb = Tétraéthyle de plomb; Laudanum = Opium; Radithor = Eau radioactive; Papier peint à l'arsenic = Vert de Scheele = Vert de Paris; Cosmétiques au plomb = Fard au plomb
+2: Nicotine; Chloroforme; Cocaïne = Coca-Cola à la cocaïne; Héroïne = Sirop à l'héroïne; Thalidomide; Fluoroscope = Radioscopie des pieds = Rayons X pour chaussures; Essence au plomb = Tétraéthyle de plomb; Laudanum = Opium; Radithor = Eau radioactive; Papier peint à l'arsenic = Vert de Scheele = Vert de Paris; Cosmétiques au plomb = Fard au plomb
 3: Trépanation; Strychnine = Tonique à la strychnine; Dentifrice au radium = Dentifrice radioactif; Jouets au plomb = Soldats de plomb; Tuyauterie en plomb = Canalisations en plomb = Tuyaux en plomb; Benzène; Tétrachlorure de carbone; Thorotrast = Thorium; Crème au mercure; PCB = Pyralène; Allumettes au phosphore = Phosphore blanc; Mercurochrome
 4: Pilules de radium; Arséniate de plomb = Pesticides arsenicaux; Sirop calmant à l'opium pour bébé = Sirop pour bébé; Thallium = Sels de thallium
 5: Poudre de Dover; Bière à l'arsenic
