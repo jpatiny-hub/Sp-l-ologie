@@ -10,7 +10,7 @@ const Avatar = require('./avatar');
  */
 const GOAL = 10000;
 // Défi duel du mois : le groupe termine ensemble ce nombre de duels avant la fin du mois.
-const DUEL_GOAL = 20;
+const DUEL_GOAL = 50;
 
 function collectiveStatus(db, today, userId) {
   const month = monthStart(today);
