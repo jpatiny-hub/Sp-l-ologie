@@ -4,4 +4,4 @@ titre: Une pièce, un personnage, une arme ou un pion d'un jeu d'échecs, de Clu
 2: Chapeau haut-de-forme = Haut-de-forme; Voiture; Chien = Scottish terrier; Bateau; Fer à repasser = Fer; Dé à coudre; Brouette; Botte; Clé anglaise; Tuyau de plomb = Barre de fer = Matraque
 3: Docteur Olive = Révérend Olive = Olive; Professeur Violet = Violet; Madame Leblanc = Mme Leblanc = Leblanc; Chat; Pingouin = Manchot
 4: Tyrannosaure = T-Rex; Canard en caoutchouc; Cheval à bascule; Docteur Orchidée = Dr Orchidée; Hache; Trophée; Haltère; Batte; Poison
-5: Porte-monnaie; Lanterne; Madame Chose; Lance-pierre; Saxophone
+5: Tour Eiffel; Porte-monnaie; Lanterne; Madame Chose; Lance-pierre; Saxophone
