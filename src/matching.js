@@ -20,11 +20,85 @@ function romanToNumber(word) {
   return total;
 }
 
+// Nombres écrits en lettres (y compris septante, octante/huitante, nonante) → chiffres.
+const NUMBER_WORDS = {
+  zero: 0, un: 1, une: 1, deux: 2, trois: 3, quatre: 4, cinq: 5, six: 6, sept: 7, huit: 8, neuf: 9, dix: 10,
+  onze: 11, douze: 12, treize: 13, quatorze: 14, quinze: 15, seize: 16, vingt: 20, vingts: 20, trente: 30,
+  quarante: 40, cinquante: 50, soixante: 60, septante: 70, octante: 80, huitante: 80, nonante: 90,
+  // Titres anglais : « Eight Days a Week », « Twenty One Pilots ».
+  one: 1, two: 2, three: 3, four: 4, five: 5, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12,
+  thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20,
+  thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90,
+};
+const BIG_WORDS = { hundred: 100, thousand: 1000, cent: 100, cents: 100, mille: 1000, million: 1e6, millions: 1e6, milliard: 1e9, milliards: 1e9 };
+const ORDINAL_WORDS = {
+  premier: '1er', premiere: '1er', deuxieme: '2e', second: '2e', seconde: '2e', troisieme: '3e', quatrieme: '4e',
+  cinquieme: '5e', sixieme: '6e', septieme: '7e', huitieme: '8e', neuvieme: '9e', dixieme: '10e', onzieme: '11e',
+  douzieme: '12e', treizieme: '13e', quatorzieme: '14e', quinzieme: '15e', seizieme: '16e', vingtieme: '20e',
+  centieme: '100e', millieme: '1000e',
+};
+
+/** Le nombre `v` peut-il s'ajouter à `cur` dans une même écriture (« vingt » + « trois », mais pas « deux » + « trois ») ? */
+function canAdd(cur, v) {
+  const r = cur % 100;
+  if (r === 0) return true;
+  if (v >= 100) return false;
+  if (r >= 20 && r % 10 === 0 && v < 10) return true;
+  if ((r === 60 || r === 80) && v >= 10 && v < 20) return true;
+  return r === 10 && v >= 7 && v < 10;
+}
+
+/** « vingt mille lieues » → « 20000 lieues », « 2eme » → « 2e », « 1 000 » → « 1000 ». */
+function numberize(words) {
+  const out = [];
+  for (let i = 0; i < words.length; ) {
+    const w = words[i];
+    if (ORDINAL_WORDS[w]) { out.push(ORDINAL_WORDS[w]); i++; continue; }
+    const ord = w.match(/^(\d+)(?:e|eme|ieme|em|ere)$/);
+    if (ord) { out.push(w.endsWith('ere') && ord[1] === '1' ? '1er' : `${ord[1]}e`); i++; continue; }
+    if (!(w in NUMBER_WORDS) && !(w in BIG_WORDS)) { out.push(w); i++; continue; }
+    let total = 0;
+    let cur = 0;
+    let used = 0;
+    let j = i;
+    while (j < words.length) {
+      let t = words[j];
+      let skip = 0;
+      if (t === 'et' && used && (words[j + 1] in NUMBER_WORDS || words[j + 1] in BIG_WORDS)) { t = words[j + 1]; skip = 1; }
+      if (t in NUMBER_WORDS) {
+        const v = NUMBER_WORDS[t];
+        if (v === 20 && cur % 100 >= 2 && cur % 100 < 10) cur += (cur % 100) * 19;
+        else if (!canAdd(cur, v)) break;
+        else cur += v;
+      } else if (t in BIG_WORDS) {
+        const v = BIG_WORDS[t];
+        if (v === 100) {
+          const r = cur % 100;
+          if (r >= 10) break;
+          cur += (r || 1) * 100 - r;
+        } else { total += (cur || 1) * v; cur = 0; }
+      } else break;
+      used++;
+      j += 1 + skip;
+    }
+    if (!used || (used === 1 && (w === 'un' || w === 'une'))) { out.push(w); i++; continue; }
+    out.push(String(total + cur));
+    i = j;
+  }
+  const merged = [];
+  for (const w of out) {
+    const last = merged.length - 1;
+    if (last >= 0 && /^\d{3}$/.test(w) && /^[1-9]\d{0,2}$/.test(merged[last])) merged[last] += w;
+    else merged.push(w);
+  }
+  return merged;
+}
+
 /**
  * Découpe une réponse en mots normalisés : minuscules, sans accents, sans ponctuation,
  * sans article initial, « st » → « saint », pluriels simples (-s, -x) retirés.
  */
-function normalizeWords(text) {
+function normalizeWords(text, numbers = false) {
   const cleaned = String(text)
     .toLowerCase()
     .replace(/œ/g, 'oe')
@@ -39,7 +113,7 @@ function normalizeWords(text) {
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
   if (!cleaned) return [];
-  const words = cleaned.split(' ');
+  let words = cleaned.split(' ');
   while (words.length > 1 && LEADING_ARTICLES.has(words[0])) words.shift();
   // Chiffres romains après un nom : « Louis XVII » = « Louis 17 », « Napoléon Ier » = « Napoléon 1er ».
   for (let i = 1; i < words.length; i++) {
@@ -49,6 +123,7 @@ function normalizeWords(text) {
       if (n) words[i] = String(n);
     }
   }
+  if (numbers) words = numberize(words);
   return words
     .map((w) => (w === 'st' ? 'saint' : w === 'ste' ? 'sainte' : w))
     .map((w) => (w.length > 3 && /[sx]$/.test(w) ? w.slice(0, -1) : w));
@@ -57,6 +132,11 @@ function normalizeWords(text) {
 /** Clé de comparaison : les mots normalisés collés (« Saint-Feuillien » = « st feuillien »). */
 function toKey(text) {
   return normalizeWords(text).join('');
+}
+
+/** Clé « chiffres » : « La valse à mille temps » et « La valse à 1000 temps » donnent la même. */
+function numberKey(text) {
+  return normalizeWords(text, true).join('');
 }
 
 /** Nombre de fautes tolérées selon la longueur de la clé (une touche voisine ne compte que pour une demi-faute). */
@@ -147,7 +227,7 @@ function keywordIndex(theme) {
   if (index) return index;
   index = [];
   for (const answer of theme.answers) {
-    const sets = (answer.names || [answer.label]).map((name) => keywords(normalizeWords(name))).filter((k) => k.length >= 3);
+    const sets = (answer.names || [answer.label]).map((name) => keywords(normalizeWords(name, true))).filter((k) => k.length >= 3);
     if (sets.length) index.push({ answer, sets });
   }
   keywordCache.set(theme, index);
@@ -207,6 +287,9 @@ function matchAnswer(theme, input) {
   if (!key) return null;
   const exact = theme.index.get(key);
   if (exact) return { answer: exact, distance: 0, approximate: key !== exact.key };
+  const nkey = numberKey(input);
+  const viaNumbers = nkey !== key && theme.index.get(nkey);
+  if (viaNumbers) return { answer: viaNumbers, distance: 0, approximate: nkey !== numberKey(viaNumbers.label) };
 
   const words = normalizeWords(input);
   if (words.length === 1) {
@@ -215,7 +298,7 @@ function matchAnswer(theme, input) {
   }
 
   const max = maxEdits(key.length);
-  if (max === 0) return keywordMatch(theme, words);
+  if (max === 0) return keywordMatch(theme, normalizeWords(input, true));
   let best = null;
   let bestDistance = max + 1;
   for (const [candidate, answer] of theme.index) {
@@ -228,7 +311,7 @@ function matchAnswer(theme, input) {
       bestDistance = d;
     }
   }
-  return best ? { answer: best, distance: bestDistance, approximate: true } : keywordMatch(theme, words);
+  return best ? { answer: best, distance: bestDistance, approximate: true } : keywordMatch(theme, normalizeWords(input, true));
 }
 
-module.exports = { normalizeWords, toKey, maxEdits, editDistance, matchAnswer };
+module.exports = { normalizeWords, toKey, numberKey, maxEdits, editDistance, matchAnswer };
