@@ -1,0 +1,8 @@
+titre: Un objet, un accessoire ou un ingrédient de l'univers des sorcières
+actif: non
+# Thème d'Halloween (31 octobre). Objets et ingrédients classiques de la sorcellerie en fiction et en folklore (contes, Macbeth, Harry Potter…).
+1: Chaudron; Balai = Balai volant = Balai de sorcière; Chapeau pointu = Chapeau de sorcière; Baguette magique = Baguette; Grimoire = Livre de sorts = Livre de magie; Boule de cristal; Potion = Potion magique
+2: Philtre = Philtre d'amour; Pentacle = Pentagramme; Cartes de tarot = Tarot; Poupée vaudou; Bougie = Bougies; Miroir magique; Amulette; Talisman; Fiole; Mortier = Mortier et pilon; Cape; Pomme empoisonnée; Œil de triton = Yeux de triton; Bave de crapaud; Aile de chauve-souris; Mandragore; Chat noir
+3: Sablier; Encens; Runes = Pierres runiques; Pendule; Planche de ouija = Ouija; Verveine; Sauge; Cristaux; Plume de corbeau; Crâne; Langue de vipère = Fourche de vipère; Fuseau; Cercle de sel = Cercle magique; Herbes magiques = Herbes
+4: Athamé; Belladone; Aconit = Tue-loup; Romarin; Queue de lézard = Patte de lézard; Aile de hibou; Nimbus 2000; Peau de serpent; Pierre philosophale; Encensoir; Bâton de sorcière = Bâton magique
+5: Chaudron de Cerridwen; Pierre de lune; Fiole de polynectar = Polynectar

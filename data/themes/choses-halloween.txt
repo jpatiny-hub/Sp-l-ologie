@@ -1,0 +1,8 @@
+titre: Une chose en lien avec Halloween
+actif: non
+# Thème d'Halloween (31 octobre). Symboles, créatures, déguisements, friandises, traditions et origines de la fête.
+1: Citrouille = Potiron; Bonbons = Friandises = Sucreries; Fantôme = Fantômes; Sorcière = Sorcières; Squelette; Chauve-souris; Araignée; Vampire; Zombie; Momie; Loup-garou; Déguisement = Costume; Maison hantée; Cimetière; Chat noir; Masque
+2: Lanterne de Jack = Jack-o'-lantern = Citrouille sculptée = Citrouille creusée; Des bonbons ou un sort = Farce ou friandise = Trick or treat; Toile d'araignée = Toiles d'araignée; Épouvantail; Pleine lune; Balai = Balai de sorcière; Chaudron; Crâne = Tête de mort; Monstre; Frankenstein; Dracula; Cercueil; Tombe = Pierre tombale; Bougie; Brouillard; Corbeau; Hibou; Maquillage; Cauchemar; Cape; Chapeau de sorcière
+3: Samhain; 31 octobre; Maïs bonbon = Candy corn; Pomme d'amour = Pomme au caramel; Pêche aux pommes; Mort-vivant; Fausses dents de vampire = Dentier de vampire; Sucette; Chewing-gum; Vers gluants L'Étrange Noël de monsieur Jack = The Nightmare Before Christmas
+4: Stingy Jack = Jack l'avare = Jack à la lanterne; All Hallows' Eve = Veille de la Toussaint; Hocus Pocus; Día de los Muertos = Jour des morts; Barmbrack; Navet sculpté = Lanterne de navet; Toussaint; Colcannon; Mischief Night = Nuit des farces
+5: Allumettes à la citrouille; Souling = Soul cakes = Gâteaux des âmes; Guising

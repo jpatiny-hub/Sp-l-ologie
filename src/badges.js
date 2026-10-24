@@ -280,12 +280,15 @@ for (const [id, c] of Object.entries(CALENDAR)) {
   define(id, { category: 'calendrier', name: c.name, description: c.description, icon: c.icon, unlock: c.body ? { type: 'body', id: c.body } : null });
 }
 
+define('cranes-25', { category: 'calendrier', name: 'Collectionneur de crânes', description: () => "Réunir 25 crânes pendant un jour de collection (Halloween)", icon: 'crane', label: '25' });
+define('cranes-complet', { category: 'calendrier', name: 'Ossuaire complet', description: () => "Réunir les cinq qualités de crâne (os, jauni, bronze, rubis, or) pendant un jour de collection", icon: 'crane', unlock: { type: 'body', id: 'jack-o-lantern' } });
+
 // Apparences de la foreuse. Celles qui ne sont débloquées par aucun badge sont disponibles d'emblée.
 const BODIES = [
   ['classique', 'Classique'], ['acier', 'Acier'], ['cuivre', 'Cuivre'], ['emeraude', 'Émeraude'], ['obsidienne', 'Obsidienne'],
   ['or', 'Or massif'], ['diamant', 'Diamant'], ['cordee', 'Cordée'], ['expedition', 'Expédition'], ['legende', 'Légende'],
   ['feu-artifice', "Feu d'artifice"], ['cupidon', 'Cupidon'], ['globe', 'Planète bleue'], ['oeuf', 'Œuf de Pâques'],
-  ['tricolore', 'Tricolore'], ['fierte', 'Arc-en-ciel'], ['taupe', 'Taupe'], ['citrouille', 'Citrouille diabolique'], ['spectre', 'Spectre'],
+  ['tricolore', 'Tricolore'], ['fierte', 'Arc-en-ciel'], ['taupe', 'Taupe'], ['citrouille', 'Citrouille diabolique'], ['jack-o-lantern', "Jack-o'-lantern"], ['spectre', 'Spectre'],
   ['casque', 'Casque de mineur'], ['mitre', 'Mitre'], ['noel', 'Noël'], ['chat-noir', 'Chat noir'],
   ['gladiateur', 'Gladiateur'], ['rempart', 'Rempart'], ['belier', 'Bélier'], ['tank', 'Blindé'], ['pierre', 'Pierre'], ['muraille-de-troie', 'Muraille de Troie'], ['jumeaux', 'Jumeaux'], ['nemesis', 'Némésis'], ['ovation', 'Ovation'], ['claque', 'Claque'],
 ];

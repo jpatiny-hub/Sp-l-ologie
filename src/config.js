@@ -25,6 +25,8 @@ module.exports = {
     { id: 'toussaint', from: '2026-11-01', to: '2026-11-01' },
   ],
   // Jours aux thèmes imposés (par exemple Halloween) : voir data/special-days.json.
+  // Jours de collection de crânes : les raretés deviennent des crânes et chaque réponse enrichit la collection du joueur.
+  SKULL_DAYS: ['2026-10-31'],
   SPECIAL_DAYS_FILE: path.join(ROOT, 'data', 'special-days.json'),
   PORT: Number(process.env.PORT) || 3000,
   // Interface d'écoute (toutes par défaut ; 127.0.0.1 derrière un proxy).
