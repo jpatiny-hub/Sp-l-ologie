@@ -9,7 +9,7 @@ const { DuelService } = require('./duels');
 const { SkullService } = require('./skulls');
 const { loadSpecialDays } = require('./specialdays');
 const config = require('./config');
-const { matchAnswer, toKey, editDistance } = require('./matching');
+const { matchAnswer, toKey } = require('./matching');
 const { scoreAnswer, probabilities, pointsFor, tierFor } = require('./scoring');
 const { BadgeService } = require('./badges');
 const { usernameKey } = require('./auth');
@@ -1095,45 +1095,6 @@ class GameService {
       round: this.roundView(this.db.prepare('SELECT * FROM rounds WHERE game_id = ? AND slot = ?').get(game.id, round.slot), game),
       state: this.state(gameId, userId),
     };
-  }
-
-  /** Thèmes proposables dans l'outil d'essai du responsable (actifs ou non). */
-  themeChoices() {
-    return [...this.themes.values()]
-      .map((t) => ({ id: t.id, title: t.title, active: t.active, answers: t.answers.length }))
-      .sort((a, b) => a.title.localeCompare(b.title, 'fr'));
-  }
-
-  /**
-   * Essai à blanc (responsable du jeu) : comment le jeu réagirait à ces saisies dans ce thème.
-   * Rien n'est enregistré.
-   */
-  probe(themeId, inputs) {
-    const theme = this.themes.get(themeId);
-    if (!theme) throw new HttpError(404, 'Thème introuvable.');
-    return inputs.slice(0, 30).map((raw) => {
-      const input = String(raw).trim().slice(0, 80);
-      if (!input) return null;
-      const match = matchAnswer(theme, input);
-      if (match) {
-        return {
-          input,
-          found: true,
-          label: match.answer.label,
-          level: match.answer.level,
-          via: match.via,
-          confirm: match.approximate,
-        };
-      }
-      const key = toKey(input);
-      const near = [];
-      for (const answer of theme.answers) {
-        const d = Math.min(...(answer.names || [answer.label]).map((n) => editDistance(key, toKey(n), 8)));
-        near.push({ label: answer.label, d });
-      }
-      near.sort((a, b) => a.d - b.d);
-      return { input, found: false, near: near.slice(0, 3).map((n) => n.label) };
-    }).filter(Boolean);
   }
 
   /** Saisies refusées les plus fréquentes (hors celles que le thème reconnaît désormais), pour compléter les thèmes. */

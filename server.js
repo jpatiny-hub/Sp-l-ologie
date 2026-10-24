@@ -583,18 +583,6 @@ function createApp({
       json(res, 200, { reports: game.reportedAnswers() });
     },
 
-    'GET /api/admin/theme-test': async (req, res) => {
-      requireAdmin(req, res);
-      json(res, 200, { themes: game.themeChoices() });
-    },
-
-    'POST /api/admin/theme-test': async (req, res) => {
-      requireAdmin(req, res);
-      const { themeId, inputs } = await readJson(req);
-      if (typeof themeId !== 'string' || !Array.isArray(inputs)) throw new HttpError(400, 'Thème ou saisies manquants.');
-      json(res, 200, { results: game.probe(themeId, inputs.filter((x) => typeof x === 'string')) });
-    },
-
     'GET /api/admin/unknown-answers': async (req, res) => {
       requireAdmin(req, res);
       json(res, 200, { answers: game.unknownAnswers() });
