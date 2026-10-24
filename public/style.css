@@ -713,6 +713,8 @@ summary:hover .pm, summary:focus-visible .pm { color: var(--ink); }
 .next-badges li { display: flex; align-items: center; gap: 8px; font-size: calc(15px * var(--fs)); }
 .next-badge-icon { width: 24px; height: 24px; image-rendering: pixelated; flex: none; }
 .info-dialog { max-width: 340px; color: var(--ink); border: 0; }
+/* .card remet les marges à zéro et décentre les fenêtres modales : on rétablit le centrage automatique. */
+dialog.card { margin: auto; max-height: calc(100dvh - 24px); }
 .info-dialog::backdrop { background: rgba(0, 0, 0, 0.7); }
 .info-dialog h2 { margin-top: 0; }
 

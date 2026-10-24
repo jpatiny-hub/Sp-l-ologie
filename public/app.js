@@ -943,8 +943,8 @@
     const choice = await askMode({
       title: 'Infini',
       sub: 'Des thèmes au hasard, autant que tu veux. Ça ne compte pas pour le podium.',
-      standardText: '30 secondes par thème, comme le forage du jour.',
-      aiseText: 'Sans chrono : réfléchis à ton aise. Ne compte ni pour les badges ni pour les statistiques.',
+      standardText: '30 secondes par thème.',
+      aiseText: 'Sans chrono. Ne compte ni pour les badges ni pour les statistiques.',
     });
     if (choice) startGame('training', { noTimer: choice.mode === 'aise' });
   });
@@ -3018,8 +3018,8 @@
     const choice = await askMode({
       title: 'Lancer un duel',
       sub: 'Sept thèmes, les mêmes pour vous deux. Chacun joue de son côté.',
-      standardText: '30 secondes par thème, comme le forage du jour.',
-      aiseText: "Sans chrono : prenez le temps de réfléchir. Les exploits (Invaincu, Duel parfait, Remontada) demandent un duel standard.",
+      standardText: '30 secondes par thème.',
+      aiseText: 'Sans chrono : prenez le temps de réfléchir.',
       opponents: data.opponents,
     });
     if (!choice || !choice.opponent) return;
