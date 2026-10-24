@@ -248,6 +248,7 @@ DIPLOMATE.forEach(([n, name]) => {
 SENTINELLE.forEach(([n, name]) => {
   define(`sentinelle-${n}`, { category: 'duel', name, description: () => `Relever le défi de ${n} joueurs différents`, icon: 'oeil', label: String(n) });
 });
+define('pensees-jumelles', { category: 'duel', name: 'Pensées jumelles', description: () => 'Trouver, à deux, la même pépite dans un duel', icon: 'jumeaux', secret: true });
 define('rival', { category: 'duel', name: 'Rival', description: () => 'Terminer 5 duels contre le même joueur', icon: 'cible', label: '5' });
 define('souffre-douleur', { category: 'duel', name: 'Souffre-douleur', description: () => 'Battre 3 fois le même joueur en duel', icon: 'taupe', label: '3' });
 define('nemesis', { category: 'duel', name: 'Némésis', description: () => 'Perdre 3 fois contre le même joueur en duel : il est ta némésis', icon: 'fantome', label: '3', unlock: { type: 'body', id: 'nemesis' } });
@@ -568,6 +569,17 @@ class BadgeService {
       if (p.wins >= 3) give('souffre-douleur');
       if (p.losses >= 3) give('nemesis');
     }
+    // Badge secret : les deux joueurs d'un duel ont trouvé la même pépite (même réponse, 100 points ou plus chacun).
+    for (const d of done) {
+      if (d.challenger_game_id == null || d.opponent_game_id == null) continue;
+      const twin = this.db
+        .prepare(
+          `SELECT 1 FROM rounds a JOIN rounds b ON a.slot = b.slot AND a.answer_key = b.answer_key
+           WHERE a.game_id = ? AND b.game_id = ? AND a.outcome = 'answer' AND b.outcome = 'answer' AND a.points >= 100 AND b.points >= 100 LIMIT 1`,
+        )
+        .get(d.challenger_game_id, d.opponent_game_id);
+      if (twin) give('pensees-jumelles');
+    }
     // Exploits : seulement en duel standard.
     const standard = done.filter((d) => d.mode === 'standard');
     let streak = 0;
@@ -697,7 +709,8 @@ class BadgeService {
       if (!earned.has(r.kind)) earned.set(r.kind, []);
       earned.get(r.kind).push(r);
     }
-    const badges = [...CATALOG.values()].map((def) => {
+    // Les badges secrets n'apparaissent nulle part tant qu'ils ne sont pas débloqués.
+    const badges = [...CATALOG.values()].filter((def) => !def.secret || earned.has(def.id)).map((def) => {
       const got = earned.get(def.id) || [];
       const last = got[got.length - 1];
       const instance = def.category === 'calendrier' ? (last ? last.instance : nextYear(def.id, today)) : last && last.instance;

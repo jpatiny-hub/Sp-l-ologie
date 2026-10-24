@@ -9,7 +9,7 @@ const { addDays } = require('./dates');
  * « Le Petit Mineur » : les dernières nouvelles de la mine (duels terminés, pépites, badges, défi collectif).
  * Calculé à la lecture à partir de ce qui existe déjà ; les pépites sont annoncées sans dire laquelle, pour ne rien dévoiler.
  */
-const SKIPPED_BADGES = new Set(['premier-forage']);
+const SKIPPED_BADGES = new Set(['premier-forage', 'pensees-jumelles']);
 const SKIPPED_CATEGORIES = new Set(['themes', 'entrainement']);
 
 function feed(game, userId, limit = 3) {

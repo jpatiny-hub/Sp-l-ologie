@@ -70,20 +70,22 @@ test('pépites de duel : décompte à part, musée et profil une fois le duel te
     };
     const started = (await adam('/api/duels', { opponent: 'eve', mode: 'aise' })).data;
     const adamPoints = await play(adam, started.id);
-    assert.ok(adamPoints.every((p) => p === 100), 'le premier à donner ces réponses rares en duel décroche les pépites');
+    assert.ok(adamPoints.every((p) => p === 100), 'des réponses rares jamais données en duel sont des pépites');
     assert.equal(app.db.prepare('SELECT COUNT(*) AS n FROM answer_counts').get().n, 0, 'le décompte du forage du jour reste intact');
-    assert.equal(app.db.prepare('SELECT COUNT(*) AS n FROM duel_answer_counts').get().n, 7);
     // Duel pas terminé : rien au profil ni au musée.
     assert.equal((await adam('/api/profile')).data.stats.pepites, 0);
+    assert.equal((await adam('/api/profile')).data.badges.find((b) => b.id === 'pensees-jumelles'), undefined, 'badge secret invisible tant qu\'il n\'est pas débloqué');
     const accepted = (await eve(`/api/duels/${started.duel.id}/accept`, {})).data;
     const evePoints = await play(eve, accepted.id);
-    assert.ok(evePoints.every((p) => p < 100), 'les mêmes réponses ne sont plus des pépites pour le second joueur');
+    assert.ok(evePoints.every((p) => p === 100), 'si les deux joueurs trouvent la même pépite, ils l\'ont tous les deux');
     assert.equal((await adam('/api/profile')).data.stats.pepites, 7);
-    assert.equal((await eve('/api/profile')).data.stats.pepites, 0);
+    assert.equal((await eve('/api/profile')).data.stats.pepites, 7);
+    const secret = (profile) => profile.badges.find((b) => b.id === 'pensees-jumelles');
+    assert.equal(secret((await adam('/api/profile')).data).count, 1, 'badge secret débloqué');
     app.clock.now += 24 * 3600 * 1000;
     const m = (await eve('/api/museum')).data;
-    assert.equal(m.total, 7);
-    assert.ok(m.entries.every((e) => e.duel && e.username === 'adam'));
+    assert.equal(m.total, 14);
+    assert.ok(m.entries.every((e) => e.duel));
   } finally {
     await app.close();
   }

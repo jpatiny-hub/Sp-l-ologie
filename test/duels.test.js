@@ -289,6 +289,18 @@ test('badges de victoire écrasante et d\'égalité en duel', async () => {
     duel(a, e, [10, 20, 30, 10, 20, 30, 10], [10, 20, 30, 30, 10, 20, 10]);
     badges.awardDuels(a, '2026-10-24');
     assert.ok(kinds(a).includes('match-miroir'));
+    // Défis de duel : semaine et mois.
+    const { weekStats } = require('../src/challenges');
+    const { collectiveStatus } = require('../src/collective');
+    const { weekStart, dayKey } = require('../src/dates');
+    const week = weekStats(app.db, a, weekStart(dayKey(now)));
+    assert.equal(week.duels, 5);
+    assert.equal(week.duelWins, 1);
+    assert.equal(week.duelOpponents, 1);
+    assert.ok(week.duelMargin >= 100);
+    const month = collectiveStatus(app.db, dayKey(now), a);
+    assert.equal(month.duel.total, 5);
+    assert.equal(month.duel.mine, 5);
   } finally {
     await app.close();
   }

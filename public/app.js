@@ -893,6 +893,15 @@
         return el('li', { class: p.me ? 'me' : '' }, swatch, avatarEl(p.avatar, 'head', 2), el('span', { class: 'who-name' }, p.username), el('span', {}, pts(p.points)));
       }),
     );
+    const duel = data.duel;
+    $('collective-duel-title').hidden = $('collective-duel-bar').hidden = $('collective-duel-note').hidden = !duel;
+    if (duel) {
+      $('collective-duel-title').textContent = duel.reached ? 'Défi duel du mois réussi : bravo à tous les duellistes !' : `Défi duel : terminons ${duel.goal} duels ensemble avant la fin du mois.`;
+      $('collective-duel-fill').style.width = `${Math.min(100, Math.round((duel.total / duel.goal) * 100))}%`;
+      $('collective-duel-bar').setAttribute('aria-valuemax', String(duel.goal));
+      $('collective-duel-bar').setAttribute('aria-valuenow', String(Math.min(duel.goal, duel.total)));
+      $('collective-duel-note').textContent = `${duel.total} sur ${duel.goal} duels terminés ce mois-ci, dont ${duel.mine} avec toi.`;
+    }
     $('collective-note').textContent = data.reached
       ? `Objectif atteint le ${formatDay(data.reachedOn, { day: 'numeric', month: 'long' })}. Continuez à creuser, le tas de diamants brille pour tout le monde !`
       : 'Chaque point de ton forage du jour fait avancer la foreuse. Chaque couleur est la part de tunnel creusée par un joueur.';
