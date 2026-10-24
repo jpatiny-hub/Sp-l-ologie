@@ -1,0 +1,6 @@
+titre: Un pays dont le nom français compte exactement 5 lettres
+# États souverains (reconnus par l'ONU) dont le nom usuel français a 5 lettres (sans espaces ni tirets).
+1: Chine; Japon; Maroc; Chili; Pérou; Grèce; Suède; Syrie; Kenya; Qatar; Congo; Gabon; Ghana
+2: Haïti; Libye; Malte; Niger; Népal; Yémen
+3: Tchad; Fidji; Tonga
+4: Samoa; Nauru; Palau; Bénin
