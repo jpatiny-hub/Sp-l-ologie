@@ -132,6 +132,15 @@ CREATE TABLE IF NOT EXISTS training_answer_counts (
   PRIMARY KEY (theme_id, answer_key)
 );
 
+-- Réponses données en duel : décompte à part, qui ne touche pas la rareté du forage du jour. Sert aux pépites de duel
+-- (une réponse jamais donnée ni au forage du jour ni dans un autre duel).
+CREATE TABLE IF NOT EXISTS duel_answer_counts (
+  theme_id   TEXT NOT NULL,
+  answer_key TEXT NOT NULL,
+  n          INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (theme_id, answer_key)
+);
+
 -- Réactions aux réponses des autres dans le comparatif : une par joueur et par réponse (game_id, slot : manche réagie).
 CREATE TABLE IF NOT EXISTS reactions (
   game_id    INTEGER NOT NULL REFERENCES games(id) ON DELETE CASCADE,

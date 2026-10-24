@@ -185,6 +185,14 @@ class GameService {
           )
           .run(round.theme_id, answer.key);
       }
+      if (answer && game.mode === 'duel') {
+        this.db
+          .prepare(
+            `INSERT INTO duel_answer_counts (theme_id, answer_key, n) VALUES (?, ?, 1)
+             ON CONFLICT (theme_id, answer_key) DO UPDATE SET n = n + 1`,
+          )
+          .run(round.theme_id, answer.key);
+      }
       const remaining = this.db
         .prepare('SELECT COUNT(*) AS n FROM rounds WHERE game_id = ? AND answered_at IS NULL')
         .get(game.id).n;
@@ -636,7 +644,7 @@ class GameService {
     const counts = new Map(
       this.db.prepare('SELECT answer_key, n FROM answer_counts WHERE theme_id = ?').all(theme.id).map((r) => [r.answer_key, r.n]),
     );
-    const score = scoreAnswer(theme, counts, match.answer.key);
+    const score = scoreAnswer(theme, counts, match.answer.key, game.mode === 'duel' && this.duelGiven(theme.id, match.answer.key));
     this.finishRound(game, round, {
       outcome: 'answer',
       points: score.points,
@@ -645,6 +653,12 @@ class GameService {
       probability: score.probability,
     });
     return resultFor('ok');
+  }
+
+  /** Réponse déjà donnée dans un duel (décompte à part : une pépite de duel est une réponse encore jamais donnée en duel). */
+  duelGiven(themeId, answerKey) {
+    const row = this.db.prepare('SELECT n FROM duel_answer_counts WHERE theme_id = ? AND answer_key = ?').get(themeId, answerKey);
+    return !!row && row.n > 0;
   }
 
   /**
@@ -727,7 +741,9 @@ class GameService {
     const counts = new Map(
       this.db.prepare('SELECT answer_key, n FROM answer_counts WHERE theme_id = ?').all(theme.id).map((x) => [x.answer_key, x.n]),
     );
-    const score = scoreAnswer(theme, counts, match.answer.key);
+    const gameRow = this.db.prepare('SELECT mode FROM games WHERE id = ?').get(gameId);
+    const inDuel = !!gameRow && gameRow.mode === 'duel';
+    const score = scoreAnswer(theme, counts, match.answer.key, inDuel && this.duelGiven(theme.id, match.answer.key));
     transaction(this.db, () => {
       this.db
         .prepare(
@@ -738,7 +754,7 @@ class GameService {
       this.db.prepare('UPDATE games SET score = score + ? WHERE id = ?').run(score.points, gameId);
       this.db
         .prepare(
-          `INSERT INTO answer_counts (theme_id, answer_key, n) VALUES (?, ?, 1)
+          `INSERT INTO ${inDuel ? 'duel_answer_counts' : 'answer_counts'} (theme_id, answer_key, n) VALUES (?, ?, 1)
            ON CONFLICT (theme_id, answer_key) DO UPDATE SET n = n + 1`,
         )
         .run(theme.id, match.answer.key);

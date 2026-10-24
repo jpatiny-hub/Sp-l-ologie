@@ -385,6 +385,18 @@ class BadgeService {
     return best;
   }
 
+  /** Pépites du joueur : forages du jour, et duels terminés (le secret d'un duel tient jusqu'à la fin des deux parties). */
+  pepiteCount(userId) {
+    return this.db
+      .prepare(
+        `SELECT COUNT(*) AS n FROM rounds r JOIN games g ON g.id = r.game_id
+         WHERE g.user_id = ? AND r.points >= 100
+           AND (g.mode = 'daily' OR (g.mode = 'duel' AND EXISTS (
+             SELECT 1 FROM duels d WHERE d.status = 'done' AND (d.challenger_game_id = g.id OR d.opponent_game_id = g.id))))`,
+      )
+      .get(userId).n;
+  }
+
   /** Badges gagnés en terminant le forage quotidien `gameId`. */
   awardForGame(gameId) {
     const game = this.db.prepare('SELECT * FROM games WHERE id = ?').get(gameId);
@@ -397,9 +409,7 @@ class BadgeService {
     const streak = BadgeService.streakInfo(this.playedDays(userId), day).current;
     STREAKS.forEach(([n]) => streak >= n && this.give(userId, `serie-${n}`, '1', day));
     DEPTHS.forEach(([n, , , threshold]) => game.score >= threshold && this.give(userId, `profondeur-${n}`, '1', day));
-    const pepites = this.db
-      .prepare("SELECT COUNT(*) AS n FROM rounds r JOIN games g ON g.id = r.game_id WHERE g.user_id = ? AND g.mode = 'daily' AND r.points >= 100")
-      .get(userId).n;
+    const pepites = this.pepiteCount(userId);
     PEPITES.forEach(([n]) => pepites >= n && this.give(userId, `pepites-${n}`, '1', day));
     const answered = rounds.filter((r) => r.outcome === 'answer');
     if (answered.length === ROUNDS_PER_GAME) this.give(userId, 'sans-eboulement', day, day);
@@ -492,9 +502,7 @@ class BadgeService {
       candidates.push({ id, name: CATALOG.get(id).name(), icon: CATALOG.get(id).icon, category: CATALOG.get(id).category, label: CATALOG.get(id).label || null, remaining: next[0] - progress, ratio: (next[0] - progress) / next[0], unit });
     };
     const withPrefix = (list, prefix) => Object.assign(list.slice(), { prefix });
-    const pepites = this.db
-      .prepare("SELECT COUNT(*) AS n FROM rounds r JOIN games g ON g.id = r.game_id WHERE g.user_id = ? AND g.mode = 'daily' AND r.points >= 100")
-      .get(userId).n;
+    const pepites = this.pepiteCount(userId);
     consider(withPrefix(STREAKS, 'serie-'), current, ['jour', 'jours']);
     consider(withPrefix(THEMES, 'themes-'), this.themesSeen(userId), ['thème', 'thèmes']);
     consider(withPrefix(PEPITES, 'pepites-'), pepites, ['pépite', 'pépites']);
@@ -529,6 +537,8 @@ class BadgeService {
   /** Badges de duel, vérifiés quand un duel se termine (pour chacun des deux joueurs). */
   awardDuels(userId, today) {
     const give = (kind) => this.give(userId, kind, '1', today);
+    const pepites = this.pepiteCount(userId);
+    PEPITES.forEach(([n]) => pepites >= n && give(`pepites-${n}`));
     const launched = this.db
       .prepare(
         `SELECT d.opponent_id AS other FROM duels d JOIN games g ON g.id = d.challenger_game_id
@@ -720,9 +730,7 @@ class BadgeService {
         return { id, name, unlocked: !hint || unlocked.has(`${type}:${id}`), hint };
       });
     const user = this.db.prepare('SELECT skin_body, skin_bit, skin_timer, avatar FROM users WHERE id = ?').get(userId);
-    const pepites = this.db
-      .prepare("SELECT COUNT(*) AS n FROM rounds r JOIN games g ON g.id = r.game_id WHERE g.user_id = ? AND g.mode = 'daily' AND r.points >= 100")
-      .get(userId).n;
+    const pepites = this.pepiteCount(userId);
     const bestScore = this.db.prepare("SELECT MAX(score) AS s FROM games WHERE user_id = ? AND mode = 'daily'").get(userId).s || 0;
     const info = BadgeService.streakInfo(days, today);
     const current = info.current;

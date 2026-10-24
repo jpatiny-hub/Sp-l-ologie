@@ -1959,7 +1959,7 @@
       }
       const gem = el('canvas', { class: 'museum-gem', width: '16', height: '16', 'aria-hidden': 'true' });
       Icons.drawIcon(gem, 'pepite');
-      list.append(el('li', { class: e.me ? 'me' : '' }, gem, el('div', { class: 'museum-what' }, el('strong', {}, e.answer), el('span', { class: 'muted small' }, e.theme)), el('span', { class: 'who' }, avatarEl(e.avatar, 'head', 2), e.username)));
+      list.append(el('li', { class: e.me ? 'me' : '' }, gem, el('div', { class: 'museum-what' }, el('strong', {}, e.answer), el('span', { class: 'muted small' }, e.duel ? `${e.theme} · en duel` : e.theme)), el('span', { class: 'who' }, avatarEl(e.avatar, 'head', 2), e.username)));
     }
     if (!shown.length && d.entries.length) box.append(el('p', { class: 'muted' }, 'Rien ne correspond à cette recherche.'));
   }
