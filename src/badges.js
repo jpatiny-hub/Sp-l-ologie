@@ -211,6 +211,30 @@ TRAINING.forEach(([n, name]) => {
 DEFIS.forEach(([n, name]) => {
   define(`defi-${n}`, { category: 'defi', name, description: () => (n === 1 ? 'Réussir un défi de la semaine' : `Réussir ${n} défis de la semaine`), icon: 'fanion', label: n > 1 ? String(n) : null });
 });
+// Victoires écrasantes en duel (écart de points et manches gagnées sur 7) et égalités ; l'attaque lance le duel, la défense le relève.
+const CRUSH = [
+  { tier: 1, margin: 120, rounds: 5 },
+  { tier: 2, margin: 200, rounds: 6 },
+];
+const CRUSH_BADGES = {
+  attack: [['coup-de-boutoir', 'Coup de boutoir', 'belier', 'belier'], ['annihilation', 'Annihilation', 'explosion', 'tank']],
+  defense: [['imprenable', 'Imprenable', 'muraille', 'pierre'], ['muraille-de-troie', 'Muraille de Troie', 'cheval', 'muraille-de-troie']],
+};
+const DRAW_BADGES = [
+  ['freres-d-armes', "Frères d'armes", 'Terminer un duel sur une égalité', 'coeur', null],
+  ['match-miroir', 'Match miroir', 'Terminer 3 duels sur une égalité', 'miroir', null],
+  ['jumeaux', 'Jumeaux', "Égalité parfaite en duel : exactement les mêmes points sur chacun des 7 thèmes", 'jumeaux', 'jumeaux'],
+];
+for (const [camp, list] of Object.entries(CRUSH_BADGES)) {
+  list.forEach(([id, name, icon, body], i) => {
+    const { margin, rounds } = CRUSH[i];
+    const how = camp === 'attack' ? 'Gagner un duel que tu as lancé' : 'Gagner un duel que tu as relevé';
+    define(id, { category: 'duel', name, description: () => `${how}, avec au moins ${margin} points d'avance et ${rounds} thèmes gagnés sur 7`, icon, unlock: { type: 'body', id: body } });
+  });
+}
+DRAW_BADGES.forEach(([id, name, description, icon, body]) => {
+  define(id, { category: 'duel', name, description: () => description, icon, unlock: body ? { type: 'body', id: body } : null });
+});
 const DUEL_BODIES = { 'attaquant-15': 'gladiateur', 'defenseur-15': 'rempart' };
 ATTAQUANT.forEach(([n, name]) => {
   define(`attaquant-${n}`, { category: 'duel', name, description: () => (n === 1 ? 'Lancer et terminer un premier duel' : `Lancer et terminer ${n} duels`), icon: 'sabre', label: n > 1 ? String(n) : null, unlock: DUEL_BODIES[`attaquant-${n}`] ? { type: 'body', id: DUEL_BODIES[`attaquant-${n}`] } : null });
@@ -263,7 +287,7 @@ const BODIES = [
   ['feu-artifice', "Feu d'artifice"], ['cupidon', 'Cupidon'], ['globe', 'Planète bleue'], ['oeuf', 'Œuf de Pâques'],
   ['tricolore', 'Tricolore'], ['fierte', 'Arc-en-ciel'], ['taupe', 'Taupe'], ['citrouille', 'Citrouille diabolique'], ['spectre', 'Spectre'],
   ['casque', 'Casque de mineur'], ['mitre', 'Mitre'], ['noel', 'Noël'], ['chat-noir', 'Chat noir'],
-  ['gladiateur', 'Gladiateur'], ['rempart', 'Rempart'], ['nemesis', 'Némésis'], ['ovation', 'Ovation'], ['claque', 'Claque'],
+  ['gladiateur', 'Gladiateur'], ['rempart', 'Rempart'], ['belier', 'Bélier'], ['tank', 'Blindé'], ['pierre', 'Pierre'], ['muraille-de-troie', 'Muraille de Troie'], ['jumeaux', 'Jumeaux'], ['nemesis', 'Némésis'], ['ovation', 'Ovation'], ['claque', 'Claque'],
 ];
 // Apparences du décompte du chrono : la batterie de lampe est offerte, les autres se débloquent avec des badges.
 const TIMERS = [['batterie', 'Batterie de lampe'], ['meche', 'Mèche de dynamite'], ['wagonnet', 'Wagonnet'], ['lanterne', 'Lanterne']];
@@ -539,6 +563,26 @@ class BadgeService {
       if (streak >= 5) give('invaincu');
     }
     const pointsOf = (gameId) => this.db.prepare('SELECT slot, points FROM rounds WHERE game_id = ? ORDER BY slot').all(gameId).map((r) => r.points || 0);
+    // Victoires écrasantes (tous modes) et égalités.
+    const sides = (d) => {
+      const attack = d.challenger_id === userId;
+      return { attack, mine: pointsOf(attack ? d.challenger_game_id : d.opponent_game_id), theirs: pointsOf(attack ? d.opponent_game_id : d.challenger_game_id) };
+    };
+    let draws = 0;
+    for (const d of done) {
+      const { attack, mine, theirs } = sides(d);
+      if (mine.length !== ROUNDS_PER_GAME || theirs.length !== ROUNDS_PER_GAME) continue;
+      if (d.winner_id === userId) {
+        const margin = (attack ? d.challenger_score - d.opponent_score : d.opponent_score - d.challenger_score);
+        const won = mine.filter((p, i) => p > theirs[i]).length;
+        CRUSH.forEach((c, i) => margin >= c.margin && won >= c.rounds && give(CRUSH_BADGES[attack ? 'attack' : 'defense'][i][0]));
+      } else if (d.winner_id == null) {
+        draws++;
+        give('freres-d-armes');
+        if (mine.some((p) => p > 0) && mine.every((p, i) => p === theirs[i])) give('jumeaux');
+      }
+    }
+    if (draws >= 3) give('match-miroir');
     for (const d of standard.filter((x) => x.winner_id === userId)) {
       const mine = pointsOf(d.challenger_id === userId ? d.challenger_game_id : d.opponent_game_id);
       const theirs = pointsOf(d.challenger_id === userId ? d.opponent_game_id : d.challenger_game_id);

@@ -115,6 +115,26 @@ const NEWS = [
       'Le changement de jour se fait maintenant à 2 h du matin au lieu de minuit : les nouveaux thèmes, les séries et les défis changent à ce moment-là.',
     ],
   },
+  {
+    id: 8,
+    date: '2026-10-24',
+    title: "Halloween, badges de duel et accueil allégé",
+    highlights: [
+      { icon: 'citrouille', text: "L'ambiance d'Halloween jusqu'au 31 octobre : ossements, fantômes, yeux dans le noir et araignée" },
+      { icon: 'muraille', text: "Nouveaux badges de duel : victoires écrasantes en attaque et en défense, et égalités" },
+      { icon: 'lanterne-mineur', text: "Accueil allégé : un tiroir « Plus », des défis repliés" },
+      { icon: 'coeur', text: "Une alerte quand le responsable répond à l'un de tes signalements" },
+    ],
+    items: [
+      "Halloween : du 24 au 31 octobre, le jeu se pare de décors macabres. Sous la terre, des ossements et des fantômes ; dans le noir, des yeux qui clignent ; une araignée descend de temps en temps. Les éléments macabres s'invitent aussi dans les défis. Tout disparaît automatiquement après le 31 ; si tu préfères du calme, l'option « réduire les animations » est respectée.",
+      "Badges de duel : « Coup de boutoir » et « Annihilation » récompensent les grandes victoires quand tu lances le duel (foreuses Bélier et Blindé) ; « Imprenable » et « Muraille de Troie » celles où tu relèves le duel (foreuses Pierre et Muraille de Troie). Chaque camp a deux paliers, selon l'avance en points et le nombre de thèmes gagnés sur 7.",
+      "Les égalités ont aussi leurs badges : « Frères d'armes » (une égalité), « Match miroir » (trois égalités) et « Jumeaux » (exactement les mêmes points sur les 7 thèmes, avec la foreuse Jumeaux).",
+      "Accueil allégé : les défis se replient avec un petit résumé, les prochains badges aussi, et un onglet « Plus » ouvre un tiroir (musée des pépites, Petit Mineur, règles, invitation, Contre maître).",
+      "Inviter des amis : un bouton de partage du lien du jeu, en haut de l'écran et dans les Paramètres.",
+      "Signalements : quand le responsable répond à l'un de tes signalements (accepté, refusé, ou réponse ajoutée au thème), un bandeau t'attend sur l'accueil et mène à la liste « Mes réponses signalées ». Les duels dont le score a été corrigé t'en informent aussi.",
+      "Thèmes : le thème des gares belges repose désormais sur les chiffres SNCB 2025 (les 40 gares les plus fréquentées en semaine) ; « Un pays d'Afrique » refuse les anciens États historiques situés hors d'Afrique ; les parties du corps acceptent coude, genou, pied et autres noms courants ; et de nombreuses réponses signalées ont été ajoutées.",
+    ],
+  },
 ];
 
 const LATEST_NEWS_ID = NEWS[NEWS.length - 1].id;

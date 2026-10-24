@@ -740,6 +740,28 @@
       pal: { y: '#8aa0b8', d: '#4a5f78' },
       overlay: { dx: 4, dy: 3, rows: ['hhhhhh', 'hrrrrh', 'hrwwrh', '.hrrh.', '..hh..'], pal: { h: '#3b4252', r: '#c0261d', w: '#ffffff' } },
     },
+    // Victoires écrasantes : le bélier (cornes), le blindé (camouflage et rivets), la pierre (briques),
+    // la muraille de Troie (créneaux, sable) et les jumeaux (deux losanges en miroir).
+    belier: {
+      pal: { y: '#7a5a3a', d: '#4d3822' },
+      overlay: { dx: 1, dy: -3, rows: ['.ee......ee.', 'e..e....e..e', 'e..e....e..e', '.ee......ee.'], pal: { e: '#f2e6c8' } },
+    },
+    tank: {
+      pal: { y: '#4b5d3a', d: '#2e3a22' },
+      overlay: { dx: 2, dy: 3, rows: ['gg..tt..gg.t', '..tt..gg..gg', 'tt..gg..tt..', 's.s.s.s.s.s.'], pal: { g: '#2e3a22', t: '#7a8a4a', s: '#c9ccd3' } },
+    },
+    pierre: {
+      pal: { y: '#8b8b86', d: '#5c5c58' },
+      overlay: { dx: 1, dy: 3, rows: ['.m.....m.....', 'mmmmmmmmmmmmm', '...m.....m...', 'mmmmmmmmmmmmm'], pal: { m: '#4a4a46' } },
+    },
+    'muraille-de-troie': {
+      pal: { y: '#b89968', d: '#7a6238' },
+      overlay: { dx: 1, dy: -3, rows: ['gg.gg.gg.gg.gg', 'gg.gg.gg.gg.gg', 'gggggggggggggg'], pal: { g: '#9c7f4e' } },
+    },
+    jumeaux: {
+      pal: { y: '#cfd8e3', d: '#8aa0b8' },
+      overlay: { dx: 3, dy: 3, rows: ['.cc....cc.', 'cccc..cccc', '.cc....cc.'], pal: { c: '#5ee0ff' } },
+    },
     nemesis: {
       pal: { y: '#1a1a20', d: '#0c0c10', k: '#000000' },
       overlay: { dx: 9, dy: 4, rows: ['ee.ee', 'ee.ee'], pal: { e: '#ff2a2a' } },
