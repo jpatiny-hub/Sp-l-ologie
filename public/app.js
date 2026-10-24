@@ -2090,6 +2090,7 @@
     initFolds('view-admin');
     loadAdminAnnouncements();
     loadReports();
+    loadProbe();
     loadAdminSuggestions();
     loadDashboard();
   }
@@ -2639,6 +2640,42 @@
       $('reports-status').textContent = `${plural(pending.length, 'signalement copié', 'signalements copiés')} : colle-les dans la conversation.`;
     } catch {
       $('reports-status').textContent = text;
+    }
+  });
+
+  // ---------- Tester un thème (responsable du jeu) ----------
+  async function loadProbe() {
+    const card = $('admin-probe');
+    card.hidden = !(app.me && app.me.isAdmin);
+    if (card.hidden || app.probeThemes) return;
+    try {
+      const { themes } = await api('/api/admin/theme-test');
+      app.probeThemes = themes;
+      $('probe-themes').replaceChildren(...themes.map((t) => el('option', { value: t.title }, `${t.id}${t.active ? '' : ' (inactif)'} · ${t.answers} réponses`)));
+    } catch (err) {
+      $('probe-status').textContent = err.message;
+    }
+  }
+
+  $('form-probe').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const wanted = $('probe-theme').value.trim().toLowerCase();
+    const theme = (app.probeThemes || []).find((t) => t.title.toLowerCase() === wanted || t.id === wanted);
+    const inputs = $('probe-inputs').value.split('\n').map((x) => x.trim()).filter(Boolean);
+    if (!theme) return void ($('probe-status').textContent = 'Choisis un thème dans la liste proposée.');
+    if (!inputs.length) return void ($('probe-status').textContent = 'Tape au moins une réponse.');
+    try {
+      const { results } = await api('/api/admin/theme-test', { themeId: theme.id, inputs });
+      $('probe-status').textContent = `${theme.title} : ${plural(theme.answers, 'réponse', 'réponses')} dans le thème.`;
+      $('probe-list').replaceChildren(
+        ...results.map((r) =>
+          r.found
+            ? el('li', { class: 'report' }, el('span', { class: 'what' }, el('strong', {}, `« ${r.input} »`), el('span', { class: 'muted' }, `reconnu comme « ${r.label} » (niveau ${r.level}) · ${r.via}${r.confirm ? ' · le joueur doit confirmer' : ''}`)), el('span', { class: 'muted' }, `${r.points} points · ${r.tier}${r.pepite ? ' (pépite si personne ne l\'a encore donnée)' : ''} · donnée ${plural(r.given, 'fois', 'fois')}`))
+            : el('li', { class: 'report' }, el('span', { class: 'what' }, el('strong', {}, `« ${r.input} »`), el('span', { class: 'muted' }, `refusé · le plus proche : ${r.near.join(' ; ')}`))),
+        ),
+      );
+    } catch (err) {
+      $('probe-status').textContent = err.message;
     }
   });
 
