@@ -13,6 +13,7 @@
     "test": "node --disable-warning=ExperimentalWarning --test test/*.test.js",
     "themes:check": "node --disable-warning=ExperimentalWarning scripts/check-themes.js",
     "answers:report": "node --disable-warning=ExperimentalWarning scripts/answers-report.js",
+    "backup:check": "node --disable-warning=ExperimentalWarning scripts/backup-check.js",
     "password:reset": "node --disable-warning=ExperimentalWarning scripts/reset-password.js"
   }
 }

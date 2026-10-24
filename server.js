@@ -44,7 +44,7 @@ const SECURITY_HEADERS = {
   // Le jeu n'est accessible qu'à ceux qui ont le lien : pas d'indexation.
   'X-Robots-Tag': 'noindex, nofollow',
   'Content-Security-Policy':
-    "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+    "default-src 'self'; img-src 'self' data: https://piwik.weesky.net; style-src 'self'; script-src 'self' https://piwik.weesky.net; font-src 'self'; connect-src 'self' https://piwik.weesky.net; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
 };
 
 /**
@@ -192,11 +192,13 @@ function createApp({
     return { username: user.username };
   }
 
-  /** Responsable du jeu : identifiants listés dans ADMIN_USERS, à défaut le premier compte créé. */
+  /** Responsable du jeu : compte marqué responsable (le premier compte créé l'est d'office) ou identifiant listé dans ADMIN_USERS. */
+  function isAdminByList(user) {
+    return adminUsers.includes(auth.usernameKey(user.username));
+  }
   function isAdmin(user) {
-    if (adminUsers.length) return adminUsers.includes(auth.usernameKey(user.username));
-    const first = db.prepare('SELECT MIN(id) AS id FROM users').get().id;
-    return user.id === first;
+    const row = db.prepare('SELECT is_admin FROM users WHERE id = ?').get(user.id);
+    return !!(row && row.is_admin) || isAdminByList(user);
   }
 
   function requireAdmin(req, res) {
@@ -224,12 +226,13 @@ function createApp({
       ]);
       let userId;
       try {
+        const first = db.prepare('SELECT COUNT(*) AS n FROM users').get().n === 0;
         userId = Number(
           db
             .prepare(
-              'INSERT INTO users (username, username_key, password_hash, recovery_hash, created_at) VALUES (?, ?, ?, ?, ?)',
+              'INSERT INTO users (username, username_key, password_hash, recovery_hash, created_at, is_admin) VALUES (?, ?, ?, ?, ?, ?)',
             )
-            .run(display, key, passwordHash, recoveryHash, now()).lastInsertRowid,
+            .run(display, key, passwordHash, recoveryHash, now(), first ? 1 : 0).lastInsertRowid,
         );
       } catch (err) {
         if (String(err.message).includes('UNIQUE')) throw new HttpError(409, 'Cet identifiant est déjà pris.');
@@ -476,7 +479,7 @@ function createApp({
       if (typeof password !== 'string') throw new HttpError(400, 'Mot de passe requis.');
       const problem = auth.validateUsername(username);
       if (problem) throw new HttpError(400, problem);
-      if (adminUsers.length && isAdmin(user)) throw new HttpError(403, "Le responsable du jeu ne peut pas changer de pseudo ici (ses droits dépendent du pseudo actuel).");
+      if (isAdminByList(user)) throw new HttpError(403, "Le responsable du jeu ne peut pas changer de pseudo ici (ses droits dépendent du pseudo actuel).");
       const limiterKey = `${clientIp(req)}|${auth.usernameKey(user.username)}|rename`;
       if (loginLimiter.blocked(limiterKey, now())) throw new HttpError(429, 'Trop de tentatives. Réessaie dans quelques minutes.');
       const row = db.prepare('SELECT password_hash, username_changed_at FROM users WHERE id = ?').get(user.id);
@@ -542,6 +545,19 @@ function createApp({
     'GET /api/admin/reports': async (req, res) => {
       requireAdmin(req, res);
       json(res, 200, { reports: game.reportedAnswers() });
+    },
+
+    'GET /api/admin/unknown-answers': async (req, res) => {
+      requireAdmin(req, res);
+      json(res, 200, { answers: game.unknownAnswers() });
+    },
+
+    'POST /api/admin/unknown-answers/ignore': async (req, res) => {
+      requireAdmin(req, res);
+      const { themeId, inputKey } = await readJson(req);
+      if (typeof themeId !== 'string' || typeof inputKey !== 'string') throw new HttpError(400, 'Saisie inconnue.');
+      game.ignoreUnknown(themeId, inputKey);
+      json(res, 200, { ok: true });
     },
 
     'POST /api/admin/reports/handled': async (req, res) => {

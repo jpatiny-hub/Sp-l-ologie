@@ -204,6 +204,8 @@ CREATE TABLE IF NOT EXISTS theme_suggestions (
 
 // Colonnes ajoutées après la mise en ligne : créées si la base est plus ancienne.
 const MIGRATIONS = [
+  // Responsable du jeu : drapeau stocké (le premier compte créé l'est d'office), indépendant du pseudo.
+  ['users', 'is_admin', 'INTEGER NOT NULL DEFAULT 0'],
   ['users', 'skin_body', 'TEXT'],
   ['users', 'skin_bit', 'TEXT'],
   ['users', 'skin_timer', 'TEXT'],
@@ -290,6 +292,8 @@ function openDb(file) {
     const exists = db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === column);
     if (!exists) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
   }
+  // Aucun responsable : le premier compte créé le devient.
+  db.exec('UPDATE users SET is_admin = 1 WHERE id = (SELECT MIN(id) FROM users) AND NOT EXISTS (SELECT 1 FROM users WHERE is_admin = 1)');
   return db;
 }
 

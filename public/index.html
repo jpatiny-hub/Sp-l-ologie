@@ -653,6 +653,13 @@
             <ul class="report-list" id="decisions-result"></ul>
           </details>
         </details>
+        <details class="card fold" data-fold="refusees" id="admin-unknown" hidden>
+          <summary><span class="fold-t"><h2>Réponses refusées</h2><span class="sub">les saisies les plus fréquentes, pour compléter les thèmes</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <p class="muted small">Ce que les joueurs tapent le plus souvent sans être reconnus (forage du jour). Utile pour ajouter des variantes avant même un signalement.</p>
+          <button class="btn secondary" id="btn-copy-unknown" type="button">Copier la liste</button>
+          <p class="muted small" id="unknown-status" role="status"></p>
+          <ul class="report-list" id="unknown-list"></ul>
+        </details>
         <details class="card fold" data-fold="tableau" id="admin-dashboard" hidden>
           <summary><span class="fold-t"><h2>Tableau de bord</h2><span class="sub">réservé au responsable du jeu</span></span><span class="pm" aria-hidden="true"></span></summary>
           <div id="dashboard-body"></div>
@@ -701,6 +708,7 @@
     </div>
   </div>
 
+  <script src="analytics.js"></script>
   <script src="sound.js"></script>
   <script src="pixel.js"></script>
   <script src="icons.js"></script>

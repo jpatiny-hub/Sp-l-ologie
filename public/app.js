@@ -326,7 +326,31 @@
     }
   }, 5 * 60 * 1000);
 
+  // En quittant le profil ou la zone du responsable, leurs sections repliables se referment d'elles-mêmes.
+  const AUTO_CLOSE_VIEWS = ['profile', 'admin'];
+  function closeFoldsOfLeftView(view) {
+    for (const id of AUTO_CLOSE_VIEWS) {
+      const section = $(`view-${id}`);
+      if (id === view || !section || section.hidden) continue;
+      section.querySelectorAll('details[open]').forEach((d) => (d.open = false));
+    }
+  }
+
+  // Mesure d'audience : chaque changement d'écran compte comme une page vue (nom de l'écran seulement).
+  let trackedView = null;
+  function trackView(view) {
+    if (view === trackedView) return;
+    const first = trackedView === null;
+    trackedView = view;
+    if (first || !window._paq) return; // la première page vue est envoyée au chargement
+    window._paq.push(['setCustomUrl', `/${view}`]);
+    window._paq.push(['setDocumentTitle', view]);
+    window._paq.push(['trackPageView']);
+  }
+
   function show(view) {
+    trackView(view);
+    closeFoldsOfLeftView(view);
     document.querySelectorAll('.view').forEach((v) => (v.hidden = v.id !== `view-${view}`));
     // Sur téléphone, la scène de forage ne sert qu'en partie et dans les résultats : pas sur l'accueil.
     $('stage').hidden = (view === 'podium' || view === 'profile' || view === 'home' || view === 'recap' || view === 'duel' || view === 'admin' || view === 'museum') && window.innerWidth < 860;
@@ -2103,6 +2127,7 @@
     initFolds('view-admin');
     loadAdminAnnouncements();
     loadReports();
+    loadUnknownAnswers();
     loadAdminSuggestions();
     loadDashboard();
   }
@@ -2652,6 +2677,51 @@
       $('reports-status').textContent = `${plural(pending.length, 'signalement copié', 'signalements copiés')} : colle-les dans la conversation.`;
     } catch {
       $('reports-status').textContent = text;
+    }
+  });
+
+  // ---------- Réponses refusées (responsable du jeu) ----------
+  async function loadUnknownAnswers() {
+    const card = $('admin-unknown');
+    card.hidden = !(app.me && app.me.isAdmin);
+    if (card.hidden) return;
+    try {
+      const { answers } = await api('/api/admin/unknown-answers');
+      app.unknownAnswers = answers;
+      renderUnknownAnswers();
+    } catch (err) {
+      $('unknown-status').textContent = err.message;
+    }
+  }
+
+  function renderUnknownAnswers() {
+    const answers = app.unknownAnswers || [];
+    $('unknown-list').replaceChildren(
+      ...answers.map((a) => {
+        const ignore = el('button', { class: 'link', type: 'button' }, 'Ignorer');
+        ignore.addEventListener('click', async () => {
+          try {
+            await api('/api/admin/unknown-answers/ignore', { themeId: a.themeId, inputKey: a.inputKey });
+            app.unknownAnswers = app.unknownAnswers.filter((x) => x !== a);
+            renderUnknownAnswers();
+          } catch (err) {
+            $('unknown-status').textContent = err.message;
+          }
+        });
+        return el('li', { class: 'report' }, el('span', { class: 'what' }, el('strong', {}, `« ${a.input} »`), el('span', { class: 'muted' }, a.themeTitle)), el('span', { class: 'muted' }, plural(a.count, 'fois', 'fois')), ignore);
+      }),
+    );
+    if (!answers.length) $('unknown-list').append(el('li', { class: 'muted' }, 'Aucune saisie refusée à examiner.'));
+  }
+
+  $('btn-copy-unknown').addEventListener('click', async () => {
+    const answers = app.unknownAnswers || [];
+    const text = answers.length ? answers.map((a) => `${a.themeId} (${a.themeTitle}) : ${a.input} — ${plural(a.count, 'fois', 'fois')}`).join('\n') : 'Aucune saisie refusée.';
+    try {
+      await navigator.clipboard.writeText(text);
+      $('unknown-status').textContent = `${plural(answers.length, 'saisie copiée', 'saisies copiées')} : colle-les dans la conversation.`;
+    } catch {
+      $('unknown-status').textContent = text;
     }
   });
 

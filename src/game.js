@@ -1097,6 +1097,24 @@ class GameService {
     };
   }
 
+  /** Saisies refusées les plus fréquentes (hors celles que le thème reconnaît désormais), pour compléter les thèmes. */
+  unknownAnswers(limit = 150) {
+    const rows = this.db.prepare('SELECT theme_id, input_key, example, n, last_at FROM unknown_answers ORDER BY n DESC, last_at DESC LIMIT 600').all();
+    const out = [];
+    for (const r of rows) {
+      const theme = this.themes.get(r.theme_id);
+      if (!theme || matchAnswer(theme, r.example)) continue;
+      out.push({ themeId: r.theme_id, themeTitle: theme.title, inputKey: r.input_key, input: r.example, count: r.n, lastAt: r.last_at });
+      if (out.length >= limit) break;
+    }
+    return out;
+  }
+
+  /** Écarte une saisie refusée de la liste (faute de frappe, hors sujet…). */
+  ignoreUnknown(themeId, inputKey) {
+    this.db.prepare('DELETE FROM unknown_answers WHERE theme_id = ? AND input_key = ?').run(themeId, inputKey);
+  }
+
   recordUnknown(themeId, input) {
     const key = toKey(input);
     if (!key) return;
