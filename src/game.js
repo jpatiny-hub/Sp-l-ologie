@@ -497,8 +497,8 @@ class GameService {
   /** Vrai pour la partie d'un duel dont le résultat n'est pas encore révélé : ni points ni rareté d'ici là. */
   duelHidden(game) {
     if (!game || game.mode !== 'duel') return false;
-    const d = this.db.prepare('SELECT status FROM duels WHERE id = ?').get(game.duel_id);
-    return !d || d.status !== 'done';
+    const d = this.db.prepare('SELECT status, validated_at FROM duels WHERE id = ?').get(game.duel_id);
+    return !d || d.status !== 'done' || d.validated_at == null;
   }
 
   roundView(round, game) {

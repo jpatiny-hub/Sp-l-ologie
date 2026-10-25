@@ -313,7 +313,7 @@
             <p class="muted small" id="next-reset"></p>
           </div>
           <div id="mode-duel" hidden>
-            <p>Défie un joueur sur 7 thèmes : chacun joue de son côté, et le résultat se révèle quand vous avez fini tous les deux.</p>
+            <p>Défie un joueur sur 7 thèmes : chacun joue de son côté. Quand vous avez fini tous les deux, le contremaître vérifie les plans : le résultat est dévoilé le lendemain matin.</p>
             <button class="btn" id="btn-duel-new" type="button">Lancer un duel</button>
             <div id="duel-lists"></div>
           </div>
@@ -375,6 +375,7 @@
         <div class="card" id="duel-wait" hidden>
           <h2>Ton forage est terminé</h2>
           <p id="duel-wait-text"></p>
+          <canvas class="collective-canvas" id="duel-foreman" width="110" height="44" role="img" aria-label="Le contremaître vérifie des plans" hidden></canvas>
           <button class="btn" id="btn-duel-wait-home" type="button">Retour à l'accueil</button>
         </div>
         <div class="card" id="duel-reveal" hidden>

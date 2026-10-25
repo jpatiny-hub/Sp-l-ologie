@@ -135,6 +135,20 @@ const NEWS = [
       "Thèmes : le thème des gares belges repose désormais sur les chiffres SNCB 2025 (les 40 gares les plus fréquentées en semaine) ; « Un pays d'Afrique » refuse les anciens États historiques situés hors d'Afrique ; les parties du corps acceptent coude, genou, pied et autres noms courants ; et de nombreuses réponses signalées ont été ajoutées.",
     ],
   },
+  {
+    id: 9,
+    date: '2026-10-26',
+    title: 'Duels : le contremaître vérifie',
+    highlights: [
+      { icon: 'sabre', text: 'Duels : le résultat est dévoilé le lendemain matin, après vérification du contremaître' },
+      { icon: 'diamant', text: "Une annonce sur l'accueil quand le défi collectif du mois est réussi" },
+      { icon: 'galerie', text: 'Le défi de la semaine réussi : ton personnage attrape le diamant' },
+    ],
+    items: [
+      "Duels : quand vous avez fini tous les deux, le contremaître vérifie les plans. Le résultat, l'animation, les badges et les pépites de duel sont dévoilés le lendemain matin, après 2 h 30, pour que les réponses signalées soient tranchées avant. Ton duel apparaît en attendant sous « Chez le contremaître ».",
+      "Défi du mois : quand tout le monde a creusé jusqu'au diamant, une annonce s'affiche sur l'accueil. Défi de la semaine : une fois réussi, ton personnage va jusqu'au diamant et le tient dans sa main.",
+    ],
+  },
 ];
 
 const LATEST_NEWS_ID = NEWS[NEWS.length - 1].id;

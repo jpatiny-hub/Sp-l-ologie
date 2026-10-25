@@ -3175,6 +3175,15 @@
         d.status === 'playing' ? el('div', { class: 'duel-actions' }, act('Reprendre', async () => enterGame(await api(`/api/game/${d.gameId}`)))) : null,
       ),
     );
+    const checking = (data.checking || []).map((d) => {
+      const row = el('li', { class: 'duel-result' }, el('div', { class: 'duel-row' }, person(d.other), el('span', { class: 'muted small' }, 'en attente de vérification par le contremaître')));
+      row.tabIndex = 0;
+      row.setAttribute('role', 'button');
+      const open = () => openDuelResult(d.id);
+      row.addEventListener('click', open);
+      row.addEventListener('keydown', (event) => (event.key === 'Enter' || event.key === ' ') && (event.preventDefault(), open()));
+      return row;
+    });
     const results = data.results.map((d) => {
       const label = d.outcome === 'win' ? 'Victoire' : d.outcome === 'loss' ? 'Défaite' : 'Égalité';
       const row = el(
@@ -3194,6 +3203,7 @@
       ...[
         section('À toi de jouer', received),
         section('En cours', sent),
+        section('Chez le contremaître', checking),
         section('Résultats', results),
         r.wins + r.losses + r.draws ? el('p', { class: 'muted small' }, `Bilan : ${r.wins} victoire${r.wins > 1 ? 's' : ''}, ${r.losses} défaite${r.losses > 1 ? 's' : ''}${r.draws ? `, ${r.draws} égalité${r.draws > 1 ? 's' : ''}` : ''}.`) : null,
       ].filter(Boolean),
@@ -3223,14 +3233,114 @@
     }
   });
 
+  // ---------- Duel en attente de vérification : le contremaître examine les plans ----------
+  const FW = 110;
+  const FH = 44;
+  const FOREMAN = [
+    '....hhhhhh....',
+    '...hhhhhhhh...',
+    '..HHHHHHHHHH..',
+    '...ssssssss...',
+    '...sesssses...',
+    '...ssssssss...',
+    '...sbbbbbbs...',
+    '....ssssss....',
+    '..oooooooooo..',
+    '.oooyooooyooo.',
+    '.oooooooooooo.',
+    '.soooooooooos.',
+  ];
+  const FOREMAN_PAL = { h: '#f4f4f4', H: '#c9ced6', s: '#e0a878', e: '#1b1410', b: '#5a3a20', o: '#f08a1c', y: '#f2e030' };
+
+  function drawForeman(canvas, t) {
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(weeklyBackdrop(), 0, 0);
+    ctx.fillStyle = '#120d0a';
+    ctx.fillRect(0, 4, FW, FH - 4);
+    // Lampe suspendue et halo.
+    ctx.fillStyle = 'rgba(242,194,48,0.12)';
+    ctx.fillRect(30, 4, 50, 22);
+    ctx.fillStyle = '#8a5a2b';
+    ctx.fillRect(54, 0, 2, 5);
+    ctx.fillStyle = '#f2c230';
+    ctx.fillRect(51, 5, 8, 2);
+    // Le contremaître, tête qui dodeline un peu.
+    const bob = Math.round(Math.sin(t * 2.2));
+    sprite(ctx, FOREMAN, FOREMAN_PAL, 48, 9 + bob);
+    // Table et plan bleu.
+    ctx.fillStyle = '#6b4627';
+    ctx.fillRect(10, 30, 90, 3);
+    ctx.fillStyle = '#4a2f1a';
+    ctx.fillRect(14, 33, 3, 11);
+    ctx.fillRect(93, 33, 3, 11);
+    ctx.fillStyle = '#2a5db0';
+    ctx.fillRect(20, 23, 70, 8);
+    ctx.fillStyle = '#9cc3ff';
+    for (let x = 24; x < 86; x += 10) ctx.fillRect(x, 24, 1, 6);
+    ctx.fillRect(21, 26, 68, 1);
+    ctx.fillRect(21, 29, 68, 1);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(28, 25, 8, 4);
+    ctx.fillRect(48, 24, 12, 1);
+    ctx.fillRect(48, 28, 12, 1);
+    ctx.fillRect(70, 25, 10, 4);
+    // Coches vertes au fil de la vérification (une toutes les 1,5 s, par cycle de 6 s).
+    const done = Math.floor((t % 6) / 1.5);
+    ctx.fillStyle = '#7fcf5a';
+    [[32, 26], [54, 26], [75, 26], [42, 29]].slice(0, done + 1).forEach(([x, y]) => {
+      ctx.fillRect(x, y + 1, 1, 1);
+      ctx.fillRect(x + 1, y + 2, 1, 1);
+      ctx.fillRect(x + 2, y + 1, 1, 1);
+      ctx.fillRect(x + 3, y, 1, 1);
+    });
+    // Loupe qui balaie le plan.
+    const mx = 30 + Math.round(50 * (0.5 + 0.5 * Math.sin(t * 1.1)));
+    ctx.fillStyle = 'rgba(138,208,255,0.55)';
+    ctx.fillRect(mx - 3, 19, 7, 7);
+    ctx.fillStyle = '#c9ced6';
+    ctx.fillRect(mx - 4, 18, 9, 1);
+    ctx.fillRect(mx - 4, 26, 9, 1);
+    ctx.fillRect(mx - 4, 19, 1, 7);
+    ctx.fillRect(mx + 4, 19, 1, 7);
+    ctx.fillStyle = '#8a5a2b';
+    for (let i = 0; i < 6; i++) ctx.fillRect(mx + 5 + i, 25 + i - 3, 1, 1);
+    ctx.fillStyle = '#e0a878';
+    ctx.fillRect(mx + 11, 24, 2, 2);
+  }
+
+  function renderForeman() {
+    const canvas = $('duel-foreman');
+    const scale = Math.max(1, Math.min(4, Math.floor((canvas.parentElement.clientWidth || 330) / FW)));
+    canvas.style.width = `${FW * scale}px`;
+    canvas.style.height = `${FH * scale}px`;
+    drawForeman(canvas, 0);
+  }
+  setInterval(() => {
+    if (document.hidden || $('view-duel').hidden || $('duel-wait').hidden || $('duel-foreman').hidden) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    drawForeman($('duel-foreman'), performance.now() / 1000);
+  }, 120);
+
+  /** Duel joué par les deux : rien n'est dévoilé avant la vérification du lendemain. */
+  function showDuelChecking(opponent) {
+    $('duel-wait-text').textContent = `En attente de vérification par le contremaître. Ton duel contre ${opponent} sera dévoilé demain matin, après 2 h 30.`;
+    $('duel-foreman').hidden = false;
+    $('duel-wait').hidden = false;
+    $('duel-reveal').hidden = true;
+    show('duel');
+    renderForeman();
+  }
+
   // Fin de la partie d'un duel : en attente de l'adversaire, ou résultat à révéler.
   async function afterDuelGame(state) {
     try {
       const result = await api(`/api/duels/${state.duel.id}/result`);
+      if (result.pending) return showDuelChecking(result.opponent);
       openDuelReveal(result);
     } catch (err) {
       if (err.status !== 409) return showNotice(err.message);
       $('duel-wait-text').textContent = `${state.duel.opponent} n'a pas encore joué. Tu verras le résultat dans l'onglet « Duel » de l'accueil, dès que ce sera fait : la rareté de tes réponses reste secrète jusque-là.`;
+      $('duel-foreman').hidden = true;
       $('duel-wait').hidden = false;
       $('duel-reveal').hidden = true;
       show('duel');
@@ -3239,7 +3349,9 @@
 
   async function openDuelResult(id) {
     try {
-      openDuelReveal(await api(`/api/duels/${id}/result`));
+      const result = await api(`/api/duels/${id}/result`);
+      if (result.pending) return showDuelChecking(result.opponent);
+      openDuelReveal(result);
     } catch (err) {
       showNotice(err.message);
     }

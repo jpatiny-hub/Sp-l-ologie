@@ -161,6 +161,11 @@ class DuelService {
     const og = this.db.prepare('SELECT score FROM games WHERE id = ?').get(d.opponent_game_id);
     if (!cg || !og) return;
     const winner = cg.score > og.score ? d.challenger_id : og.score > cg.score ? d.opponent_id : null;
+    if (d.validated_at == null) {
+      // Pas encore validé : personne n'a vu le résultat, on le corrige sans en garder trace.
+      this.db.prepare('UPDATE duels SET challenger_score = ?, opponent_score = ?, winner_id = ? WHERE id = ?').run(cg.score, og.score, winner, d.id);
+      return;
+    }
     const first = d.revised_at == null;
     this.db
       .prepare(
@@ -178,8 +183,6 @@ class DuelService {
         first ? d.winner_id : d.old_winner_id,
         d.id,
       );
-    // Duel pas encore validé : les badges seront attribués avec le résultat corrigé. Déjà validé : on revérifie.
-    if (d.validated_at == null) return;
     const today = this.game.today();
     this.game.badges.awardDuels(d.challenger_id, today);
     this.game.badges.awardDuels(d.opponent_id, today);
@@ -205,7 +208,7 @@ class DuelService {
   opponents(userId) {
     const users = this.db.prepare('SELECT id, username, avatar FROM users WHERE id <> ? ORDER BY username_key').all(userId);
     const done = this.db
-      .prepare("SELECT * FROM duels WHERE status = 'done' AND (challenger_id = ? OR opponent_id = ?)")
+      .prepare("SELECT * FROM duels WHERE status = 'done' AND validated_at IS NOT NULL AND (challenger_id = ? OR opponent_id = ?)")
       .all(userId, userId);
     const open = this.db
       .prepare("SELECT challenger_id, opponent_id FROM duels WHERE status = 'open' AND (challenger_id = ? OR opponent_id = ?)")
@@ -236,11 +239,17 @@ class DuelService {
     const received = [];
     const sent = [];
     const results = [];
+    const checking = [];
     for (const d of rows) {
       const mineIsChallenger = d.challenger_id === userId;
       const otherId = mineIsChallenger ? d.opponent_id : d.challenger_id;
       const other = this.person(otherId);
       const base = { id: d.id, mode: d.mode, other, createdAt: d.created_at, expiresAt: d.expires_at };
+      if (d.status === 'done' && d.validated_at == null) {
+        // Joué par les deux : le contremaître vérifie, le résultat n'est connu que le lendemain.
+        checking.push({ ...base, finishedAt: d.finished_at });
+        continue;
+      }
       if (d.status === 'done') {
         const myScore = mineIsChallenger ? d.challenger_score : d.opponent_score;
         const theirScore = mineIsChallenger ? d.opponent_score : d.challenger_score;
@@ -256,7 +265,7 @@ class DuelService {
       }
     }
     const record = { wins: 0, losses: 0, draws: 0 };
-    for (const r of this.db.prepare("SELECT winner_id FROM duels WHERE status = 'done' AND (challenger_id = ? OR opponent_id = ?)").all(userId, userId)) {
+    for (const r of this.db.prepare("SELECT winner_id FROM duels WHERE status = 'done' AND validated_at IS NOT NULL AND (challenger_id = ? OR opponent_id = ?)").all(userId, userId)) {
       if (r.winner_id == null) record.draws++;
       else if (r.winner_id === userId) record.wins++;
       else record.losses++;
@@ -265,6 +274,7 @@ class DuelService {
       opponents: this.opponents(userId),
       received,
       sent,
+      checking,
       results: results.slice(0, 10),
       record,
       limits: { open: MAX_OPEN, ttlDays: DUEL_TTL_MS / 86400000 },
@@ -282,7 +292,7 @@ class DuelService {
       .get(userId).n;
     const unseen = this.db
       .prepare(
-        `SELECT COUNT(*) AS n FROM duels WHERE status = 'done' AND
+        `SELECT COUNT(*) AS n FROM duels WHERE status = 'done' AND validated_at IS NOT NULL AND
          ((challenger_id = ? AND challenger_seen_at IS NULL) OR (opponent_id = ? AND opponent_seen_at IS NULL))`,
       )
       .get(userId, userId).n;
@@ -300,6 +310,11 @@ class DuelService {
   result(duelId, userId) {
     const d = this.duelFor(duelId, userId);
     if (d.status !== 'done') throw new HttpError(409, "Le duel n'est pas terminé : il manque la partie de ton adversaire.");
+    if (d.validated_at == null) {
+      // Les deux ont joué : le contremaître vérifie, le résultat est dévoilé le lendemain.
+      const otherId = d.challenger_id === userId ? d.opponent_id : d.challenger_id;
+      return { id: d.id, mode: d.mode, pending: true, opponent: this.person(otherId).username };
+    }
     const side = (id, gameId, score) => {
       const u = this.userRow(id);
       return {

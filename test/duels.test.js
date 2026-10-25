@@ -72,6 +72,15 @@ test('duel : les deux jouent les mêmes thèmes sans voir la rareté, puis le r�
 
     const finished = await playGame(app, eve, accepted.id, 3);
     assert.equal(finished.finished, true);
+    // Les deux ont joué : le contremaître vérifie, rien n'est dévoilé avant la validation du lendemain.
+    assert.equal((await eve(`/api/duels/${id}/result`)).data.pending, true);
+    assert.equal((await adam(`/api/duels/${id}/result`)).data.pending, true);
+    assert.equal((await adam(`/api/game/${started.id}`)).data.score, null);
+    assert.equal((await adam('/api/duels')).data.checking.length, 1);
+    assert.equal((await adam('/api/me')).data.duels.unseen, 0, 'rien à voir avant la validation');
+    const profileBefore = (await adam('/api/profile')).data.badges.filter((b) => b.count).map((b) => b.id);
+    assert.ok(!profileBefore.includes('attaquant-1'), 'pas de badge de duel avant la validation');
+    await validateDuels(app, adam);
     const result = (await eve(`/api/duels/${id}/result`)).data;
     assert.equal(result.themes.length, 7);
     assert.equal(result.a.username, 'adam');
@@ -95,11 +104,7 @@ test('duel : les deux jouent les mêmes thèmes sans voir la rareté, puis le r�
     assert.equal(adamList.opponents[0].username, 'eve');
     assert.equal((await adam('/api/duels')).data.record.wins + (await adam('/api/duels')).data.record.losses + (await adam('/api/duels')).data.record.draws, 1);
 
-    // Badges de duel : attribués seulement à la validation du lendemain (2 h 30), après les signalements.
-    const before = (await adam('/api/profile')).data.badges.filter((b) => b.count).map((b) => b.id);
-    assert.ok(!before.includes('attaquant-1'), 'pas de badge de duel avant la validation');
-    await validateDuels(app, adam);
-    // Aucune trace dans les classements du jour.
+    // Badges de duel attribués à la validation. Aucune trace dans les classements du jour.
     const badgesA = (await adam('/api/profile')).data.badges.filter((b) => b.count).map((b) => b.id);
     const badgesE = (await eve('/api/profile')).data.badges.filter((b) => b.count).map((b) => b.id);
     assert.ok(badgesA.includes('attaquant-1') && badgesA.includes('diplomate-3') === false);

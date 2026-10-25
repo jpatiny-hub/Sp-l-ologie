@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { startServer, client, answerFor, THEMES } = require('./helpers');
+const { startServer, client, answerFor, THEMES, validateDuels } = require('./helpers');
 
 async function playDuelGame(app, call, gameId, wrongSlot) {
   for (let i = 0; i < 7; i++) {
@@ -33,6 +33,8 @@ test("points accordés sur un duel : manche corrigée, résultat révisé, note 
     }
     const accepted = (await eve(`/api/duels/${started.duel.id}/accept`, {})).data;
     await playDuelGame(app, eve, accepted.id, -1);
+    assert.equal((await adam(`/api/duels/${started.duel.id}/result`)).data.pending, true, 'le contremaître vérifie : pas de résultat avant la validation');
+    await validateDuels(app, adam);
     const before = (await adam(`/api/duels/${started.duel.id}/result`)).data;
     assert.equal(before.winner, 'b', 'Eve gagne avant la révision');
     assert.equal(before.revision, null);
@@ -106,6 +108,47 @@ test('décisions en lot : aperçu, refus, acceptation avec réponse du thème', 
     assert.equal(accepted.message, 'Bien vu !');
     assert.equal(refused.verdict, 'refused');
     assert.equal(app.db.prepare("SELECT COUNT(*) AS n FROM answer_reports WHERE handled_at IS NOT NULL").get().n, 2);
+  } finally {
+    await app.close();
+  }
+});
+
+test("points accordés avant la validation : le résultat est corrigé sans trace de révision", async () => {
+  const app = await startServer();
+  try {
+    const adam = client(app.base);
+    const eve = client(app.base);
+    await adam('/api/signup', { username: 'adam', password: 'secret123' });
+    await eve('/api/signup', { username: 'eve', password: 'secret123' });
+    const started = (await adam('/api/duels', { opponent: 'eve', mode: 'aise' })).data;
+    for (let i = 0; i < 7; i++) {
+      await adam(`/api/game/${started.id}/reveal`, {});
+      if (i === 3) {
+        await adam(`/api/game/${started.id}/report`, { text: 'ma bonne reponse' });
+        await adam(`/api/game/${started.id}/skip`, {});
+      } else {
+        await adam(`/api/game/${started.id}/answer`, { text: answerFor(app.db, started.id, 1) });
+      }
+    }
+    const accepted = (await eve(`/api/duels/${started.duel.id}/accept`, {})).data;
+    await playDuelGame(app, eve, accepted.id, -1);
+    const list = (await adam('/api/duels')).data;
+    assert.equal(list.checking.length, 1, 'en attente de vérification');
+    assert.equal(list.results.length, 0);
+    assert.equal(list.record.wins + list.record.losses + list.record.draws, 0, 'aucun bilan avant la validation');
+    const state = (await adam(`/api/game/${started.id}`)).data;
+    assert.equal(state.score, null, 'ni points ni réponses avant la validation');
+    const report = (await adam('/api/admin/reports')).data.reports[0];
+    const themeId = app.db.prepare('SELECT theme_id FROM rounds WHERE game_id = ? AND slot = 3').get(started.id).theme_id;
+    const best = THEMES.get(themeId).answers.find((a) => a.level === 1);
+    await adam('/api/admin/reports/grant', { themeId, inputKey: report.inputKey, answerKey: best.key });
+    const row = app.db.prepare('SELECT * FROM duels WHERE id = ?').get(started.duel.id);
+    assert.equal(row.revised_at, null, 'pas de révision visible avant la validation');
+    assert.equal(row.challenger_score, app.db.prepare('SELECT score FROM games WHERE id = ?').get(started.id).score);
+    await validateDuels(app, adam);
+    const result = (await adam(`/api/duels/${started.duel.id}/result`)).data;
+    assert.equal(result.revision, null);
+    assert.equal(result.a.score, row.challenger_score);
   } finally {
     await app.close();
   }
