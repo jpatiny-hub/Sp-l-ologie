@@ -1,0 +1,7 @@
+titre: Un pays dont une partie du territoire a un climat désertique
+# Niveaux repris des points de rareté de la liste fournie.
+1: Australie = Australia; Égypte = Egypt; Arabie saoudite = Saudi Arabia
+2: Afghanistan; Algérie = Algeria; Chili = Chile; Chine = China; Inde = India; Iran; Irak = Iraq; Israël; Jordanie = Jordan; Libye = Libya; Mexique = Mexico; Mongolie = Mongolia; Maroc = Morocco; Namibie = Namibia; Pakistan; Afrique du Sud = South Africa; Soudan = Sudan; Tunisie = Tunisia; Émirats arabes unis = United Arab Emirates
+3: Angola; Argentine = Argentina; Azerbaïdjan = Azerbaijan; Bahreïn = Bahrain; Bolivie = Bolivia; Botswana; Brésil = Brazil; Canada; Tchad = Chad; Djibouti; Érythrée = Eritrea; Éthiopie = Ethiopia; Kazakhstan; Kenya; Koweït = Kuwait; Mali; Mauritanie = Mauritania; Népal; Niger; Oman; Palestine; Pérou = Peru; Qatar; Russie = Russia; Sénégal; Somalie = Somalia; Espagne = Spain; Syrie = Syria; Turkménistan; Ouzbékistan = Uzbekistan; Yémen; Zimbabwe
+4: Burkina Faso; Cap-Vert = Cabo Verde; Cameroun = Cameroon; Colombie = Colombia; Danemark = Denmark; Équateur = Ecuador; Kirghizistan = Kyrgyzstan; Madagascar; Mozambique; Nigeria; Norvège = Norway; Soudan du Sud = South Sudan; Tadjikistan = Tajikistan; Venezuela
+5: Royaume-Uni = United Kingdom
