@@ -129,3 +129,17 @@ test('nombres : chiffres et lettres sont équivalents, y compris septante/nonant
   assert.equal(numberKey('septante et un'), '71');
   assert.equal(numberKey('deux trois'), '23');
 });
+
+test('lettres isolées et abréviations ne sont pas lues comme des chiffres romains (d\'urgence, l\'oie, CD)', () => {
+  const theme = parseTheme('t', [
+    'titre: Test',
+    '1: Freinage d\'urgence; Jeu de l\'oie; Lecteur CD; Henri V; Louis XIV',
+  ].join('\n'));
+  const label = (input) => matchAnswer(theme, input)?.answer.label;
+  assert.equal(label('freinage durgence'), 'Freinage d\'urgence');
+  assert.equal(label('Jeu de loie'), 'Jeu de l\'oie');
+  assert.equal(label('lecteur cd'), 'Lecteur CD');
+  assert.equal(label('Henri 5'), 'Henri V');
+  assert.equal(label('louis 14'), 'Louis XIV');
+  assert.equal(toKey('Jeu de l\'oie'), 'jeude50oie', 'la clé stockée ne change pas');
+});
