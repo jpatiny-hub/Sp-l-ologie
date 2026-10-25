@@ -655,7 +655,11 @@
     banner.hidden = !c || !c.reached || seen;
     if (banner.hidden) return;
     const mine = (c.players.find((p) => p.me) || {}).points || 0;
-    banner.textContent = `🎉 Défi du mois réussi ! Ensemble, vous avez creusé jusqu'au diamant (${c.total.toLocaleString('fr-BE')} points).${mine ? ` Ta part : ${mine.toLocaleString('fr-BE')} points.` : ''} Merci à tous ! (toucher pour fermer)`;
+    const icon = $('collective-banner-icon');
+    const ctx = icon.getContext('2d');
+    ctx.clearRect(0, 0, 7, 6);
+    sprite(ctx, DIAMOND, { c: '#5ee0ff', w: '#ffffff' }, 0, 0);
+    $('collective-banner-text').textContent = `Vous avez creusé le tunnel du mois jusqu'au diamant, ensemble : ${c.total.toLocaleString('fr-BE')} points.${mine ? ` Ta part : ${mine.toLocaleString('fr-BE')} points.` : ''} Merci à tous les mineurs ! (toucher pour fermer)`;
   }
 
   $('collective-banner').addEventListener('click', () => {
