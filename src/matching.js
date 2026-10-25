@@ -6,6 +6,10 @@ const LEADING_ARTICLES = new Set(['le', 'la', 'les', 'l', 'un', 'une', 'des', 'd
 
 const ROMAN = /^(?=[ivxlcdm])m{0,3}(cm|cd|d?c{0,3})(xc|xl|l?x{0,3})(ix|iv|v?i{0,3})$/;
 const ROMAN_VALUES = { i: 1, v: 5, x: 10, l: 50, c: 100, d: 500, m: 1000 };
+// Dans la clé « chiffres » : lettres issues d'élisions (« d'urgence », « l'eau ») et abréviations courantes
+// (CD, DC, cm, ml…) qui ne sont pas des chiffres romains. La clé d'origine (stockée en base) n'y touche pas.
+const NOT_ROMAN_NUMERIC = new Set(['c', 'd', 'l', 'm', 'cd', 'dc', 'mc', 'cm', 'dm', 'cl', 'dl', 'ml', 'lc', 'ld', 'md', 'lm', 'dd']);
+
 // Mots français qui se lisent aussi comme des chiffres romains.
 const NOT_ROMAN = new Set(['dix', 'mix', 'mi', 'ci', 'di', 'li', 'mil', 'did', 'mm']);
 
@@ -119,7 +123,7 @@ function normalizeWords(text, numbers = false) {
   for (let i = 1; i < words.length; i++) {
     if (words[i] === 'ier') words[i] = '1er';
     else {
-      const n = romanToNumber(words[i]);
+      const n = numbers && NOT_ROMAN_NUMERIC.has(words[i]) ? null : romanToNumber(words[i]);
       if (n) words[i] = String(n);
     }
   }
