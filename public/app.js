@@ -3322,8 +3322,8 @@
   }, 120);
 
   /** Duel joué par les deux : rien n'est dévoilé avant la vérification du lendemain. */
-  function showDuelChecking(opponent) {
-    $('duel-wait-text').textContent = `En attente de vérification par le contremaître. Ton duel contre ${opponent} sera dévoilé demain matin, après 2 h 30.`;
+  function showDuelChecking() {
+    $('duel-wait-text').textContent = 'En attente de vérification par le contremaître. Reviens demain pour voir les résultats du chantier ! ⚒️';
     $('duel-foreman').hidden = false;
     $('duel-wait').hidden = false;
     $('duel-reveal').hidden = true;
@@ -3335,7 +3335,7 @@
   async function afterDuelGame(state) {
     try {
       const result = await api(`/api/duels/${state.duel.id}/result`);
-      if (result.pending) return showDuelChecking(result.opponent);
+      if (result.pending) return showDuelChecking();
       openDuelReveal(result);
     } catch (err) {
       if (err.status !== 409) return showNotice(err.message);
@@ -3350,7 +3350,7 @@
   async function openDuelResult(id) {
     try {
       const result = await api(`/api/duels/${id}/result`);
-      if (result.pending) return showDuelChecking(result.opponent);
+      if (result.pending) return showDuelChecking();
       openDuelReveal(result);
     } catch (err) {
       showNotice(err.message);
