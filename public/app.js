@@ -518,7 +518,7 @@
     show('home');
     loadMiniPodium();
     loadCarnetSummary();
-    if (app.me.recap) openRecap(app.me.recap);
+    if (app.me.celebrations && app.me.celebrations.length) openCelebrations(app.me.celebrations);
   }
 
   async function loadCarnetSummary() {
@@ -3502,20 +3502,53 @@
     return c;
   }
 
-  async function openRecap(week) {
+  const CELEBRATION = {
+    day: { title: 'Le podium du jour', gazette: 'du jour', wins: 'remporte le jour', mine: 'Ta journée', nothing: "Tu n'as pas creusé ce jour-là : à toi de jouer aujourd'hui !", sky: ['#0b1026', '#121a3d', '#1b2552'], bursts: 4, radius: 24, speed: 0.9 },
+    week: { title: 'Le podium de la semaine', gazette: 'de la semaine', wins: 'remporte la semaine', mine: 'Ta semaine', nothing: "Tu n'as pas creusé cette semaine-là : rendez-vous cette semaine !", sky: ['#150b26', '#20123d', '#2c1a52'], bursts: 6, radius: 28, speed: 1 },
+    month: { title: 'Le podium du mois', gazette: 'du mois', wins: 'remporte le mois', mine: 'Ton mois', nothing: "Tu n'as pas creusé ce mois-là : un nouveau mois commence !", sky: ['#07161c', '#0c2a33', '#123d47'], bursts: 9, radius: 32, speed: 1.15 },
+  };
+  const BURST_PALETTES = [
+    ['#ffd84a', '#ff6a8a', '#5ee0ff', '#b28cff', '#7fcf5a'],
+    ['#ff9a3c', '#ffd84a', '#ff5c5c', '#fff2a8', '#ff8ad6'],
+    ['#5ee0ff', '#8ab4ff', '#b28cff', '#7fffd4', '#ffffff'],
+    ['#ffd84a', '#fff2a8', '#e0b020', '#ffffff', '#ffb347'],
+  ];
+
+  function celebrationPeriodText(data, long) {
+    if (data.kind === 'day') return formatDay(data.start, { weekday: 'long', day: 'numeric', month: 'long' });
+    if (data.kind === 'month') return formatDay(data.start, { month: 'long', year: 'numeric' });
+    const opts = { day: 'numeric', month: 'long' };
+    return long ? `Semaine du ${formatDay(data.start, opts)} au ${formatDay(data.end, opts)}` : `${formatDay(data.start, opts)} – ${formatDay(data.end, opts)}`;
+  }
+
+  /** Podiums à montrer à la suite (jour, semaine, mois), puis retour à l'accueil. */
+  function openCelebrations(list) {
+    app.celebrationQueue = list.slice();
+    nextCelebration();
+  }
+
+  async function nextCelebration() {
+    const item = (app.celebrationQueue || []).shift();
+    if (!item) {
+      show('home');
+      return;
+    }
     try {
-      const data = await api(`/api/recap?week=${week}`);
+      const data = await api(`/api/celebration?kind=${item.kind}&start=${item.start}`);
       app.recap = data;
       renderRecap(data);
       show('recap');
+      window.scrollTo(0, 0);
       startFireworks(data);
     } catch {
-      /* le récap est un bonus : s'il échoue, on reste sur l'accueil */
+      /* les podiums sont un bonus : s'ils échouent, on reste sur l'accueil */
+      app.celebrationQueue = [];
     }
   }
 
   function startFireworks(data) {
     clearInterval(recapTimer);
+    const conf = CELEBRATION[data.kind] || CELEBRATION.week;
     const canvas = $('recap-canvas');
     const ctx = canvas.getContext('2d');
     const scale = Math.max(1, Math.min(3, Math.floor((canvas.parentElement.clientWidth || 320) / 160)));
@@ -3527,20 +3560,76 @@
       if (e && window.Avatar) sprites[place] = Avatar.sprite(e.avatar);
     });
     const hash = (n) => Math.abs(Math.sin(n * 12.9898) * 43758.5453) % 1;
-    const bursts = [[34, 40, '#ffd84a', 0], [124, 34, '#ff6a8a', 0.8], [80, 66, '#5ee0ff', 1.5], [140, 84, '#b28cff', 2.2], [18, 90, '#7fcf5a', 2.8]];
+    // Chaque célébration a sa variante : la date choisit les couleurs, l'emplacement des feux et un effet de plus.
+    const seed = [...data.start].reduce((n, ch) => n * 31 + ch.charCodeAt(0), 7) % 9973;
+    const colors = BURST_PALETTES[seed % BURST_PALETTES.length];
+    const effect = ['confettis', 'etoiles', 'diamants', 'lampes'][Math.floor(seed / 7) % 4];
+    const bursts = Array.from({ length: conf.bursts }, (_, i) => [
+      14 + Math.floor(hash(seed + i * 3.1) * 132),
+      22 + Math.floor(hash(seed + i * 5.7) * 70),
+      colors[i % colors.length],
+      (i * 0.7) % 3,
+    ]);
     const steps = [[2, 14, 40, 150, '#9aa0aa'], [1, 60, 40, 140, '#e0b020'], [3, 106, 40, 160, '#b27a3e']]; // [place, x, largeur, haut, couleur]
+    const extra = (t) => {
+      if (effect === 'confettis') {
+        for (let i = 0; i < 30; i++) {
+          ctx.fillStyle = colors[i % colors.length];
+          ctx.fillRect(Math.floor(hash(seed + i) * 158) + Math.round(Math.sin(t * 2 + i) * 3), Math.floor((hash(i + 9) * 190 + t * (22 + (i % 5) * 6)) % 175), 2, 3);
+        }
+      } else if (effect === 'etoiles') {
+        for (let i = 0; i < 3; i++) {
+          const k = (t * 0.45 + i / 3) % 1;
+          const x = Math.round(150 - k * 150 + hash(seed + i) * 40);
+          const y = Math.round(k * 90 + i * 8);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(x, y, 2, 2);
+          ctx.fillStyle = '#9fb4ff';
+          ctx.fillRect(x + 3, y - 2, 2, 1);
+          ctx.fillRect(x + 6, y - 4, 2, 1);
+        }
+      } else if (effect === 'diamants') {
+        for (let i = 0; i < 9; i++) {
+          const x = Math.floor(hash(seed + i * 2) * 150) + Math.round(Math.sin(t + i) * 4);
+          const y = Math.floor((hash(i + 3) * 190 + t * (14 + (i % 4) * 5)) % 170);
+          ctx.fillStyle = '#5ee0ff';
+          ctx.fillRect(x + 1, y, 1, 3);
+          ctx.fillRect(x, y + 1, 3, 1);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(x + 1, y + 1, 1, 1);
+        }
+      } else {
+        for (let i = 0; i < 7; i++) {
+          const x = Math.floor(hash(seed + i * 4) * 148) + Math.round(Math.sin(t * 0.8 + i) * 4);
+          const y = 170 - ((hash(i + 5) * 170 + t * (10 + (i % 3) * 4)) % 170);
+          ctx.fillStyle = '#ffd84a';
+          ctx.fillRect(x, Math.round(y), 3, 4);
+          ctx.fillStyle = '#fff2a8';
+          ctx.fillRect(x + 1, Math.round(y) + 1, 1, 1);
+        }
+      }
+    };
     const draw = (t) => {
       for (let y = 0; y < 190; y += 2) {
-        ctx.fillStyle = y < 70 ? '#0b1026' : y < 125 ? '#121a3d' : '#1b2552';
+        ctx.fillStyle = y < 70 ? conf.sky[0] : y < 125 ? conf.sky[1] : conf.sky[2];
         ctx.fillRect(0, y, 160, 2);
       }
       for (let i = 0; i < 36; i++) {
         ctx.fillStyle = Math.sin(t * 3 + i) > 0 ? '#ffffff' : '#6a73a0';
         ctx.fillRect(Math.floor(hash(i + 1) * 160), Math.floor(hash(i + 50) * 100), 1, 1);
       }
+      if (data.kind === 'month') {
+        // Projecteurs de gala derrière le podium.
+        ctx.fillStyle = 'rgba(255, 240, 160, 0.10)';
+        for (let i = 0; i < 40; i++) {
+          const sway = Math.round(Math.sin(t * 0.8) * 14);
+          ctx.fillRect(40 + sway - i * 0.6, 20 + i * 3, 6 + i * 0.5, 3);
+          ctx.fillRect(110 - sway - i * 0.1, 20 + i * 3, 6 + i * 0.5, 3);
+        }
+      }
       bursts.forEach(([cx, cy, color, phase]) => {
-        const k = (t * 0.9 + phase / 3) % 1;
-        const r = k * 24;
+        const k = (t * conf.speed * 0.9 + phase / 3) % 1;
+        const r = k * conf.radius;
         for (let i = 0; i < 14; i++) {
           const a = (i / 14) * Math.PI * 2;
           ctx.fillStyle = color;
@@ -3551,6 +3640,16 @@
           }
         }
       });
+      extra(t);
+      if (data.kind === 'week') {
+        // Guirlande de fanions.
+        for (let x = 0; x < 160; x += 10) {
+          ctx.fillStyle = colors[(x / 10) % colors.length];
+          ctx.fillRect(x, 4 + Math.round(Math.sin(x / 14) * 2), 5, 2);
+          ctx.fillRect(x + 1, 6 + Math.round(Math.sin(x / 14) * 2), 3, 2);
+          ctx.fillRect(x + 2, 8 + Math.round(Math.sin(x / 14) * 2), 1, 1);
+        }
+      }
       ctx.fillStyle = '#2a1a0c';
       ctx.fillRect(0, 170, 160, 20);
       steps.forEach(([place, x, w, top, color]) => {
@@ -3558,12 +3657,29 @@
         ctx.fillRect(x, top + 20, w, 190 - top - 20);
         ctx.fillStyle = 'rgba(255,255,255,0.3)';
         ctx.fillRect(x, top + 20, w, 3);
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        ctx.fillRect(x + w / 2 - 2, top + 28, 4, 8);
         const sprite = sprites[place];
         if (sprite) {
           const jump = Math.round(Math.abs(Math.sin(t * 5 + place * 1.4)) * 8);
           ctx.drawImage(sprite, x + w / 2 - 8, top + 20 - 28 - jump);
         }
       });
+      if (data.kind === 'month' && sprites[1]) {
+        // Coupe du mois au-dessus du vainqueur.
+        const cx = 80;
+        const cy = 84 + Math.round(Math.sin(t * 2) * 2);
+        ctx.fillStyle = '#e0b020';
+        ctx.fillRect(cx - 6, cy, 12, 7);
+        ctx.fillRect(cx - 4, cy + 7, 8, 3);
+        ctx.fillRect(cx - 1, cy + 10, 2, 4);
+        ctx.fillRect(cx - 4, cy + 14, 8, 2);
+        ctx.fillStyle = '#ffd84a';
+        ctx.fillRect(cx - 4, cy + 1, 3, 5);
+        ctx.fillStyle = '#e0b020';
+        ctx.fillRect(cx - 9, cy + 1, 3, 4);
+        ctx.fillRect(cx + 6, cy + 1, 3, 4);
+      }
     };
     draw(0);
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -3574,24 +3690,34 @@
   }
 
   function renderRecap(data) {
-    $('recap-sub').textContent = `Semaine du ${formatDay(data.start, { day: 'numeric', month: 'long' })} au ${formatDay(data.end, { day: 'numeric', month: 'long' })}`;
+    const conf = CELEBRATION[data.kind] || CELEBRATION.week;
+    const queue = app.celebrationQueue || [];
+    $('recap-title').textContent = data.kind === 'week' ? 'Bravo les mineurs !' : conf.title;
+    $('recap-sub').textContent = data.kind === 'week' ? celebrationPeriodText(data, true) : celebrationPeriodText(data);
+    $('recap-canvas').setAttribute('aria-label', `${conf.title} sous un feu d'artifice`);
     $('recap-fireworks').hidden = false;
     $('recap-gazette').hidden = true;
     $('recap-names').replaceChildren(
       ...[2, 1, 3].map((place) => {
         const e = data.entries.find((x) => x.rank === place);
-        return el('div', { class: `recap-name p${place}` }, el('span', { class: 'who-name' }, e ? e.username : '—'), el('span', { class: 'score' }, e ? pts(e.score) : ''));
+        return el('div', { class: `recap-name p${place}${e && e.me ? ' me' : ''}` }, el('span', { class: 'who-name' }, e ? e.username : '—'), el('span', { class: 'score' }, e ? pts(e.score) : ''));
       }),
     );
+    const onPodium = data.me && data.me.rank <= 3;
+    $('recap-note').hidden = !onPodium;
+    $('recap-note').textContent = onPodium ? (data.me.rank === 1 ? 'Tu es en haut du podium, bravo champion·ne !' : 'Tu es sur le podium, bravo !') : '';
+    $('btn-recap-next').textContent = 'Voir la Gazette de la mine';
     // Gazette
     const g = $('recap-gazette');
     const champ = data.champion;
     const line = (label, value) => el('div', { class: 'gz-line' }, el('span', {}, label), el('span', {}, value));
     const mine = data.me;
+    const rankText = (n) => (n === 1 ? '1er' : `${n}e`);
+    const nextKind = queue[0] && CELEBRATION[queue[0].kind];
     g.replaceChildren(
       el('h2', { class: 'gz-title' }, 'La Gazette de la mine'),
-      el('p', { class: 'gz-date' }, `Semaine du ${formatDay(data.start, { day: 'numeric', month: 'long' })} au ${formatDay(data.end, { day: 'numeric', month: 'long' })}`),
-      champ ? el('p', { class: 'gz-headline' }, `${champ.username} remporte la semaine avec ${pts(champ.score)} !`) : null,
+      el('p', { class: 'gz-date' }, `Édition ${conf.gazette} · ${celebrationPeriodText(data, true)}`),
+      champ ? el('p', { class: 'gz-headline' }, `${champ.username} ${conf.wins} avec ${pts(champ.score)} !`) : null,
       el(
         'ul',
         { class: 'gz-ranking' },
@@ -3602,7 +3728,7 @@
             e.rank <= 3 ? medalCanvas(e.rank) : el('span', { class: 'gz-rank' }, `${e.rank}.`),
             avatarEl(e.avatar, 'head', 2),
             el('span', { class: 'who-name' }, e.username),
-            el('span', {}, `${pts(e.score)} · ${e.days} j`),
+            el('span', {}, data.kind === 'day' ? pts(e.score) : `${pts(e.score)} · ${e.days} j`),
           ),
         ),
       ),
@@ -3610,7 +3736,7 @@
         'div',
         { class: 'gz-moments' },
         el('h3', {}, 'Les moments forts'),
-        data.best ? line('Meilleur forage', `${data.best.username}, ${pts(data.best.score)} (${formatDay(data.best.day, { weekday: 'long' })})`) : null,
+        data.kind !== 'day' && data.best ? line('Meilleur forage', `${data.best.username}, ${pts(data.best.score)} (${formatDay(data.best.day, data.kind === 'week' ? { weekday: 'long' } : { day: 'numeric', month: 'long' })})`) : null,
         data.rarest ? line('Réponse la plus rare', `« ${data.rarest.answer} » (${data.rarest.username}, ${pts(data.rarest.points)})`) : null,
         data.applauded ? line('Réponse la plus applaudie', `« ${data.applauded.answer} » (${data.applauded.username}, ${data.applauded.reactions} réaction${data.applauded.reactions > 1 ? 's' : ''})`) : null,
         line('Pépites trouvées', String(data.pepites)),
@@ -3620,14 +3746,17 @@
         ? el(
             'div',
             { class: 'gz-moments' },
-            el('h3', {}, 'Ta semaine'),
-            line('Ton rang', `${mine.rank === 1 ? '1er' : `${mine.rank}e`} sur ${data.players}`),
-            line('Forages', `${mine.days} sur 7`),
-            line('Ton meilleur forage', pts(mine.best)),
+            el('h3', {}, conf.mine),
+            line('Ton rang', `${rankText(mine.rank)} sur ${data.players}`),
+            data.kind === 'day' ? line('Ton score', pts(mine.score)) : line('Ton total', pts(mine.score)),
+            data.kind === 'day' ? line('Réponses données', String(mine.answers)) : line('Forages', `${mine.days} sur ${data.daysInPeriod}`),
+            data.kind !== 'day' ? line('Moyenne par forage', pts(mine.average)) : null,
+            data.kind !== 'day' ? line('Ton meilleur forage', `${pts(mine.best)}${mine.bestDay ? ` (${formatDay(mine.bestDay, data.kind === 'week' ? { weekday: 'long' } : { day: 'numeric', month: 'long' })})` : ''}`) : null,
+            mine.bestAnswer ? line('Ta meilleure réponse', `« ${mine.bestAnswer.answer} » (${pts(mine.bestAnswer.points)})`) : null,
             line('Pépites / réponses rares', `${mine.pepites} / ${mine.rares}`),
           )
-        : el('p', { class: 'gz-date' }, "Tu n'as pas creusé cette semaine : rendez-vous cette semaine !"),
-      el('button', { class: 'btn', id: 'btn-recap-done', type: 'button' }, 'À la mine !'),
+        : el('p', { class: 'gz-date' }, conf.nothing),
+      el('button', { class: 'btn', id: 'btn-recap-done', type: 'button' }, nextKind ? `Suite : ${nextKind.title.toLowerCase()}` : 'À la mine !'),
     );
     $('btn-recap-done').addEventListener('click', finishRecap);
   }
@@ -3640,10 +3769,14 @@
 
   async function finishRecap() {
     clearInterval(recapTimer);
-    if (app.recap) api('/api/recap/seen', { week: app.recap.start }).catch(() => {});
-    if (app.me) app.me.recap = null;
+    const done = app.recap;
+    if (done) api('/api/celebration/seen', { kind: done.kind, start: done.start }).catch(() => {});
+    if (app.me && done) {
+      app.me.celebrations = (app.me.celebrations || []).filter((c) => !(c.kind === done.kind && c.start === done.start));
+      app.me.recap = null;
+    }
     app.recap = null;
-    show('home');
+    nextCelebration();
   }
 
   // ---------- Réactions aux réponses des autres ----------

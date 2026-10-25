@@ -197,6 +197,14 @@ CREATE TABLE IF NOT EXISTS announcements (
   removed_at INTEGER
 );
 
+-- Podiums (jour, semaine, mois) déjà montrés à chaque joueur.
+CREATE TABLE IF NOT EXISTS celebrations_seen (
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind    TEXT NOT NULL,
+  start   TEXT NOT NULL,
+  PRIMARY KEY (user_id, kind, start)
+);
+
 -- Thèmes proposés par les joueurs, à examiner par le responsable du jeu.
 CREATE TABLE IF NOT EXISTS theme_suggestions (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,

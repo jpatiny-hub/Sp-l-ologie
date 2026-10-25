@@ -926,6 +926,8 @@ canvas.avatar-head { width: 20px; height: auto; }
 .recap-name { display: flex; flex-direction: column; min-width: 0; }
 .recap-name .who-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .recap-name .score { color: var(--accent); }
+.recap-name.me .who-name { color: var(--accent); }
+.recap-note { text-align: center; margin: 0 0 10px; color: #ffd84a; }
 .gazette { background: #e9dcb8; color: #2a1f17; padding: 16px; margin: var(--px); box-shadow: inset 0 0 0 4px #b49c6a, 0 6px 0 #000; }
 .gazette .btn { margin-top: 12px; }
 .gz-title { font-family: 'Press Start 2P', monospace; font-size: calc(13px * var(--fs)); text-align: center; border-bottom: 3px double #2a1f17; padding-bottom: 8px; margin: 0; color: #2a1f17; text-transform: uppercase; }

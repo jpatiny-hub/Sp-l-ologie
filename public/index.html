@@ -358,13 +358,14 @@
         </div>
       </div>
 
-      <!-- Récap du lundi -->
+      <!-- Podiums du jour, de la semaine et du mois -->
       <div class="view" id="view-recap" hidden>
         <div id="recap-fireworks">
-          <p class="recap-title">Bravo les mineurs !</p>
+          <p class="recap-title" id="recap-title">Bravo les mineurs !</p>
           <p class="muted recap-sub" id="recap-sub"></p>
-          <canvas class="recap-canvas" id="recap-canvas" width="160" height="190" role="img" aria-label="Le podium de la semaine sous un feu d'artifice"></canvas>
+          <canvas class="recap-canvas" id="recap-canvas" width="160" height="190" role="img" aria-label="Le podium sous un feu d'artifice"></canvas>
           <div class="recap-names" id="recap-names"></div>
+          <p class="recap-note" id="recap-note" hidden></p>
           <button class="btn" id="btn-recap-next" type="button">Voir la Gazette de la mine</button>
         </div>
         <article class="gazette" id="recap-gazette" hidden></article>

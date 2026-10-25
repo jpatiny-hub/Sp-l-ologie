@@ -18,7 +18,7 @@ const { AnnouncementService } = require('./src/announcements');
 const { museum } = require('./src/museum');
 const { feed } = require('./src/feed');
 const { seasonFor } = require('./src/specialdays');
-const { pendingRecap, markRecapSeen, weeklyRecap } = require('./src/recap');
+const { pendingRecap, markRecapSeen, weeklyRecap, periodRecap, pendingCelebrations, markCelebrationSeen, lastPeriod, periodStart, periodEnd, KINDS } = require('./src/recap');
 const { unseenNews, LATEST_NEWS_ID } = require('./src/news');
 
 const SESSION_MS = config.SESSION_DAYS * 24 * 3600 * 1000;
@@ -352,6 +352,7 @@ function createApp({
         streak: game.badges.homeSummary(user.id, game.today()),
         collective: collectiveStatus(db, game.today(), user.id),
         recap: pendingRecap(db, user.id, game.today()),
+        celebrations: pendingCelebrations(db, user.id, game.today()),
         duels: game.duels.summary(user.id),
         announcements: announcements.unseen(user.id),
         unreadReports: game.myReports(user.id).unread,
@@ -462,6 +463,25 @@ function createApp({
       const week = isDay(asked) ? asked : addDaysIso(weekStartIso(game.today()), -7);
       if (week >= weekStartIso(game.today())) throw new HttpError(400, 'Cette semaine n\'est pas terminée.');
       json(res, 200, weeklyRecap(game, week, user.id));
+    },
+
+    // Podium d'un jour, d'une semaine ou d'un mois terminé, avec les statistiques du joueur.
+    'GET /api/celebration': async (req, res, _id, url) => {
+      const user = requireUser(req, res);
+      const kind = url.searchParams.get('kind');
+      if (!KINDS.includes(kind)) throw new HttpError(400, 'Podium inconnu.');
+      const asked = url.searchParams.get('start');
+      const start = isDay(asked) ? asked : lastPeriod(kind, game.today()).start;
+      if (periodEnd(kind, periodStart(kind, start)) >= game.today()) throw new HttpError(400, "Cette période n'est pas terminée.");
+      json(res, 200, periodRecap(game, kind, start, user.id));
+    },
+
+    'POST /api/celebration/seen': async (req, res) => {
+      const user = requireUser(req, res);
+      const { kind, start } = await readJson(req);
+      if (!KINDS.includes(kind) || !isDay(start)) throw new HttpError(400, 'Podium inconnu.');
+      markCelebrationSeen(db, user.id, kind, start);
+      json(res, 200, { ok: true });
     },
 
     'POST /api/recap/seen': async (req, res) => {
