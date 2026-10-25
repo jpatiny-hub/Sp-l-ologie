@@ -1,0 +1,5 @@
+titre: Une boisson stimulante ou énergisante
+1: Café = Expresso; Red Bull; Coca-Cola = Coca; Monster Energy = Monster; Thé; Boisson énergisante = Energy drink; Rodeo = Rodeo Energy Drink; Thé vert; Matcha; Maté = Yerba maté; Pepsi; Cola; Chocolat chaud
+2: Burn; Rockstar; NOS; Relentless; Cult; Dark Dog; Shark = Shark Energy; Hell; Boost; Lucozade; V = V Energy; Prime = Prime Energy; Celsius; Guru; Battery; Bomba; Gatorade; Mountain Dew = Mountain Dew Energy; Fruit énergisant; Shot énergisant = Shot d'énergie; Café glacé = Iced coffee; Thé glacé = Ice tea; Kombucha; Guarana = Boisson au guarana; Café au lait; Cappuccino; Latte; Maté glacé = Tereré; Club-Mate; Chai; Thé noir; Thé oolong; Pu-erh; Cola énergisant; Pepsi Max; Coca Zéro = Coca-Cola Zero; Red Bull Sugarfree; Red Bull sans sucre
+3: Taurus; Bullit; Dr Pepper; Rip It = Rip It Energy; XS; Reign Total Body Fuel = Reign; Bang = Bang Energy; Ghost Energy; C4 Energy; Alani Nu; Zoa; Yerba Mate Guayakí = Guayakí; Kickstart; Amp Energy = Amp; Full Throttle; Mother = Mother Energy
+4: Mother Monster; Café turc; Café vietnamien; Guayusa; Yaupon; Thé Earl Grey; Thé Darjeeling; Café décaféiné = Déca
