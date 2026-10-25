@@ -75,8 +75,11 @@ function createApp({
   version = interfaceVersion(publicDir),
   specialDays = undefined,
   seasons = config.SEASONS,
+  autoValidateDuels = false,
 }) {
   const game = new GameService(db, themes, now, specialDays);
+  // Validation des duels le lendemain à 2 h 30 : vérifiée toutes les 5 minutes, même sans visite.
+  if (autoValidateDuels) setInterval(() => { try { game.duels.validateDue(); } catch (err) { console.error('Validation des duels impossible :', err.message); } }, 5 * 60 * 1000).unref();
   const announcements = new AnnouncementService(db, now);
   game.badges.backfill();
   const loginLimiter = new auth.RateLimiter(10, 15 * 60 * 1000);
@@ -770,7 +773,7 @@ function main() {
   }
   const db = openDb(path.join(config.DATA_DIR, 'speleologie.sqlite'));
   scheduleBackups(db);
-  const handler = createApp({ db, themes, secureCookies: process.env.NODE_ENV === 'production' });
+  const handler = createApp({ db, themes, secureCookies: process.env.NODE_ENV === 'production', autoValidateDuels: true });
   // HOST=127.0.0.1 : seul le proxy de la machine peut joindre le jeu.
   const server = http.createServer(handler).listen(config.PORT, config.HOST, () => {
     console.log(`${config.GAME_NAME} : ${themes.size} thèmes chargés, écoute sur ${config.HOST || '*'}:${config.PORT}`);
