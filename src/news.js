@@ -143,10 +143,12 @@ const NEWS = [
       { icon: 'sabre', text: 'Duels : le résultat est dévoilé le lendemain matin, après vérification du contremaître' },
       { icon: 'diamant', text: "Une annonce sur l'accueil quand le défi collectif du mois est réussi" },
       { icon: 'galerie', text: 'Le défi de la semaine réussi : ton personnage attrape le diamant' },
+      { icon: 'coeur', text: 'Plus de 150 nouveaux thèmes — merci aux mineurs pour vos propositions !' },
     ],
     items: [
       "Duels : quand vous avez fini tous les deux, le contremaître vérifie les plans. Le résultat, l'animation, les badges et les pépites de duel sont dévoilés le lendemain matin, après 2 h 30, pour que les réponses signalées soient tranchées avant. Ton duel apparaît en attendant sous « Chez le contremaître ».",
       "Défi du mois : quand tout le monde a creusé jusqu'au diamant, une annonce s'affiche sur l'accueil. Défi de la semaine : une fois réussi, ton personnage va jusqu'au diamant et le tient dans sa main.",
+      "Nouveaux thèmes : plus de 150 filons viennent d'être ouverts. Un grand merci aux mineurs qui ont proposé des thèmes : continuez à les envoyer, la galerie n'a pas de fond !",
     ],
   },
 ];
