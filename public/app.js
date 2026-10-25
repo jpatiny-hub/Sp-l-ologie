@@ -768,7 +768,8 @@
     const floor = ty + th - 2;
     const f = Math.min(1, ch.progress / ch.goal);
     const reach = WW - 52;
-    const x0 = Math.round(4 + (reach - 4) * f);
+    // Défi réussi : le personnage va jusqu'au diamant et le saisit.
+    const x0 = ch.done ? WW - 46 : Math.round(4 + (reach - 4) * f);
     ctx.drawImage(weeklyBackdrop(), 0, 0);
     // Tunnel creusé jusqu'au personnage, cavité autour du diamant.
     ctx.fillStyle = '#120d0a';
@@ -780,18 +781,26 @@
       ctx.fillStyle = '#8a5a2b';
       ctx.fillRect(x, ty - 1, 2, th + 1);
     }
-    // Le diamant, au bout.
-    sprite(ctx, DIAMOND, { c: '#5ee0ff', w: '#ffffff' }, WW - 15, floor - 6);
+    // Le diamant, au bout (dans la main du personnage quand le défi est réussi).
     const a = (Math.sin(t * 6) + 1) / 2;
+    const dx = ch.done ? x0 + 21 : WW - 15;
+    const dy = ch.done ? floor - 21 : floor - 6;
+    sprite(ctx, DIAMOND, { c: '#5ee0ff', w: '#ffffff' }, dx, dy);
     ctx.fillStyle = `rgba(255,255,255,${(ch.done ? 1 : 0.5) * a})`;
-    ctx.fillRect(WW - 12, floor - 10, 1, 5);
-    ctx.fillRect(WW - 14, floor - 8, 5, 1);
+    ctx.fillRect(dx + 3, dy - 4, 1, 5);
+    ctx.fillRect(dx + 1, dy - 2, 5, 1);
     if (isHalloween()) drawHorror(ctx, WW, WH, t, { skulls: [[WW - 34, floor - 6]], bones: [[WW - 50, floor - 2], [WW - 70, floor - 2]], eyes: [WW - 44, ty + 14], ghostY: ty + 6 });
     // Le personnage, sans son objet habituel.
     const who = window.Avatar ? Avatar.sprite({ ...(avatar || {}), objet: 'aucun' }) : null;
     if (who) ctx.drawImage(who, x0, floor - 28 + 1);
-    // Coup de pioche : levée, milieu, impact, milieu (immobile et levée quand le défi est réussi).
-    const frame = ch.done ? 0 : [0, 1, 2, 1][Math.floor(t * 4) % 4];
+    if (ch.done) {
+      // Le bras tendu jusqu'au diamant.
+      ctx.fillStyle = '#f0c090';
+      for (let i = 0; i < 9; i++) ctx.fillRect(x0 + 12 + i, floor - 14 - Math.floor(i * 0.7), 2, 2);
+      return;
+    }
+    // Coup de pioche : levée, milieu, impact, milieu.
+    const frame = [0, 1, 2, 1][Math.floor(t * 4) % 4];
     const hx = x0 + 12;
     const hy = floor - 28 + 17;
     const handle = '#8a5a2b';
@@ -1769,7 +1778,7 @@
   function initFolds(viewId = 'view-profile') {
     const view = $(viewId);
     view.querySelectorAll('details.fold').forEach((d) => {
-      d.open = foldOpen(d.dataset.fold, d.dataset.fold === 'profil');
+      d.open = foldOpen(d.dataset.fold, d.dataset.fold === 'profil' || d.dataset.fold === 'defis');
     });
     watchFolds(view);
   }
