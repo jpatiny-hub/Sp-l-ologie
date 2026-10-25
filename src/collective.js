@@ -41,7 +41,7 @@ function collectiveStatus(db, today, userId) {
     }
   }
   const duels = db
-    .prepare("SELECT challenger_id, opponent_id, finished_at FROM duels WHERE status = 'done' AND finished_at IS NOT NULL")
+    .prepare("SELECT challenger_id, opponent_id, finished_at FROM duels WHERE status = 'done' AND validated_at IS NOT NULL AND finished_at IS NOT NULL")
     .all()
     .filter((d) => dayKey(d.finished_at) >= start && dayKey(d.finished_at) <= end);
   const duel = { goal: DUEL_GOAL, total: duels.length, mine: duels.filter((d) => d.challenger_id === userId || d.opponent_id === userId).length, reached: duels.length >= DUEL_GOAL };

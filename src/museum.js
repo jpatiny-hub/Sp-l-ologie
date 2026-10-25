@@ -9,7 +9,7 @@ const Avatar = require('./avatar');
  */
 // Forages du jour, et duels terminés (les pépites d'un duel entrent au musée une fois le duel fini et le jour passé).
 const DONE = `(g.mode = 'daily' OR (g.mode = 'duel' AND EXISTS (
-  SELECT 1 FROM duels d WHERE d.status = 'done' AND (d.challenger_game_id = g.id OR d.opponent_game_id = g.id))))`;
+  SELECT 1 FROM duels d WHERE d.status = 'done' AND d.validated_at IS NOT NULL AND (d.challenger_game_id = g.id OR d.opponent_game_id = g.id))))`;
 
 function museum(game, userId) {
   const today = game.today();

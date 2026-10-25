@@ -77,7 +77,7 @@ function duelWeekStats(db, userId, start) {
   const out = { duels: 0, duelWins: 0, duelOpponents: 0, duelPepites: 0, duelMargin: 0 };
   const opponents = new Set();
   const duels = db
-    .prepare("SELECT * FROM duels WHERE status = 'done' AND (challenger_id = ? OR opponent_id = ?)")
+    .prepare("SELECT * FROM duels WHERE status = 'done' AND validated_at IS NOT NULL AND (challenger_id = ? OR opponent_id = ?)")
     .all(userId, userId)
     .filter((d) => d.finished_at != null && dayKey(d.finished_at) >= start && dayKey(d.finished_at) <= end);
   for (const d of duels) {

@@ -4,6 +4,7 @@ const { ROUNDS_PER_GAME } = require('./config');
 const { transaction } = require('./db');
 const { HttpError } = require('./errors');
 const { tierFor } = require('./scoring');
+const { dayKey } = require('./dates');
 const { usernameKey } = require('./auth');
 const Avatar = require('./avatar');
 
@@ -32,6 +33,7 @@ class DuelService {
   expire() {
     // Un duel dont l'adversaire a commencé sa partie n'expire plus : il pourra la finir.
     this.db.prepare("UPDATE duels SET status = 'expired' WHERE status = 'open' AND opponent_game_id IS NULL AND expires_at < ?").run(this.now());
+    this.validateDue();
   }
 
   userRow(id) {
@@ -125,10 +127,24 @@ class DuelService {
     this.db
       .prepare("UPDATE duels SET status = 'done', finished_at = ?, winner_id = ?, challenger_score = ?, opponent_score = ? WHERE id = ?")
       .run(this.now(), winner, cg.score, og.score, d.id);
-    const today = this.game.today();
-    this.game.badges.awardDuels(d.challenger_id, today);
-    this.game.badges.awardDuels(d.opponent_id, today);
-    [d.challenger_id, d.opponent_id].forEach((id) => this.game.skulls.award(id, today));
+    // Badges, crânes, pépites et défis ne sont attribués qu'à la validation (validateDue), le lendemain à 2 h 30.
+  }
+
+  /**
+   * Validation des duels terminés : le lendemain à 2 h 30 (heure de Bruxelles), une fois traités les signalements
+   * des joueurs, le résultat devient définitif et les badges, crânes, pépites et défis de duel sont attribués.
+   */
+  validateDue() {
+    const cutoff = dayKey(this.now() - 30 * 60 * 1000);
+    const pending = this.db.prepare("SELECT * FROM duels WHERE status = 'done' AND validated_at IS NULL").all();
+    for (const d of pending) {
+      if (d.finished_at != null && dayKey(d.finished_at) >= cutoff) continue;
+      this.db.prepare('UPDATE duels SET validated_at = ? WHERE id = ?').run(this.now(), d.id);
+      const today = this.game.today();
+      this.game.badges.awardDuels(d.challenger_id, today);
+      this.game.badges.awardDuels(d.opponent_id, today);
+      [d.challenger_id, d.opponent_id].forEach((id) => this.game.skulls.award(id, today));
+    }
   }
 
   /**
@@ -162,6 +178,8 @@ class DuelService {
         first ? d.winner_id : d.old_winner_id,
         d.id,
       );
+    // Duel pas encore validé : les badges seront attribués avec le résultat corrigé. Déjà validé : on revérifie.
+    if (d.validated_at == null) return;
     const today = this.game.today();
     this.game.badges.awardDuels(d.challenger_id, today);
     this.game.badges.awardDuels(d.opponent_id, today);

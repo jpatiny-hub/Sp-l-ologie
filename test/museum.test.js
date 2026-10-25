@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { startServer, client, playDaily, THEMES } = require('./helpers');
+const { startServer, client, playDaily, THEMES, validateDuels } = require('./helpers');
 
 test('musée des pépites : les pépites du jour restent cachées jusqu\'au lendemain', async () => {
   const app = await startServer();
@@ -78,6 +78,8 @@ test('pépites de duel : décompte à part, musée et profil une fois le duel te
     const accepted = (await eve(`/api/duels/${started.duel.id}/accept`, {})).data;
     const evePoints = await play(eve, accepted.id);
     assert.ok(evePoints.every((p) => p === 100), 'si les deux joueurs trouvent la même pépite, ils l\'ont tous les deux');
+    assert.equal((await adam('/api/profile')).data.stats.pepites, 0, 'les pépites de duel comptent après la validation du lendemain');
+    await validateDuels(app, adam);
     assert.equal((await adam('/api/profile')).data.stats.pepites, 7);
     assert.equal((await eve('/api/profile')).data.stats.pepites, 7);
     const secret = (profile) => profile.badges.find((b) => b.id === 'pensees-jumelles');

@@ -393,7 +393,7 @@ class BadgeService {
         `SELECT COUNT(*) AS n FROM rounds r JOIN games g ON g.id = r.game_id
          WHERE g.user_id = ? AND r.points >= 100
            AND (g.mode = 'daily' OR (g.mode = 'duel' AND EXISTS (
-             SELECT 1 FROM duels d WHERE d.status = 'done' AND (d.challenger_game_id = g.id OR d.opponent_game_id = g.id))))`,
+             SELECT 1 FROM duels d WHERE d.status = 'done' AND d.validated_at IS NOT NULL AND (d.challenger_game_id = g.id OR d.opponent_game_id = g.id))))`,
       )
       .get(userId).n;
   }
@@ -549,7 +549,7 @@ class BadgeService {
     ATTAQUANT.forEach(([n]) => launched.length >= n && give(`attaquant-${n}`));
     DIPLOMATE.forEach(([n]) => new Set(launched.map((r) => r.other)).size >= n && give(`diplomate-${n}`));
     const done = this.db
-      .prepare("SELECT * FROM duels WHERE status = 'done' AND (challenger_id = ? OR opponent_id = ?) ORDER BY finished_at, id")
+      .prepare("SELECT * FROM duels WHERE status = 'done' AND validated_at IS NOT NULL AND (challenger_id = ? OR opponent_id = ?) ORDER BY finished_at, id")
       .all(userId, userId);
     const defended = done.filter((d) => d.opponent_id === userId);
     DEFENSEUR.forEach(([n]) => defended.length >= n && give(`defenseur-${n}`));

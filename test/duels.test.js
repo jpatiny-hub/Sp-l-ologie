@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { startServer, client, answerFor } = require('./helpers');
+const { startServer, client, answerFor, validateDuels } = require('./helpers');
 
 /** Joue les 7 thèmes de la partie `gameId` avec des réponses du niveau `level`. */
 async function playGame(app, call, gameId, level) {
@@ -95,7 +95,11 @@ test('duel : les deux jouent les mêmes thèmes sans voir la rareté, puis le r�
     assert.equal(adamList.opponents[0].username, 'eve');
     assert.equal((await adam('/api/duels')).data.record.wins + (await adam('/api/duels')).data.record.losses + (await adam('/api/duels')).data.record.draws, 1);
 
-    // Badges de duel et aucune trace dans les classements du jour.
+    // Badges de duel : attribués seulement à la validation du lendemain (2 h 30), après les signalements.
+    const before = (await adam('/api/profile')).data.badges.filter((b) => b.count).map((b) => b.id);
+    assert.ok(!before.includes('attaquant-1'), 'pas de badge de duel avant la validation');
+    await validateDuels(app, adam);
+    // Aucune trace dans les classements du jour.
     const badgesA = (await adam('/api/profile')).data.badges.filter((b) => b.count).map((b) => b.id);
     const badgesE = (await eve('/api/profile')).data.badges.filter((b) => b.count).map((b) => b.id);
     assert.ok(badgesA.includes('attaquant-1') && badgesA.includes('diplomate-3') === false);
@@ -200,6 +204,7 @@ test('badges de duel : exploits (duel parfait, remontada, invaincu) et rivalité
       app.db
         .prepare("INSERT INTO duels (challenger_id, opponent_id, mode, status, created_at, expires_at, finished_at, challenger_game_id, opponent_game_id, winner_id, challenger_score, opponent_score) VALUES (?, ?, ?, 'done', 1, 9, ?, ?, ?, ?, ?, ?)")
         .run(id(a), id(b), mode, ++tick, ga, gb, winner, sa, sb);
+      app.db.prepare('UPDATE duels SET validated_at = finished_at WHERE id = last_insert_rowid()').run();
       badges.awardDuels(id(a), '2026-10-14');
       badges.awardDuels(id(b), '2026-10-14');
     };
@@ -265,6 +270,7 @@ test('badges de victoire écrasante et d\'égalité en duel', async () => {
       app.db
         .prepare("INSERT INTO duels (challenger_id, opponent_id, mode, status, created_at, expires_at, finished_at, challenger_game_id, opponent_game_id, winner_id, challenger_score, opponent_score) VALUES (?, ?, 'standard', 'done', ?, ?, ?, ?, ?, ?, ?, ?)")
         .run(challenger, opponent, now, now, now, cg, og, cs > os ? challenger : os > cs ? opponent : null, cs, os);
+      app.db.prepare('UPDATE duels SET validated_at = finished_at WHERE id = last_insert_rowid()').run();
     };
     const kinds = (user) => app.db.prepare('SELECT kind FROM badges WHERE user_id = ?').all(user).map((r) => r.kind);
     // Adam attaque et gagne 5 thèmes sur 7 avec 140 points d'avance : coup de boutoir seulement.

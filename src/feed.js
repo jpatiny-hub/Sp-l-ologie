@@ -22,7 +22,7 @@ function feed(game, userId, limit = 3) {
   const events = [];
 
   // Duels terminés.
-  for (const d of db.prepare("SELECT * FROM duels WHERE status = 'done' ORDER BY finished_at DESC LIMIT 15").all()) {
+  for (const d of db.prepare("SELECT * FROM duels WHERE status = 'done' AND validated_at IS NOT NULL ORDER BY finished_at DESC LIMIT 15").all()) {
     const a = who(d.challenger_id);
     const b = who(d.opponent_id);
     if (!a || !b) continue;
