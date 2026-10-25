@@ -1134,3 +1134,6 @@ dialog.drawer::backdrop { background: rgba(0, 0, 0, 0.62); }
 .skull-icon { width: 32px; height: 28px; image-rendering: pixelated; }
 .skull-icon.none { opacity: 0.3; }
 .report-banner { display: block; width: 100%; text-align: left; cursor: pointer; font: inherit; color: inherit; border: 2px solid var(--accent, currentColor); }
+.collective-banner { display: flex; align-items: center; gap: 14px; }
+.collective-banner canvas { width: 49px; height: 42px; flex: none; image-rendering: pixelated; }
+.collective-banner strong { display: block; margin-bottom: 4px; font-family: 'Press Start 2P', monospace; font-size: calc(12px * var(--fs)); color: var(--accent, inherit); }
