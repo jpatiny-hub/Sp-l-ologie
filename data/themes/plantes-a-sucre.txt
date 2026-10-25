@@ -1,0 +1,5 @@
+titre: Une plante dont on tire du sucre ou un sirop sucré
+1: Canne à sucre; Betterave sucrière = Betterave à sucre; Érable à sucre = Érable; Maïs; Agave = Agave bleu = Agave tequila; Stévia; Palmier dattier = Dattier; Cocotier = Noix de coco; Palmier à sucre
+2: Sorgho sucré = Sorgho; Palmier palmyre = Palmyre; Palmier arenga = Arenga; Palmier nipa = Nipa; Caroube = Caroubier; Bouleau; Yacon; Raisin = Vigne; Riz; Betterave; Canne; Canne à sucre rouge; Érable argenté; Érable noir; Érable rouge; Érable plane; Érable sycomore; Noyer; Sève de bouleau; Sève d'érable; Palmier kitul = Kitul; Lucuma; Mesquite = Prosopis; Figuier; Chicorée = Racine de chicorée; Topinambour; Blé = Sirop de blé; Orge = Malt d'orge; Malt; Sucre de coco; Sucre de palme; Sucre de dattes
+3: Palmier raphia; Baobab; Tamarin = Tamarinier; Jujubier; Mûrier = Mûrier blanc; Poire; Pomme; Figue = Sirop de figue; Agave salmiana
+4: Agave americana = Agave d'Amérique; Agave tequilana; Fruit du moine = Luo han guo; Thaumatin = Katemfe; Monk fruit; Miraculine = Fruit miraculeux
