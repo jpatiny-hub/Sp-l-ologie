@@ -620,6 +620,7 @@
     $('challenge-mini').style.width = `${Math.max(0, Math.min(100, Math.round(frac * 100)))}%`;
     renderCollective();
     renderWeekly();
+    renderCollectiveBanner();
     if (ch) {
       $('challenge-text').textContent = ch.text;
       $('challenge-fill').style.width = `${Math.round((ch.progress / ch.goal) * 100)}%`;
@@ -639,6 +640,33 @@
       }),
     );
   }
+
+  // Défi collectif réussi : un message à l'ouverture de l'application, une seule fois par mois et par appareil.
+  function renderCollectiveBanner() {
+    const banner = $('collective-banner');
+    const c = app.me && app.me.collective;
+    const key = c && `speleo-collective-seen-${c.month}`;
+    let seen = false;
+    try {
+      seen = !!c && localStorage.getItem(key) === '1';
+    } catch {
+      /* le message reste affiché */
+    }
+    banner.hidden = !c || !c.reached || seen;
+    if (banner.hidden) return;
+    const mine = (c.players.find((p) => p.me) || {}).points || 0;
+    banner.textContent = `🎉 Défi du mois réussi ! Ensemble, vous avez creusé jusqu'au diamant (${c.total.toLocaleString('fr-BE')} points).${mine ? ` Ta part : ${mine.toLocaleString('fr-BE')} points.` : ''} Merci à tous ! (toucher pour fermer)`;
+  }
+
+  $('collective-banner').addEventListener('click', () => {
+    $('collective-banner').hidden = true;
+    const c = app.me && app.me.collective;
+    try {
+      if (c) localStorage.setItem(`speleo-collective-seen-${c.month}`, '1');
+    } catch {
+      /* tant pis : le message reviendra */
+    }
+  });
 
   // ---------- Défi collectif du mois ----------
   let challengeTab = 'week';
