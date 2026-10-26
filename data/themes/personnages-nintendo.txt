@@ -1,0 +1,6 @@
+titre: Un personnage d'un jeu Nintendo
+# Personnages de Mario, Zelda, Pokémon (hors Pokémon), Kirby, Donkey Kong, Metroid, Animal Crossing, Fire Emblem, Star Fox, Splatoon, etc.
+1: Mario; Luigi; Peach = Princesse Peach; Bowser; Yoshi; Toad; Donkey Kong; Link; Zelda = Princesse Zelda; Ganon = Ganondorf; Pikachu; Kirby; Samus Aran = Samus; Wario; Waluigi; Daisy = Princesse Daisy; Diddy Kong; Rosalina; Bowser Jr.; Fox McCloud = Fox; Ness; Marth; Ike
+2: Toadette; Birdo; Koopa = Koopa Troopa; Goomba; Boo; Chain Chomp; Bob-omb = Bob-omb; Piranha Plant = Plante Piranha; Shy Guy; Lakitu; Kamek; Bowsette; Pauline; Cranky Kong; Funky Kong; Dixie Kong; K. Rool = King K. Rool; Sheik; Midna; Navi; Epona; Tingle; Impa; Skull Kid; Meta Knight = Méta Knight; King Dedede = Roi Dadidou; Waddle Dee; Marx; Magolor; Isabelle; Tom Nook; K.K. Slider; Rover; Mabel; Blathers; Celeste
+3: Ridley; Kraid; Mother Brain; Phantoon; Dark Samus; Rundas; Isaac; Olimar; Louie; Pit; Palutena; Dark Pit; Little Mac; Falco; Wolf; Slippy; Peppy; Krystal; Inkling; Octoling; Callie
+4: Marie; Marina; Pearl; Ice Climbers = Popo et Nana; Mr. Game & Watch; R.O.B.; Duck Hunt; Mii; Rex; Pyra; Mythra; Lucina; Robin; Corrin; Byleth; Roy; Chrom; Alm; Celica; Lyn; Eliwood

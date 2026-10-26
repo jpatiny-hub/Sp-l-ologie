@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { startServer, client, answerFor } = require('./helpers');
+const { startServer, client, answerFor, validateDuels } = require('./helpers');
 
 /** Joue les 7 thèmes de la partie `gameId` avec des réponses du niveau `level`. */
 async function playGame(app, call, gameId, level) {
@@ -72,6 +72,15 @@ test('duel : les deux jouent les mêmes thèmes sans voir la rareté, puis le r�
 
     const finished = await playGame(app, eve, accepted.id, 3);
     assert.equal(finished.finished, true);
+    // Les deux ont joué : le contremaître vérifie, rien n'est dévoilé avant la validation du lendemain.
+    assert.equal((await eve(`/api/duels/${id}/result`)).data.pending, true);
+    assert.equal((await adam(`/api/duels/${id}/result`)).data.pending, true);
+    assert.equal((await adam(`/api/game/${started.id}`)).data.score, null);
+    assert.equal((await adam('/api/duels')).data.checking.length, 1);
+    assert.equal((await adam('/api/me')).data.duels.unseen, 0, 'rien à voir avant la validation');
+    const profileBefore = (await adam('/api/profile')).data.badges.filter((b) => b.count).map((b) => b.id);
+    assert.ok(!profileBefore.includes('attaquant-1'), 'pas de badge de duel avant la validation');
+    await validateDuels(app, adam);
     const result = (await eve(`/api/duels/${id}/result`)).data;
     assert.equal(result.themes.length, 7);
     assert.equal(result.a.username, 'adam');
@@ -95,7 +104,7 @@ test('duel : les deux jouent les mêmes thèmes sans voir la rareté, puis le r�
     assert.equal(adamList.opponents[0].username, 'eve');
     assert.equal((await adam('/api/duels')).data.record.wins + (await adam('/api/duels')).data.record.losses + (await adam('/api/duels')).data.record.draws, 1);
 
-    // Badges de duel et aucune trace dans les classements du jour.
+    // Badges de duel attribués à la validation. Aucune trace dans les classements du jour.
     const badgesA = (await adam('/api/profile')).data.badges.filter((b) => b.count).map((b) => b.id);
     const badgesE = (await eve('/api/profile')).data.badges.filter((b) => b.count).map((b) => b.id);
     assert.ok(badgesA.includes('attaquant-1') && badgesA.includes('diplomate-3') === false);
@@ -200,6 +209,7 @@ test('badges de duel : exploits (duel parfait, remontada, invaincu) et rivalité
       app.db
         .prepare("INSERT INTO duels (challenger_id, opponent_id, mode, status, created_at, expires_at, finished_at, challenger_game_id, opponent_game_id, winner_id, challenger_score, opponent_score) VALUES (?, ?, ?, 'done', 1, 9, ?, ?, ?, ?, ?, ?)")
         .run(id(a), id(b), mode, ++tick, ga, gb, winner, sa, sb);
+      app.db.prepare('UPDATE duels SET validated_at = finished_at WHERE id = last_insert_rowid()').run();
       badges.awardDuels(id(a), '2026-10-14');
       badges.awardDuels(id(b), '2026-10-14');
     };
@@ -265,6 +275,7 @@ test('badges de victoire écrasante et d\'égalité en duel', async () => {
       app.db
         .prepare("INSERT INTO duels (challenger_id, opponent_id, mode, status, created_at, expires_at, finished_at, challenger_game_id, opponent_game_id, winner_id, challenger_score, opponent_score) VALUES (?, ?, 'standard', 'done', ?, ?, ?, ?, ?, ?, ?, ?)")
         .run(challenger, opponent, now, now, now, cg, og, cs > os ? challenger : os > cs ? opponent : null, cs, os);
+      app.db.prepare('UPDATE duels SET validated_at = finished_at WHERE id = last_insert_rowid()').run();
     };
     const kinds = (user) => app.db.prepare('SELECT kind FROM badges WHERE user_id = ?').all(user).map((r) => r.kind);
     // Adam attaque et gagne 5 thèmes sur 7 avec 140 points d'avance : coup de boutoir seulement.
@@ -289,6 +300,18 @@ test('badges de victoire écrasante et d\'égalité en duel', async () => {
     duel(a, e, [10, 20, 30, 10, 20, 30, 10], [10, 20, 30, 30, 10, 20, 10]);
     badges.awardDuels(a, '2026-10-24');
     assert.ok(kinds(a).includes('match-miroir'));
+    // Défis de duel : semaine et mois.
+    const { weekStats } = require('../src/challenges');
+    const { collectiveStatus } = require('../src/collective');
+    const { weekStart, dayKey } = require('../src/dates');
+    const week = weekStats(app.db, a, weekStart(dayKey(now)));
+    assert.equal(week.duels, 5);
+    assert.equal(week.duelWins, 1);
+    assert.equal(week.duelOpponents, 1);
+    assert.ok(week.duelMargin >= 100);
+    const month = collectiveStatus(app.db, dayKey(now), a);
+    assert.equal(month.duel.total, 5);
+    assert.equal(month.duel.mine, 5);
   } finally {
     await app.close();
   }

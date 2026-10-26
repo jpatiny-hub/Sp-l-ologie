@@ -1,0 +1,6 @@
+titre: Un navigateur internet
+# Navigateurs web de bureau et mobiles, actuels ou historiques.
+1: Chrome = Google Chrome; Firefox = Mozilla Firefox; Safari; Edge = Microsoft Edge; Opera; Internet Explorer = IE; Brave
+2: Vivaldi; Opera GX; Netscape Navigator = Netscape; Tor Browser = Tor; DuckDuckGo = DuckDuckGo Browser; Samsung Internet; UC Browser; Yandex Browser = Yandex; Chromium; Arc; Maxthon; Mosaic; Lynx; SeaMonkey; Waterfox; Pale Moon; Konqueror; Epiphany = GNOME Web; Midori; Falkon; Min; Ecosia Browser; Avast Secure Browser; Epic Privacy Browser; Opera Mini; Safari Mobile; Chrome Mobile; Firefox Focus
+3: Camino; Flock; K-Meleon; Dillo; Links; w3m; ELinks; Amaya; Arachne; Cyberdog; NCSA Mosaic; Internet Explorer Mobile; Minimo; Fennec; IceCat; Iceweasel
+4: Rekonq; Qutebrowser; Nyxt; Galeon; Dolphin Browser; Puffin; Kiwi Browser; Bromite; Vanadium; Ungoogled Chromium; LibreWolf; Mullvad Browser; Floorp; Zen Browser; Orion; Beaker

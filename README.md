@@ -180,6 +180,8 @@ Secrets attendus dans l'environnement GitHub `prod` : `OPNSENSE_CREDENTIALS`,
 
 Scripts d'administration sur le serveur, depuis le dossier `current` et avec les mêmes variables
 que le service : `DATA_DIR=… npm run answers:report`, `DATA_DIR=… npm run password:reset -- <identifiant>`.
+`DATA_DIR=… npm run backup:check` vérifie la dernière sauvegarde automatique (dossier `backups`, 7 jours conservés) ; pour restaurer, arrêter le service, remplacer `speleologie.sqlite` par la sauvegarde choisie, puis redémarrer.
+La mesure d'audience Matomo (`public/analytics.js`) n'envoie que les pages vues, sans donnée de compte.
 
 Le `Dockerfile` reste disponible pour un hébergement en conteneur (volume monté sur `/data`).
 

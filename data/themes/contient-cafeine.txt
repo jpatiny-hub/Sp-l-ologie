@@ -1,0 +1,6 @@
+titre: Quelque chose qui contient de la caféine
+1: Café = Expresso = Espresso; Thé; Coca-Cola = Coca; Chocolat = Chocolat noir; Boisson énergisante = Energy drink; Red Bull; Café décaféiné = Déca; Maté = Yerba maté; Guarana; Cacao; Soda au cola = Cola; Pepsi
+2: Thé vert; Thé noir; Thé blanc; Matcha; Chocolat chaud; Café glacé; Cappuccino; Latte; Capsule de café = Dosette de café; Noix de kola; Chocolat au lait; Monster Energy = Monster; Rockstar; Burn; Thé glacé = Ice tea; Barre énergétique; Gel énergétique; Chewing-gum à la caféine; Comprimé de caféine; Café soluble = Nescafé; Moka; Cacao en poudre
+3: Thé oolong; Pu-erh; Kombucha; Café turc; Pepsi Max; Coca Zéro; Dr Pepper; Mountain Dew; Excedrin; Guarana en poudre; Boisson au guarana; Yaupon; Thé chai = Chai latte; Boisson au yerba; Cola de kola; Glace au café; Tiramisu; Mokaccino; Gâteau moka; Café-liégeois
+4: Cacao cru; Fève de cacao = Chocolat de cuisine; Paullinia cupana; Ilex paraguariensis; Camellia sinensis; Thé matcha latte; Café vert; Extrait de guarana; Pré-workout = Booster; Boisson isotonique à la caféine; Kola Real; Guayusa; Cherry cola; Cola vanille
+5: Maté de coca; Cascara; Tisane de feuille de café; Thé de feuilles de café

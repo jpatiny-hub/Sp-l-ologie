@@ -1,0 +1,6 @@
+titre: Quelque chose qu'on peut gratter
+# Ce qu'on gratte : le corps, les tickets, les surfaces, les instruments, la nourriture et des expressions.
+1: Ticket à gratter = Billet à gratter = Grattage; Une démangeaison = Démangeaison; Sa tête = La tête; Le dos; Le nez; L'oreille; La barbe; Un bouton; Une piqûre; Une croûte; Une plaie; Un moustique; Une allumette; Une guitare = Guitare; Un disque = Disque; Un carnet; Un mur; La peinture; Le papier peint; La glace du pare-brise = Pare-brise; Un vernis; La pelouse; La terre; Le sol; La neige; Une poêle; Une casserole; Le fond de la casserole; Chat; Chien; Poule; Cochon
+2: Un instrument à cordes; Un violon; Un tambour; Une planche à laver; Un grattoir; Une brosse; Un balai; Un racloir; Une spatule; Une pelle; Un râteau; Une griffe; Une griffe de chat; Un poteau; Un arbre; Une écorce; Du bois; Une surface; Une table; Un meuble; Une voiture; Une carrosserie; Un tableau; Un tableau noir; Une ardoise; Un cahier; Une page; Un papier; Un parchemin; Une pierre; Un caillou; Une pièce; Un rocher
+3: Une fourmilière; Un nid; Un terrier; Un gain
+4: Un jackpot; Un cadeau; Loterie; Jeu de grattage

@@ -1,0 +1,6 @@
+titre: Un acronyme ou un sigle courant
+# Sigles et acronymes de la vie quotidienne, des institutions, de la science et de la culture (forme abrégée, avec éventuellement le développement).
+1: SNCB; ONU; OTAN; UNESCO; UNICEF; NASA; OMS; FMI; BCE; UE = Union européenne; TVA; PIB; SMS; GPS; USB; DVD; CD; PC; TV; WC; ARN; VIH; SIDA; COVID; IRM; ECG; EEG; ADSL; HTML; PDF; CV; BD; QI; RIP; SOS; OK; FAQ; ONG; PME; PDG; DJ; VTT; TGV; SUV; ABS
+2: UNHCR; OMC; OCDE; OPEP; AIEA; CERN; ESA; BIPM; GIEC; WWF; IKEA; LASER = Laser; RADAR = Radar; SCUBA = Scuba; SONAR = Sonar; LED; LCD; OLED; HDMI; WiFi; GSM; SIM; PIN; NFC; QR; RFID; ISBN; ISSN; ISO; NATO; USA; URSS; RDA; RFA; DDR; UMP; PS; PCF; RPR; FN; EELV; MR; CDH; N-VA; Vlaams Belang; PTB; PVDA; Open VLD; CD&V; Vooruit
+3: SONACOTRA; ZAC; ZUP; HLM; SMIC; RSA; APL; AAH; CAF; CPAM; URSSAF; MSA; ONEM; INAMI; ONSS; INASTI; SPF; SPW; FWB; RTBF; VRT; RTL; BRF; CSA; JT; JO; ZEP
+4: REP; BAC; BEP; CAP; BTS; DUT; BUT; DEUG; DESS; DEA; DNSEP; ENS; HEC; ESSEC; ESCP; EDHEC; INSEAD; MIT; UCLouvain; ULB; ULiège; UMons; UNamur; KU Leuven; UGent; VUB; UAntwerpen

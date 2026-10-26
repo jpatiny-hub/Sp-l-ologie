@@ -185,6 +185,7 @@ class GameService {
           )
           .run(round.theme_id, answer.key);
       }
+
       const remaining = this.db
         .prepare('SELECT COUNT(*) AS n FROM rounds WHERE game_id = ? AND answered_at IS NULL')
         .get(game.id).n;
@@ -496,8 +497,8 @@ class GameService {
   /** Vrai pour la partie d'un duel dont le résultat n'est pas encore révélé : ni points ni rareté d'ici là. */
   duelHidden(game) {
     if (!game || game.mode !== 'duel') return false;
-    const d = this.db.prepare('SELECT status FROM duels WHERE id = ?').get(game.duel_id);
-    return !d || d.status !== 'done';
+    const d = this.db.prepare('SELECT status, validated_at FROM duels WHERE id = ?').get(game.duel_id);
+    return !d || d.status !== 'done' || d.validated_at == null;
   }
 
   roundView(round, game) {
@@ -636,7 +637,7 @@ class GameService {
     const counts = new Map(
       this.db.prepare('SELECT answer_key, n FROM answer_counts WHERE theme_id = ?').all(theme.id).map((r) => [r.answer_key, r.n]),
     );
-    const score = scoreAnswer(theme, counts, match.answer.key);
+    const score = scoreAnswer(theme, counts, match.answer.key, game.mode === 'duel' && this.duelGiven(theme.id, match.answer.key, game.id));
     this.finishRound(game, round, {
       outcome: 'answer',
       points: score.points,
@@ -645,6 +646,23 @@ class GameService {
       probability: score.probability,
     });
     return resultFor('ok');
+  }
+
+  /**
+   * Réponse déjà donnée dans un AUTRE duel (décompte à part du forage du jour : une pépite de duel est une réponse encore jamais
+   * donnée en duel). Les deux parties du duel en cours ne comptent pas : si les deux joueurs trouvent la même pépite, ils l'ont tous les deux.
+   */
+  duelGiven(themeId, answerKey, gameId) {
+    const same = this.db.prepare('SELECT challenger_game_id AS a, opponent_game_id AS b FROM duels WHERE challenger_game_id = ? OR opponent_game_id = ?').get(gameId, gameId);
+    const mine = [gameId, same && same.a, same && same.b].filter((x) => x != null);
+    const marks = mine.map(() => '?').join(',');
+    const row = this.db
+      .prepare(
+        `SELECT 1 FROM rounds r JOIN games g ON g.id = r.game_id
+         WHERE g.mode = 'duel' AND r.theme_id = ? AND r.answer_key = ? AND r.outcome = 'answer' AND g.id NOT IN (${marks}) LIMIT 1`,
+      )
+      .get(themeId, answerKey, ...mine);
+    return !!row;
   }
 
   /**
@@ -773,7 +791,9 @@ class GameService {
     const counts = new Map(
       this.db.prepare('SELECT answer_key, n FROM answer_counts WHERE theme_id = ?').all(theme.id).map((x) => [x.answer_key, x.n]),
     );
-    const score = scoreAnswer(theme, counts, match.answer.key);
+    const gameRow = this.db.prepare('SELECT mode FROM games WHERE id = ?').get(gameId);
+    const inDuel = !!gameRow && gameRow.mode === 'duel';
+    const score = scoreAnswer(theme, counts, match.answer.key, inDuel && this.duelGiven(theme.id, match.answer.key, gameId));
     transaction(this.db, () => {
       this.db
         .prepare(
@@ -782,12 +802,15 @@ class GameService {
         )
         .run(score.points, input, match.answer.key, match.answer.label, score.probability, gameId, slot);
       this.db.prepare('UPDATE games SET score = score + ? WHERE id = ?').run(score.points, gameId);
-      this.db
-        .prepare(
-          `INSERT INTO answer_counts (theme_id, answer_key, n) VALUES (?, ?, 1)
-           ON CONFLICT (theme_id, answer_key) DO UPDATE SET n = n + 1`,
-        )
-        .run(theme.id, match.answer.key);
+      // Une manche de duel n'entre pas dans le décompte du forage du jour (les duels ont leur propre décompte).
+      if (!inDuel) {
+        this.db
+          .prepare(
+            `INSERT INTO answer_counts (theme_id, answer_key, n) VALUES (?, ?, 1)
+             ON CONFLICT (theme_id, answer_key) DO UPDATE SET n = n + 1`,
+          )
+          .run(theme.id, match.answer.key);
+      }
     });
     const creditedGame = this.db.prepare('SELECT * FROM games WHERE id = ?').get(gameId);
     if (creditedGame && this.skulls.isSkullDay(creditedGame.day)) {
@@ -1118,6 +1141,24 @@ class GameService {
       round: this.roundView(this.db.prepare('SELECT * FROM rounds WHERE game_id = ? AND slot = ?').get(game.id, round.slot), game),
       state: this.state(gameId, userId),
     };
+  }
+
+  /** Saisies refusées les plus fréquentes (hors celles que le thème reconnaît désormais), pour compléter les thèmes. */
+  unknownAnswers(limit = 150) {
+    const rows = this.db.prepare('SELECT theme_id, input_key, example, n, last_at FROM unknown_answers ORDER BY n DESC, last_at DESC LIMIT 600').all();
+    const out = [];
+    for (const r of rows) {
+      const theme = this.themes.get(r.theme_id);
+      if (!theme || matchAnswer(theme, r.example)) continue;
+      out.push({ themeId: r.theme_id, themeTitle: theme.title, inputKey: r.input_key, input: r.example, count: r.n, lastAt: r.last_at });
+      if (out.length >= limit) break;
+    }
+    return out;
+  }
+
+  /** Écarte une saisie refusée de la liste (faute de frappe, hors sujet…). */
+  ignoreUnknown(themeId, inputKey) {
+    this.db.prepare('DELETE FROM unknown_answers WHERE theme_id = ? AND input_key = ?').run(themeId, inputKey);
   }
 
   recordUnknown(themeId, input) {

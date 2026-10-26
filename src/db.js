@@ -183,12 +183,26 @@ CREATE TABLE IF NOT EXISTS skulls (
 CREATE INDEX IF NOT EXISTS idx_skulls_user ON skulls(user_id);
 
 -- Annonces du responsable, affichées sur l'accueil des joueurs jusqu'à leur date de fin (ou leur retrait).
+-- Réglages du jeu modifiables par le responsable (par exemple le code d'invitation demandé à l'inscription).
+CREATE TABLE IF NOT EXISTS settings (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS announcements (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
   text       TEXT NOT NULL,
   created_at INTEGER NOT NULL,
   expires_at INTEGER NOT NULL,
   removed_at INTEGER
+);
+
+-- Podiums (jour, semaine, mois) déjà montrés à chaque joueur.
+CREATE TABLE IF NOT EXISTS celebrations_seen (
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  kind    TEXT NOT NULL,
+  start   TEXT NOT NULL,
+  PRIMARY KEY (user_id, kind, start)
 );
 
 -- Thèmes proposés par les joueurs, à examiner par le responsable du jeu.
@@ -204,6 +218,8 @@ CREATE TABLE IF NOT EXISTS theme_suggestions (
 
 // Colonnes ajoutées après la mise en ligne : créées si la base est plus ancienne.
 const MIGRATIONS = [
+  // Responsable du jeu : drapeau stocké (le premier compte créé l'est d'office), indépendant du pseudo.
+  ['users', 'is_admin', 'INTEGER NOT NULL DEFAULT 0'],
   ['users', 'skin_body', 'TEXT'],
   ['users', 'skin_bit', 'TEXT'],
   ['users', 'skin_timer', 'TEXT'],
@@ -239,6 +255,8 @@ const MIGRATIONS = [
   ['duels', 'old_challenger_score', 'INTEGER'],
   ['duels', 'old_opponent_score', 'INTEGER'],
   ['duels', 'old_winner_id', 'INTEGER'],
+  // Duel validé le lendemain à 2 h 30 (après les signalements) : seuls les duels validés comptent pour badges, défis et pépites.
+  ['duels', 'validated_at', 'INTEGER'],
 ];
 
 /**
@@ -288,8 +306,14 @@ function openDb(file) {
   allowDuelMode(db, file);
   for (const [table, column, type] of MIGRATIONS) {
     const exists = db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === column);
-    if (!exists) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+    if (!exists) {
+      db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+      // Les duels déjà terminés avant la mise en place de la validation sont réputés validés.
+      if (column === 'validated_at') db.exec("UPDATE duels SET validated_at = COALESCE(finished_at, 0) WHERE status = 'done'");
+    }
   }
+  // Aucun responsable : le premier compte créé le devient.
+  db.exec('UPDATE users SET is_admin = 1 WHERE id = (SELECT MIN(id) FROM users) AND NOT EXISTS (SELECT 1 FROM users WHERE is_admin = 1)');
   return db;
 }
 

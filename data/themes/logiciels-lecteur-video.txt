@@ -1,0 +1,6 @@
+titre: Un logiciel ou une application de lecture vidéo
+# Lecteurs vidéo (ordinateur, mobile, télévision) : lecteurs multimédias, intégrés aux systèmes, et applications de lecture locale ou en réseau.
+1: VLC = VLC media player = VideoLAN; Windows Media Player = WMP; QuickTime = QuickTime Player; YouTube; Netflix; Kodi; Plex; Disney+; Prime Video = Amazon Prime Video; Films et TV = Movies & TV; Lecteur vidéo
+2: MPC-HC = Media Player Classic = Media Player Classic Home Cinema; PotPlayer; KMPlayer; RealPlayer; DivX Player; Winamp; MPV; Popcorn Time; Jellyfin; Emby; Infuse; Apple TV; Photos; Lecteur Windows Media; iTunes; Totem = GNOME Videos; SMPlayer; GOM Player; BS.Player; Zoom Player; Mplayer; Dailymotion; Vimeo; Twitch
+3: Windows Media Center; MX Player; nPlayer; CyberLink PowerDVD = PowerDVD; WinDVD; Nero ShowTime; ALShow; UMPlayer; XBMC; LibreELEC
+4: OSMC; Stremio; Syncplay; Celluloid = GNOME MPV; Dragon Player; Kaffeine; Miro; Boxee; Elmedia Player; Movist; IINA

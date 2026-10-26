@@ -1,6 +1,6 @@
 'use strict';
 
-const { addDays } = require('./dates');
+const { addDays, dayKey } = require('./dates');
 const { ROUNDS_PER_GAME } = require('./config');
 
 /*
@@ -24,6 +24,12 @@ const CHALLENGES = [
   { id: 'forage450', text: 'Fais un forage de 450 points ou plus', goal: 1, unit: ['forage', 'forages'], measure: (w) => (w.best >= 450 ? 1 : 0) },
   { id: 'rapides', text: 'Donne 10 réponses valides en moins de 8 secondes cette semaine', goal: 10, unit: ['réponse', 'réponses'], measure: (w) => w.rapides },
   { id: 'weekend', text: 'Fore le samedi et le dimanche', goal: 2, unit: ['jour', 'jours'], measure: (w) => w.weekend },
+  // Défis de duel (à partir de la semaine du 26 octobre 2026) : seuls les duels terminés cette semaine comptent.
+  { id: 'duels', text: 'Termine 10 duels cette semaine', goal: 10, unit: ['duel', 'duels'], measure: (w) => w.duels },
+  { id: 'duel-victoire', text: 'Gagne 4 duels cette semaine', goal: 4, unit: ['duel', 'duels'], measure: (w) => w.duelWins },
+  { id: 'duel-adversaires', text: 'Affronte 3 joueurs différents en duel cette semaine', goal: 3, unit: ['joueur', 'joueurs'], measure: (w) => w.duelOpponents },
+  { id: 'duel-pepite', text: 'Trouve une pépite dans un duel cette semaine', goal: 1, unit: ['pépite', 'pépites'], measure: (w) => w.duelPepites },
+  { id: 'duel-ecart', text: "Gagne un duel avec au moins 100 points d'avance", goal: 1, unit: ['duel', 'duels'], measure: (w) => (w.duelMargin >= 100 ? 1 : 0) },
 ];
 const LEGACY_COUNT = 6;
 const NEW_CHALLENGES_FROM = '2026-10-26';
@@ -61,7 +67,34 @@ function weekStats(db, userId, start) {
     stats.soufre += rs.filter((r) => r.outcome === 'answer' && r.points >= 20 && r.points < 40).length;
     if (rs.filter((r) => r.outcome === 'answer').length === ROUNDS_PER_GAME) stats.complete++;
   }
+  Object.assign(stats, duelWeekStats(db, userId, start));
   return stats;
+}
+
+/** Duels terminés (les deux parties jouées) durant la semaine qui commence le lundi `start`, vus du joueur. */
+function duelWeekStats(db, userId, start) {
+  const end = addDays(start, 6);
+  const out = { duels: 0, duelWins: 0, duelOpponents: 0, duelPepites: 0, duelMargin: 0 };
+  const opponents = new Set();
+  const duels = db
+    .prepare("SELECT * FROM duels WHERE status = 'done' AND validated_at IS NOT NULL AND (challenger_id = ? OR opponent_id = ?)")
+    .all(userId, userId)
+    .filter((d) => d.finished_at != null && dayKey(d.finished_at) >= start && dayKey(d.finished_at) <= end);
+  for (const d of duels) {
+    const mine = d.challenger_id === userId;
+    const myScore = mine ? d.challenger_score : d.opponent_score;
+    const theirScore = mine ? d.opponent_score : d.challenger_score;
+    out.duels++;
+    opponents.add(mine ? d.opponent_id : d.challenger_id);
+    if (d.winner_id === userId) {
+      out.duelWins++;
+      out.duelMargin = Math.max(out.duelMargin, myScore - theirScore);
+    }
+    const gameId = mine ? d.challenger_game_id : d.opponent_game_id;
+    out.duelPepites += db.prepare('SELECT COUNT(*) AS n FROM rounds WHERE game_id = ? AND points >= 100').get(gameId).n;
+  }
+  out.duelOpponents = opponents.size;
+  return out;
 }
 
 /** Progression du joueur sur le défi de la semaine qui commence le lundi `start`. */

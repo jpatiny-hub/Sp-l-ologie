@@ -78,11 +78,11 @@ function pointsFor(p, pMax, alreadyGiven) {
 }
 
 /** Points rapportés par `answerKey` pour le thème, compte tenu des réponses déjà données. */
-function scoreAnswer(theme, counts, answerKey) {
+function scoreAnswer(theme, counts, answerKey, alsoGiven = false) {
   const { probs, pMax } = probabilities(theme, counts);
   const p = probs.get(answerKey);
   if (p === undefined) throw new Error(`Réponse inconnue pour le thème ${theme.id} : ${answerKey}`);
-  const points = pointsFor(p, pMax, (counts.get(answerKey) || 0) > 0);
+  const points = pointsFor(p, pMax, alsoGiven || (counts.get(answerKey) || 0) > 0);
   return { points, probability: p, pepite: points === 100, tier: tierFor(points, 'answer') };
 }
 

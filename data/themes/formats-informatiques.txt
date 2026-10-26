@@ -1,0 +1,6 @@
+titre: Un format de fichier informatique (extension)
+# Formats de documents, images, sons, vidéos, archives, données et programmes. Les extensions comme « pdf » ou « .pdf » sont acceptées.
+1: PDF; JPEG = JPG; PNG; GIF; MP3; MP4; Word = DOC = DOCX; Excel = XLS = XLSX; PowerPoint = PPT = PPTX; ZIP; TXT = Texte brut; HTML; EXE
+2: CSV; JSON; XML; WAV; AVI; MKV; MOV; BMP; TIFF = TIF; SVG; WebP; RAR; 7Z = 7-Zip; ISO; RTF; ODT; ODS; ODP; FLAC; OGG; AAC; M4A; WMV; WebM; SQL; PHP; CSS; JS; BAT; DLL; APK; DMG; PSD; AI; EPS
+3: HEIC = HEIF; AVIF; RAW; DNG; CR2; NEF; MPEG = MPG; MP2; 3GP; FLV; SWF; VOB; M4V; TS; AIFF = AIF; WMA; OPUS; MIDI = MID; MOD; XM; S3M; TAR; GZ = Gzip; BZ2; XZ; CAB; MSI; DEB; RPM; JAR; WAR; CLASS; PY; JAVA; C; CPP; H; RB; SH; PL; EPUB; MOBI; AZW; DJVU; XPS; TEX; MD = Markdown; YAML = YML; TOML; INI; LOG; BAK; TMP; SYS; DAT; DB; SQLITE; MDB; ACCDB
+4: PCX; TGA; ICO; CUR; PBM; PGM; PPM; XCF; KRA; ORA; CDR; INDD; FLA; JPEG 2000 = JP2; JXL = JPEG XL; APNG; MNG; EXR; HDR; OBJ; STL; FBX; BLEND; DWG; DXF; GCODE; GPX; KML; KMZ; SHP; GEOJSON; NetCDF = NC; HDF5 = H5; FITS; DICOM = DCM; SAV; SAS7BDAT; PARQUET; AVRO; ORC; XSD; DTD; XSL; XSLT; WSDL; RSS; ATOM; OPML; VCF; ICS; MBOX; EML; MSG; PST; OST; TORRENT; NZB; PGP; GPG; CER; CRT; PFX; KEY; PUB

@@ -1,0 +1,5 @@
+titre: Une ville de France de plus de 100 000 habitants
+1: Paris; Marseille; Lyon; Toulouse; Nice; Nantes; Montpellier; Strasbourg; Bordeaux; Lille; Rennes
+2: Reims; Toulon; Saint-Étienne; Le Havre; Grenoble; Dijon; Angers; Nîmes; Villeurbanne; Le Mans; Clermont-Ferrand; Aix-en-Provence; Brest; Tours; Amiens; Limoges; Annecy; Perpignan; Boulogne-Billancourt; Metz; Besançon; Orléans; Rouen
+3: Saint-Denis = Saint-Denis (Seine-Saint-Denis); Argenteuil; Mulhouse; Montreuil; Caen; Nancy; Saint-Paul = Saint-Paul (La Réunion)
+4: Saint-Denis (La Réunion) = Saint-Denis de la Réunion

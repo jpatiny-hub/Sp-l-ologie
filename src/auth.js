@@ -60,7 +60,8 @@ function validateUsername(username) {
 }
 
 function validatePassword(password) {
-  if (typeof password !== 'string' || password.length < 6) return 'Le mot de passe doit faire au moins 6 caractères.';
+  // Seuls les nouveaux mots de passe sont concernés : la connexion ne vérifie pas la longueur (les anciens restent valables).
+  if (typeof password !== 'string' || password.length < 8) return 'Le mot de passe doit faire au moins 8 caractères.';
   if (password.length > 200) return 'Le mot de passe est trop long.';
   return null;
 }

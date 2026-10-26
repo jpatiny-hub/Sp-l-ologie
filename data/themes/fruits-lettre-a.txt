@@ -1,0 +1,7 @@
+titre: Un fruit dont le nom commence par la lettre A
+# Fruits (sens culinaire ou botanique) commençant par A, réutilisés de la liste générale des fruits et complétés.
+1: Ananas
+2: Abricot
+3: Avocat; Airelle; Amande; Acérola = Cerise des Antilles; Abiu; Anone = Annone; Akébie
+4: Arbouse; Alkékenge; Argouse; Açaï; Aubépine = Cenelle; Ananas bois; Atoca; Arbutus; Aguaymanto
+5: Atemoya; Ackee; Amélanche; Aronia; Azerole; Alise; Asimine; Anone des marais; Açaï du Brésil

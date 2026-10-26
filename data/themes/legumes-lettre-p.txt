@@ -1,0 +1,6 @@
+titre: Un légume dont le nom commence par la lettre P
+# Légumes (sens culinaire) commençant par P : racines, tiges, légumes-fruits, légumineuses fraîches et légumes-feuilles.
+1: Pomme de terre = Patate; Poireau; Poivron; Petit pois = Petits pois; Panais; Potiron; Patate douce; Pois = Pois gourmand = Pois mange-tout; Pois chiche; Potimarron; Pâtisson; Persil; Piment; Pak-choï = Pak choï; Pourpier; Pissenlit; Pomme de terre nouvelle; Pomme de terre grenaille = Grenaille; Poivron rouge; Poivron vert; Poivron jaune; Poivron orange; Piment doux; Pois cassé; Pois verts; Petit pois carotte
+2: Pleurote; Pâtisson blanc; Pak-choï vert; Pourpier d'hiver; Pomme de terre Bintje = Bintje; Pomme de terre Charlotte = Charlotte; Pomme de terre Amandine; Pomme de terre Ratte = Ratte; Pomme de terre Monalisa; Pomme de terre Agria; Pomme de terre Nicola; Pomme de terre vitelotte = Vitelotte; Pomme de terre Belle de Fontenay; Pois de senteur; Pois d'Angole = Cajan
+3: Pâquerette; Pétasite; Picridie; Pissenlit cultivé; Plantain; Plantain d'eau; Pomme de terre Pompadour; Pomme de terre Rosabelle; Pomme de terre Roseval
+4: Pomme de terre Franceline; Pomme de terre Nadine; Pomme de terre Sirtema; Pomme de terre Spunta; Pomme de terre Désirée; Pomme de terre Maris Piper; Pomme de terre King Edward; Pomme de terre Russet; Pomme de terre Yukon Gold; Pomme de terre Kennebec

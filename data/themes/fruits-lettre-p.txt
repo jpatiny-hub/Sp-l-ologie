@@ -1,0 +1,7 @@
+titre: Un fruit dont le nom commence par la lettre P
+# Fruits (sens culinaire ou botanique) commençant par P, réutilisés de la liste générale des fruits et complétés.
+1: Pomme; Poire; Pêche
+2: Prune; Pastèque; Pamplemousse; Pêche de vigne; Pêche plate = Pêche Saturne; Pruneau; Plaquemine = Kaki
+3: Papaye; Physalis; Pomme rose = Jamalac; Pomme de Cythère = Mombin; Pawpaw = Asimine; Passiflore = Fruit de la passion; Pomme-liane = Grenadille; 
+4: Pomelo; Prunelle; Pomme cannelle; Pomme-poire; Pommette; Pomme d'api; Prune de Damas = Damas; Prune d'Ente; Poire d'eau = Pomme d'eau; Pomme de lait = Caïnito; Pandanus = Fruit de pandanus; Pommier sauvage = Pomme sauvage; Poire Williams = Williams
+5: Pitanga; Pepino

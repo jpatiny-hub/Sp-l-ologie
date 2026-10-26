@@ -18,7 +18,7 @@ const { AnnouncementService } = require('./src/announcements');
 const { museum } = require('./src/museum');
 const { feed } = require('./src/feed');
 const { seasonFor } = require('./src/specialdays');
-const { pendingRecap, markRecapSeen, weeklyRecap } = require('./src/recap');
+const { pendingRecap, markRecapSeen, weeklyRecap, periodRecap, pendingCelebrations, markCelebrationSeen, lastPeriod, periodStart, periodEnd, KINDS } = require('./src/recap');
 const { unseenNews, LATEST_NEWS_ID } = require('./src/news');
 
 const SESSION_MS = config.SESSION_DAYS * 24 * 3600 * 1000;
@@ -44,7 +44,7 @@ const SECURITY_HEADERS = {
   // Le jeu n'est accessible qu'à ceux qui ont le lien : pas d'indexation.
   'X-Robots-Tag': 'noindex, nofollow',
   'Content-Security-Policy':
-    "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+    "default-src 'self'; img-src 'self' data: https://piwik.weesky.net; style-src 'self'; script-src 'self' https://piwik.weesky.net; font-src 'self'; connect-src 'self' https://piwik.weesky.net; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
 };
 
 /**
@@ -75,12 +75,23 @@ function createApp({
   version = interfaceVersion(publicDir),
   specialDays = undefined,
   seasons = config.SEASONS,
+  autoValidateDuels = false,
 }) {
   const game = new GameService(db, themes, now, specialDays);
+  // Validation des duels le lendemain à 2 h 30 : vérifiée toutes les 5 minutes, même sans visite.
+  if (autoValidateDuels) setInterval(() => { try { game.duels.validateDue(); } catch (err) { console.error('Validation des duels impossible :', err.message); } }, 5 * 60 * 1000).unref();
   const announcements = new AnnouncementService(db, now);
   game.badges.backfill();
   const loginLimiter = new auth.RateLimiter(10, 15 * 60 * 1000);
   const signupLimiter = new auth.RateLimiter(10, 60 * 60 * 1000);
+  const inviteLimiter = new auth.RateLimiter(10, 60 * 60 * 1000);
+
+  /** Code d'invitation demandé à l'inscription (aucun : l'inscription reste libre). */
+  function inviteCode() {
+    const row = db.prepare("SELECT value FROM settings WHERE key = 'invite_code'").get();
+    return row && row.value ? row.value : null;
+  }
+  const inviteKey = (text) => crypto.createHash('sha256').update(String(text || '').normalize('NFC').toLowerCase().replace(/\s+/g, '')).digest();
 
   function send(res, status, body, headers = {}) {
     res.writeHead(status, { ...SECURITY_HEADERS, 'Cache-Control': 'no-store', 'X-App-Version': version, ...headers });
@@ -113,7 +124,13 @@ function createApp({
     const out = {};
     for (const part of String(req.headers.cookie || '').split(';')) {
       const i = part.indexOf('=');
-      if (i > 0) out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim());
+      if (i > 0) {
+        try {
+          out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim());
+        } catch {
+          /* cookie mal encodé : ignoré, sans faire échouer la requête */
+        }
+      }
     }
     return out;
   }
@@ -186,11 +203,13 @@ function createApp({
     return { username: user.username };
   }
 
-  /** Responsable du jeu : identifiants listés dans ADMIN_USERS, à défaut le premier compte créé. */
+  /** Responsable du jeu : compte marqué responsable (le premier compte créé l'est d'office) ou identifiant listé dans ADMIN_USERS. */
+  function isAdminByList(user) {
+    return adminUsers.includes(auth.usernameKey(user.username));
+  }
   function isAdmin(user) {
-    if (adminUsers.length) return adminUsers.includes(auth.usernameKey(user.username));
-    const first = db.prepare('SELECT MIN(id) AS id FROM users').get().id;
-    return user.id === first;
+    const row = db.prepare('SELECT is_admin FROM users WHERE id = ?').get(user.id);
+    return !!(row && row.is_admin) || isAdminByList(user);
   }
 
   function requireAdmin(req, res) {
@@ -203,7 +222,15 @@ function createApp({
     'POST /api/signup': async (req, res) => {
       const ip = clientIp(req);
       if (signupLimiter.blocked(ip, now())) throw new HttpError(429, 'Trop de comptes créés. Réessaie plus tard.');
-      const { username, password } = await readJson(req);
+      const { username, password, inviteCode: given } = await readJson(req);
+      const wanted = inviteCode();
+      if (wanted) {
+        if (inviteLimiter.blocked(ip, now())) throw new HttpError(429, "Trop d'essais de code d'invitation. Réessaie plus tard.");
+        if (!crypto.timingSafeEqual(inviteKey(given), inviteKey(wanted))) {
+          inviteLimiter.fail(ip, now());
+          throw new HttpError(403, "Code d'invitation incorrect.");
+        }
+      }
       const problem = auth.validateUsername(username) || auth.validatePassword(password);
       if (problem) throw new HttpError(400, problem);
       const display = username.normalize('NFC').trim();
@@ -218,12 +245,13 @@ function createApp({
       ]);
       let userId;
       try {
+        const first = db.prepare('SELECT COUNT(*) AS n FROM users').get().n === 0;
         userId = Number(
           db
             .prepare(
-              'INSERT INTO users (username, username_key, password_hash, recovery_hash, created_at) VALUES (?, ?, ?, ?, ?)',
+              'INSERT INTO users (username, username_key, password_hash, recovery_hash, created_at, is_admin) VALUES (?, ?, ?, ?, ?, ?)',
             )
-            .run(display, key, passwordHash, recoveryHash, now()).lastInsertRowid,
+            .run(display, key, passwordHash, recoveryHash, now(), first ? 1 : 0).lastInsertRowid,
         );
       } catch (err) {
         if (String(err.message).includes('UNIQUE')) throw new HttpError(409, 'Cet identifiant est déjà pris.');
@@ -233,6 +261,26 @@ function createApp({
       db.prepare('UPDATE users SET news_seen = ? WHERE id = ?').run(LATEST_NEWS_ID, userId);
       signupLimiter.fail(ip, now());
       json(res, 201, { user: userView({ username: display }), recoveryCode }, { 'Set-Cookie': createSession(userId) });
+    },
+
+    // L'écran d'inscription demande un code d'invitation seulement si le responsable en a défini un.
+    'GET /api/signup-info': async (req, res) => {
+      json(res, 200, { inviteRequired: !!inviteCode() });
+    },
+
+    'GET /api/admin/invite-code': async (req, res) => {
+      requireAdmin(req, res);
+      json(res, 200, { code: inviteCode() });
+    },
+
+    'POST /api/admin/invite-code': async (req, res) => {
+      requireAdmin(req, res);
+      const { code } = await readJson(req);
+      const value = typeof code === 'string' ? code.trim() : '';
+      if (value && (value.length < 4 || value.length > 40)) throw new HttpError(400, 'Le code doit faire de 4 à 40 caractères (ou être vide pour libérer les inscriptions).');
+      if (value) db.prepare("INSERT INTO settings (key, value) VALUES ('invite_code', ?) ON CONFLICT (key) DO UPDATE SET value = excluded.value").run(value);
+      else db.prepare("DELETE FROM settings WHERE key = 'invite_code'").run();
+      json(res, 200, { code: value || null });
     },
 
     'POST /api/login': async (req, res) => {
@@ -304,6 +352,7 @@ function createApp({
         streak: game.badges.homeSummary(user.id, game.today()),
         collective: collectiveStatus(db, game.today(), user.id),
         recap: pendingRecap(db, user.id, game.today()),
+        celebrations: pendingCelebrations(db, user.id, game.today()),
         duels: game.duels.summary(user.id),
         announcements: announcements.unseen(user.id),
         unreadReports: game.myReports(user.id).unread,
@@ -416,6 +465,25 @@ function createApp({
       json(res, 200, weeklyRecap(game, week, user.id));
     },
 
+    // Podium d'un jour, d'une semaine ou d'un mois terminé, avec les statistiques du joueur.
+    'GET /api/celebration': async (req, res, _id, url) => {
+      const user = requireUser(req, res);
+      const kind = url.searchParams.get('kind');
+      if (!KINDS.includes(kind)) throw new HttpError(400, 'Podium inconnu.');
+      const asked = url.searchParams.get('start');
+      const start = isDay(asked) ? asked : lastPeriod(kind, game.today()).start;
+      if (periodEnd(kind, periodStart(kind, start)) >= game.today()) throw new HttpError(400, "Cette période n'est pas terminée.");
+      json(res, 200, periodRecap(game, kind, start, user.id));
+    },
+
+    'POST /api/celebration/seen': async (req, res) => {
+      const user = requireUser(req, res);
+      const { kind, start } = await readJson(req);
+      if (!KINDS.includes(kind) || !isDay(start)) throw new HttpError(400, 'Podium inconnu.');
+      markCelebrationSeen(db, user.id, kind, start);
+      json(res, 200, { ok: true });
+    },
+
     'POST /api/recap/seen': async (req, res) => {
       const user = requireUser(req, res);
       const { week } = await readJson(req);
@@ -470,7 +538,7 @@ function createApp({
       if (typeof password !== 'string') throw new HttpError(400, 'Mot de passe requis.');
       const problem = auth.validateUsername(username);
       if (problem) throw new HttpError(400, problem);
-      if (adminUsers.length && isAdmin(user)) throw new HttpError(403, "Le responsable du jeu ne peut pas changer de pseudo ici (ses droits dépendent du pseudo actuel).");
+      if (isAdminByList(user)) throw new HttpError(403, "Le responsable du jeu ne peut pas changer de pseudo ici (ses droits dépendent du pseudo actuel).");
       const limiterKey = `${clientIp(req)}|${auth.usernameKey(user.username)}|rename`;
       if (loginLimiter.blocked(limiterKey, now())) throw new HttpError(429, 'Trop de tentatives. Réessaie dans quelques minutes.');
       const row = db.prepare('SELECT password_hash, username_changed_at FROM users WHERE id = ?').get(user.id);
@@ -548,6 +616,19 @@ function createApp({
     'GET /api/admin/reports': async (req, res) => {
       requireAdmin(req, res);
       json(res, 200, { reports: game.reportedAnswers() });
+    },
+
+    'GET /api/admin/unknown-answers': async (req, res) => {
+      requireAdmin(req, res);
+      json(res, 200, { answers: game.unknownAnswers() });
+    },
+
+    'POST /api/admin/unknown-answers/ignore': async (req, res) => {
+      requireAdmin(req, res);
+      const { themeId, inputKey } = await readJson(req);
+      if (typeof themeId !== 'string' || typeof inputKey !== 'string') throw new HttpError(400, 'Saisie inconnue.');
+      game.ignoreUnknown(themeId, inputKey);
+      json(res, 200, { ok: true });
     },
 
     'POST /api/admin/reports/handled': async (req, res) => {
@@ -712,7 +793,7 @@ function main() {
   }
   const db = openDb(path.join(config.DATA_DIR, 'speleologie.sqlite'));
   scheduleBackups(db);
-  const handler = createApp({ db, themes, secureCookies: process.env.NODE_ENV === 'production' });
+  const handler = createApp({ db, themes, secureCookies: process.env.NODE_ENV === 'production', autoValidateDuels: true });
   // HOST=127.0.0.1 : seul le proxy de la machine peut joindre le jeu.
   const server = http.createServer(handler).listen(config.PORT, config.HOST, () => {
     console.log(`${config.GAME_NAME} : ${themes.size} thèmes chargés, écoute sur ${config.HOST || '*'}:${config.PORT}`);

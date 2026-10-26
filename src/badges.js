@@ -248,6 +248,7 @@ DIPLOMATE.forEach(([n, name]) => {
 SENTINELLE.forEach(([n, name]) => {
   define(`sentinelle-${n}`, { category: 'duel', name, description: () => `Relever le défi de ${n} joueurs différents`, icon: 'oeil', label: String(n) });
 });
+define('pensees-jumelles', { category: 'duel', name: 'Pensées jumelles', description: () => 'Trouver, à deux, la même pépite dans un duel', icon: 'jumeaux', secret: true });
 define('rival', { category: 'duel', name: 'Rival', description: () => 'Terminer 5 duels contre le même joueur', icon: 'cible', label: '5' });
 define('souffre-douleur', { category: 'duel', name: 'Souffre-douleur', description: () => 'Battre 3 fois le même joueur en duel', icon: 'taupe', label: '3' });
 define('nemesis', { category: 'duel', name: 'Némésis', description: () => 'Perdre 3 fois contre le même joueur en duel : il est ta némésis', icon: 'fantome', label: '3', unlock: { type: 'body', id: 'nemesis' } });
@@ -385,6 +386,18 @@ class BadgeService {
     return best;
   }
 
+  /** Pépites du joueur : forages du jour, et duels terminés (le secret d'un duel tient jusqu'à la fin des deux parties). */
+  pepiteCount(userId) {
+    return this.db
+      .prepare(
+        `SELECT COUNT(*) AS n FROM rounds r JOIN games g ON g.id = r.game_id
+         WHERE g.user_id = ? AND r.points >= 100
+           AND (g.mode = 'daily' OR (g.mode = 'duel' AND EXISTS (
+             SELECT 1 FROM duels d WHERE d.status = 'done' AND d.validated_at IS NOT NULL AND (d.challenger_game_id = g.id OR d.opponent_game_id = g.id))))`,
+      )
+      .get(userId).n;
+  }
+
   /** Badges gagnés en terminant le forage quotidien `gameId`. */
   awardForGame(gameId) {
     const game = this.db.prepare('SELECT * FROM games WHERE id = ?').get(gameId);
@@ -397,9 +410,7 @@ class BadgeService {
     const streak = BadgeService.streakInfo(this.playedDays(userId), day).current;
     STREAKS.forEach(([n]) => streak >= n && this.give(userId, `serie-${n}`, '1', day));
     DEPTHS.forEach(([n, , , threshold]) => game.score >= threshold && this.give(userId, `profondeur-${n}`, '1', day));
-    const pepites = this.db
-      .prepare("SELECT COUNT(*) AS n FROM rounds r JOIN games g ON g.id = r.game_id WHERE g.user_id = ? AND g.mode = 'daily' AND r.points >= 100")
-      .get(userId).n;
+    const pepites = this.pepiteCount(userId);
     PEPITES.forEach(([n]) => pepites >= n && this.give(userId, `pepites-${n}`, '1', day));
     const answered = rounds.filter((r) => r.outcome === 'answer');
     if (answered.length === ROUNDS_PER_GAME) this.give(userId, 'sans-eboulement', day, day);
@@ -492,9 +503,7 @@ class BadgeService {
       candidates.push({ id, name: CATALOG.get(id).name(), icon: CATALOG.get(id).icon, category: CATALOG.get(id).category, label: CATALOG.get(id).label || null, remaining: next[0] - progress, ratio: (next[0] - progress) / next[0], unit });
     };
     const withPrefix = (list, prefix) => Object.assign(list.slice(), { prefix });
-    const pepites = this.db
-      .prepare("SELECT COUNT(*) AS n FROM rounds r JOIN games g ON g.id = r.game_id WHERE g.user_id = ? AND g.mode = 'daily' AND r.points >= 100")
-      .get(userId).n;
+    const pepites = this.pepiteCount(userId);
     consider(withPrefix(STREAKS, 'serie-'), current, ['jour', 'jours']);
     consider(withPrefix(THEMES, 'themes-'), this.themesSeen(userId), ['thème', 'thèmes']);
     consider(withPrefix(PEPITES, 'pepites-'), pepites, ['pépite', 'pépites']);
@@ -529,6 +538,8 @@ class BadgeService {
   /** Badges de duel, vérifiés quand un duel se termine (pour chacun des deux joueurs). */
   awardDuels(userId, today) {
     const give = (kind) => this.give(userId, kind, '1', today);
+    const pepites = this.pepiteCount(userId);
+    PEPITES.forEach(([n]) => pepites >= n && give(`pepites-${n}`));
     const launched = this.db
       .prepare(
         `SELECT d.opponent_id AS other FROM duels d JOIN games g ON g.id = d.challenger_game_id
@@ -538,7 +549,7 @@ class BadgeService {
     ATTAQUANT.forEach(([n]) => launched.length >= n && give(`attaquant-${n}`));
     DIPLOMATE.forEach(([n]) => new Set(launched.map((r) => r.other)).size >= n && give(`diplomate-${n}`));
     const done = this.db
-      .prepare("SELECT * FROM duels WHERE status = 'done' AND (challenger_id = ? OR opponent_id = ?) ORDER BY finished_at, id")
+      .prepare("SELECT * FROM duels WHERE status = 'done' AND validated_at IS NOT NULL AND (challenger_id = ? OR opponent_id = ?) ORDER BY finished_at, id")
       .all(userId, userId);
     const defended = done.filter((d) => d.opponent_id === userId);
     DEFENSEUR.forEach(([n]) => defended.length >= n && give(`defenseur-${n}`));
@@ -557,6 +568,17 @@ class BadgeService {
       if (p.n >= 5) give('rival');
       if (p.wins >= 3) give('souffre-douleur');
       if (p.losses >= 3) give('nemesis');
+    }
+    // Badge secret : les deux joueurs d'un duel ont trouvé la même pépite (même réponse, 100 points ou plus chacun).
+    for (const d of done) {
+      if (d.challenger_game_id == null || d.opponent_game_id == null) continue;
+      const twin = this.db
+        .prepare(
+          `SELECT 1 FROM rounds a JOIN rounds b ON a.slot = b.slot AND a.answer_key = b.answer_key
+           WHERE a.game_id = ? AND b.game_id = ? AND a.outcome = 'answer' AND b.outcome = 'answer' AND a.points >= 100 AND b.points >= 100 LIMIT 1`,
+        )
+        .get(d.challenger_game_id, d.opponent_game_id);
+      if (twin) give('pensees-jumelles');
     }
     // Exploits : seulement en duel standard.
     const standard = done.filter((d) => d.mode === 'standard');
@@ -687,7 +709,8 @@ class BadgeService {
       if (!earned.has(r.kind)) earned.set(r.kind, []);
       earned.get(r.kind).push(r);
     }
-    const badges = [...CATALOG.values()].map((def) => {
+    // Les badges secrets n'apparaissent nulle part tant qu'ils ne sont pas débloqués.
+    const badges = [...CATALOG.values()].filter((def) => !def.secret || earned.has(def.id)).map((def) => {
       const got = earned.get(def.id) || [];
       const last = got[got.length - 1];
       const instance = def.category === 'calendrier' ? (last ? last.instance : nextYear(def.id, today)) : last && last.instance;
@@ -720,9 +743,7 @@ class BadgeService {
         return { id, name, unlocked: !hint || unlocked.has(`${type}:${id}`), hint };
       });
     const user = this.db.prepare('SELECT skin_body, skin_bit, skin_timer, avatar FROM users WHERE id = ?').get(userId);
-    const pepites = this.db
-      .prepare("SELECT COUNT(*) AS n FROM rounds r JOIN games g ON g.id = r.game_id WHERE g.user_id = ? AND g.mode = 'daily' AND r.points >= 100")
-      .get(userId).n;
+    const pepites = this.pepiteCount(userId);
     const bestScore = this.db.prepare("SELECT MAX(score) AS s FROM games WHERE user_id = ? AND mode = 'daily'").get(userId).s || 0;
     const info = BadgeService.streakInfo(days, today);
     const current = info.current;

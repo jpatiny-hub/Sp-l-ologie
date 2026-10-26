@@ -1,0 +1,6 @@
+titre: Un fleuve d'Europe
+# Fleuves et grandes rivières d'Europe, y compris ceux qui se jettent dans une mer ou une autre rivière importante.
+1: Seine; Loire; Rhône; Garonne; Rhin; Danube; Meuse; Escaut; Tamise; Elbe; Oder; Vistule; Volga; Dniepr; Don; Pô; Tibre; Arno; Ebre; Tage; Douro = Duero; Guadalquivir; Moselle; Sambre; Lys; Dyle; Ourthe; Amblève; Semois; Lesse
+2: Saône; Marne; Oise; Aisne; Yonne; Allier; Cher; Vienne; Dordogne; Lot; Tarn; Adour; Charente; Somme; Orne; Vilaine; Rance; Durance; Isère; Drôme; Ardèche; Doubs; Ain; Arve; Aar; Reuss; Limmat; Inn; Isar; Lech; Main; Neckar; Ruhr; Lippe; Ems; Weser; Aller; Spree; Havel; Saale; Mulde; Warta; Bug; Niémen; Daugava; Dvina; Neva; Svir; Oural; Kama; Oka; Dniestr; Prut; Siret; Tisza = Theiss; Drave; Save; Morava; Vardar; Maritsa = Evros; Strymon; Adige; Piave; Tagliamento; Brenta; Ticino = Tessin; Adda; Oglio; Mincio; Tanaro; Trebbia
+3: Struma; Mesta; Vjosë; Neretva; Drina; Una; Vrbas; Bosna; Kupa; Mur; Enns; Traun; Salzach; Leitha; Raab; Váh; Hron; Ipeľ; Ondava; Poprad; Dunajec; San; Narew; Pregolya; Neman; Pärnu; Emajõgi; Narva; Kemijoki; Torne
+4: Muonio; Klarälven; Dalälven; Ångermanälven; Glomma; Göta älv; Trent; Severn; Tyne; Tees; Wear; Humber; Clyde; Forth; Tay; Dee; Shannon; Liffey; Boyne; Lee; Erne; Avon; Cam; Medway; Mersey; Ribble; Wye; Usk; Dart; Exe

@@ -9,7 +9,7 @@ const { addDays } = require('./dates');
  * « Le Petit Mineur » : les dernières nouvelles de la mine (duels terminés, pépites, badges, défi collectif).
  * Calculé à la lecture à partir de ce qui existe déjà ; les pépites sont annoncées sans dire laquelle, pour ne rien dévoiler.
  */
-const SKIPPED_BADGES = new Set(['premier-forage']);
+const SKIPPED_BADGES = new Set(['premier-forage', 'pensees-jumelles']);
 const SKIPPED_CATEGORIES = new Set(['themes', 'entrainement']);
 
 function feed(game, userId, limit = 3) {
@@ -22,7 +22,7 @@ function feed(game, userId, limit = 3) {
   const events = [];
 
   // Duels terminés.
-  for (const d of db.prepare("SELECT * FROM duels WHERE status = 'done' ORDER BY finished_at DESC LIMIT 15").all()) {
+  for (const d of db.prepare("SELECT * FROM duels WHERE status = 'done' AND validated_at IS NOT NULL ORDER BY finished_at DESC LIMIT 15").all()) {
     const a = who(d.challenger_id);
     const b = who(d.opponent_id);
     if (!a || !b) continue;

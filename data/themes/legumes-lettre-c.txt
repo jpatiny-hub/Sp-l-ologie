@@ -1,0 +1,6 @@
+titre: Un légume dont le nom commence par la lettre C
+# Légumes (sens culinaire) commençant par C : racines, feuilles, tiges, bulbes et légumes-fruits.
+1: Carotte; Chou; Chou-fleur; Courgette; Concombre; Céleri; Champignon; Citrouille; Cornichon; Chou rouge; Chou blanc; Chou vert; Chou de Bruxelles; Chou frisé = Kale; Chou-rave; Chou chinois; Chou romanesco = Romanesco; Chicon = Endive; Chicorée; Cresson; Cardon; Céleri-rave; Céleri-branche; Châtaigne d'eau; Chayotte = Christophine; Chou kale; Courge; Courge butternut = Butternut; Courge spaghetti; Carotte jaune; Carotte violette; Chou palmier = Chou noir = Cavolo nero; Crosne = Crosnes du Japon
+2: Chou-navet = Rutabaga; Chou pak-choï = Pak-choï; Corète = Mouloukhiya; Courge musquée; Courge Hokkaido = Potimarron; Courge de Siam; Courge-bouteille = Calebasse; Cassave = Manioc; Chicorée frisée; Chicorée sauvage; Chicorée scarole = Scarole; Cresson de fontaine; Cresson alénois; Céleri-rave rond
+3: Cha-om; Chou-moellier
+4: Chou de Milan = Chou Milan; Chou marin = Crambe maritime; Courgette trompette = Courgette de Nice

@@ -1,0 +1,7 @@
+titre: Un fruit dont le nom commence par la lettre C
+# Fruits (sens culinaire ou botanique) commençant par C, réutilisés de la liste générale des fruits et complétés.
+1: Cerise
+2: Citron; Clémentine; Cassis; Citron vert = Lime = Limette; Cerise noire = Griotte
+3: Coing; Carambole; Canneberge; Châtaigne; Cranberry; Caroube; Calamondin; Cerise bigarreau = Bigarreau; Cumquat = Kumquat; Clémenvilla; Cerise acide = Amarelle; Coco = Noix de coco; Cantaloup
+4: Corossol; Cédrat; Cynorrhodon; Cornouille; Chérimole; Casimiroa = Sapote blanche; Caïmite = Pomme étoilée; Cassis blanc; Chokeberry; Corinthe = Raisin de Corinthe
+5: Cupuaçu; Camu camu; Combava; Camerise; Chicouté; Corme

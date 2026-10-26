@@ -59,4 +59,12 @@ async function playDaily(app, call, level = 1, mode = 'daily') {
   return state;
 }
 
-module.exports = { THEMES, startServer, client, answerFor, playDaily };
+/** Fait passer la validation des duels (le lendemain à 2 h 30) puis remet l'horloge où elle était. */
+async function validateDuels(app, call) {
+  const keep = app.clock.now;
+  app.clock.now += 20 * 3600 * 1000;
+  await call('/api/duels');
+  app.clock.now = keep;
+}
+
+module.exports = { THEMES, startServer, client, answerFor, playDaily, validateDuels };

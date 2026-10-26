@@ -326,7 +326,31 @@
     }
   }, 5 * 60 * 1000);
 
+  // En quittant le profil ou la zone du responsable, leurs sections repliables se referment d'elles-mêmes.
+  const AUTO_CLOSE_VIEWS = ['profile', 'admin'];
+  function closeFoldsOfLeftView(view) {
+    for (const id of AUTO_CLOSE_VIEWS) {
+      const section = $(`view-${id}`);
+      if (id === view || !section || section.hidden) continue;
+      section.querySelectorAll('details[open]').forEach((d) => (d.open = false));
+    }
+  }
+
+  // Mesure d'audience : chaque changement d'écran compte comme une page vue (nom de l'écran seulement).
+  let trackedView = null;
+  function trackView(view) {
+    if (view === trackedView) return;
+    const first = trackedView === null;
+    trackedView = view;
+    if (first || !window._paq) return; // la première page vue est envoyée au chargement
+    window._paq.push(['setCustomUrl', `/${view}`]);
+    window._paq.push(['setDocumentTitle', view]);
+    window._paq.push(['trackPageView']);
+  }
+
   function show(view) {
+    trackView(view);
+    closeFoldsOfLeftView(view);
     document.querySelectorAll('.view').forEach((v) => (v.hidden = v.id !== `view-${view}`));
     // Sur téléphone, la scène de forage ne sert qu'en partie et dans les résultats : pas sur l'accueil.
     $('stage').hidden = (view === 'podium' || view === 'profile' || view === 'home' || view === 'recap' || view === 'duel' || view === 'admin' || view === 'museum') && window.innerWidth < 860;
@@ -398,6 +422,13 @@
     document.querySelectorAll('[data-pane]').forEach((f) => (f.hidden = f.dataset.pane !== tab));
     document.querySelectorAll('[data-pane] .error').forEach((e) => (e.textContent = ''));
   }
+  // Le code d'invitation n'est demandé que si le responsable en a défini un.
+  function refreshSignupInfo() {
+    api('/api/signup-info')
+      .then((info) => ($('invite-field').hidden = !info.inviteRequired))
+      .catch(() => {});
+  }
+  refreshSignupInfo();
   document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => showAuthTab(t.dataset.tab)));
   document.querySelectorAll('[data-tab-link]').forEach((t) => t.addEventListener('click', () => showAuthTab(t.dataset.tabLink)));
 
@@ -425,9 +456,9 @@
     await goHome();
   });
 
-  bindForm('form-signup', async ({ username, password, confirm }, form) => {
+  bindForm('form-signup', async ({ username, password, confirm, inviteCode }, form) => {
     if (password !== confirm) throw new Error('Les deux mots de passe ne correspondent pas.');
-    const data = await api('/api/signup', { username, password });
+    const data = await api('/api/signup', { username, password, inviteCode });
     form.reset();
     showRecoveryCode(data.recoveryCode);
   });
@@ -487,7 +518,7 @@
     show('home');
     loadMiniPodium();
     loadCarnetSummary();
-    if (app.me.recap) openRecap(app.me.recap);
+    if (app.me.celebrations && app.me.celebrations.length) openCelebrations(app.me.celebrations);
   }
 
   async function loadCarnetSummary() {
@@ -685,6 +716,7 @@
     }),
   );
 
+  const MAX_LISTED_ANSWERS = 300;
   const COLLECTIVE_COLORS = ['#e0b020', '#6fb5f0', '#e86aa8', '#7fcf5a', '#b28cff', '#ff8a4a', '#5ee0d0', '#c9ced6'];
   const CW = 110;
   const CH = 40;
@@ -934,6 +966,15 @@
         return el('li', { class: p.me ? 'me' : '' }, swatch, avatarEl(p.avatar, 'head', 2), el('span', { class: 'who-name' }, p.username), el('span', {}, pts(p.points)));
       }),
     );
+    const duel = data.duel;
+    $('collective-duel-title').hidden = $('collective-duel-bar').hidden = $('collective-duel-note').hidden = !duel;
+    if (duel) {
+      $('collective-duel-title').textContent = duel.reached ? 'Défi duel du mois réussi : bravo à tous les duellistes !' : `Défi duel : terminons ${duel.goal} duels ensemble avant la fin du mois.`;
+      $('collective-duel-fill').style.width = `${Math.min(100, Math.round((duel.total / duel.goal) * 100))}%`;
+      $('collective-duel-bar').setAttribute('aria-valuemax', String(duel.goal));
+      $('collective-duel-bar').setAttribute('aria-valuenow', String(Math.min(duel.goal, duel.total)));
+      $('collective-duel-note').textContent = `${duel.total} sur ${duel.goal} duels terminés ce mois-ci, dont ${duel.mine} avec toi.`;
+    }
     $('collective-note').textContent = data.reached
       ? `Objectif atteint le ${formatDay(data.reachedOn, { day: 'numeric', month: 'long' })}. Continuez à creuser, le tas de diamants brille pour tout le monde !`
       : 'Chaque point de ton forage du jour fait avancer la foreuse. Chaque couleur est la part de tunnel creusée par un joueur.';
@@ -984,8 +1025,8 @@
     const choice = await askMode({
       title: 'Infini',
       sub: 'Des thèmes au hasard, autant que tu veux. Ça ne compte pas pour le podium.',
-      standardText: '30 secondes par thème, comme le forage du jour.',
-      aiseText: 'Sans chrono : réfléchis à ton aise. Ne compte ni pour les badges ni pour les statistiques.',
+      standardText: '30 secondes par thème.',
+      aiseText: 'Sans chrono. Ne compte ni pour les badges ni pour les statistiques.',
     });
     if (choice) startGame('training', { noTimer: choice.mode === 'aise' });
   });
@@ -1662,7 +1703,9 @@
         .filter((x) => x.hit.ok)
         .reverse();
       if (!shown.length) list.append(el('li', { class: 'muted none' }, query ? 'Aucune réponse ne correspond. Elle manque peut-être : tu peux la signaler plus bas.' : 'Aucune réponse.'));
-      shown.forEach(({ a, hit }) => {
+      // Les très grands thèmes (plusieurs milliers de réponses) ne s'affichent pas d'un bloc : on guide vers la recherche.
+      const hidden = Math.max(0, shown.length - MAX_LISTED_ANSWERS);
+      shown.slice(0, MAX_LISTED_ANSWERS).forEach(({ a, hit }) => {
           list.append(
             el(
               'li',
@@ -1674,6 +1717,7 @@
             ),
           );
       });
+      if (hidden) list.append(el('li', { class: 'muted none' }, `… et ${plural(hidden, 'autre réponse', 'autres réponses')} : précise ta recherche pour les voir.`));
       chips.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b.dataset.filter === filter));
     };
     const chip = (id, text, n) => {
@@ -2000,7 +2044,7 @@
       }
       const gem = el('canvas', { class: 'museum-gem', width: '16', height: '16', 'aria-hidden': 'true' });
       Icons.drawIcon(gem, 'pepite');
-      list.append(el('li', { class: e.me ? 'me' : '' }, gem, el('div', { class: 'museum-what' }, el('strong', {}, e.answer), el('span', { class: 'muted small' }, e.theme)), el('span', { class: 'who' }, avatarEl(e.avatar, 'head', 2), e.username)));
+      list.append(el('li', { class: e.me ? 'me' : '' }, gem, el('div', { class: 'museum-what' }, el('strong', {}, e.answer), el('span', { class: 'muted small' }, e.duel ? `${e.theme} · en duel` : e.theme)), el('span', { class: 'who' }, avatarEl(e.avatar, 'head', 2), e.username)));
     }
     if (!shown.length && d.entries.length) box.append(el('p', { class: 'muted' }, 'Rien ne correspond à cette recherche.'));
   }
@@ -2131,6 +2175,8 @@
     initFolds('view-admin');
     loadAdminAnnouncements();
     loadReports();
+    loadInvite();
+    loadUnknownAnswers();
     loadProbe();
     loadAdminSuggestions();
     loadDashboard();
@@ -2684,6 +2730,75 @@
     }
   });
 
+  // ---------- Code d'invitation (responsable du jeu) ----------
+  async function loadInvite() {
+    const card = $('admin-invite');
+    card.hidden = !(app.me && app.me.isAdmin);
+    if (card.hidden) return;
+    try {
+      const { code } = await api('/api/admin/invite-code');
+      $('invite-input').value = code || '';
+      $('invite-sub').textContent = code ? 'inscriptions sur invitation' : 'inscriptions libres';
+    } catch (err) {
+      $('invite-status').textContent = err.message;
+    }
+  }
+  $('form-invite').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    try {
+      const { code } = await api('/api/admin/invite-code', { code: $('invite-input').value });
+      $('invite-sub').textContent = code ? 'inscriptions sur invitation' : 'inscriptions libres';
+      $('invite-status').textContent = code ? `Code enregistré : « ${code} ». Donne-le aux personnes que tu invites.` : 'Plus de code : les inscriptions sont libres.';
+    } catch (err) {
+      $('invite-status').textContent = err.message;
+    }
+  });
+
+  // ---------- Réponses refusées (responsable du jeu) ----------
+  async function loadUnknownAnswers() {
+    const card = $('admin-unknown');
+    card.hidden = !(app.me && app.me.isAdmin);
+    if (card.hidden) return;
+    try {
+      const { answers } = await api('/api/admin/unknown-answers');
+      app.unknownAnswers = answers;
+      renderUnknownAnswers();
+    } catch (err) {
+      $('unknown-status').textContent = err.message;
+    }
+  }
+
+  function renderUnknownAnswers() {
+    const answers = app.unknownAnswers || [];
+    $('unknown-list').replaceChildren(
+      ...answers.map((a) => {
+        const ignore = el('button', { class: 'link', type: 'button' }, 'Ignorer');
+        ignore.addEventListener('click', async () => {
+          try {
+            await api('/api/admin/unknown-answers/ignore', { themeId: a.themeId, inputKey: a.inputKey });
+            app.unknownAnswers = app.unknownAnswers.filter((x) => x !== a);
+            renderUnknownAnswers();
+          } catch (err) {
+            $('unknown-status').textContent = err.message;
+          }
+        });
+        return el('li', { class: 'report' }, el('span', { class: 'what' }, el('strong', {}, `« ${a.input} »`), el('span', { class: 'muted' }, a.themeTitle)), el('span', { class: 'muted' }, plural(a.count, 'fois', 'fois')), ignore);
+      }),
+    );
+    if (!answers.length) $('unknown-list').append(el('li', { class: 'muted' }, 'Aucune saisie refusée à examiner.'));
+  }
+
+  $('btn-copy-unknown').addEventListener('click', async () => {
+    const answers = app.unknownAnswers || [];
+    const text = answers.length ? answers.map((a) => `${a.themeId} (${a.themeTitle}) : ${a.input} — ${plural(a.count, 'fois', 'fois')}`).join('\n') : 'Aucune saisie refusée.';
+    try {
+      await navigator.clipboard.writeText(text);
+      $('unknown-status').textContent = `${plural(answers.length, 'saisie copiée', 'saisies copiées')} : colle-les dans la conversation.`;
+    } catch {
+      $('unknown-status').textContent = text;
+    }
+  });
+
   // ---------- Tester un thème (responsable du jeu) ----------
   async function loadProbe() {
     const card = $('admin-probe');
@@ -3060,6 +3175,15 @@
         d.status === 'playing' ? el('div', { class: 'duel-actions' }, act('Reprendre', async () => enterGame(await api(`/api/game/${d.gameId}`)))) : null,
       ),
     );
+    const checking = (data.checking || []).map((d) => {
+      const row = el('li', { class: 'duel-result' }, el('div', { class: 'duel-row' }, person(d.other), el('span', { class: 'muted small' }, 'en attente de vérification par le contremaître')));
+      row.tabIndex = 0;
+      row.setAttribute('role', 'button');
+      const open = () => openDuelResult(d.id);
+      row.addEventListener('click', open);
+      row.addEventListener('keydown', (event) => (event.key === 'Enter' || event.key === ' ') && (event.preventDefault(), open()));
+      return row;
+    });
     const results = data.results.map((d) => {
       const label = d.outcome === 'win' ? 'Victoire' : d.outcome === 'loss' ? 'Défaite' : 'Égalité';
       const row = el(
@@ -3079,6 +3203,7 @@
       ...[
         section('À toi de jouer', received),
         section('En cours', sent),
+        section('Chez le contremaître', checking),
         section('Résultats', results),
         r.wins + r.losses + r.draws ? el('p', { class: 'muted small' }, `Bilan : ${r.wins} victoire${r.wins > 1 ? 's' : ''}, ${r.losses} défaite${r.losses > 1 ? 's' : ''}${r.draws ? `, ${r.draws} égalité${r.draws > 1 ? 's' : ''}` : ''}.`) : null,
       ].filter(Boolean),
@@ -3096,8 +3221,8 @@
     const choice = await askMode({
       title: 'Lancer un duel',
       sub: 'Sept thèmes, les mêmes pour vous deux. Chacun joue de son côté.',
-      standardText: '30 secondes par thème, comme le forage du jour.',
-      aiseText: "Sans chrono : prenez le temps de réfléchir. Les exploits (Invaincu, Duel parfait, Remontada) demandent un duel standard.",
+      standardText: '30 secondes par thème.',
+      aiseText: 'Sans chrono : prenez le temps de réfléchir.',
       opponents: data.opponents,
     });
     if (!choice || !choice.opponent) return;
@@ -3108,14 +3233,114 @@
     }
   });
 
+  // ---------- Duel en attente de vérification : le contremaître examine les plans ----------
+  const FW = 110;
+  const FH = 44;
+  const FOREMAN = [
+    '....hhhhhh....',
+    '...hhhhhhhh...',
+    '..HHHHHHHHHH..',
+    '...ssssssss...',
+    '...sesssses...',
+    '...ssssssss...',
+    '...sbbbbbbs...',
+    '....ssssss....',
+    '..oooooooooo..',
+    '.oooyooooyooo.',
+    '.oooooooooooo.',
+    '.soooooooooos.',
+  ];
+  const FOREMAN_PAL = { h: '#f4f4f4', H: '#c9ced6', s: '#e0a878', e: '#1b1410', b: '#5a3a20', o: '#f08a1c', y: '#f2e030' };
+
+  function drawForeman(canvas, t) {
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(weeklyBackdrop(), 0, 0);
+    ctx.fillStyle = '#120d0a';
+    ctx.fillRect(0, 4, FW, FH - 4);
+    // Lampe suspendue et halo.
+    ctx.fillStyle = 'rgba(242,194,48,0.12)';
+    ctx.fillRect(30, 4, 50, 22);
+    ctx.fillStyle = '#8a5a2b';
+    ctx.fillRect(54, 0, 2, 5);
+    ctx.fillStyle = '#f2c230';
+    ctx.fillRect(51, 5, 8, 2);
+    // Le contremaître, tête qui dodeline un peu.
+    const bob = Math.round(Math.sin(t * 2.2));
+    sprite(ctx, FOREMAN, FOREMAN_PAL, 48, 9 + bob);
+    // Table et plan bleu.
+    ctx.fillStyle = '#6b4627';
+    ctx.fillRect(10, 30, 90, 3);
+    ctx.fillStyle = '#4a2f1a';
+    ctx.fillRect(14, 33, 3, 11);
+    ctx.fillRect(93, 33, 3, 11);
+    ctx.fillStyle = '#2a5db0';
+    ctx.fillRect(20, 23, 70, 8);
+    ctx.fillStyle = '#9cc3ff';
+    for (let x = 24; x < 86; x += 10) ctx.fillRect(x, 24, 1, 6);
+    ctx.fillRect(21, 26, 68, 1);
+    ctx.fillRect(21, 29, 68, 1);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(28, 25, 8, 4);
+    ctx.fillRect(48, 24, 12, 1);
+    ctx.fillRect(48, 28, 12, 1);
+    ctx.fillRect(70, 25, 10, 4);
+    // Coches vertes au fil de la vérification (une toutes les 1,5 s, par cycle de 6 s).
+    const done = Math.floor((t % 6) / 1.5);
+    ctx.fillStyle = '#7fcf5a';
+    [[32, 26], [54, 26], [75, 26], [42, 29]].slice(0, done + 1).forEach(([x, y]) => {
+      ctx.fillRect(x, y + 1, 1, 1);
+      ctx.fillRect(x + 1, y + 2, 1, 1);
+      ctx.fillRect(x + 2, y + 1, 1, 1);
+      ctx.fillRect(x + 3, y, 1, 1);
+    });
+    // Loupe qui balaie le plan.
+    const mx = 30 + Math.round(50 * (0.5 + 0.5 * Math.sin(t * 1.1)));
+    ctx.fillStyle = 'rgba(138,208,255,0.55)';
+    ctx.fillRect(mx - 3, 19, 7, 7);
+    ctx.fillStyle = '#c9ced6';
+    ctx.fillRect(mx - 4, 18, 9, 1);
+    ctx.fillRect(mx - 4, 26, 9, 1);
+    ctx.fillRect(mx - 4, 19, 1, 7);
+    ctx.fillRect(mx + 4, 19, 1, 7);
+    ctx.fillStyle = '#8a5a2b';
+    for (let i = 0; i < 6; i++) ctx.fillRect(mx + 5 + i, 25 + i - 3, 1, 1);
+    ctx.fillStyle = '#e0a878';
+    ctx.fillRect(mx + 11, 24, 2, 2);
+  }
+
+  function renderForeman() {
+    const canvas = $('duel-foreman');
+    const scale = Math.max(1, Math.min(4, Math.floor((canvas.parentElement.clientWidth || 330) / FW)));
+    canvas.style.width = `${FW * scale}px`;
+    canvas.style.height = `${FH * scale}px`;
+    drawForeman(canvas, 0);
+  }
+  setInterval(() => {
+    if (document.hidden || $('view-duel').hidden || $('duel-wait').hidden || $('duel-foreman').hidden) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    drawForeman($('duel-foreman'), performance.now() / 1000);
+  }, 120);
+
+  /** Duel joué par les deux : rien n'est dévoilé avant la vérification du lendemain. */
+  function showDuelChecking() {
+    $('duel-wait-text').textContent = 'En attente de vérification par le contremaître. Reviens demain pour voir les résultats du chantier ! ⚒️';
+    $('duel-foreman').hidden = false;
+    $('duel-wait').hidden = false;
+    $('duel-reveal').hidden = true;
+    show('duel');
+    renderForeman();
+  }
+
   // Fin de la partie d'un duel : en attente de l'adversaire, ou résultat à révéler.
   async function afterDuelGame(state) {
     try {
       const result = await api(`/api/duels/${state.duel.id}/result`);
+      if (result.pending) return showDuelChecking();
       openDuelReveal(result);
     } catch (err) {
       if (err.status !== 409) return showNotice(err.message);
       $('duel-wait-text').textContent = `${state.duel.opponent} n'a pas encore joué. Tu verras le résultat dans l'onglet « Duel » de l'accueil, dès que ce sera fait : la rareté de tes réponses reste secrète jusque-là.`;
+      $('duel-foreman').hidden = true;
       $('duel-wait').hidden = false;
       $('duel-reveal').hidden = true;
       show('duel');
@@ -3124,7 +3349,9 @@
 
   async function openDuelResult(id) {
     try {
-      openDuelReveal(await api(`/api/duels/${id}/result`));
+      const result = await api(`/api/duels/${id}/result`);
+      if (result.pending) return showDuelChecking();
+      openDuelReveal(result);
     } catch (err) {
       showNotice(err.message);
     }
@@ -3275,20 +3502,53 @@
     return c;
   }
 
-  async function openRecap(week) {
+  const CELEBRATION = {
+    day: { title: 'Le podium du jour', gazette: 'du jour', wins: 'remporte le jour', mine: 'Ta journée', nothing: "Tu n'as pas creusé ce jour-là : à toi de jouer aujourd'hui !", sky: ['#0b1026', '#121a3d', '#1b2552'], bursts: 4, radius: 24, speed: 0.9 },
+    week: { title: 'Le podium de la semaine', gazette: 'de la semaine', wins: 'remporte la semaine', mine: 'Ta semaine', nothing: "Tu n'as pas creusé cette semaine-là : rendez-vous cette semaine !", sky: ['#150b26', '#20123d', '#2c1a52'], bursts: 6, radius: 28, speed: 1 },
+    month: { title: 'Le podium du mois', gazette: 'du mois', wins: 'remporte le mois', mine: 'Ton mois', nothing: "Tu n'as pas creusé ce mois-là : un nouveau mois commence !", sky: ['#07161c', '#0c2a33', '#123d47'], bursts: 9, radius: 32, speed: 1.15 },
+  };
+  const BURST_PALETTES = [
+    ['#ffd84a', '#ff6a8a', '#5ee0ff', '#b28cff', '#7fcf5a'],
+    ['#ff9a3c', '#ffd84a', '#ff5c5c', '#fff2a8', '#ff8ad6'],
+    ['#5ee0ff', '#8ab4ff', '#b28cff', '#7fffd4', '#ffffff'],
+    ['#ffd84a', '#fff2a8', '#e0b020', '#ffffff', '#ffb347'],
+  ];
+
+  function celebrationPeriodText(data, long) {
+    if (data.kind === 'day') return formatDay(data.start, { weekday: 'long', day: 'numeric', month: 'long' });
+    if (data.kind === 'month') return formatDay(data.start, { month: 'long', year: 'numeric' });
+    const opts = { day: 'numeric', month: 'long' };
+    return long ? `Semaine du ${formatDay(data.start, opts)} au ${formatDay(data.end, opts)}` : `${formatDay(data.start, opts)} – ${formatDay(data.end, opts)}`;
+  }
+
+  /** Podiums à montrer à la suite (jour, semaine, mois), puis retour à l'accueil. */
+  function openCelebrations(list) {
+    app.celebrationQueue = list.slice();
+    nextCelebration();
+  }
+
+  async function nextCelebration() {
+    const item = (app.celebrationQueue || []).shift();
+    if (!item) {
+      show('home');
+      return;
+    }
     try {
-      const data = await api(`/api/recap?week=${week}`);
+      const data = await api(`/api/celebration?kind=${item.kind}&start=${item.start}`);
       app.recap = data;
       renderRecap(data);
       show('recap');
+      window.scrollTo(0, 0);
       startFireworks(data);
     } catch {
-      /* le récap est un bonus : s'il échoue, on reste sur l'accueil */
+      /* les podiums sont un bonus : s'ils échouent, on reste sur l'accueil */
+      app.celebrationQueue = [];
     }
   }
 
   function startFireworks(data) {
     clearInterval(recapTimer);
+    const conf = CELEBRATION[data.kind] || CELEBRATION.week;
     const canvas = $('recap-canvas');
     const ctx = canvas.getContext('2d');
     const scale = Math.max(1, Math.min(3, Math.floor((canvas.parentElement.clientWidth || 320) / 160)));
@@ -3300,20 +3560,76 @@
       if (e && window.Avatar) sprites[place] = Avatar.sprite(e.avatar);
     });
     const hash = (n) => Math.abs(Math.sin(n * 12.9898) * 43758.5453) % 1;
-    const bursts = [[34, 40, '#ffd84a', 0], [124, 34, '#ff6a8a', 0.8], [80, 66, '#5ee0ff', 1.5], [140, 84, '#b28cff', 2.2], [18, 90, '#7fcf5a', 2.8]];
+    // Chaque célébration a sa variante : la date choisit les couleurs, l'emplacement des feux et un effet de plus.
+    const seed = [...data.start].reduce((n, ch) => n * 31 + ch.charCodeAt(0), 7) % 9973;
+    const colors = BURST_PALETTES[seed % BURST_PALETTES.length];
+    const effect = ['confettis', 'etoiles', 'diamants', 'lampes'][Math.floor(seed / 7) % 4];
+    const bursts = Array.from({ length: conf.bursts }, (_, i) => [
+      14 + Math.floor(hash(seed + i * 3.1) * 132),
+      22 + Math.floor(hash(seed + i * 5.7) * 70),
+      colors[i % colors.length],
+      (i * 0.7) % 3,
+    ]);
     const steps = [[2, 14, 40, 150, '#9aa0aa'], [1, 60, 40, 140, '#e0b020'], [3, 106, 40, 160, '#b27a3e']]; // [place, x, largeur, haut, couleur]
+    const extra = (t) => {
+      if (effect === 'confettis') {
+        for (let i = 0; i < 30; i++) {
+          ctx.fillStyle = colors[i % colors.length];
+          ctx.fillRect(Math.floor(hash(seed + i) * 158) + Math.round(Math.sin(t * 2 + i) * 3), Math.floor((hash(i + 9) * 190 + t * (22 + (i % 5) * 6)) % 175), 2, 3);
+        }
+      } else if (effect === 'etoiles') {
+        for (let i = 0; i < 3; i++) {
+          const k = (t * 0.45 + i / 3) % 1;
+          const x = Math.round(150 - k * 150 + hash(seed + i) * 40);
+          const y = Math.round(k * 90 + i * 8);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(x, y, 2, 2);
+          ctx.fillStyle = '#9fb4ff';
+          ctx.fillRect(x + 3, y - 2, 2, 1);
+          ctx.fillRect(x + 6, y - 4, 2, 1);
+        }
+      } else if (effect === 'diamants') {
+        for (let i = 0; i < 9; i++) {
+          const x = Math.floor(hash(seed + i * 2) * 150) + Math.round(Math.sin(t + i) * 4);
+          const y = Math.floor((hash(i + 3) * 190 + t * (14 + (i % 4) * 5)) % 170);
+          ctx.fillStyle = '#5ee0ff';
+          ctx.fillRect(x + 1, y, 1, 3);
+          ctx.fillRect(x, y + 1, 3, 1);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(x + 1, y + 1, 1, 1);
+        }
+      } else {
+        for (let i = 0; i < 7; i++) {
+          const x = Math.floor(hash(seed + i * 4) * 148) + Math.round(Math.sin(t * 0.8 + i) * 4);
+          const y = 170 - ((hash(i + 5) * 170 + t * (10 + (i % 3) * 4)) % 170);
+          ctx.fillStyle = '#ffd84a';
+          ctx.fillRect(x, Math.round(y), 3, 4);
+          ctx.fillStyle = '#fff2a8';
+          ctx.fillRect(x + 1, Math.round(y) + 1, 1, 1);
+        }
+      }
+    };
     const draw = (t) => {
       for (let y = 0; y < 190; y += 2) {
-        ctx.fillStyle = y < 70 ? '#0b1026' : y < 125 ? '#121a3d' : '#1b2552';
+        ctx.fillStyle = y < 70 ? conf.sky[0] : y < 125 ? conf.sky[1] : conf.sky[2];
         ctx.fillRect(0, y, 160, 2);
       }
       for (let i = 0; i < 36; i++) {
         ctx.fillStyle = Math.sin(t * 3 + i) > 0 ? '#ffffff' : '#6a73a0';
         ctx.fillRect(Math.floor(hash(i + 1) * 160), Math.floor(hash(i + 50) * 100), 1, 1);
       }
+      if (data.kind === 'month') {
+        // Projecteurs de gala derrière le podium.
+        ctx.fillStyle = 'rgba(255, 240, 160, 0.10)';
+        for (let i = 0; i < 40; i++) {
+          const sway = Math.round(Math.sin(t * 0.8) * 14);
+          ctx.fillRect(40 + sway - i * 0.6, 20 + i * 3, 6 + i * 0.5, 3);
+          ctx.fillRect(110 - sway - i * 0.1, 20 + i * 3, 6 + i * 0.5, 3);
+        }
+      }
       bursts.forEach(([cx, cy, color, phase]) => {
-        const k = (t * 0.9 + phase / 3) % 1;
-        const r = k * 24;
+        const k = (t * conf.speed * 0.9 + phase / 3) % 1;
+        const r = k * conf.radius;
         for (let i = 0; i < 14; i++) {
           const a = (i / 14) * Math.PI * 2;
           ctx.fillStyle = color;
@@ -3324,6 +3640,16 @@
           }
         }
       });
+      extra(t);
+      if (data.kind === 'week') {
+        // Guirlande de fanions.
+        for (let x = 0; x < 160; x += 10) {
+          ctx.fillStyle = colors[(x / 10) % colors.length];
+          ctx.fillRect(x, 4 + Math.round(Math.sin(x / 14) * 2), 5, 2);
+          ctx.fillRect(x + 1, 6 + Math.round(Math.sin(x / 14) * 2), 3, 2);
+          ctx.fillRect(x + 2, 8 + Math.round(Math.sin(x / 14) * 2), 1, 1);
+        }
+      }
       ctx.fillStyle = '#2a1a0c';
       ctx.fillRect(0, 170, 160, 20);
       steps.forEach(([place, x, w, top, color]) => {
@@ -3331,12 +3657,29 @@
         ctx.fillRect(x, top + 20, w, 190 - top - 20);
         ctx.fillStyle = 'rgba(255,255,255,0.3)';
         ctx.fillRect(x, top + 20, w, 3);
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        ctx.fillRect(x + w / 2 - 2, top + 28, 4, 8);
         const sprite = sprites[place];
         if (sprite) {
           const jump = Math.round(Math.abs(Math.sin(t * 5 + place * 1.4)) * 8);
           ctx.drawImage(sprite, x + w / 2 - 8, top + 20 - 28 - jump);
         }
       });
+      if (data.kind === 'month' && sprites[1]) {
+        // Coupe du mois au-dessus du vainqueur.
+        const cx = 80;
+        const cy = 84 + Math.round(Math.sin(t * 2) * 2);
+        ctx.fillStyle = '#e0b020';
+        ctx.fillRect(cx - 6, cy, 12, 7);
+        ctx.fillRect(cx - 4, cy + 7, 8, 3);
+        ctx.fillRect(cx - 1, cy + 10, 2, 4);
+        ctx.fillRect(cx - 4, cy + 14, 8, 2);
+        ctx.fillStyle = '#ffd84a';
+        ctx.fillRect(cx - 4, cy + 1, 3, 5);
+        ctx.fillStyle = '#e0b020';
+        ctx.fillRect(cx - 9, cy + 1, 3, 4);
+        ctx.fillRect(cx + 6, cy + 1, 3, 4);
+      }
     };
     draw(0);
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -3347,24 +3690,34 @@
   }
 
   function renderRecap(data) {
-    $('recap-sub').textContent = `Semaine du ${formatDay(data.start, { day: 'numeric', month: 'long' })} au ${formatDay(data.end, { day: 'numeric', month: 'long' })}`;
+    const conf = CELEBRATION[data.kind] || CELEBRATION.week;
+    const queue = app.celebrationQueue || [];
+    $('recap-title').textContent = data.kind === 'week' ? 'Bravo les mineurs !' : conf.title;
+    $('recap-sub').textContent = data.kind === 'week' ? celebrationPeriodText(data, true) : celebrationPeriodText(data);
+    $('recap-canvas').setAttribute('aria-label', `${conf.title} sous un feu d'artifice`);
     $('recap-fireworks').hidden = false;
     $('recap-gazette').hidden = true;
     $('recap-names').replaceChildren(
       ...[2, 1, 3].map((place) => {
         const e = data.entries.find((x) => x.rank === place);
-        return el('div', { class: `recap-name p${place}` }, el('span', { class: 'who-name' }, e ? e.username : '—'), el('span', { class: 'score' }, e ? pts(e.score) : ''));
+        return el('div', { class: `recap-name p${place}${e && e.me ? ' me' : ''}` }, el('span', { class: 'who-name' }, e ? e.username : '—'), el('span', { class: 'score' }, e ? pts(e.score) : ''));
       }),
     );
+    const onPodium = data.me && data.me.rank <= 3;
+    $('recap-note').hidden = !onPodium;
+    $('recap-note').textContent = onPodium ? (data.me.rank === 1 ? 'Tu es en haut du podium, bravo champion·ne !' : 'Tu es sur le podium, bravo !') : '';
+    $('btn-recap-next').textContent = 'Voir la Gazette de la mine';
     // Gazette
     const g = $('recap-gazette');
     const champ = data.champion;
     const line = (label, value) => el('div', { class: 'gz-line' }, el('span', {}, label), el('span', {}, value));
     const mine = data.me;
+    const rankText = (n) => (n === 1 ? '1er' : `${n}e`);
+    const nextKind = queue[0] && CELEBRATION[queue[0].kind];
     g.replaceChildren(
       el('h2', { class: 'gz-title' }, 'La Gazette de la mine'),
-      el('p', { class: 'gz-date' }, `Semaine du ${formatDay(data.start, { day: 'numeric', month: 'long' })} au ${formatDay(data.end, { day: 'numeric', month: 'long' })}`),
-      champ ? el('p', { class: 'gz-headline' }, `${champ.username} remporte la semaine avec ${pts(champ.score)} !`) : null,
+      el('p', { class: 'gz-date' }, `Édition ${conf.gazette} · ${celebrationPeriodText(data, true)}`),
+      champ ? el('p', { class: 'gz-headline' }, `${champ.username} ${conf.wins} avec ${pts(champ.score)} !`) : null,
       el(
         'ul',
         { class: 'gz-ranking' },
@@ -3375,7 +3728,7 @@
             e.rank <= 3 ? medalCanvas(e.rank) : el('span', { class: 'gz-rank' }, `${e.rank}.`),
             avatarEl(e.avatar, 'head', 2),
             el('span', { class: 'who-name' }, e.username),
-            el('span', {}, `${pts(e.score)} · ${e.days} j`),
+            el('span', {}, data.kind === 'day' ? pts(e.score) : `${pts(e.score)} · ${e.days} j`),
           ),
         ),
       ),
@@ -3383,7 +3736,7 @@
         'div',
         { class: 'gz-moments' },
         el('h3', {}, 'Les moments forts'),
-        data.best ? line('Meilleur forage', `${data.best.username}, ${pts(data.best.score)} (${formatDay(data.best.day, { weekday: 'long' })})`) : null,
+        data.kind !== 'day' && data.best ? line('Meilleur forage', `${data.best.username}, ${pts(data.best.score)} (${formatDay(data.best.day, data.kind === 'week' ? { weekday: 'long' } : { day: 'numeric', month: 'long' })})`) : null,
         data.rarest ? line('Réponse la plus rare', `« ${data.rarest.answer} » (${data.rarest.username}, ${pts(data.rarest.points)})`) : null,
         data.applauded ? line('Réponse la plus applaudie', `« ${data.applauded.answer} » (${data.applauded.username}, ${data.applauded.reactions} réaction${data.applauded.reactions > 1 ? 's' : ''})`) : null,
         line('Pépites trouvées', String(data.pepites)),
@@ -3393,14 +3746,17 @@
         ? el(
             'div',
             { class: 'gz-moments' },
-            el('h3', {}, 'Ta semaine'),
-            line('Ton rang', `${mine.rank === 1 ? '1er' : `${mine.rank}e`} sur ${data.players}`),
-            line('Forages', `${mine.days} sur 7`),
-            line('Ton meilleur forage', pts(mine.best)),
+            el('h3', {}, conf.mine),
+            line('Ton rang', `${rankText(mine.rank)} sur ${data.players}`),
+            data.kind === 'day' ? line('Ton score', pts(mine.score)) : line('Ton total', pts(mine.score)),
+            data.kind === 'day' ? line('Réponses données', String(mine.answers)) : line('Forages', `${mine.days} sur ${data.daysInPeriod}`),
+            data.kind !== 'day' ? line('Moyenne par forage', pts(mine.average)) : null,
+            data.kind !== 'day' ? line('Ton meilleur forage', `${pts(mine.best)}${mine.bestDay ? ` (${formatDay(mine.bestDay, data.kind === 'week' ? { weekday: 'long' } : { day: 'numeric', month: 'long' })})` : ''}`) : null,
+            mine.bestAnswer ? line('Ta meilleure réponse', `« ${mine.bestAnswer.answer} » (${pts(mine.bestAnswer.points)})`) : null,
             line('Pépites / réponses rares', `${mine.pepites} / ${mine.rares}`),
           )
-        : el('p', { class: 'gz-date' }, "Tu n'as pas creusé cette semaine : rendez-vous cette semaine !"),
-      el('button', { class: 'btn', id: 'btn-recap-done', type: 'button' }, 'À la mine !'),
+        : el('p', { class: 'gz-date' }, conf.nothing),
+      el('button', { class: 'btn', id: 'btn-recap-done', type: 'button' }, nextKind ? `Suite : ${nextKind.title.toLowerCase()}` : 'À la mine !'),
     );
     $('btn-recap-done').addEventListener('click', finishRecap);
   }
@@ -3413,10 +3769,14 @@
 
   async function finishRecap() {
     clearInterval(recapTimer);
-    if (app.recap) api('/api/recap/seen', { week: app.recap.start }).catch(() => {});
-    if (app.me) app.me.recap = null;
+    const done = app.recap;
+    if (done) api('/api/celebration/seen', { kind: done.kind, start: done.start }).catch(() => {});
+    if (app.me && done) {
+      app.me.celebrations = (app.me.celebrations || []).filter((c) => !(c.kind === done.kind && c.start === done.start));
+      app.me.recap = null;
+    }
     app.recap = null;
-    show('home');
+    nextCelebration();
   }
 
   // ---------- Réactions aux réponses des autres ----------

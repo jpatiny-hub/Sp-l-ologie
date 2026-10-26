@@ -222,10 +222,11 @@
           </form>
 
           <form id="form-signup" class="form" data-pane="signup" hidden>
+            <label id="invite-field" hidden>Code d'invitation <input name="inviteCode" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="40"></label>
             <label>Identifiant <input name="username" autocomplete="username" required minlength="3" maxlength="20" autocapitalize="off" spellcheck="false"></label>
-            <label>Mot de passe <input name="password" type="password" autocomplete="new-password" required minlength="6"></label>
-            <label>Confirmer le mot de passe <input name="confirm" type="password" autocomplete="new-password" required minlength="6"></label>
-            <p class="hint">3 à 20 caractères : lettres, chiffres, « _ », « - » ou « . ».</p>
+            <label>Mot de passe <input name="password" type="password" autocomplete="new-password" required minlength="8"></label>
+            <label>Confirmer le mot de passe <input name="confirm" type="password" autocomplete="new-password" required minlength="8"></label>
+            <p class="hint">Identifiant de 3 à 20 caractères : lettres, chiffres, « _ », « - » ou « . ». Mot de passe : au moins 8 caractères.</p>
             <p class="error" role="alert"></p>
             <button class="btn" type="submit">Créer mon compte</button>
           </form>
@@ -234,7 +235,7 @@
             <p class="hint">Saisis le code de récupération reçu à l'inscription pour choisir un nouveau mot de passe.</p>
             <label>Identifiant <input name="username" autocomplete="username" required autocapitalize="off" spellcheck="false"></label>
             <label>Code de récupération <input name="recoveryCode" required placeholder="XXXX-XXXX-XXXX" autocapitalize="characters" spellcheck="false"></label>
-            <label>Nouveau mot de passe <input name="newPassword" type="password" autocomplete="new-password" required minlength="6"></label>
+            <label>Nouveau mot de passe <input name="newPassword" type="password" autocomplete="new-password" required minlength="8"></label>
             <p class="error" role="alert"></p>
             <button class="btn" type="submit">Changer mon mot de passe</button>
             <button class="link" type="button" data-tab-link="login">Retour à la connexion</button>
@@ -312,7 +313,7 @@
             <p class="muted small" id="next-reset"></p>
           </div>
           <div id="mode-duel" hidden>
-            <p>Défie un joueur sur 7 thèmes : chacun joue de son côté, et le résultat se révèle quand vous avez fini tous les deux.</p>
+            <p>Défie un joueur sur 7 thèmes : chacun joue de son côté. Quand vous avez fini tous les deux, le contremaître vérifie les plans : le résultat est dévoilé le lendemain matin.</p>
             <button class="btn" id="btn-duel-new" type="button">Lancer un duel</button>
             <div id="duel-lists"></div>
           </div>
@@ -338,6 +339,9 @@
             <canvas class="collective-canvas" id="collective-canvas" width="110" height="40" role="img" aria-label="Tunnel creusé ensemble jusqu'au diamant"></canvas>
             <div class="stat"><strong id="collective-total"></strong><span id="collective-left"></span></div>
             <ul class="collective-legend" id="collective-legend"></ul>
+            <p id="collective-duel-title"></p>
+            <div class="progress" id="collective-duel-bar" role="progressbar" aria-valuemin="0"><div class="progress-fill" id="collective-duel-fill"></div></div>
+            <p class="muted small" id="collective-duel-note"></p>
             <p class="muted small" id="collective-note"></p>
           </div>
         </details>
@@ -354,13 +358,14 @@
         </div>
       </div>
 
-      <!-- Récap du lundi -->
+      <!-- Podiums du jour, de la semaine et du mois -->
       <div class="view" id="view-recap" hidden>
         <div id="recap-fireworks">
-          <p class="recap-title">Bravo les mineurs !</p>
+          <p class="recap-title" id="recap-title">Bravo les mineurs !</p>
           <p class="muted recap-sub" id="recap-sub"></p>
-          <canvas class="recap-canvas" id="recap-canvas" width="160" height="190" role="img" aria-label="Le podium de la semaine sous un feu d'artifice"></canvas>
+          <canvas class="recap-canvas" id="recap-canvas" width="160" height="190" role="img" aria-label="Le podium sous un feu d'artifice"></canvas>
           <div class="recap-names" id="recap-names"></div>
+          <p class="recap-note" id="recap-note" hidden></p>
           <button class="btn" id="btn-recap-next" type="button">Voir la Gazette de la mine</button>
         </div>
         <article class="gazette" id="recap-gazette" hidden></article>
@@ -371,6 +376,7 @@
         <div class="card" id="duel-wait" hidden>
           <h2>Ton forage est terminé</h2>
           <p id="duel-wait-text"></p>
+          <canvas class="collective-canvas" id="duel-foreman" width="110" height="44" role="img" aria-label="Le contremaître vérifie des plans" hidden></canvas>
           <button class="btn" id="btn-duel-wait-home" type="button">Retour à l'accueil</button>
         </div>
         <div class="card" id="duel-reveal" hidden>
@@ -651,6 +657,22 @@
             <ul class="report-list" id="decisions-result"></ul>
           </details>
         </details>
+        <details class="card fold" data-fold="invitation" id="admin-invite" hidden>
+          <summary><span class="fold-t"><h2>Code d'invitation</h2><span class="sub" id="invite-sub">inscriptions libres</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <p class="muted small">Avec un code, seules les personnes à qui tu le donnes peuvent créer un compte. Les comptes existants ne changent pas. Laisse vide pour rouvrir les inscriptions.</p>
+          <form id="form-invite" class="form">
+            <label>Code <input id="invite-input" maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+            <button class="btn" type="submit">Enregistrer</button>
+          </form>
+          <p class="muted small" id="invite-status" role="status"></p>
+        </details>
+        <details class="card fold" data-fold="refusees" id="admin-unknown" hidden>
+          <summary><span class="fold-t"><h2>Réponses refusées</h2><span class="sub">les saisies les plus fréquentes, pour compléter les thèmes</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <p class="muted small">Ce que les joueurs tapent le plus souvent sans être reconnus (forage du jour). Utile pour ajouter des variantes avant même un signalement.</p>
+          <button class="btn secondary" id="btn-copy-unknown" type="button">Copier la liste</button>
+          <p class="muted small" id="unknown-status" role="status"></p>
+          <ul class="report-list" id="unknown-list"></ul>
+        </details>
         <details class="card fold" data-fold="essai" id="admin-probe" hidden>
           <summary><span class="fold-t"><h2>Tester un thème</h2><span class="sub">voir comment le jeu réagit à une réponse</span></span><span class="pm" aria-hidden="true"></span></summary>
           <p class="muted small">Choisis un thème et tape une ou plusieurs réponses (une par ligne). Rien n'est enregistré, aucun point n'est donné : les points affichés sont ceux qu'une réponse rapporterait aujourd'hui.</p>
@@ -711,6 +733,7 @@
     </div>
   </div>
 
+  <script src="analytics.js"></script>
   <script src="sound.js"></script>
   <script src="pixel.js"></script>
   <script src="icons.js"></script>

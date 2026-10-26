@@ -1,0 +1,6 @@
+titre: Une vitamine ou un minéral essentiel à l'organisme
+# Vitamines (A, B1…, C, D, E, K), oligo-éléments et minéraux essentiels (macroéléments et oligoéléments).
+1: Vitamine C; Vitamine D; Vitamine A; Vitamine B12; Vitamine E; Vitamine K; Fer; Calcium; Magnésium; Zinc; Potassium; Sodium; Iode; Phosphore; Sélénium; Cuivre; Vitamine B6; Vitamine B9 = Acide folique = Folate; Vitamine B1 = Thiamine
+2: Vitamine B2 = Riboflavine; Vitamine B3 = Niacine = Vitamine PP; Vitamine B5 = Acide pantothénique; Vitamine B7 = Biotine = Vitamine H; Rétinol; Bêta-carotène; Calciférol; Cholécalciférol; Tocophérol; Phylloquinone; Ménaquinone; Acide ascorbique; Chrome; Manganèse; Molybdène; Fluor = Fluorure; Chlore = Chlorure; Soufre; Cobalt; Silicium; Bore; Nickel; Vanadium; Étain; Lithium; Arsenic
+3: Cobalamine; Pyridoxine; Acide nicotinique; Nicotinamide; Panthénol; Ergocalciférol
+4: Choline; Inositol; Carnitine; Coenzyme Q10 = Ubiquinone; Acide lipoïque; PABA = Acide para-aminobenzoïque

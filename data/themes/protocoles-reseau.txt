@@ -1,0 +1,6 @@
+titre: Un protocole informatique ou de réseau
+# Protocoles de communication, de transfert, de messagerie, de réseau local et de sécurité.
+1: HTTP; TCP; IP; FTP; SMTP; DNS; SSH; UDP; DHCP; Wi-Fi = WiFi = IEEE 802.11; Bluetooth; POP3 = POP; IMAP; TCP/IP; USB; Ethernet; TLS = SSL; VPN
+2: ICMP; ARP; NTP; SNMP; LDAP; SMB; NFS; RDP; VNC; Telnet; SFTP; HTTP/2; HTTP/3 = QUIC; WebSocket; MQTT; AMQP; CoAP; SIP; RTP; RTSP; WebRTC; XMPP = Jabber; IRC; BGP; OSPF; RIP; EIGRP; IPv4; IPv6; MAC = Adresse MAC; VLAN; STP; LACP; PPP; PPPoE; L2TP; IPsec; OpenVPN; WireGuard; Kerberos; OAuth; SAML; OpenID Connect; JWT; TOTP; FIDO2 = WebAuthn
+3: SCTP; DCCP; BOOTP; TFTP; RARP; IGMP; PIM; MPLS; GRE; VXLAN; GENEVE; LLDP; CDP; HSRP; VRRP; BFD; IS-IS; RIPng; OSPFv3; BGP-LS; MP-BGP; LISP; SRv6; DNSSEC; DoH = DNS over HTTPS; DoT = DNS over TLS; NNTP; Gopher; Finger; Whois; SOAP; REST
+4: gRPC; GraphQL; AMQP 1.0; STOMP; NATS; ZeroMQ; Zigbee; Z-Wave; Thread; Matter; LoRaWAN; NB-IoT; LTE-M; 5G NR; GSM; UMTS; HSPA; LTE; WiMAX; NFC; RFID; Modbus; Profibus; CAN bus; LIN; FlexRay; MOST; I2C; SPI; UART; RS-232; RS-485
