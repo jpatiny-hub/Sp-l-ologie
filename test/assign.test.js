@@ -43,15 +43,27 @@ test('le responsable associe après coup une réponse à une manche sans répons
     assert.equal(row.answer_label, answer.label);
     assert.equal(row.credited, 1);
     assert.equal(app.db.prepare('SELECT n FROM answer_counts WHERE theme_id = ? AND answer_key = ?').get(round.theme_id, answer.key).n, 1);
-    // Un thème qui a déjà une réponse valide ne peut plus être modifié.
+    // La même réponse ne peut pas être attribuée deux fois.
     assert.equal((await adam('/api/admin/assign', body)).status, 409);
+    // Une réponse valide peut être remplacée par une autre : points et décomptes suivent.
+    const other = theme.answers.find((a) => a.key !== answer.key && a.level === 1) || theme.answers.find((a) => a.key !== answer.key);
+    const scoreBefore = app.db.prepare('SELECT score FROM games WHERE id = ?').get(game.id).score;
+    const swap = await adam('/api/admin/assign', { ...body, answerKey: other.key });
+    assert.equal(swap.status, 200);
+    assert.equal(swap.data.previous.answer, answer.label);
+    assert.equal(swap.data.answer, other.label);
+    const scoreAfter = app.db.prepare('SELECT score FROM games WHERE id = ?').get(game.id).score;
+    assert.equal(scoreAfter, scoreBefore - swap.data.previous.points + swap.data.points, 'le score du forage est recalculé');
+    assert.equal(app.db.prepare('SELECT n FROM answer_counts WHERE theme_id = ? AND answer_key = ?').get(round.theme_id, answer.key).n, 0, "l'ancienne réponse perd son décompte");
+    assert.equal(app.db.prepare('SELECT n FROM answer_counts WHERE theme_id = ? AND answer_key = ?').get(round.theme_id, other.key).n, 1);
+    assert.equal(app.db.prepare('SELECT answer_label FROM rounds WHERE game_id = ? AND theme_id = ?').get(game.id, round.theme_id).answer_label, other.label);
     // Une réponse attribuée après coup ne donne pas de badge de rapidité (« In extremis »).
     const kinds = app.db.prepare('SELECT kind FROM badges WHERE user_id = (SELECT id FROM users WHERE username_key = ?)').all('eve').map((r) => r.kind);
     assert.equal(kinds.includes('in-extremis'), false);
     // Le comparatif montre la réponse attribuée.
     const cmp = (await eve('/api/compare?date=2026-10-14')).data;
     const evesRound = cmp.players.find((p) => p.username === 'eve').rounds.find((r) => r.themeId === round.theme_id);
-    assert.equal(evesRound.answer, answer.label);
+    assert.equal(evesRound.answer, other.label);
   } finally {
     await app.close();
   }
