@@ -3832,9 +3832,14 @@
   }
 
   // ---------- Comparaison des réponses d'un jour ----------
-  /** Responsable : associe après coup une réponse du thème à la manche d'un joueur qui n'en avait pas de valide. */
+  /** Responsable : associe après coup une réponse du thème à la manche d'un joueur, ou remplace celle qu'il avait donnée. */
   function assignButton(day, back, player, round, theme) {
-    const button = el('button', { type: 'button', class: 'assign-btn', title: 'Associer une réponse à cette manche' }, 'Associer…');
+    const replacing = round.outcome === 'answer';
+    const button = el(
+      'button',
+      { type: 'button', class: 'assign-btn', title: replacing ? 'Remplacer la réponse de ce joueur' : 'Associer une réponse à cette manche' },
+      replacing ? 'Modifier…' : 'Associer…',
+    );
     button.addEventListener('click', async () => {
       const dialog = $('assign-dialog');
       let answers = [];
@@ -3846,11 +3851,12 @@
       let chosen = null;
       const ac = new AbortController();
       const on = (node, type, fn) => node.addEventListener(type, fn, { signal: ac.signal });
-      $('assign-sub').textContent = `${player.username} · « ${theme.title} » · ${round.outcome === 'timeout' ? 'temps écoulé' : 'thème passé'}`;
+      $('assign-title').textContent = replacing ? 'Modifier la réponse' : 'Associer une réponse';
+      $('assign-sub').textContent = `${player.username} · « ${theme.title} » · ${replacing ? `réponse actuelle : « ${round.answer} » (${pts(round.points || 0)})` : round.outcome === 'timeout' ? 'temps écoulé' : 'thème passé'}`;
       $('assign-search').value = '';
       $('assign-status').textContent = '';
       $('assign-confirm').disabled = true;
-      $('assign-confirm').textContent = 'Associer';
+      $('assign-confirm').textContent = replacing ? 'Remplacer' : 'Associer';
       const draw = () => {
         const q = $('assign-search').value.trim().toLowerCase();
         const shown = answers.filter((a) => !q || a.label.toLowerCase().includes(q)).slice(0, 80);
@@ -3860,7 +3866,7 @@
             item.firstChild.addEventListener('click', () => {
               chosen = a;
               $('assign-confirm').disabled = false;
-              $('assign-confirm').textContent = `Associer « ${a.label} »`;
+              $('assign-confirm').textContent = `${replacing ? 'Remplacer par' : 'Associer'} « ${a.label} »`;
               draw();
             });
             return item;
@@ -3879,7 +3885,11 @@
           const res = await api('/api/admin/assign', { day, username: player.username, themeId: round.themeId, answerKey: chosen.key });
           dialog.close();
           await openCompare(day, back);
-          showNotice(`« ${res.answer} » associée à ${player.username} : +${res.points} points.`);
+          showNotice(
+            res.previous
+              ? `« ${res.previous.answer} » remplacée par « ${res.answer} » pour ${player.username} : ${pts(res.previous.points)} → ${pts(res.points)}.`
+              : `« ${res.answer} » associée à ${player.username} : +${res.points} points.`,
+          );
         } catch (err) {
           $('assign-status').textContent = err.message;
           $('assign-confirm').disabled = false;
@@ -3945,7 +3955,7 @@
                 el('span', { class: 'who' }, avatarEl(p.avatar, 'head', 2), p.username),
                 el('span', { class: 'what' }, what),
                 el('span', { class: 'pts' }, r.outcome === 'joker' ? '—' : pts(r.points || 0)),
-                app.me && app.me.isAdmin && (r.outcome === 'timeout' || r.outcome === 'skip') ? assignButton(day, back, p, r, th) : null,
+                app.me && app.me.isAdmin && (r.outcome === 'timeout' || r.outcome === 'skip' || r.outcome === 'answer') ? assignButton(day, back, p, r, th) : null,
               ),
             );
             if (r.rid && r.outcome === 'answer' && (!p.me || Object.keys(r.reactions || {}).length)) list.append(reactionRow(r, p.me));

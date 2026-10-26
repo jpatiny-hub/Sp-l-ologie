@@ -975,19 +975,37 @@ class GameService {
       .prepare('SELECT * FROM rounds WHERE game_id = ? AND theme_id = ? AND answered_at IS NOT NULL')
       .get(game.id, String(themeId || ''));
     if (!round) throw new HttpError(404, 'Thème introuvable dans ce forage.');
-    if (round.outcome === 'answer') throw new HttpError(409, 'Ce thème a déjà une réponse valide.');
+    const replaced = round.outcome === 'answer';
+    if (replaced && round.answer_key === answerKey) throw new HttpError(409, 'Cette réponse est déjà celle du joueur.');
     const theme = this.themes.get(round.theme_id);
     const answer = theme && theme.answers.find((a) => a.key === answerKey);
     if (!answer) throw new HttpError(409, 'Choisis une réponse de ce thème.');
+    // Remplacement d'une réponse valide : on retire d'abord ses points et son décompte, puis on crédite la nouvelle réponse.
+    const previous = replaced ? { label: round.answer_label, key: round.answer_key, points: round.points || 0 } : null;
+    const undo = () => {
+      this.db.prepare('UPDATE games SET score = MAX(0, score - ?) WHERE id = ?').run(previous.points, game.id);
+      this.db.prepare('UPDATE answer_counts SET n = MAX(0, n - 1) WHERE theme_id = ? AND answer_key = ?').run(round.theme_id, previous.key);
+    };
+    const redo = () => {
+      this.db.prepare('UPDATE games SET score = score + ? WHERE id = ?').run(previous.points, game.id);
+      this.db
+        .prepare(
+          `INSERT INTO answer_counts (theme_id, answer_key, n) VALUES (?, ?, 1)
+           ON CONFLICT (theme_id, answer_key) DO UPDATE SET n = n + 1`,
+        )
+        .run(round.theme_id, previous.key);
+    };
+    if (replaced) undo();
     this.db.prepare('UPDATE rounds SET credited = 1 WHERE game_id = ? AND slot = ?').run(game.id, round.slot);
     let points;
     try {
       points = this.applyCredit(game.id, round.slot, theme, { answer }, answer.label);
     } catch (err) {
-      this.db.prepare('UPDATE rounds SET credited = 0 WHERE game_id = ? AND slot = ?').run(game.id, round.slot);
+      this.db.prepare('UPDATE rounds SET credited = ? WHERE game_id = ? AND slot = ?').run(round.credited || 0, game.id, round.slot);
+      if (replaced) redo();
       throw err;
     }
-    return { points, answer: answer.label, score: this.db.prepare('SELECT score FROM games WHERE id = ?').get(game.id).score };
+    return { points, answer: answer.label, previous: previous && { answer: previous.label, points: previous.points }, score: this.db.prepare('SELECT score FROM games WHERE id = ?').get(game.id).score };
   }
 
   /** Retour du responsable aux joueurs ayant signalé cette saisie : verdict et message (modifiable). */
