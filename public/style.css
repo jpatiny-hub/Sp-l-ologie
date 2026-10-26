@@ -1139,3 +1139,10 @@ dialog.drawer::backdrop { background: rgba(0, 0, 0, 0.62); }
 .collective-banner { display: flex; align-items: center; gap: 14px; }
 .collective-banner canvas { width: 49px; height: 42px; flex: none; image-rendering: pixelated; }
 .collective-banner strong { display: block; margin-bottom: 4px; font-family: 'Press Start 2P', monospace; font-size: calc(12px * var(--fs)); color: var(--accent, inherit); }
+
+/* Mode inversé (ébauche du responsable) : indices et historique des propositions. */
+.reverse-clues { margin: 8px 0; padding-left: 22px; display: flex; flex-direction: column; gap: 4px; }
+.reverse-guesses .report.reverse-juste strong { color: #7fcf5a; }
+.reverse-guesses .report.reverse-proche strong { color: #ffd84a; }
+.reverse-guesses .report.reverse-non strong { color: #e2553f; }
+#reverse-body .btn { margin-top: 8px; }
