@@ -18,6 +18,7 @@ const { AnnouncementService } = require('./src/announcements');
 const { museum } = require('./src/museum');
 const { feed } = require('./src/feed');
 const { seasonFor } = require('./src/specialdays');
+const { ReverseService } = require('./src/reverse');
 const { pendingRecap, markRecapSeen, weeklyRecap, periodRecap, pendingCelebrations, markCelebrationSeen, lastPeriod, periodStart, periodEnd, KINDS } = require('./src/recap');
 const { unseenNews, LATEST_NEWS_ID } = require('./src/news');
 
@@ -78,6 +79,7 @@ function createApp({
   autoValidateDuels = false,
 }) {
   const game = new GameService(db, themes, now, specialDays);
+  const reverse = new ReverseService(db, themes);
   // Validation des duels le lendemain à 2 h 30 : vérifiée toutes les 5 minutes, même sans visite.
   if (autoValidateDuels) setInterval(() => { try { game.duels.validateDue(); } catch (err) { console.error('Validation des duels impossible :', err.message); } }, 5 * 60 * 1000).unref();
   const announcements = new AnnouncementService(db, now);
@@ -611,6 +613,33 @@ function createApp({
       const { themeId, inputs } = await readJson(req);
       if (typeof themeId !== 'string' || !Array.isArray(inputs)) throw new HttpError(400, 'Thème ou saisies manquants.');
       json(res, 200, { results: game.probe(themeId, inputs.filter((x) => typeof x === 'string')) });
+    },
+
+    // Mode inversé (ébauche) : retrouver le thème à partir de réponses, de la plus rare à la plus évidente.
+    'GET /api/admin/reverse': async (req, res) => {
+      const user = requireAdmin(req, res);
+      json(res, 200, reverse.view(user.id));
+    },
+
+    'POST /api/admin/reverse/start': async (req, res) => {
+      const user = requireAdmin(req, res);
+      json(res, 200, reverse.start(user.id));
+    },
+
+    'POST /api/admin/reverse/guess': async (req, res) => {
+      const user = requireAdmin(req, res);
+      const { text } = await readJson(req);
+      json(res, 200, reverse.guess(user.id, text));
+    },
+
+    'POST /api/admin/reverse/giveup': async (req, res) => {
+      const user = requireAdmin(req, res);
+      json(res, 200, reverse.giveUp(user.id));
+    },
+
+    'POST /api/admin/reverse/next': async (req, res) => {
+      const user = requireAdmin(req, res);
+      json(res, 200, reverse.next(user.id));
     },
 
     'GET /api/admin/reports': async (req, res) => {

@@ -2178,6 +2178,7 @@
     loadInvite();
     loadUnknownAnswers();
     loadProbe();
+    loadReverse();
     loadAdminSuggestions();
     loadDashboard();
   }
@@ -2798,6 +2799,85 @@
       $('unknown-status').textContent = text;
     }
   });
+
+
+  // ---------- Mode inversé (ébauche, responsable du jeu) ----------
+  const VERDICTS = { juste: 'Juste !', proche: 'Proche', non: 'Non', incompris: 'Non compris', vague: 'Trop vague' };
+
+  async function loadReverse() {
+    const card = $('admin-reverse');
+    card.hidden = !(app.me && app.me.isAdmin);
+    if (card.hidden) return;
+    try {
+      renderReverse(await api('/api/admin/reverse'));
+    } catch (err) {
+      $('reverse-body').replaceChildren(el('p', { class: 'muted' }, err.message));
+    }
+  }
+
+  async function reverseAction(path, body) {
+    try {
+      renderReverse(await api(`/api/admin/reverse/${path}`, body || {}));
+    } catch (err) {
+      showNotice(err.message);
+    }
+  }
+
+  function renderReverse(state) {
+    const body = $('reverse-body');
+    const start = el('button', { class: 'btn', type: 'button' }, state.active ? 'Nouvelle partie' : 'Lancer une partie');
+    start.addEventListener('click', () => reverseAction('start'));
+    if (!state.active) return body.replaceChildren(start);
+    if (state.finished) {
+      return body.replaceChildren(el('p', {}, el('strong', {}, `Partie terminée : ${pts(state.score)} sur ${state.rounds * 100}.`)), start);
+    }
+    const over = state.status !== 'playing';
+    const parts = [
+      el('p', { class: 'muted small' }, `Manche ${state.round}/${state.rounds} · score ${pts(state.score)} · indice ${state.clues.length}/${state.cluesTotal}${over ? '' : ` · si tu trouves maintenant : ${pts(state.potential)}`}`),
+      el('ol', { class: 'reverse-clues' }, ...state.clues.map((c) => el('li', {}, el('strong', {}, c.label), el('span', { class: 'muted small' }, ` niveau ${c.level}`)))),
+    ];
+    if (state.guesses.length) {
+      parts.push(
+        el(
+          'ul',
+          { class: 'report-list reverse-guesses' },
+          ...state.guesses.map((g) =>
+            el(
+              'li',
+              { class: `report reverse-${g.verdict}` },
+              el('span', { class: 'what' }, el('strong', {}, `« ${g.text} » : ${VERDICTS[g.verdict] || g.verdict}`), el('span', { class: 'muted small' }, g.note)),
+              el(
+                'span',
+                { class: 'muted small' },
+                `Mots compris : ${g.words.length ? g.words.join(', ') : '—'}${g.candidates.length ? ` · thèmes proches : ${g.candidates.map((c) => `${c.title} (${c.score}${c.clues ? `, ${c.clues} indice${c.clues > 1 ? 's' : ''}` : ''})`).join(' ; ')}` : ''}`,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    if (over) {
+      parts.push(
+        el('p', {}, el('strong', {}, state.status === 'found' ? `Trouvé : +${pts(state.points)}.` : 'Raté : 0 point.'), ` Le thème était « ${state.theme} ».`),
+      );
+      const next = el('button', { class: 'btn', type: 'button' }, state.lastRound ? 'Voir le score' : 'Manche suivante');
+      next.addEventListener('click', () => reverseAction('next'));
+      parts.push(next);
+    } else {
+      const input = el('input', { type: 'text', maxlength: '200', autocomplete: 'off', placeholder: 'Mots-clés du thème (ex. « pokémon acier »)', 'aria-label': 'Mots-clés du thème' });
+      const form = el('form', { class: 'form' }, input, el('button', { class: 'btn', type: 'submit' }, 'Proposer'));
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (input.value.trim()) reverseAction('guess', { text: input.value });
+      });
+      const giveUp = el('button', { class: 'btn ghost', type: 'button' }, 'Abandonner cette manche');
+      giveUp.addEventListener('click', () => reverseAction('giveup'));
+      parts.push(form, giveUp);
+      setTimeout(() => input.focus(), 0);
+    }
+    parts.push(start);
+    body.replaceChildren(...parts);
+  }
 
   // ---------- Tester un thème (responsable du jeu) ----------
   async function loadProbe() {

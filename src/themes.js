@@ -21,9 +21,10 @@ const { LEVEL_WEIGHTS } = require('./scoring');
  */
 
 function parseTheme(id, text) {
-  const theme = { id, title: null, active: true, answers: [], index: new Map(), weightTotal: 0, warnings: [] };
+  const theme = { id, title: null, active: true, answers: [], index: new Map(), weightTotal: 0, warnings: [], notes: [] };
   text.split(/\r?\n/).forEach((raw, i) => {
     const line = raw.trim();
+    if (line.startsWith('#')) theme.notes.push(line.replace(/^#+\s*/, ''));
     if (!line || line.startsWith('#')) return;
     const m = line.match(/^([^:]+):(.*)$/);
     if (!m) throw new Error(`${id}.txt ligne ${i + 1} : format non reconnu`);
