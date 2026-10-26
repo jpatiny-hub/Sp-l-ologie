@@ -28,6 +28,10 @@
       <button class="icon-btn" id="btn-sound" type="button" aria-pressed="true" aria-label="Couper le son" title="Son">
         <svg viewBox="0 0 12 12" aria-hidden="true"><path class="on" d="M1 4h2v4H1zM3 3h1v6H3zM4 2h1v8H4zM5 1h1v10H5zM8 3h1v1H8zM9 4h1v4H9zM8 8h1v1H8zM10 2h1v1h-1zM11 3h1v6h-1zM10 9h1v1h-1z"/><path class="off" d="M1 4h2v4H1zM3 3h1v6H3zM4 2h1v8H4zM5 1h1v10H5zM8 4h1v1H8zM9 5h1v2H9zM10 4h1v1h-1zM10 7h1v1h-1zM8 7h1v1H8z"/></svg>
       </button>
+      <button class="icon-btn msg-btn" id="btn-messages" type="button" aria-label="Messages" title="Messages" hidden>
+        <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M0 2h12v8H0z"/><path class="hole" d="M1 3h1v1H1zM2 4h1v1H2zM3 5h1v1H3zM4 6h1v1H4zM5 6h2v1H5zM7 6h1v1H7zM8 5h1v1H8zM9 4h1v1H9zM10 3h1v1h-1z"/></svg>
+        <span class="tab-dot" id="msg-dot" hidden></span>
+      </button>
       <button class="icon-btn" id="btn-invite" data-invite type="button" aria-label="Inviter des amis : partager le lien du jeu" title="Inviter des amis" hidden>
         <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M9 0h3v3H9zM0 4h3v3H0zM9 9h3v3H9zM3 5h1v1H3zM4 4h2v1H4zM6 3h2v1H6zM8 2h1v1H8zM3 6h1v1H3zM4 7h2v1H4zM6 8h2v1H6zM8 9h1v1H8z"/></svg>
       </button>
@@ -371,6 +375,38 @@
         <article class="gazette" id="recap-gazette" hidden></article>
       </div>
 
+      <!-- Messagerie entre joueurs -->
+      <div class="view" id="view-messages" hidden>
+        <button class="btn ghost back-btn" id="btn-messages-home" type="button">◀ Retour à l'accueil</button>
+        <div class="card" id="msg-list-pane">
+          <h2>Messages</h2>
+          <form class="form" id="form-msg-new">
+            <label>Nouveau message à
+              <input id="msg-new-to" list="msg-people" autocomplete="off" placeholder="Pseudo du joueur…" aria-label="Pseudo du joueur">
+            </label>
+            <datalist id="msg-people"></datalist>
+            <button class="btn secondary" type="submit">Écrire</button>
+          </form>
+          <p class="muted small" id="msg-status" role="status"></p>
+          <ul class="msg-conversations" id="msg-conversations"></ul>
+        </div>
+        <div class="card" id="msg-thread-pane" hidden>
+          <div class="msg-head">
+            <button class="btn ghost" id="btn-msg-back" type="button">◀ Conversations</button>
+            <h2 id="msg-with"></h2>
+            <button class="link" id="btn-msg-block" type="button"></button>
+          </div>
+          <ul class="msg-thread" id="msg-thread"></ul>
+          <form class="form" id="form-msg-send">
+            <label class="sr-only" for="msg-input">Ton message</label>
+            <textarea id="msg-input" rows="3" maxlength="500" placeholder="Ton message (500 caractères au plus)"></textarea>
+            <button class="btn" type="submit">Envoyer</button>
+          </form>
+          <p class="muted small" id="msg-thread-status" role="status"></p>
+          <p class="muted small">Messages privés, effacés après 90 jours. Un message reçu qui te dérange peut être signalé au responsable du jeu.</p>
+        </div>
+      </div>
+
       <!-- Duel : attente ou révélation du résultat -->
       <div class="view" id="view-duel" hidden>
         <div class="card" id="duel-wait" hidden>
@@ -684,6 +720,11 @@
           </form>
           <p class="muted small" id="probe-status" role="status"></p>
           <ul class="report-list" id="probe-list"></ul>
+        </details>
+        <details class="card fold" data-fold="messages-signales" id="admin-msg-reports" hidden>
+          <summary><span class="fold-t"><h2>Messages signalés</h2><span class="sub">messagerie entre joueurs</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <p class="muted small" id="msg-reports-status" role="status"></p>
+          <ul class="report-list" id="msg-reports-list"></ul>
         </details>
         <details class="card fold" data-fold="inverse" id="admin-reverse" hidden>
           <summary><span class="fold-t"><h2>Mode inversé</h2><span class="sub">ébauche : retrouver le thème à partir de réponses</span></span><span class="pm" aria-hidden="true"></span></summary>

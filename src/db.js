@@ -197,6 +197,32 @@ CREATE TABLE IF NOT EXISTS announcements (
   removed_at INTEGER
 );
 
+-- Messagerie entre joueurs : messages privés, joueurs bloqués et messages signalés au responsable.
+CREATE TABLE IF NOT EXISTS messages (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  sender_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  recipient_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  body         TEXT NOT NULL,
+  created_at   INTEGER NOT NULL,
+  read_at      INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_messages_pair ON messages(sender_id, recipient_id, id);
+CREATE INDEX IF NOT EXISTS idx_messages_recipient ON messages(recipient_id, read_at);
+
+CREATE TABLE IF NOT EXISTS message_blocks (
+  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  blocked_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  PRIMARY KEY (user_id, blocked_id)
+);
+
+CREATE TABLE IF NOT EXISTS message_reports (
+  message_id  INTEGER NOT NULL,
+  reporter_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at  INTEGER NOT NULL,
+  handled_at  INTEGER,
+  PRIMARY KEY (message_id, reporter_id)
+);
+
 -- Podiums (jour, semaine, mois) déjà montrés à chaque joueur.
 CREATE TABLE IF NOT EXISTS celebrations_seen (
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,

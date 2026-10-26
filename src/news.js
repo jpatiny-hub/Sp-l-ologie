@@ -153,6 +153,23 @@ const NEWS = [
       "Nouveaux thèmes : plus de 150 filons viennent d'être ouverts. Un grand merci aux mineurs qui ont proposé des thèmes : continuez à les envoyer, la galerie n'a pas de fond !",
     ],
   },
+  {
+    id: 10,
+    date: '2026-10-27',
+    title: 'Messagerie entre mineurs',
+    highlights: [
+      { icon: 'coeur', text: 'Une messagerie pour écrire à un autre joueur (enveloppe en haut de l\'écran)' },
+      { icon: 'galerie', text: 'Récapitulatif du jour plus lisible : un thème par ligne, à déplier pour voir les autres joueurs' },
+      { icon: 'horloge', text: 'Chrono à zéro : plus de galerie de secours proposée, on passe directement au thème suivant' },
+      { icon: 'sabre', text: 'Jusqu\'à 5 duels en parallèle, et revanche possible dès que le contremaître vérifie' },
+    ],
+    items: [
+      "Messagerie : clique sur l'enveloppe en haut de l'écran pour écrire à un autre joueur. Un point rouge indique les messages non lus. Les messages sont privés et effacés après 90 jours ; tu peux bloquer un joueur ou signaler un message qui te dérange au responsable du jeu.",
+      "Récapitulatif du jour : les thèmes sont en liste, avec ta réponse et ton score ; touche un thème pour voir les réponses de tous les autres joueurs.",
+      "Duels : tu peux maintenant avoir 5 duels en cours en même temps. Quand un duel est terminé des deux côtés et que le contremaître le vérifie, tu peux déjà défier de nouveau le même joueur.",
+      "Chrono : quand le décompte arrive à zéro, la galerie de secours n'est plus proposée (elle obligeait à revenir en arrière) ; le thème est simplement noté « temps écoulé ».",
+    ],
+  },
 ];
 
 const LATEST_NEWS_ID = NEWS[NEWS.length - 1].id;
