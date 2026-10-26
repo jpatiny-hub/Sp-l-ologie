@@ -1,4 +1,4 @@
 titre: Une ville ou commune de Belgique de plus de 50 000 habitants
 1: Bruxelles = Brussel; Anvers = Antwerpen = Antwerp; Gand = Gent = Ghent; Charleroi; Liège = Luik; Bruges = Brugge; Namur = Namen; Louvain = Leuven; Mons = Bergen
 2: Schaerbeek = Schaarbeek; Anderlecht; Molenbeek-Saint-Jean = Molenbeek = Sint-Jans-Molenbeek; Ixelles = Elsene; Malines = Mechelen; Alost = Aalst; La Louvière; Uccle = Ukkel; Hasselt; Courtrai = Kortrijk; Saint-Nicolas = Sint-Niklaas; Ostende = Oostende; Tournai = Doornik; Genk; Seraing; Roulers = Roeselare; Forest = Vorst; Mouscron = Moeskroen; Verviers; Jette; Woluwe-Saint-Lambert = Sint-Lambrechts-Woluwe
-4: Saint-Gilles = Sint-Gillis
+4: Lokeren; Beveren-Kruibeke-Zwijndrecht = Beveren = Kruibeke = Zwijndrecht
