@@ -16,7 +16,7 @@ const Avatar = require('./avatar');
  * Deux modes : « standard » (30 secondes par thème) et « à l'aise » (sans chrono).
  */
 const DUEL_TTL_MS = 4 * 24 * 3600 * 1000;
-const MAX_OPEN = 3;
+const MAX_OPEN = 5;
 const MODES = ['standard', 'aise'];
 
 class DuelService {

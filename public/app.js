@@ -1197,7 +1197,8 @@
       $('timer').classList.toggle('last', left > 0 && left <= 5000);
       if (left <= 0) {
         stopTimer();
-        skipRound();
+        // Chrono écoulé : pas de galerie de secours, la manche se clôt et le joueur passe à la suite.
+        skipRound({ expired: true });
       }
     };
     tick();
@@ -1361,10 +1362,14 @@
     });
   }
 
-  async function skipRound() {
+  async function skipRound({ expired = false } = {}) {
+    if (expired) {
+      const dialog = $('gallery-dialog');
+      if (dialog.open) dialog.close();
+    }
     if (app.busy || !app.game) return;
     // Joker : un thème par partie peut être changé gratuitement ; au-delà, passer coûte le thème.
-    if (app.game.joker && app.game.joker.available && !(await askGallery())) return;
+    if (!expired && app.game.joker && app.game.joker.available && !(await askGallery())) return;
     app.busy = true;
     stopTimer();
     clearPending();
