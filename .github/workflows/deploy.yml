@@ -52,6 +52,9 @@ jobs:
 
       # Each release lands in its own folder and `current` switches over in one move: the running
       # game never sees a half-copied tree, and the previous two releases stay for a rollback.
+      # After the restart the game must answer /api/health within 40 s; otherwise `current` goes
+      # back to the previous release and the run fails. (The game also copies the database to
+      # `backups/` just before it starts, before any migration of the new version.)
       - name: Deploy
         env:
           BASE: ${{ secrets.SPELEO_DEPLOY_PATH }}
@@ -60,11 +63,37 @@ jobs:
           RELEASE="$BASE/releases/$GITHUB_SHA"
           tar -czf - package.json server.js src public data scripts | ssh server "
             set -e
+            PREV=\$(readlink -f '$BASE/current' || true)
             rm -rf '$RELEASE' && mkdir -p '$RELEASE'
             tar -xzf - -C '$RELEASE'
             ln -sfn '$RELEASE' '$BASE/current.new'
             mv -Tf '$BASE/current.new' '$BASE/current'
             sudo systemctl restart speleologie
+            ENVIRONMENT=\$(systemctl show speleologie -p Environment --value 2>/dev/null || true)
+            PORT=\$(echo \"\$ENVIRONMENT\" | tr ' ' '\\n' | sed -n 's/^PORT=//p' | head -1)
+            HOST=\$(echo \"\$ENVIRONMENT\" | tr ' ' '\\n' | sed -n 's/^HOST=//p' | head -1)
+            healthy() {
+              systemctl is-active --quiet speleologie || return 1
+              [ -n \"\$PORT\" ] || return 0
+              URL=\"http://\${HOST:-127.0.0.1}:\$PORT/api/health\"
+              if command -v curl >/dev/null 2>&1; then curl -fsS -m 5 \"\$URL\" >/dev/null
+              elif command -v node >/dev/null 2>&1; then node -e \"fetch(process.argv[1]).then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))\" \"\$URL\"
+              fi
+            }
+            ok=0
+            for i in \$(seq 1 20); do
+              sleep 2
+              if healthy; then ok=1; break; fi
+            done
+            if [ \"\$ok\" != 1 ]; then
+              echo 'The game does not answer after the update: going back to the previous release.' >&2
+              if [ -n \"\$PREV\" ] && [ -d \"\$PREV\" ]; then
+                ln -sfn \"\$PREV\" '$BASE/current.new'
+                mv -Tf '$BASE/current.new' '$BASE/current'
+                sudo systemctl restart speleologie
+              fi
+              exit 1
+            fi
             ls -1dt '$BASE'/releases/* | tail -n +4 | xargs -r rm -rf"
 
       - name: Close SSH port

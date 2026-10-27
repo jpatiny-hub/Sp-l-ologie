@@ -116,6 +116,7 @@
         <div class="choices">
           <label><input type="radio" name="theme" value="sombre"> Sombre</label>
           <label><input type="radio" name="theme" value="clair"> Clair</label>
+          <label><input type="radio" name="theme" value="auto"> Comme mon appareil</label>
         </div>
         <label class="check"><input type="checkbox" name="season"> Décors de saison (Halloween…)</label>
       </fieldset>
@@ -128,6 +129,18 @@
           <label><input type="radio" name="colors" value="gris"> Niveaux de gris (achromatopsie)</label>
         </div>
         <p class="hint">Dans les modes daltoniens, chaque niveau de rareté a aussi son propre symbole : la couleur n'est jamais la seule information.</p>
+      </fieldset>
+      <fieldset id="beta-box" hidden>
+        <legend>Version bêta (contremaître)</legend>
+        <p class="hint">Des nouveautés à l'essai, visibles seulement pour toi : les autres joueurs ne les voient pas.</p>
+        <label class="check"><input type="checkbox" name="betaKeys"> Clavier : flèches, Entrée, O / N dans les propositions, « ? » pour l'aide</label>
+        <label class="check"><input type="checkbox" name="betaHints"> Retours précis quand une réponse est refusée</label>
+        <label class="check"><input type="checkbox" name="betaSkin"> Accueil chaleureux (aperçu du nouveau look)</label>
+        <label class="check"><input type="checkbox" name="betaMascot"> Mascotte : une petite taupe mineuse</label>
+        <label class="check"><input type="checkbox" name="betaNav"> Barre de navigation en bas (téléphone)</label>
+        <label class="check"><input type="checkbox" name="betaFx"> Étincelles, flamme et ambiance de mine</label>
+        <label class="check"><input type="checkbox" name="betaSocial"> La vie de la mine sur l'accueil</label>
+        <label class="check"><input type="checkbox" name="betaWarm"> Textes plus chaleureux</label>
       </fieldset>
       <fieldset id="share-box">
         <legend>Inviter des amis</legend>
@@ -148,12 +161,33 @@
     </form>
   </dialog>
 
+  <dialog class="card decide" id="decide-dialog" aria-labelledby="decide-title">
+    <div class="decide-head">
+      <h2 id="decide-title">Décider</h2>
+      <span class="muted" id="decide-count"></span>
+      <button class="btn ghost small-btn" id="decide-close" type="button" aria-label="Fermer">✕</button>
+    </div>
+    <div id="decide-body"></div>
+    <p class="hint">Raccourcis : <kbd>A</kbd> accepter · <kbd>R</kbd> refuser · <kbd>S</kbd> plus tard · <kbd>Échap</kbd> fermer</p>
+  </dialog>
+
   <div class="update-banner" id="update-banner" role="status" hidden>
     <span>Une nouvelle version du jeu est disponible.</span>
     <button class="btn small-btn" id="btn-reload" type="button">Recharger</button>
   </div>
+  <div class="update-banner conn-banner" id="conn-banner" role="status" hidden>
+    <span id="conn-text">Connexion difficile : on réessaie…</span>
+  </div>
   <p class="notice" id="notice" role="alert" hidden></p>
 
+  <div class="fx-layer" id="fx-layer" aria-hidden="true"></div>
+  <nav class="bottom-nav" id="bottom-nav" aria-label="Navigation" hidden>
+    <button type="button" data-nav="home"><span class="nav-ico" aria-hidden="true">🏠</span><span>Accueil</span></button>
+    <button type="button" data-nav="play"><span class="nav-ico" aria-hidden="true">⛏️</span><span>Jouer</span></button>
+    <button type="button" data-nav="podium"><span class="nav-ico" aria-hidden="true">🏆</span><span>Podium</span></button>
+    <button type="button" data-nav="messages"><span class="nav-ico" aria-hidden="true">✉️</span><span>Messages</span><span class="tab-dot" id="nav-dot" hidden></span></button>
+    <button type="button" data-nav="profile"><span class="nav-ico" aria-hidden="true">👤</span><span>Profil</span></button>
+  </nav>
   <button class="drawer-tab" id="drawer-tab" type="button" aria-haspopup="dialog" aria-controls="drawer" hidden><span>Plus</span><span class="tab-dot" id="drawer-dot" hidden></span></button>
   <dialog class="drawer" id="drawer" aria-label="Plus">
     <div class="drawer-frame">
@@ -277,6 +311,24 @@
         </div>
         <button class="card report-banner collective-banner" id="collective-banner" type="button" hidden><canvas id="collective-banner-icon" width="7" height="6" aria-hidden="true"></canvas><span><strong>Diamant atteint !</strong><span id="collective-banner-text"></span></span></button>
         <button class="card report-banner" id="report-banner" type="button" hidden>📬 Tu as une réponse à un de tes signalements</button>
+        <div class="card beta-hello" id="beta-hello" hidden>
+          <div class="beta-hello-row">
+            <div class="beta-hello-text">
+              <p class="beta-greet" id="beta-greet"></p>
+              <p class="beta-sub" id="beta-sub"></p>
+              <div class="beta-dots" id="beta-dots" role="img" aria-label="Avancement du forage du jour"></div>
+            </div>
+            <div class="beta-mascot" id="beta-mascot" aria-hidden="true">
+              <canvas id="mascot-open" width="16" height="16"></canvas>
+              <canvas id="mascot-blink" width="16" height="16"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="card beta-social" id="beta-social" hidden>
+          <h2>Dans la mine aujourd'hui</h2>
+          <p id="beta-social-text"></p>
+          <ul class="beta-social-list" id="beta-social-list"></ul>
+        </div>
         <div class="card profile-card">
           <div class="home-profile">
             <div id="home-avatar" aria-hidden="true"></div>
@@ -644,6 +696,20 @@
           <h2>Contre maître</h2>
           <p class="muted small">Réservé au responsable du jeu : réponses signalées, thèmes proposés et tableau de bord.</p>
         </div>
+        <details class="card fold" data-fold="sante" id="admin-health" hidden>
+          <summary><span class="fold-t"><h2>Santé du jeu</h2><span class="sub" id="health-sub">sauvegardes, erreurs, version</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <p class="health-state" id="health-state" role="status"></p>
+          <ul class="report-list" id="health-facts"></ul>
+          <h3>Sauvegardes de la base</h3>
+          <ul class="report-list" id="health-backups"></ul>
+          <h3>Erreurs récentes</h3>
+          <ul class="report-list" id="health-errors"></ul>
+          <div class="row">
+            <button class="btn secondary" id="btn-health-backup" type="button">Sauvegarder maintenant</button>
+            <button class="btn secondary" id="btn-health-copy" type="button">Copier le rapport</button>
+            <button class="btn ghost" id="btn-health-clear" type="button">Vider le journal</button>
+          </div>
+        </details>
         <details class="card fold" data-fold="annonces" id="admin-announcements" hidden>
           <summary><span class="fold-t"><h2>Annonces</h2><span class="sub">un message à tous les joueurs</span></span><span class="pm" aria-hidden="true"></span></summary>
           <form id="form-announce" class="form">
@@ -679,6 +745,7 @@
             <button class="tab active" data-reports="pending" type="button" role="tab">À traiter <span id="count-pending"></span></button>
             <button class="tab" data-reports="done" type="button" role="tab">Traités <span id="count-done"></span></button>
           </div>
+          <button class="btn" id="btn-decide" type="button">Décider un par un</button>
           <button class="btn secondary" id="btn-copy-reports" type="button">Copier les signalements à traiter</button>
           <p class="muted small" id="reports-status" role="status"></p>
           <ul class="report-list" id="report-list"></ul>

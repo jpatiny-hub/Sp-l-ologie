@@ -9,7 +9,7 @@ const { DuelService } = require('./duels');
 const { SkullService } = require('./skulls');
 const { loadSpecialDays } = require('./specialdays');
 const config = require('./config');
-const { matchAnswer, toKey, editDistance } = require('./matching');
+const { matchAnswer, toKey, editDistance, nearAnswers } = require('./matching');
 const { scoreAnswer, probabilities, pointsFor, tierFor } = require('./scoring');
 const { BadgeService } = require('./badges');
 const { usernameKey } = require('./auth');
@@ -609,7 +609,7 @@ class GameService {
    * le jeu propose la réponse reconnue (`confirm`) : le joueur la renvoie dans `accept` pour valider,
    * ou envoie `reject` pour la refuser et tenter autre chose.
    */
-  answer(gameId, userId, text, { accept = null, reject = false } = {}) {
+  answer(gameId, userId, text, { accept = null, reject = false, hints = false } = {}) {
     const input = typeof text === 'string' ? text.trim().slice(0, 80) : '';
     if (!input) throw new HttpError(400, 'Réponse vide.');
     const { game, round } = this.activeRound(gameId, userId);
@@ -628,7 +628,7 @@ class GameService {
     const match = theme ? matchAnswer(theme, input) : null;
     if (!match || (match.approximate && reject)) {
       if (game.mode === 'daily' && theme) this.recordUnknown(theme.id, input);
-      return { result: 'unknown', input, state: this.state(gameId, userId) };
+      return { result: 'unknown', input, state: this.state(gameId, userId), ...(hints && theme ? { hint: this.hintFor(theme, input) } : {}) };
     }
     if (match.approximate && accept !== match.answer.label) {
       return { result: 'confirm', input, suggestion: match.answer.label, state: this.state(gameId, userId) };
@@ -646,6 +646,22 @@ class GameService {
       probability: score.probability,
     });
     return resultFor('ok');
+  }
+
+  /**
+   * Retour précis sur une réponse refusée (version bêta du responsable) : sans jamais nommer la bonne réponse, dit si la saisie
+   * est trop courte, presque juste, partielle, ou si elle existe dans un autre thème.
+   */
+  hintFor(theme, input) {
+    const key = toKey(input);
+    if (key.length < 3) return { kind: 'court', text: 'Trop court : donne au moins trois lettres.' };
+    const near = nearAnswers(theme, input, 1)[0];
+    if (near && near.score >= 0.8) return { kind: 'presque', text: 'Tu y es presque : vérifie l\'orthographe ou donne le nom complet.' };
+    if (near) return { kind: 'partiel', text: 'Ta réponse ressemble à quelque chose d\'attendu ici : essaie d\'être plus précis ou de donner le nom complet.' };
+    for (const other of this.themes.values()) {
+      if (other.id !== theme.id && other.index.has(key)) return { kind: 'ailleurs', text: 'Cette réponse existe, mais pas pour ce thème-ci.' };
+    }
+    return { kind: 'aucune', text: 'Rien ne ressemble à ça dans ce thème. Relis la consigne et cherche une autre piste.' };
   }
 
   /**
@@ -780,6 +796,8 @@ class GameService {
         credited: r.credited || 0,
         // Réponse reconnue par le thème aujourd'hui (peut être ajoutée depuis, ou une approximation d'une autre réponse).
         inTheme: match ? match.answer.label : null,
+        // Réponses du thème qui y ressemblent, pour aider le responsable à choisir la réponse visée.
+        near: theme && !match && r.pending ? nearAnswers(theme, r.input, 3).map((n) => n.label) : [],
         reply: (this.db.prepare('SELECT verdict, message FROM answer_reports WHERE theme_id = ? AND input_key = ? AND verdict IS NOT NULL ORDER BY updated_at DESC LIMIT 1').get(r.theme_id, r.input_key)) || null,
         status: r.pending ? 'pending' : 'handled',
       };
