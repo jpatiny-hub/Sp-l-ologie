@@ -968,7 +968,7 @@
     const nav = $('bottom-nav');
     if (!nav) return;
     const view = app.view;
-    const hiddenViews = ['auth', 'game', 'results', 'recap', 'duel'];
+    const hiddenViews = ['auth', 'game', 'recap', 'duel'];
     nav.hidden = !((betaOn('betaNav') || betaOn('betaHome')) && app.me && view && !hiddenViews.includes(view));
     nav.querySelectorAll('button').forEach((b) => b.classList.toggle('active', (b.dataset.nav === 'home' && view === 'home') || (b.dataset.nav === 'podium' && view === 'podium') || (b.dataset.nav === 'messages' && view === 'messages') || (b.dataset.nav === 'mine' && view === 'museum') || (b.dataset.nav === 'admin' && view === 'admin') || (b.dataset.nav === 'profile' && view === 'profile')));
     nav.querySelector('[data-nav="admin"]').hidden = !(app.me && app.me.isAdmin);
