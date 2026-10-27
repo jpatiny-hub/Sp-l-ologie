@@ -1307,7 +1307,7 @@ kbd { padding: 0 6px; border: 2px solid var(--line); background: var(--well); fo
 
 :root[data-beta-fx] #pane-feedback { position: relative; }
 .sparks { position: absolute; left: 50%; top: 28%; width: 0; height: 0; pointer-events: none; }
-.spark { position: absolute; width: 6px; height: 6px; background: var(--c); box-shadow: 0 0 6px var(--c); animation: spark 0.95s ease-out forwards; }
+.spark { position: absolute; width: 8px; height: 8px; background: var(--c); box-shadow: 0 0 6px var(--c); animation: spark 0.95s ease-out forwards; }
 @keyframes spark { from { transform: translate(0, 0) scale(1); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; } }
 .feedback-points.pop { animation: points-pop 0.5s ease-out; }
 @keyframes points-pop { 0% { transform: scale(0.5); opacity: 0; } 60% { transform: scale(1.25); opacity: 1; } 100% { transform: scale(1); } }
