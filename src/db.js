@@ -262,6 +262,8 @@ const MIGRATIONS = [
   ['users', 'skin_bit', 'TEXT'],
   ['users', 'skin_timer', 'TEXT'],
   ['users', 'news_seen', 'INTEGER NOT NULL DEFAULT 0'],
+  // Petit tutoriel affiché une fois à chaque joueur : à la première connexion pour les nouveaux comptes, et à la première ouverture après la mise en ligne pour les comptes existants.
+  ['users', 'tutorial_seen', 'INTEGER NOT NULL DEFAULT 0'],
   // Avatar (JSON des choix) et date du dernier changement de pseudo (un changement par semaine).
   ['users', 'avatar', 'TEXT'],
   ['users', 'username_changed_at', 'INTEGER'],

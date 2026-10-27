@@ -389,7 +389,7 @@ function createApp({
       const user = currentUser(req, res);
       if (!user) return json(res, 200, { user: null });
       game.badges.awardPodiums(game.today());
-      const row = db.prepare('SELECT skin_body, skin_bit, skin_timer, news_seen, avatar FROM users WHERE id = ?').get(user.id);
+      const row = db.prepare('SELECT skin_body, skin_bit, skin_timer, news_seen, avatar, tutorial_seen FROM users WHERE id = ?').get(user.id);
       json(res, 200, {
         user: userView(user),
         isAdmin: isAdmin(user),
@@ -397,6 +397,7 @@ function createApp({
         avatar: Avatar.normalize(row.avatar, user.id),
         unseenBadges: game.badges.unseenCount(user.id),
         news: unseenNews(row.news_seen),
+        tutorialSeen: !!row.tutorial_seen,
         today: game.todaySummary(user.id),
         streak: game.badges.homeSummary(user.id, game.today()),
         collective: collectiveStatus(db, game.today(), user.id),
@@ -557,6 +558,14 @@ function createApp({
     },
 
     // Le joueur a lu les notes de mise à jour (jusqu'à la note `id` comprise).
+    // Petit tutoriel de la première connexion : vu (ou passé).
+    'POST /api/tutorial/seen': async (req, res) => {
+      const user = requireUser(req, res);
+      await readJson(req);
+      db.prepare('UPDATE users SET tutorial_seen = 1 WHERE id = ?').run(user.id);
+      json(res, 200, { ok: true });
+    },
+
     'POST /api/news/seen': async (req, res) => {
       const user = requireUser(req, res);
       const { id } = await readJson(req);
