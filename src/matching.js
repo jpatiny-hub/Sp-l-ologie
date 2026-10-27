@@ -318,4 +318,45 @@ function matchAnswer(theme, input) {
   return best ? { answer: best, distance: bestDistance, approximate: true, via: 'faute de frappe' } : keywordMatch(theme, normalizeWords(input, true));
 }
 
-module.exports = { normalizeWords, toKey, numberKey, maxEdits, editDistance, matchAnswer };
+/**
+ * Réponses du thème qui ressemblent à une saisie refusée (inclusion, faute plus large que la tolérance du jeu, mots en commun).
+ * Sert au responsable (suggestions dans les signalements) et aux indices de la version bêta ; ne décide jamais d'un point.
+ */
+function nearAnswers(theme, input, limit = 3) {
+  const key = toKey(input);
+  if (key.length < 3) return [];
+  const wanted = keywords(normalizeWords(input, true)).filter((w) => w.length >= 4);
+  const best = new Map();
+  const consider = (answer, score) => {
+    if (score > (best.get(answer) || 0)) best.set(answer, score);
+  };
+  for (const [candidate, answer] of theme.index) {
+    if (candidate === key) continue;
+    const shorter = Math.min(candidate.length, key.length);
+    const longer = Math.max(candidate.length, key.length);
+    if (shorter >= 4 && (candidate.includes(key) || key.includes(candidate))) consider(answer, 0.6 + 0.35 * (shorter / longer));
+    if (shorter >= 5) {
+      const max = Math.ceil(shorter * 0.34);
+      if (Math.abs(candidate.length - key.length) <= max) {
+        const d = editDistance(key, candidate, max);
+        if (d <= max) consider(answer, 1 - d / longer);
+      }
+    }
+  }
+  if (wanted.length) {
+    for (const answer of theme.answers) {
+      for (const name of answer.names || [answer.label]) {
+        const have = keywords(normalizeWords(name, true));
+        const shared = wanted.filter((w) => have.some((k) => sameKeyword(w, k))).length;
+        if (shared) consider(answer, 0.5 * (shared / Math.max(wanted.length, have.length)) + 0.2);
+      }
+    }
+  }
+  return [...best.entries()]
+    .filter(([, score]) => score >= 0.45)
+    .sort((a, b) => b[1] - a[1] || a[0].level - b[0].level)
+    .slice(0, limit)
+    .map(([answer, score]) => ({ label: answer.label, key: answer.key, score: Math.round(score * 100) / 100 }));
+}
+
+module.exports = { normalizeWords, toKey, numberKey, maxEdits, editDistance, matchAnswer, nearAnswers };

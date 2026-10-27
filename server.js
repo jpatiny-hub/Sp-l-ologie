@@ -13,7 +13,8 @@ const { msUntilNextDay, isDay, addDays: addDaysIso, weekStart: weekStartIso } = 
 const auth = require('./src/auth');
 const Avatar = require('./src/avatar');
 const { collectiveStatus } = require('./src/collective');
-const { scheduleBackups } = require('./src/backup');
+const { scheduleBackups, snapshotBeforeStart, backupNow } = require('./src/backup');
+const { ErrorLog, healthReport } = require('./src/health');
 const { AnnouncementService } = require('./src/announcements');
 const { museum } = require('./src/museum');
 const { feed } = require('./src/feed');
@@ -78,7 +79,9 @@ function createApp({
   specialDays = undefined,
   seasons = config.SEASONS,
   autoValidateDuels = false,
+  errors = new ErrorLog(db, now),
 }) {
+  const startedAt = now();
   const game = new GameService(db, themes, now, specialDays);
   const reverse = new ReverseService(db, themes);
   const messages = new MessageService(db, now);
@@ -89,6 +92,7 @@ function createApp({
   const loginLimiter = new auth.RateLimiter(10, 15 * 60 * 1000);
   const signupLimiter = new auth.RateLimiter(10, 60 * 60 * 1000);
   const inviteLimiter = new auth.RateLimiter(10, 60 * 60 * 1000);
+  const clientErrorLimiter = new auth.RateLimiter(20, 60 * 60 * 1000);
 
   /** Code d'invitation demandé à l'inscription (aucun : l'inscription reste libre). */
   function inviteCode() {
@@ -332,6 +336,47 @@ function createApp({
       db.prepare('UPDATE users SET password_hash = ?, recovery_hash = ? WHERE id = ?').run(passwordHash, recoveryHash, user.id);
       db.prepare('DELETE FROM sessions WHERE user_id = ?').run(user.id);
       json(res, 200, { user: userView(user), recoveryCode: nextCode }, { 'Set-Cookie': createSession(user.id) });
+    },
+
+    // Erreur survenue dans le navigateur d'un joueur (écran blanc, bouton sans effet…) : notée dans le journal du responsable.
+    'POST /api/client-error': async (req, res) => {
+      const ip = clientIp(req);
+      if (clientErrorLimiter.blocked(ip, now())) return json(res, 200, { ok: false });
+      clientErrorLimiter.fail(ip, now());
+      const user = currentUser(req, res);
+      const { message, detail, view } = await readJson(req);
+      errors.record('navigateur', typeof message === 'string' ? message : 'Erreur inconnue', {
+        detail: typeof detail === 'string' ? detail : null,
+        path: typeof view === 'string' ? view : null,
+        userId: user ? user.id : null,
+      });
+      json(res, 200, { ok: true });
+    },
+
+    // Santé du jeu, pour le responsable : version, base, sauvegardes, erreurs récentes.
+    'GET /api/admin/health': async (req, res) => {
+      requireAdmin(req, res);
+      json(res, 200, { ...healthReport(db, { errors, version, startedAt, now }), release: path.basename(__dirname) });
+    },
+
+    // Sauvegarde supplémentaire de la base, à la demande.
+    'POST /api/admin/backup': async (req, res) => {
+      requireAdmin(req, res);
+      await readJson(req);
+      try {
+        const file = backupNow(db, { now });
+        json(res, 200, { ok: true, name: file ? path.basename(file) : null });
+      } catch (err) {
+        errors.record('processus', `Sauvegarde manuelle impossible : ${err.message}`);
+        throw new HttpError(500, 'La sauvegarde a échoué : voir le journal des erreurs.');
+      }
+    },
+
+    'POST /api/admin/errors/clear': async (req, res) => {
+      requireAdmin(req, res);
+      await readJson(req);
+      errors.clear();
+      json(res, 200, { ok: true });
     },
 
     // Vérification de bon fonctionnement utilisée par l'hébergeur.
@@ -591,7 +636,8 @@ function createApp({
     'POST /api/game/:id/answer': async (req, res, id) => {
       const user = requireUser(req, res);
       const { text, accept, reject } = await readJson(req);
-      json(res, 200, game.answer(id, user.id, text, { accept: typeof accept === 'string' ? accept : null, reject: reject === true }));
+      // Retours précis sur les réponses refusées : version bêta, réservée au responsable pour l'instant.
+      json(res, 200, game.answer(id, user.id, text, { accept: typeof accept === 'string' ? accept : null, reject: reject === true, hints: isAdmin(user) }));
     },
 
     'POST /api/game/:id/skip': async (req, res, id) => {
@@ -852,6 +898,7 @@ function createApp({
     } catch (err) {
       if (err instanceof HttpError) return json(res, err.status, { error: err.message });
       console.error(err);
+      errors.record('serveur', err && err.message, { detail: err && err.stack, path: `${req.method} ${url.pathname}` });
       json(res, 500, { error: 'Erreur interne du serveur.' });
     }
   };
@@ -868,9 +915,28 @@ function main() {
   for (const theme of themes.values()) {
     for (const warning of theme.warnings) console.warn(`[thème ${theme.id}] ${warning}`);
   }
-  const db = openDb(path.join(config.DATA_DIR, 'speleologie.sqlite'));
-  scheduleBackups(db);
-  const handler = createApp({ db, themes, secureCookies: process.env.NODE_ENV === 'production', autoValidateDuels: true });
+  const dbPath = path.join(config.DATA_DIR, 'speleologie.sqlite');
+  // Copie de sécurité de l'état laissé par la version précédente, avant que la nouvelle ne touche à la base (migrations comprises).
+  try {
+    const snapshot = snapshotBeforeStart(dbPath);
+    if (snapshot) console.log(`Copie avant démarrage : ${snapshot}`);
+  } catch (err) {
+    console.error('Copie avant démarrage impossible :', err.message);
+  }
+  const db = openDb(dbPath);
+  const errors = new ErrorLog(db);
+  scheduleBackups(db, { onError: (err) => errors.record('processus', `Sauvegarde automatique impossible : ${err.message}`) });
+  // Une erreur inattendue est notée avant l'arrêt ; le service redémarre tout seul (voir deploy/speleologie.service).
+  process.on('uncaughtException', (err) => {
+    console.error(err);
+    errors.record('processus', err && err.message, { detail: err && err.stack });
+    process.exit(1);
+  });
+  process.on('unhandledRejection', (reason) => {
+    console.error(reason);
+    errors.record('processus', reason && reason.message ? reason.message : String(reason), { detail: reason && reason.stack });
+  });
+  const handler = createApp({ db, themes, secureCookies: process.env.NODE_ENV === 'production', autoValidateDuels: true, errors });
   // HOST=127.0.0.1 : seul le proxy de la machine peut joindre le jeu.
   const server = http.createServer(handler).listen(config.PORT, config.HOST, () => {
     console.log(`${config.GAME_NAME} : ${themes.size} thèmes chargés, écoute sur ${config.HOST || '*'}:${config.PORT}`);

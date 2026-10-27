@@ -44,6 +44,11 @@ le **centre de la Terre**.
 - Récap du lundi (`src/recap.js`, `users.recap_seen`) : à la première ouverture de la nouvelle semaine, podium sous un feu d'artifice puis « La Gazette de la mine » (moments forts, bilan personnel).
 - Modes daltoniens : filtre de couleur sur toute la page (`filter` sur `<html>`, voir `style.css`) plus symboles de rareté.
 
+- Stabilité (`src/backup.js`, `src/health.js`) : sauvegardes contrôlées (une par jour pendant 14 jours, une **avant chaque démarrage** du jeu donc avant chaque mise à jour et chaque migration, une à la demande), journal des erreurs (serveur, processus, navigateur des joueurs ; 30 jours, 500 lignes) et carte « Santé du jeu » du contremaître (`GET /api/admin/health`). Le déploiement vérifie que le jeu répond sur `/api/health` après le redémarrage et **revient à la version précédente** sinon. Les joueurs voient un bandeau « on réessaie » pendant un redémarrage, et une réponse envoyée pendant une coupure est retrouvée au retour du réseau.
+- Écran « Décider un par un » (réponses signalées) : un signalement à la fois, réponses du thème suggérées (`nearAnswers`), aperçu des conséquences avant d'accepter, messages de refus types, raccourcis A / R / S.
+- Version bêta du contremaître (réglages, réservés au responsable) : clavier dans les propositions (O / N, flèches, « / », « ? »), retours précis sur les réponses refusées (`hintFor`, jamais le nom de la bonne réponse) et accueil chaleureux. Rien de tout cela n'apparaît chez les autres joueurs.
+- Thème « Comme mon appareil » : suit le réglage clair ou sombre du téléphone.
+
 Aucune dépendance externe : Node.js ≥ 22.13 suffit (base SQLite intégrée à Node).
 
 ## Lancer en local

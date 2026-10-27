@@ -223,6 +223,18 @@ CREATE TABLE IF NOT EXISTS message_reports (
   PRIMARY KEY (message_id, reporter_id)
 );
 
+-- Journal des erreurs (serveur, processus, navigateur des joueurs), consultable par le responsable.
+CREATE TABLE IF NOT EXISTS error_log (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  at         INTEGER NOT NULL,
+  kind       TEXT NOT NULL,
+  message    TEXT NOT NULL,
+  detail     TEXT,
+  path       TEXT,
+  user_id    INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_error_log_at ON error_log(at);
+
 -- Podiums (jour, semaine, mois) déjà montrés à chaque joueur.
 CREATE TABLE IF NOT EXISTS celebrations_seen (
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,

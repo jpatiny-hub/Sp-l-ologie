@@ -34,7 +34,7 @@
 
   // ---------- Paramètres (propres à l'appareil) ----------
   const SETTINGS_KEY = 'speleologie.settings';
-  const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false };
+  const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false, betaKeys: false, betaHints: false, betaSkin: false };
   try {
     const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
     // Ancien réglage « mode daltonien » (case à cocher) : devenu « rouge-vert ».
@@ -53,6 +53,13 @@
     }
   }
 
+  // Thème clair : choisi, imposé par la lecture facile, ou celui de l'appareil quand « Comme mon appareil » est retenu.
+  const lightQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: light)') : null;
+  const isLight = () => settings.lisible || settings.theme === 'clair' || (settings.theme === 'auto' && !!(lightQuery && lightQuery.matches));
+  if (lightQuery && lightQuery.addEventListener) lightQuery.addEventListener('change', () => settings.theme === 'auto' && applySettings());
+  /** Nouveautés à l'essai : réservées au responsable du jeu, une par une. */
+  const betaOn = (name) => !!(app.me && app.me.isAdmin && settings[name]);
+
   const isHalloween = () => document.documentElement.dataset.season === 'halloween';
   const reducedMotion = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   let hauntTimer = null;
@@ -60,7 +67,7 @@
   /** Décor de saison (Halloween…) : interface et scène de forage, sauf en lecture facile et en thème clair. */
   function applySeason() {
     const id = app.me && app.me.season && settings.season !== false ? app.me.season : null;
-    const plain = settings.lisible || settings.theme === 'clair';
+    const plain = isLight();
     const root = document.documentElement;
     if (id && !plain) root.dataset.season = id;
     else delete root.dataset.season;
@@ -88,8 +95,10 @@
     // Lecture facile : police lisible, espacements larges et fond crème doux (apparence claire).
     if (settings.lisible) root.dataset.lisible = '';
     else delete root.dataset.lisible;
-    if (settings.theme === 'clair' || settings.lisible) root.dataset.theme = 'clair';
+    if (isLight()) root.dataset.theme = 'clair';
     else delete root.dataset.theme;
+    root.toggleAttribute('data-beta-skin', betaOn('betaSkin'));
+    if (app.me && app.me.today) renderBetaHello();
     const button = $('btn-sound');
     button.setAttribute('aria-pressed', String(settings.sound));
     button.setAttribute('aria-label', settings.sound ? 'Couper le son' : 'Activer le son');
@@ -195,6 +204,8 @@
     settingsForm.elements.lisible.checked = settings.lisible;
     settingsForm.elements.season.checked = settings.season !== false;
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
+    $('beta-box').hidden = !(app.me && app.me.isAdmin);
+    for (const name of ['betaKeys', 'betaHints', 'betaSkin']) settingsForm.elements[name].checked = !!settings[name];
     renderInstall();
     $('settings').showModal();
   });
@@ -207,6 +218,7 @@
     settings.theme = settingsForm.elements.theme.value || 'sombre';
     settings.lisible = settingsForm.elements.lisible.checked;
     settings.season = settingsForm.elements.season.checked;
+    for (const name of ['betaKeys', 'betaHints', 'betaSkin']) settings[name] = settingsForm.elements[name].checked;
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
     applySettings();
     saveSettings();
@@ -265,8 +277,11 @@
         res = null;
       }
       if (attempt >= RETRY_DELAYS.length) break;
+      // Dès le premier échec, un bandeau explique l'attente (mise à jour en cours, réseau coupé…) au lieu d'un écran figé.
+      showConnection(true, attempt);
       await sleep(RETRY_DELAYS[attempt]);
     }
+    showConnection(false);
     if (!res || (res.status >= 502 && res.status <= 504)) {
       const err = new Error('Le serveur ne répond pas pour le moment. Réessaie dans un instant.');
       err.status = 0;
@@ -286,6 +301,34 @@
     }
     return data;
   }
+
+  /** Bandeau « on réessaie » pendant les nouvelles tentatives ; navigator.onLine distingue réseau coupé et mise à jour du jeu. */
+  function showConnection(on, attempt = 0) {
+    const banner = $('conn-banner');
+    if (!banner) return;
+    banner.hidden = !on;
+    if (on) $('conn-text').textContent = navigator.onLine === false ? 'Plus de réseau : on réessaie dès que ça revient…' : attempt >= 2 ? 'Le jeu redémarre pour une mise à jour : on réessaie…' : 'Connexion difficile : on réessaie…';
+  }
+
+  // Erreurs du navigateur (bouton sans effet, écran figé…) : envoyées au journal du responsable, quelques-unes par visite.
+  let reportedErrors = 0;
+  function reportClientError(message, detail) {
+    if (reportedErrors >= 5) return;
+    reportedErrors++;
+    const view = [...document.querySelectorAll('.view')].find((v) => !v.hidden);
+    fetch('/api/client-error', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: String(message || 'Erreur').slice(0, 300), detail: String(detail || '').slice(0, 1500), view: view ? view.id : null }),
+    }).catch(() => {});
+  }
+  window.addEventListener('error', (e) => reportClientError(e.message, `${e.filename || ''}:${e.lineno || 0}:${e.colno || 0}\n${e.error && e.error.stack ? e.error.stack : ''}`));
+  window.addEventListener('unhandledrejection', (e) => {
+    const reason = e.reason;
+    if (reason && reason.status !== undefined) return; // erreur d'appel au serveur déjà montrée au joueur
+    reportClientError(reason && reason.message ? reason.message : String(reason), reason && reason.stack);
+  });
 
   // Message passager (remplace les fenêtres d'alerte, qui bloquent la page).
   let noticeTimer = null;
@@ -507,6 +550,7 @@
     app.me = me;
     app.meLoadedAt = Date.now();
     applySeason();
+    applySettings();
     app.game = null;
     app.skin = me.skin;
     scene.setSkin(me.skin);
@@ -593,12 +637,33 @@
         .catch(() => {});
     }
     renderStreak();
+    renderBetaHello();
     renderDuelDot();
     renderAdminHome();
     loadFeed(3);
     loadMuseumNote();
     if (!$('mode-duel').hidden) loadDuels();
     updateCountdown();
+  }
+
+  /** Accueil chaleureux (bêta) : salutation, phrase selon l'avancement du jour et une pastille par thème. */
+  function renderBetaHello() {
+    const card = $('beta-hello');
+    if (!card) return;
+    const today = app.me && app.me.today;
+    card.hidden = !(betaOn('betaSkin') && today);
+    if (card.hidden) return;
+    const hour = Number(new Intl.DateTimeFormat('fr-BE', { hour: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Brussels' }).format(new Date()));
+    const hello = hour >= 18 || hour < 5 ? 'Bonsoir' : 'Bonjour';
+    $('beta-greet').textContent = `${hello} ${app.me.user.username} !`;
+    const st = app.me.streak;
+    let sub;
+    if (!today.gameId) sub = st && st.current > 1 ? `${st.current} jours d'affilée : ne casse pas la série, 7 thèmes t'attendent.` : '7 nouveaux thèmes t\'attendent au fond de la mine.';
+    else if (!today.finished) sub = `Tu as déjà creusé ${today.roundsDone} thème${today.roundsDone > 1 ? 's' : ''} sur ${ROUNDS} : reprends ton forage !`;
+    else sub = `Beau forage : ${pts(today.score)} aujourd'hui. Rendez-vous demain pour de nouveaux thèmes !`;
+    $('beta-sub').textContent = sub;
+    const done = today.finished ? ROUNDS : today.roundsDone || 0;
+    $('beta-dots').replaceChildren(...Array.from({ length: ROUNDS }, (_, i) => el('span', { class: `beta-dot${i < done ? ' on' : ''}` })));
   }
 
   /** Série en cours (lanterne de mineur) et badge le plus proche. */
@@ -1157,6 +1222,7 @@
   });
 
   function showPrompt(round, remainingMs) {
+    app.tried = new Set();
     $('pane-ready').hidden = true;
     $('pane-prompt').hidden = false;
     updateBanner();
@@ -1234,11 +1300,15 @@
         hideReport();
         $('answer-error').textContent = '';
         Sound.ask();
+        if (betaOn('betaKeys')) $('btn-confirm-yes').focus();
       } else if (res.result === 'unknown') {
         clearPending();
         $('answer-error').textContent = extra.reject
           ? 'D\'accord, essaie autre chose !'
-          : `« ${text} » ne fait pas partie des réponses connues pour ce thème. Essaie autre chose !`;
+          : betaOn('betaHints') && res.hint
+            ? `« ${text} » : ${res.hint.text}`
+            : `« ${text} » ne fait pas partie des réponses connues pour ce thème. Essaie autre chose !`;
+        app.tried.add(triedKey(text));
         input.classList.remove('shake');
         void input.offsetWidth;
         input.classList.add('shake');
@@ -1252,7 +1322,7 @@
       }
     } catch (err) {
       // La réponse a pu être notée juste avant une coupure : on reprend l'état du serveur.
-      if (err.status === 409 && (await resync())) return;
+      if ((err.status === 409 || err.status === 0) && (await resync())) return;
       $('answer-error').textContent = err.message;
     } finally {
       app.busy = false;
@@ -1310,10 +1380,18 @@
     }
   }
 
+  // Réponses déjà refusées pendant ce thème (retours précis, bêta) : inutile de renvoyer la même.
+  const triedKey = (text) => text.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '');
+  app.tried = new Set();
+
   $('form-answer').addEventListener('submit', (event) => {
     event.preventDefault();
     const text = $('answer-input').value.trim();
     if (!text) return;
+    if (betaOn('betaHints') && !app.pending && app.tried.has(triedKey(text))) {
+      $('answer-error').textContent = `Tu as déjà essayé « ${text} » pour ce thème : cherche une autre piste.`;
+      return;
+    }
     // Entrée sans rien changer : on accepte la proposition affichée.
     if (app.pending && app.pending.text === text) sendAnswer(text, { accept: app.pending.suggestion });
     else sendAnswer(text);
@@ -1327,6 +1405,52 @@
   $('btn-confirm-no').addEventListener('click', () => {
     if (app.pending) sendAnswer(app.pending.text, { reject: true });
     $('answer-input').focus();
+  });
+
+  // Clavier (bêta) : O / N et flèches pour la proposition de correction, flèches dans les onglets, « / » pour chercher, « ? » pour l'aide.
+  const KEYS_HELP = 'Clavier : Entrée valide · ← → choisissent · O ou N répondent à « Tu voulais dire ? » · / cherche dans une liste · Échap annule';
+  document.addEventListener('keydown', (event) => {
+    if (!betaOn('betaKeys') || event.ctrlKey || event.metaKey || event.altKey) return;
+    const target = event.target;
+    const typing = !!target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName);
+    const confirmOpen = !$('view-game').hidden && !$('answer-confirm').hidden;
+    const key = event.key.toLowerCase();
+    if (confirmOpen) {
+      const yes = $('btn-confirm-yes');
+      const no = $('btn-confirm-no');
+      if (key === 'escape' || (!typing && key === 'n')) {
+        event.preventDefault();
+        return no.click();
+      }
+      if (!typing && (key === 'o' || key === 'y')) {
+        event.preventDefault();
+        return yes.click();
+      }
+      if (!typing && (key === 'arrowleft' || key === 'arrowright')) {
+        event.preventDefault();
+        return (document.activeElement === yes ? no : yes).focus();
+      }
+    }
+    if (typing) return;
+    if (key === '?') return showNotice(KEYS_HELP);
+    if (key === '/') {
+      const search = [...document.querySelectorAll('.answer-search')].find((i) => i.offsetParent !== null);
+      if (search) {
+        event.preventDefault();
+        search.focus();
+      }
+      return;
+    }
+    const tab = target && target.closest ? target.closest('[role=tab]') : null;
+    if ((key === 'arrowleft' || key === 'arrowright') && tab) {
+      const tabs = [...tab.parentElement.querySelectorAll('[role=tab]')].filter((t) => !t.hidden);
+      const next = tabs[(tabs.indexOf(tab) + (key === 'arrowright' ? 1 : tabs.length - 1)) % tabs.length];
+      if (next && next !== tab) {
+        event.preventDefault();
+        next.focus();
+        next.click();
+      }
+    }
   });
 
   $('btn-skip').addEventListener('click', () => skipRound());
@@ -2174,12 +2298,102 @@
     }
   });
 
+  // ---------- Santé du jeu (responsable) ----------
+  const agoText = (ms) => {
+    const min = Math.max(0, Math.round((Date.now() - ms) / 60000));
+    if (min < 60) return `il y a ${min} min`;
+    if (min < 48 * 60) return `il y a ${Math.round(min / 60)} h`;
+    return `il y a ${Math.round(min / 1440)} j`;
+  };
+  const sizeText = (bytes) => (bytes == null ? '?' : bytes > 1048576 ? `${(bytes / 1048576).toFixed(1)} Mo` : `${Math.round(bytes / 1024)} Ko`);
+  const uptimeText = (s) => (s < 3600 ? `${Math.round(s / 60)} min` : s < 172800 ? `${Math.round(s / 3600)} h` : `${Math.round(s / 86400)} j`);
+
+  async function loadHealth() {
+    const card = $('admin-health');
+    card.hidden = !(app.me && app.me.isAdmin);
+    if (card.hidden) return;
+    try {
+      app.health = await api('/api/admin/health');
+      renderHealth();
+    } catch (err) {
+      $('health-state').textContent = err.message;
+    }
+  }
+
+  function renderHealth() {
+    const h = app.health;
+    const state = $('health-state');
+    state.className = `health-state ${h.ok ? 'ok' : 'bad'}`;
+    state.textContent = h.ok ? '✓ Tout va bien.' : `⚠ ${h.problems.join(' ')}`;
+    $('health-sub').textContent = h.ok ? 'tout va bien' : 'à vérifier';
+    const line = (label, value) => el('li', { class: 'health-line' }, el('span', {}, label), el('span', { class: 'muted' }, value));
+    $('health-facts').replaceChildren(
+      line('Version de la page', `${h.version}${h.release ? ` · mise en ligne ${h.release.slice(0, 7)}` : ''}`),
+      line('Fonctionne depuis', uptimeText(h.uptimeSeconds)),
+      line('Base de données', `${sizeText(h.database.bytes)} · intégrité : ${h.database.integrity}`),
+      line('Comptes · parties', `${h.totals.users} · ${h.totals.games}`),
+      line('À traiter', `${plural(h.totals.reportsPending, 'signalement', 'signalements')} · ${plural(h.totals.duelsToValidate, 'duel à valider', 'duels à valider')}`),
+    );
+    $('health-backups').replaceChildren(
+      ...(h.backups.list.length
+        ? h.backups.list.map((b) => line(`${b.kind} · ${b.name.replace(/^speleologie-|\.sqlite$/g, '')}`, `${agoText(b.at)} · ${sizeText(b.bytes)}`))
+        : [el('li', { class: 'muted' }, 'Aucune sauvegarde.')]),
+    );
+    $('health-errors').replaceChildren(
+      ...(h.errors.recent.length
+        ? h.errors.recent.map((e) =>
+            el(
+              'li',
+              { class: 'health-err' },
+              el('strong', {}, `${e.kind} · ${e.message}`),
+              el('span', { class: 'muted' }, ` ${agoText(e.at)}${e.path ? ` · ${e.path}` : ''}`),
+              e.detail ? el('pre', {}, e.detail) : null,
+            ),
+          )
+        : [el('li', { class: 'muted' }, 'Aucune erreur enregistrée.')]),
+    );
+  }
+
+  $('btn-health-backup').addEventListener('click', async () => {
+    try {
+      const res = await api('/api/admin/backup', {});
+      showNotice(`Sauvegarde créée : ${res.name}`);
+      loadHealth();
+    } catch (err) {
+      showNotice(err.message);
+    }
+  });
+  $('btn-health-clear').addEventListener('click', async () => {
+    if (!window.confirm('Vider le journal des erreurs ?')) return;
+    await api('/api/admin/errors/clear', {}).catch(() => {});
+    loadHealth();
+  });
+  $('btn-health-copy').addEventListener('click', async () => {
+    const h = app.health;
+    if (!h) return;
+    const text = [
+      `Santé du jeu : ${h.ok ? 'OK' : h.problems.join(' ')}`,
+      `Version ${h.version} (${h.release || '?'}), en marche depuis ${uptimeText(h.uptimeSeconds)}, Node ${h.node}`,
+      `Base ${sizeText(h.database.bytes)}, intégrité ${h.database.integrity}; ${h.totals.users} comptes, ${h.totals.games} parties`,
+      `Sauvegardes : ${h.backups.list.map((b) => `${b.kind} ${b.name}`).join(', ') || 'aucune'}`,
+      'Erreurs récentes :',
+      ...h.errors.recent.map((e) => `- ${new Date(e.at).toISOString()} ${e.kind} ${e.path || ''} ${e.message}${e.detail ? `\n${e.detail}` : ''}`),
+    ].join('\n');
+    try {
+      await navigator.clipboard.writeText(text);
+      showNotice('Rapport copié.');
+    } catch {
+      showNotice('Copie impossible sur cet appareil.');
+    }
+  });
+
   // ---------- Contre maître (responsable du jeu) ----------
   async function openAdmin() {
     if (!app.me || !app.me.isAdmin) return;
     stopTimer();
     show('admin');
     initFolds('view-admin');
+    loadHealth();
     loadAdminAnnouncements();
     loadReports();
     loadInvite();
@@ -2725,6 +2939,177 @@
   }
   $('btn-decisions-preview').addEventListener('click', () => runDecisions(true));
   $('btn-decisions-apply').addEventListener('click', () => runDecisions(false));
+
+  // Décider un par un : une fenêtre, un signalement à la fois, aperçu des conséquences avant d'accepter.
+  const REFUSALS = [
+    ['Ne correspond pas au thème', 'Cette réponse ne correspond pas au thème.'],
+    ['Trop vague', 'Cette réponse est trop vague pour ce thème : sois plus précis.'],
+    ['Déjà connue sous un autre nom', 'Cette réponse existe déjà sous un autre nom : essaie son nom exact.'],
+    ['Hors liste', 'Cette réponse ne fait pas partie de la liste fermée de ce thème.'],
+  ];
+  const decide = { queue: [], index: 0, later: new Set(), done: 0, busy: false };
+
+  function decideKey(r) {
+    return `${r.themeId}|${r.inputKey}`;
+  }
+
+  function openDecide() {
+    decide.queue = (app.reports || []).filter((r) => r.status === 'pending');
+    decide.later = new Set();
+    decide.index = 0;
+    decide.done = 0;
+    if (!decide.queue.length) return showNotice('Aucun signalement à traiter.');
+    const dialog = $('decide-dialog');
+    if (!dialog.open) dialog.showModal();
+    renderDecide();
+  }
+
+  function nextDecide() {
+    // Prochain signalement non reporté ; fin de file : on propose de revenir sur ceux mis de côté.
+    const rest = decide.queue.filter((r) => r.status === 'pending' && !decide.later.has(decideKey(r)));
+    if (rest.length) {
+      decide.index = decide.queue.indexOf(rest[0]);
+      return renderDecide();
+    }
+    const postponed = decide.queue.filter((r) => r.status === 'pending');
+    $('decide-count').textContent = '';
+    $('decide-body').replaceChildren(
+      el('p', {}, decide.done ? `✓ ${plural(decide.done, 'décision appliquée', 'décisions appliquées')}.` : 'Rien n\'a été décidé.'),
+      postponed.length
+        ? el('button', { class: 'btn secondary', type: 'button', id: 'decide-again' }, `Revoir les ${postponed.length} mis de côté`)
+        : el('p', { class: 'muted' }, 'Plus aucun signalement à traiter.'),
+    );
+    const again = $('decide-again');
+    if (again) again.addEventListener('click', () => { decide.later = new Set(); nextDecide(); });
+  }
+
+  function renderDecide() {
+    const r = decide.queue[decide.index];
+    if (!r || r.status !== 'pending') return nextDecide();
+    const pending = decide.queue.filter((x) => x.status === 'pending');
+    $('decide-count').textContent = `${pending.length} à traiter`;
+    const known = !!r.inTheme;
+    const message = el('textarea', { rows: 2, maxlength: 600, 'aria-label': 'Message au joueur' });
+    message.value = 'Réponse acceptée : merci pour ton signalement !';
+    const preview = el('p', { class: 'muted small decide-preview', role: 'status' });
+    // Réponse visée : champ avec liste des réponses du thème (saisie semi-automatique), suggestions en un geste.
+    const listId = 'decide-answers';
+    const target = el('input', { list: listId, placeholder: 'Réponse visée du thème…', autocomplete: 'off', 'aria-label': 'Réponse visée' });
+    const datalist = el('datalist', { id: listId });
+    const near = el('div', { class: 'decide-near' });
+    const choose = (label) => {
+      target.value = label;
+      refreshPreview();
+    };
+    (r.near || []).forEach((label) => {
+      const chip = el('button', { class: 'chip', type: 'button' }, label);
+      chip.addEventListener('click', () => choose(label));
+      near.append(chip);
+    });
+    const body = {
+      themeId: r.themeId,
+      input: r.input,
+      verdict: 'accepter',
+    };
+    let previewTimer = 0;
+    const refreshPreview = () => {
+      clearTimeout(previewTimer);
+      if (!known && !target.value.trim()) {
+        preview.textContent = 'Choisis la réponse visée pour voir ce qui se passera.';
+        return;
+      }
+      previewTimer = setTimeout(async () => {
+        try {
+          const { results } = await api('/api/admin/reports/decisions', { decisions: [{ ...body, answer: known ? undefined : target.value.trim() }], dryRun: true });
+          preview.textContent = results[0].ok ? `Si tu acceptes : ${results[0].note}` : /non reconnue/.test(results[0].note) ? 'Cette réponse n\'est pas dans le thème : choisis-en une dans la liste.' : results[0].note;
+        } catch (err) {
+          preview.textContent = err.message;
+        }
+      }, 150);
+    };
+    target.addEventListener('input', refreshPreview);
+    if (!known) {
+      api(`/api/admin/theme-answers?themeId=${encodeURIComponent(r.themeId)}`)
+        .then(({ answers }) => datalist.replaceChildren(...answers.map((a) => el('option', { value: a.label }))))
+        .catch(() => {});
+    }
+    const refusals = el('select', { 'aria-label': 'Message de refus' }, el('option', { value: '' }, 'Message de refus…'), ...REFUSALS.map(([label, text]) => el('option', { value: text }, label)));
+    refusals.addEventListener('change', () => {
+      if (refusals.value) message.value = refusals.value;
+    });
+
+    const apply = async (verdict) => {
+      if (decide.busy) return;
+      if (verdict === 'accepter' && !known && !target.value.trim()) return showNotice('Choisis d\'abord la réponse visée.');
+      decide.busy = true;
+      try {
+        const decision = { themeId: r.themeId, input: r.input, verdict, message: message.value };
+        if (verdict === 'accepter' && !known) decision.answer = target.value.trim();
+        const { results } = await api('/api/admin/reports/decisions', { decisions: [decision], dryRun: false });
+        if (!results[0].ok) {
+          preview.textContent = results[0].note;
+          return;
+        }
+        r.status = 'handled';
+        decide.done++;
+        showNotice(`${verdict === 'accepter' ? 'Acceptée' : 'Refusée'} : ${results[0].note}`);
+        loadReports();
+        nextDecide();
+      } catch (err) {
+        preview.textContent = err.message;
+      } finally {
+        decide.busy = false;
+      }
+    };
+    const accept = el('button', { class: 'btn', type: 'button', id: 'decide-accept' }, 'Accepter (A)');
+    const refuse = el('button', { class: 'btn secondary', type: 'button', id: 'decide-refuse' }, 'Refuser (R)');
+    const later = el('button', { class: 'btn ghost', type: 'button', id: 'decide-later' }, 'Plus tard (S)');
+    const ask = el('button', { class: 'btn ghost', type: 'button' }, 'Copier pour Claude');
+    accept.addEventListener('click', () => apply('accepter'));
+    refuse.addEventListener('click', () => apply('refuser'));
+    later.addEventListener('click', () => {
+      decide.later.add(decideKey(r));
+      nextDecide();
+    });
+    ask.addEventListener('click', async () => {
+      const line = `${r.themeId} (${r.themeTitle}) : ${r.input} — ${plural(r.players, 'joueur', 'joueurs')}`;
+      try {
+        await navigator.clipboard.writeText(line);
+        showNotice('Copié : colle-le dans la conversation avec Claude.');
+      } catch {
+        showNotice(line);
+      }
+      decide.later.add(decideKey(r));
+      nextDecide();
+    });
+
+    $('decide-body').replaceChildren(
+      el('p', { class: 'muted' }, r.themeTitle),
+      el('p', { class: 'decide-input' }, `« ${r.input} »`),
+      el('p', { class: 'muted' }, `${plural(r.players, 'joueur la propose', 'joueurs la proposent')}${r.reporters && r.reporters.length ? ` : ${r.reporters.map((p) => p.username).join(', ')}` : ''}`),
+      known
+        ? el('p', {}, `Le thème la reconnaît déjà comme « ${r.inTheme} » : accepter rend les points aux joueurs concernés.`)
+        : el('div', {}, el('label', {}, 'Réponse visée', target, datalist), near),
+      preview,
+      el('label', {}, 'Message au joueur', message),
+      refusals,
+      el('div', { class: 'decide-actions' }, accept, refuse, later, ask),
+    );
+    refreshPreview();
+  }
+
+  $('btn-decide').addEventListener('click', openDecide);
+  $('decide-close').addEventListener('click', () => $('decide-dialog').close());
+  $('decide-dialog').addEventListener('keydown', (event) => {
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    const tag = event.target && event.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    const press = { a: 'decide-accept', r: 'decide-refuse', s: 'decide-later' }[event.key.toLowerCase()];
+    if (press && $(press)) {
+      event.preventDefault();
+      $(press).click();
+    }
+  });
 
   $('btn-copy-reports').addEventListener('click', async () => {
     const pending = (app.reports || []).filter((r) => r.status === 'pending');
