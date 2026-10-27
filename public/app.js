@@ -353,11 +353,12 @@
     closeFoldsOfLeftView(view);
     document.querySelectorAll('.view').forEach((v) => (v.hidden = v.id !== `view-${view}`));
     // Sur téléphone, la scène de forage ne sert qu'en partie et dans les résultats : pas sur l'accueil.
-    $('stage').hidden = (view === 'podium' || view === 'profile' || view === 'home' || view === 'recap' || view === 'duel' || view === 'admin' || view === 'museum') && window.innerWidth < 860;
+    $('stage').hidden = (view === 'podium' || view === 'profile' || view === 'home' || view === 'recap' || view === 'duel' || view === 'admin' || view === 'museum' || view === 'messages') && window.innerWidth < 860;
     if (view === 'profile') startPreview();
     if (view !== 'game') $('focus-keeper').blur();
     updateBanner();
     $('who').hidden = !app.me;
+    $('btn-messages').hidden = !app.me;
     $('btn-invite').hidden = !app.me;
     $('drawer-tab').hidden = !(view === 'home' && app.me);
     if ($('drawer').open) $('drawer').close();
@@ -518,6 +519,7 @@
     show('home');
     loadMiniPodium();
     loadCarnetSummary();
+    updateMessageDot(app.me.unreadMessages || 0);
     if (app.me.celebrations && app.me.celebrations.length) openCelebrations(app.me.celebrations);
   }
 
@@ -2184,6 +2186,7 @@
     loadUnknownAnswers();
     loadProbe();
     loadReverse();
+    loadMessageReports();
     loadAdminSuggestions();
     loadDashboard();
   }
@@ -2805,6 +2808,179 @@
     }
   });
 
+
+
+  // ---------- Messagerie entre joueurs ----------
+  function updateMessageDot(n) {
+    if (app.me) app.me.unreadMessages = n;
+    const dot = $('msg-dot');
+    dot.hidden = !n;
+    dot.textContent = n > 9 ? '9+' : String(n || '');
+    $('btn-messages').setAttribute('aria-label', n ? `Messages (${plural(n, 'non lu', 'non lus')})` : 'Messages');
+  }
+
+  function msgTime(at) {
+    const d = new Date(at);
+    const sameDay = new Date().toDateString() === d.toDateString();
+    return sameDay ? d.toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString('fr-BE', { day: 'numeric', month: 'short' });
+  }
+
+  async function openMessages(withUser) {
+    show('messages');
+    if (withUser) return openThread(withUser);
+    $('msg-list-pane').hidden = false;
+    $('msg-thread-pane').hidden = true;
+    $('msg-status').textContent = '';
+    try {
+      const [{ conversations, unread }, { people }] = await Promise.all([api('/api/messages'), api('/api/messages/people')]);
+      updateMessageDot(unread);
+      app.msgPeople = people;
+      $('msg-people').replaceChildren(...people.map((p) => el('option', { value: p.username })));
+      const list = $('msg-conversations');
+      list.replaceChildren(
+        ...conversations.map((c) => {
+          const button = el(
+            'button',
+            { type: 'button' },
+            avatarEl(c.avatar, 'head', 2),
+            el('span', { class: 'who-name' }, c.username),
+            el('span', { class: 'msg-last' }, `${c.last.mine ? 'Toi : ' : ''}${c.last.body}`),
+            c.unread ? el('span', { class: 'tab-dot' }, String(c.unread)) : el('span', { class: 'muted small' }, msgTime(c.last.at)),
+          );
+          button.addEventListener('click', () => openThread(c.username));
+          return el('li', { class: c.unread ? 'unread' : '' }, button);
+        }),
+      );
+      if (!conversations.length) list.append(el('li', { class: 'muted' }, 'Aucune conversation pour l\'instant : écris à un joueur ci-dessus.'));
+    } catch (err) {
+      $('msg-status').textContent = err.message;
+    }
+  }
+
+  async function openThread(name) {
+    app.msgWith = name;
+    $('msg-list-pane').hidden = true;
+    $('msg-thread-pane').hidden = false;
+    $('msg-thread-status').textContent = '';
+    try {
+      renderThread(await api(`/api/messages/thread?with=${encodeURIComponent(name)}`));
+    } catch (err) {
+      $('msg-thread-status').textContent = err.message;
+    }
+  }
+
+  function renderThread(data) {
+    app.msgWith = data.with.username;
+    updateMessageDot(data.unread);
+    $('msg-with').textContent = data.with.username;
+    const block = $('btn-msg-block');
+    block.textContent = data.blocked ? 'Débloquer ce joueur' : 'Bloquer ce joueur';
+    block.onclick = async () => {
+      try {
+        renderThread(await api('/api/messages/block', { username: data.with.username, blocked: !data.blocked }));
+      } catch (err) {
+        $('msg-thread-status').textContent = err.message;
+      }
+    };
+    const list = $('msg-thread');
+    list.replaceChildren(
+      ...data.messages.map((m) => {
+        const meta = el('span', { class: 'msg-meta' }, msgTime(m.at));
+        if (!m.mine) {
+          const report = el('button', { class: 'link', type: 'button' }, 'Signaler');
+          report.addEventListener('click', async () => {
+            try {
+              await api('/api/messages/report', { id: m.id });
+              report.replaceWith(el('span', {}, 'Signalé au responsable'));
+            } catch (err) {
+              $('msg-thread-status').textContent = err.message;
+            }
+          });
+          meta.append(' · ', report);
+        }
+        return el('li', { class: m.mine ? 'mine' : '' }, m.body, meta);
+      }),
+    );
+    if (!data.messages.length) list.append(el('li', { class: 'muted' }, `Écris le premier message à ${data.with.username}.`));
+    list.scrollTop = list.scrollHeight;
+  }
+
+  $('btn-messages').addEventListener('click', () => openMessages());
+  $('btn-messages-home').addEventListener('click', () => show('home'));
+  $('btn-msg-back').addEventListener('click', () => openMessages());
+  $('form-msg-new').addEventListener('submit', (event) => {
+    event.preventDefault();
+    const wanted = $('msg-new-to').value.trim().toLowerCase();
+    const person = (app.msgPeople || []).find((p) => p.username.toLowerCase() === wanted);
+    if (!person) return void ($('msg-status').textContent = 'Choisis un joueur dans la liste proposée.');
+    $('msg-new-to').value = '';
+    openThread(person.username);
+  });
+  $('form-msg-send').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const text = $('msg-input').value.trim();
+    if (!text || !app.msgWith) return;
+    try {
+      renderThread(await api('/api/messages/send', { to: app.msgWith, text }));
+      $('msg-input').value = '';
+      $('msg-thread-status').textContent = '';
+    } catch (err) {
+      $('msg-thread-status').textContent = err.message;
+    }
+  });
+  $('msg-input').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      $('form-msg-send').requestSubmit();
+    }
+  });
+  // Pas de minuterie : le compteur de messages non lus se rafraîchit quand l'onglet redevient visible.
+  document.addEventListener('visibilitychange', async () => {
+    if (document.hidden || !app.me) return;
+    try {
+      const { unread } = await api('/api/messages');
+      updateMessageDot(unread);
+      if (!$('view-messages').hidden) {
+        if ($('msg-thread-pane').hidden) openMessages();
+        else if (app.msgWith) openThread(app.msgWith);
+      }
+    } catch {
+      /* hors ligne : on garde le dernier compteur */
+    }
+  });
+
+  // Messages signalés (responsable du jeu).
+  async function loadMessageReports() {
+    const card = $('admin-msg-reports');
+    card.hidden = !(app.me && app.me.isAdmin);
+    if (card.hidden) return;
+    try {
+      const { reports } = await api('/api/admin/message-reports');
+      $('msg-reports-status').textContent = reports.length ? '' : 'Aucun message signalé.';
+      $('msg-reports-list').replaceChildren(
+        ...reports.map((r) => {
+          const done = el('button', { class: 'link', type: 'button' }, 'Traité');
+          done.addEventListener('click', async () => {
+            try {
+              await api('/api/admin/message-reports/handled', { id: r.id });
+              loadMessageReports();
+            } catch (err) {
+              $('msg-reports-status').textContent = err.message;
+            }
+          });
+          return el(
+            'li',
+            { class: 'report' },
+            el('span', { class: 'what' }, el('strong', {}, `${r.from} → ${r.to}`), el('span', { class: 'muted' }, `signalé par ${r.reporter} le ${new Date(r.reportedAt).toLocaleString('fr-BE')}`)),
+            ...r.context.map((c) => el('span', { class: c.body === r.body ? '' : 'muted small' }, `${c.from} : ${c.body}`)),
+            done,
+          );
+        }),
+      );
+    } catch (err) {
+      $('msg-reports-status').textContent = err.message;
+    }
+  }
 
   // ---------- Mode inversé (ébauche, responsable du jeu) ----------
   const VERDICTS = { juste: 'Juste !', proche: 'Proche', non: 'Non', incompris: 'Non compris', vague: 'Trop vague' };
@@ -3988,6 +4164,9 @@
   }
 
   async function openCompare(day, back = 'podium') {
+    // Les thèmes dépliés ne sont gardés que pour le même jour (ex. après une modification du responsable).
+    if (app.compareDay !== day) app.compareOpen = new Set();
+    app.compareDay = day;
     app.compareBack = back;
     try {
       const data = await api(`/api/compare?date=${day}`);
@@ -3999,7 +4178,7 @@
         const top = Math.max(1, ...data.players.map((p) => p.score));
         body.append(
           el('h3', {}, 'Scores du jour'),
-          el('p', { class: 'muted small' }, '★ : seul(e) à avoir donné cette réponse · = toi : même réponse que la tienne. Touche un symbole sous une réponse pour réagir.'),
+          el('p', { class: 'muted small' }, '★ : seul(e) à avoir donné cette réponse · = toi : même réponse que la tienne. Touche un thème pour voir les réponses des autres joueurs, et un symbole sous une réponse pour réagir.'),
           el(
             'div',
             { class: 'score-bars' },
@@ -4045,7 +4224,32 @@
             );
             if (r.rid && r.outcome === 'answer' && (!p.me || Object.keys(r.reactions || {}).length)) list.append(reactionRow(r, p.me));
           });
-        body.append(el('h3', {}, th.spare ? `${i + 1}. Galerie de secours : ${th.title}` : `${i + 1}. ${th.title}`), list);
+        // Un thème = une ligne repliée (ta réponse et ton score) ; on la déplie pour voir les réponses des autres joueurs.
+        const key = `${th.themeId}${th.spare ? '*' : ''}`;
+        const mineWhat = !mine ? '' : mine.r.outcome === 'answer' ? mine.r.answer : mine.r.outcome === 'joker' ? 'Galerie de secours' : mine.r.outcome === 'timeout' ? 'temps écoulé' : 'passé';
+        const summary = el(
+          'summary',
+          { class: 'compare-sum' },
+          el('span', { class: 'compare-title' }, th.spare ? `${i + 1}. Galerie de secours : ${th.title}` : `${i + 1}. ${th.title}`),
+          mine
+            ? el(
+                'span',
+                { class: 'compare-mine' },
+                el('span', { class: 'swatch', style: { background: Pixel.TIER_COLORS[mine.r.tier] || '#666' } }),
+                el('span', { class: 'what' }, mineWhat),
+                el('span', { class: 'pts' }, mine.r.outcome === 'joker' ? '—' : pts(mine.r.points || 0)),
+              )
+            : null,
+          el('span', { class: 'pm', 'aria-hidden': 'true' }),
+        );
+        const details = el('details', { class: 'compare-theme' }, summary, list);
+        if (app.compareOpen && app.compareOpen.has(key)) details.open = true;
+        details.addEventListener('toggle', () => {
+          app.compareOpen = app.compareOpen || new Set();
+          if (details.open) app.compareOpen.add(key);
+          else app.compareOpen.delete(key);
+        });
+        body.append(details);
       });
       show('compare');
     } catch (err) {

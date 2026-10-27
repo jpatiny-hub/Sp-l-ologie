@@ -19,6 +19,7 @@ const { museum } = require('./src/museum');
 const { feed } = require('./src/feed');
 const { seasonFor } = require('./src/specialdays');
 const { ReverseService } = require('./src/reverse');
+const { MessageService } = require('./src/messages');
 const { pendingRecap, markRecapSeen, weeklyRecap, periodRecap, pendingCelebrations, markCelebrationSeen, lastPeriod, periodStart, periodEnd, KINDS } = require('./src/recap');
 const { unseenNews, LATEST_NEWS_ID } = require('./src/news');
 
@@ -80,6 +81,7 @@ function createApp({
 }) {
   const game = new GameService(db, themes, now, specialDays);
   const reverse = new ReverseService(db, themes);
+  const messages = new MessageService(db, now);
   // Validation des duels le lendemain à 2 h 30 : vérifiée toutes les 5 minutes, même sans visite.
   if (autoValidateDuels) setInterval(() => { try { game.duels.validateDue(); } catch (err) { console.error('Validation des duels impossible :', err.message); } }, 5 * 60 * 1000).unref();
   const announcements = new AnnouncementService(db, now);
@@ -358,6 +360,7 @@ function createApp({
         duels: game.duels.summary(user.id),
         announcements: announcements.unseen(user.id),
         unreadReports: game.myReports(user.id).unread,
+        unreadMessages: messages.unread(user.id),
         season: seasonFor(game.today(), seasons),
         skullDay: game.skulls.isSkullDay(game.today()),
         nextResetMs: msUntilNextDay(now()),
@@ -613,6 +616,51 @@ function createApp({
       const { themeId, inputs } = await readJson(req);
       if (typeof themeId !== 'string' || !Array.isArray(inputs)) throw new HttpError(400, 'Thème ou saisies manquants.');
       json(res, 200, { results: game.probe(themeId, inputs.filter((x) => typeof x === 'string')) });
+    },
+
+    // Messagerie entre joueurs.
+    'GET /api/messages': async (req, res) => {
+      const user = requireUser(req, res);
+      json(res, 200, messages.conversations(user.id));
+    },
+
+    'GET /api/messages/people': async (req, res) => {
+      const user = requireUser(req, res);
+      json(res, 200, { people: messages.people(user.id) });
+    },
+
+    'GET /api/messages/thread': async (req, res, _id, url) => {
+      const user = requireUser(req, res);
+      json(res, 200, messages.thread(user.id, url.searchParams.get('with')));
+    },
+
+    'POST /api/messages/send': async (req, res) => {
+      const user = requireUser(req, res);
+      const { to, text } = await readJson(req);
+      json(res, 200, messages.send(user.id, to, text));
+    },
+
+    'POST /api/messages/block': async (req, res) => {
+      const user = requireUser(req, res);
+      const { username, blocked } = await readJson(req);
+      json(res, 200, messages.block(user.id, username, blocked !== false));
+    },
+
+    'POST /api/messages/report': async (req, res) => {
+      const user = requireUser(req, res);
+      const { id } = await readJson(req);
+      json(res, 200, messages.report(user.id, id));
+    },
+
+    'GET /api/admin/message-reports': async (req, res) => {
+      requireAdmin(req, res);
+      json(res, 200, { reports: messages.reports() });
+    },
+
+    'POST /api/admin/message-reports/handled': async (req, res) => {
+      requireAdmin(req, res);
+      const { id } = await readJson(req);
+      json(res, 200, messages.handled(id));
     },
 
     // Mode inversé (ébauche) : retrouver le thème à partir de réponses, de la plus rare à la plus évidente.
