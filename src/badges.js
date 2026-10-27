@@ -299,6 +299,9 @@ const BITS = [['standard', 'Foret standard'], ['tariere', 'Tarière'], ['tricone
 
 const PODIUM_MIN_PLAYERS = 3;
 
+// Jours forés qui donnent un nouveau titre de mineur (voir le profil).
+const TITLE_STEPS = [1, 5, 10, 30, 100, 200, 300];
+
 class BadgeService {
   constructor(db, now) {
     this.db = db;
@@ -748,7 +751,16 @@ class BadgeService {
     const info = BadgeService.streakInfo(days, today);
     const current = info.current;
     return {
-      stats: { currentStreak: current, bestStreak: info.best, freezes: info.freezes, daysPlayed: days.length, pepites, bestScore },
+      stats: {
+        currentStreak: current,
+        bestStreak: info.best,
+        freezes: info.freezes,
+        daysPlayed: days.length,
+        pepites,
+        bestScore,
+        // Jour où chaque titre de mineur a été atteint (1er, 5e, 10e… jour foré).
+        titleDays: Object.fromEntries(TITLE_STEPS.filter((n) => days.length >= n).map((n) => [n, days[n - 1]])),
+      },
       badges,
       bodies: skinList(BODIES, 'body'),
       bits: skinList(BITS, 'bit'),

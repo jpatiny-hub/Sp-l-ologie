@@ -96,6 +96,11 @@
     chat: ['.K........K.', '.KK......KK.', '.KKK....KKK.', '.KKKKKKKKKK.', 'KKKKKKKKKKKK', 'KKyyKKKKyyKK', 'KKyyKKKKyyKK', 'KKKKKppKKKKK', '.KKKKKKKKKK.', '..KKKKKKKK..', '............', '............'],
   };
 
+  // Trophées des titres de mineur (1, 5, 10, 30, 100, 200 et 300 jours forés) : la coupe, dans une matière de plus en plus précieuse.
+  [['n', 'm', 'e'], ['o', 'O', 'W'], ['s', 'S', 'w'], ['y', 'Y', 'W'], ['g', 'G', 'W'], ['c', 'b', 'w'], ['r', 'R', 'y']].forEach(([body, shade, light], i) => {
+    ICONS[`titre-${i + 1}`] = ICONS.trophee.map((row) => [...row].map((ch) => (ch === 'y' ? body : ch === 'Y' ? shade : ch === 'w' ? light : ch)).join(''));
+  });
+
   // Chiffres 3 × 5 pour le nombre affiché sur certains badges (série, pépites).
   const DIGITS = ['111101101101111', '010110010010111', '111001111100111', '111001111001111', '101101111001001', '111100111001111', '111100111101111', '111001010010010', '111101111101111', '111101111001111'];
 

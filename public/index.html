@@ -620,6 +620,7 @@
           <button class="tab" type="button" role="tab" data-ptab-go="carnet" aria-selected="false">Carnet</button>
         </div>
         <div class="card pf-tiles" id="pf-tiles" data-ptab="apercu" hidden><ul class="pf-tile-grid" id="pf-tile-grid"></ul></div>
+        <div class="card pf-titles" id="pf-titles" data-ptab="apercu" hidden><h2>Titres de mineur</h2><ol class="pf-title-row" id="pf-title-row"></ol><p class="muted small" id="pf-title-note"></p></div>
         <div class="card pf-showcase" id="pf-showcase" data-ptab="apercu" hidden>
           <h2>Vitrine</h2>
           <div class="badge-table" id="pf-showcase-list"></div>
@@ -681,10 +682,13 @@
             <div class="workshop-choices">
               <h3>Carrosserie</h3>
               <div class="skin-grid" id="skin-bodies"></div>
+              <button class="link wk-toggle" type="button" data-wk="body" hidden></button>
               <h3>Foret</h3>
               <div class="skin-grid" id="skin-bits"></div>
+              <button class="link wk-toggle" type="button" data-wk="bit" hidden></button>
               <h3>Chrono</h3>
               <div class="skin-grid" id="skin-timers"></div>
+              <button class="link wk-toggle" type="button" data-wk="timer" hidden></button>
             </div>
           </div>
           <p class="muted small" id="skin-status" role="status"></p>

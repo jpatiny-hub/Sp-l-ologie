@@ -132,3 +132,22 @@ test('vie de la mine : réservée au responsable, forages terminés et pépites'
     await app.close();
   }
 });
+
+test('profil : date d\'arrivée et jours qui ont donné chaque titre de mineur', async () => {
+  const { playDaily } = require('./helpers');
+  const app = await startServer();
+  try {
+    const eve = client(app.base);
+    await eve('/api/signup', { username: 'eve', password: 'secret123' });
+    const before = (await eve('/api/profile')).data;
+    assert.ok(before.joinedAt > 0);
+    assert.deepEqual(before.stats.titleDays, {});
+    await playDaily(app, eve, 2);
+    const after = (await eve('/api/profile')).data;
+    assert.equal(after.stats.daysPlayed, 1);
+    assert.deepEqual(Object.keys(after.stats.titleDays), ['1']);
+    assert.match(after.stats.titleDays[1], /^\d{4}-\d{2}-\d{2}$/);
+  } finally {
+    await app.close();
+  }
+});

@@ -38,7 +38,7 @@
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
   for (const flag of BETA_FLAGS) settings[flag] = false;
   const home = { moved: false, origin: new Map() }; // état du nouvel accueil (voir layoutHome)
-  const prof = { moved: false, tab: 'apercu', timelineAll: false }; // état du nouveau profil (voir layoutProfile)
+  const prof = { moved: false, tab: 'apercu', timelineAll: false, locked: { body: false, bit: false, timer: false } }; // état du nouveau profil (voir layoutProfile)
   try {
     const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
     // Ancien réglage « mode daltonien » (case à cocher) : devenu « rouge-vert ».
@@ -2601,9 +2601,11 @@
     [0, 'Taupe novice'],
     [1, 'Apprenti foreur'],
     [5, 'Mineur confirmé'],
-    [15, 'Mineur de fond'],
+    [10, 'Mineur de fond'],
     [30, 'Maître foreur'],
-    [60, 'Gardien du noyau'],
+    [100, 'Gardien du noyau'],
+    [200, 'Seigneur des galeries'],
+    [300, 'Légende de la mine'],
   ];
   /** Titre du mineur selon ses jours forés, et ce qu'il lui manque pour le suivant. */
   function rankOf(days) {
@@ -2671,7 +2673,9 @@
     const rank = rankOf(st.daysPlayed);
     $('pf-portrait').replaceChildren(avatarEl(profile.avatar, 'full', 6));
     $('pf-name').textContent = app.me.user.username;
-    $('pf-title').textContent = rank.title;
+    const trophy = rank.index > 0 ? el('canvas', { class: 'pf-trophy', width: '16', height: '16', 'aria-hidden': 'true' }) : null;
+    if (trophy) Icons.drawIcon(trophy, `titre-${rank.index}`);
+    $('pf-title').replaceChildren(...(trophy ? [trophy] : []), rank.title);
     $('pf-since').textContent = profile.joinedAt ? `Mineur depuis le ${dayLabel(new Date(profile.joinedAt).toISOString().slice(0, 10))}` : '';
     const lantern = el('canvas', { class: 'streak-lantern', width: '16', height: '16', 'aria-hidden': 'true' });
     Icons.drawLantern(lantern, st.currentStreak, { dim: st.currentStreak === 0 });
@@ -2733,10 +2737,30 @@
     $('btn-pf-allbadges').textContent = `Voir les ${profile.badges.length} badges`;
   }
 
+  /** Titres de mineur : sept trophées, de plus en plus précieux, qui se débloquent aux jours forés 1, 5, 10, 30, 100, 200 et 300. */
+  function renderProfileTitles(profile) {
+    const st = profile.stats;
+    const rank = rankOf(st.daysPlayed);
+    $('pf-title-row').replaceChildren(
+      ...RANKS.slice(1).map(([n, name], i) => {
+        const got = st.daysPlayed >= n;
+        const c = el('canvas', { width: '16', height: '16', 'aria-hidden': 'true' });
+        Icons.drawIcon(c, `titre-${i + 1}`, { dim: !got });
+        const when = st.titleDays && st.titleDays[n] ? ` · obtenu le ${dayLabel(st.titleDays[n])}` : '';
+        return el('li', { class: `pf-title-item${got ? ' got' : ''}${rank.index === i + 1 ? ' current' : ''}`, title: `${name} : ${plural(n, 'jour foré', 'jours forés')}${when}` }, c, el('strong', {}, String(n)), el('span', { class: 'muted' }, name));
+      }),
+    );
+    $('pf-title-note').textContent = rank.next ? `Prochain titre : « ${rank.next.title} », dans ${plural(rank.next.remaining, 'jour foré', 'jours forés')}.` : 'Tu as décroché tous les titres : bravo, légende de la mine !';
+  }
+
   /** Journal de bord : l'arrivée dans la mine puis chaque badge, du plus récent au plus ancien. */
   function renderProfileTimeline(profile) {
     const events = profile.badges.filter((b) => b.count && b.firstOn).map((b) => ({ day: b.firstOn, icon: b.icon, label: `Badge « ${b.name} »`, badge: b }));
     if (profile.joinedAt) events.push({ day: new Date(profile.joinedAt).toISOString().slice(0, 10), icon: 'pioche', label: 'Arrivée dans la mine' });
+    RANKS.slice(1).forEach(([n, name], i) => {
+      const day = profile.stats.titleDays && profile.stats.titleDays[n];
+      if (day) events.push({ day, icon: `titre-${i + 1}`, label: `Titre « ${name} »` });
+    });
     events.sort((a, b) => b.day.localeCompare(a.day));
     const shown = prof.timelineAll ? events : events.slice(0, 8);
     $('pf-timeline-list').replaceChildren(
@@ -2810,7 +2834,7 @@
     const on = betaOn('betaProfil');
     $('pf-hero').hidden = !on;
     $('pf-tabs').hidden = !on;
-    for (const id of ['pf-tiles', 'pf-showcase', 'pf-charts', 'pf-timeline']) $(id).hidden = !on;
+    for (const id of ['pf-tiles', 'pf-titles', 'pf-showcase', 'pf-charts', 'pf-timeline']) $(id).hidden = !on;
     $('pf-next').hidden = !on || $('next-badges').hidden;
     if (!on) return void delete $('view-profile').dataset.active;
     document.querySelectorAll('#view-profile > details.fold').forEach((d) => (d.open = true));
@@ -2818,6 +2842,7 @@
     prof.timelineAll = false;
     renderProfileHero(profile);
     renderProfileTiles(profile);
+    renderProfileTitles(profile);
     renderProfileShowcase(profile);
     renderProfileTimeline(profile);
     setProfileTab(prof.tab || 'apercu');
@@ -3437,10 +3462,20 @@
   }
 
   function renderWorkshop() {
+    const NAMES = { body: 'carrosseries', bit: 'forets', timer: 'chronos' };
+    const filtered = (type, list) => (betaOn('betaProfil') && !prof.locked[type] ? list.filter((s) => s.unlocked) : list);
+    // Lien « Voir celles à gagner » sous chaque liste (nouveau profil seulement).
+    document.querySelectorAll('.wk-toggle').forEach((b) => {
+      const type = b.dataset.wk;
+      const list = { body: app.profile.bodies, bit: app.profile.bits, timer: app.profile.timers }[type];
+      const locked = list.filter((s) => !s.unlocked).length;
+      b.hidden = !betaOn('betaProfil') || !locked;
+      b.textContent = prof.locked[type] ? `Masquer les ${NAMES[type]} à gagner` : `Voir les ${locked} ${NAMES[type]} à gagner`;
+    });
     const grid = (type, list, target) => {
       const current = type === 'body' ? app.skin.body : app.skin.bit;
       target.replaceChildren(
-        ...list.map((s) => {
+        ...filtered(type, list).map((s) => {
           const thumb = el('canvas', { class: 'skin-thumb', width: '22', height: '30' });
           drawSkin(thumb, type === 'body' ? { body: s.id, bit: app.skin.bit } : { body: app.skin.body, bit: s.id }, 0, false);
           const selected = s.id === current;
@@ -3460,7 +3495,7 @@
     // Chrono : aperçu du décompte à 18 secondes.
     const current = app.skin.timer || 'batterie';
     $('skin-timers').replaceChildren(
-      ...app.profile.timers.map((t) => {
+      ...filtered('timer', app.profile.timers).map((t) => {
         const thumb = el('canvas', { class: 'skin-thumb timer', width: '96', height: '20' });
         Timers.draw(thumb, t.id, 18, 30, 0, settings.colors, true);
         const selected = t.id === current;
@@ -3475,6 +3510,13 @@
       }),
     );
   }
+
+  document.querySelectorAll('.wk-toggle').forEach((b) =>
+    b.addEventListener('click', () => {
+      prof.locked[b.dataset.wk] = !prof.locked[b.dataset.wk];
+      renderWorkshop();
+    }),
+  );
 
   async function chooseSkin(type, s) {
     const status = $('skin-status');

@@ -1401,7 +1401,7 @@ kbd { padding: 0 6px; border: 2px solid var(--line); background: var(--well); fo
 .pf-bubble { position: relative; margin: 0; padding: 8px 10px; background: var(--well); font-size: calc(21px * var(--fs)); box-shadow: 0 0 0 3px var(--line); }
 .pf-bubble::before { content: ''; position: absolute; left: -11px; top: 50%; width: 0; height: 0; margin-top: -7px; border: 7px solid transparent; border-right-color: var(--well); border-left: 0; }
 
-.pf-tabs { position: sticky; top: 0; z-index: 15; display: flex; gap: 6px; padding: 8px 4px; margin: 4px; background: var(--bg); }
+.pf-tabs { display: flex; gap: 6px; padding: 8px 4px; margin: 4px; }
 .pf-tabs .tab { flex: 1; padding: 10px 4px; }
 
 :root[data-beta-profil] #view-profile [data-ptab] { display: none; }
@@ -1443,3 +1443,14 @@ kbd { padding: 0 6px; border: 2px solid var(--line); background: var(--well); fo
 
 /* Les chiffres du carnet sont déjà dans les tuiles de l'aperçu. */
 :root[data-beta-profil] #view-profile details[data-fold='carnet'] { display: none !important; }
+
+.pf-title { display: flex; align-items: center; gap: 6px; }
+.pf-trophy { width: 24px; height: 24px; image-rendering: pixelated; flex: none; }
+.pf-title-row { list-style: none; margin: 0 0 8px; padding: 0; display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.pf-title-item { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; background: var(--well); text-align: center; }
+.pf-title-item canvas { width: 32px; height: 32px; image-rendering: pixelated; }
+.pf-title-item strong { font-family: 'Press Start 2P', ui-monospace, monospace; font-size: calc(10px * var(--fs)); color: var(--accent); }
+.pf-title-item .muted { font-size: calc(13px * var(--fs)); line-height: 1; }
+.pf-title-item:not(.got) strong { color: var(--muted); }
+.pf-title-item.current { box-shadow: 0 0 0 3px var(--accent); background: var(--panel-2); }
+.wk-toggle { margin: 8px 0 4px; }
