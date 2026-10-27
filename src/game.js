@@ -10,6 +10,7 @@ const { SkullService } = require('./skulls');
 const { loadSpecialDays } = require('./specialdays');
 const config = require('./config');
 const { matchAnswer, toKey, editDistance, nearAnswers } = require('./matching');
+const { labelOf } = require('./titles');
 const { scoreAnswer, probabilities, pointsFor, tierFor } = require('./scoring');
 const { BadgeService } = require('./badges');
 const { usernameKey } = require('./auth');
@@ -389,7 +390,7 @@ class GameService {
     }
     const games = this.db
       .prepare(
-        `SELECT g.id, g.score, g.user_id AS userId, u.username, u.avatar FROM games g JOIN users u ON u.id = g.user_id
+        `SELECT g.id, g.score, g.user_id AS userId, u.username, u.avatar, u.title FROM games g JOIN users u ON u.id = g.user_id
          WHERE g.mode = 'daily' AND g.day = ? AND g.finished_at IS NOT NULL ORDER BY g.score DESC, u.username_key ASC`,
       )
       .all(day);
@@ -410,6 +411,7 @@ class GameService {
     }
     const players = games.map((g) => ({
       username: g.username,
+      title: labelOf(g.title),
       avatar: Avatar.normalize(g.avatar, g.userId),
       score: g.score,
       me: g.userId === userId,
@@ -1235,7 +1237,7 @@ class GameService {
     const { start, end, prev, next } = this.periodRange(period, day);
     const rows = this.db
       .prepare(
-        `SELECT u.id AS userId, u.username, u.avatar, SUM(g.score) AS score, COUNT(*) AS days
+        `SELECT u.id AS userId, u.username, u.avatar, u.title, SUM(g.score) AS score, COUNT(*) AS days
          FROM games g JOIN users u ON u.id = g.user_id
          WHERE g.mode = 'daily' AND g.day BETWEEN ? AND ?
          GROUP BY u.id
@@ -1249,7 +1251,7 @@ class GameService {
         rank = i + 1;
         previousScore = r.score;
       }
-      return { rank, username: r.username, avatar: Avatar.normalize(r.avatar, r.userId), score: r.score, days: r.days, me: r.userId === userId };
+      return { rank, username: r.username, title: labelOf(r.title), avatar: Avatar.normalize(r.avatar, r.userId), score: r.score, days: r.days, me: r.userId === userId };
     });
     const today = this.today();
     return {

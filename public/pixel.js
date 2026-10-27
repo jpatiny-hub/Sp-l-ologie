@@ -608,7 +608,7 @@
     ['....kssSssSk....', '....kSssSssk....', '.....kssSsk.....', '.....kSssSk.....', '......kSsk......', '......kssk......', '.......kk.......'],
   ];
 
-  const BIT_PALETTE = { c: '#9fe8ff', r: '#b07a43' };
+  const BIT_PALETTE = { c: '#9fe8ff', r: '#b07a43', j: '#f2c230', q: '#eef3f8', m: '#e8466a' };
 
   // Forets : 3 images d'animation chacun.
   function auger(frame) {
@@ -644,6 +644,25 @@
       return ['....kssssssk....', `....k${t(0)}k..k${t(1)}k....`, `....k${t(1)}k..k${t(0)}k....`, `....k${t(0)}krrk${t(1)}k....`, `....k${t(1)}krrk${t(0)}k....`, `....k${t(0)}k..k${t(1)}k....`, `....k.k..k.k....`];
     }),
   };
+
+  // Forets de duel : on écrit la moitié gauche de chaque ligne, la droite en est le miroir (q → S pour l'ombre).
+  function mirror(half) {
+    return half + [...half].reverse().join('').replace(/q/g, 'S');
+  }
+  // Une image sur trois, une étincelle (w) parcourt la lame.
+  function glint(halves, f, from) {
+    return halves.map((h, i) => (i >= from && (i - from) % 3 === f ? h.replace('q', 'w') : h)).map(mirror);
+  }
+  const SWORD_HALVES = {
+    epee: ['..kjjjjj', '....kqss', '....kqss', '.....kqs', '.....kqs', '......kq', '.......k'],
+    rapiere: ['..kjjjjj', '....kjjk', '......kq', '......kq', '......kq', '......kq', '.......k'],
+    hache: ['....kkkr', '..kkqssr', '.kqqsssr', '.kqssssr', '..kkkssr', '.....kkr', '......kr'],
+    trident: ['.kjjjjjj', '.ksk.kqs', '.kSk.kqs', '..k..kqs', '..k..kqs', '......kq', '.......k'],
+    excalibur: ['.kjjjjmm', '.....kqc', '.....kqc', '......kq', '......kc', '......kc', '.......k'],
+  };
+  for (const [name, halves] of Object.entries(SWORD_HALVES)) {
+    BITS[name] = [0, 1, 2].map((f) => glint(halves, f, name === 'rapiere' ? 2 : 1));
+  }
 
   // Carrosseries : palette, forme propre (citrouille, spectre) et accessoires posés par-dessus.
   const PUMPKIN = [
@@ -790,6 +809,19 @@
     nemesis: {
       pal: { y: '#1a1a20', d: '#0c0c10', k: '#000000' },
       overlay: { dx: 9, dy: 4, rows: ['ee.ee', 'ee.ee'], pal: { e: '#ff2a2a' } },
+    },
+    // Duels (suite) : le blindage armé (pointes et rivets), la catapulte (bras et rocher), le drakkar (proue et boucliers).
+    'blinde-arme': {
+      pal: { y: '#5a6670', d: '#2c343b' },
+      overlay: { dx: 1, dy: -2, rows: ['.s..s..s..s.', 'sss.sss.sss.', '............', '............', '............', 'k.k.k.k.k.k.', 'sksksksksksk'], pal: { s: '#c9ccd3', k: '#1b1b1f' } },
+    },
+    catapulte: {
+      pal: { y: '#9a6a3a', d: '#5e3d1f' },
+      overlay: { dx: 2, dy: -4, rows: ['.......ggg..', '.......ggr..', '......r.....', '.....r......', '....r.......', '............', '............', 'dddddddddddd', '............', 'dddddddddddd'], pal: { g: '#8a8a8a', r: '#8b5a2b', d: '#5e3d1f' } },
+    },
+    drakkar: {
+      pal: { y: '#8a5a2b', d: '#5a3a1a' },
+      overlay: { dx: 1, dy: -3, rows: ['.hh.........', 'hh.h........', '.hhh........', '............', '............', '............', 'rr.ww.rr.ww.', 'rr.ww.rr.ww.'], pal: { h: '#f2e6c8', r: '#c0261d', w: '#f3f3f3' } },
     },
     // Réactions : la foreuse « Ovation » (confettis) et la foreuse « Claque » (pompons de supporter).
     ovation: {

@@ -23,6 +23,10 @@
     return avatar && window.Avatar ? Avatar.canvas(avatar, { scale, view }) : null;
   }
   /** Pseudo précédé de son avatar, pour les listes. */
+  /** Titre choisi par le joueur, à poser après son pseudo (rien s'il n'en affiche pas). */
+  function titleChip(label) {
+    return label ? el('span', { class: 'ptitle' }, label) : null;
+  }
   function whoEl(avatar, username, className = 'who-av') {
     return el('span', { class: className }, avatarEl(avatar), el('span', { class: 'who-name' }, username));
   }
@@ -2455,17 +2459,18 @@
     peau: { clair: '#f1c9a5', mat: '#d9a066', brun: '#9c6a43', fonce: '#6b4328' },
     couleur: { brun: '#4a2f1a', noir: '#1b1410', blond: '#e8c547', roux: '#c4562a', gris: '#b8b8c0', rose: '#e86aa8', bleu: '#4a86e8' },
   };
-  const AVATAR_ORDER = ['forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'chapeau', 'tenue', 'objet', 'lieu'];
+  const AVATAR_ORDER = ['forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'chapeau', 'tenue', 'objet', 'lieu'];
 
   function renderAvatarEditor(profile) {
     const catalog = profile.avatarCatalog;
+    const inCatalog = (slot) => !!catalog[slot] && catalog[slot].options.length > 1; // « traits » n'existe que pour le responsable (bêta)
     const draft = { ...profile.avatar };
     const preview = () => {
       $('prof-avatar').replaceChildren(avatarEl(draft, 'full', 6));
       if (betaOn('betaProfil')) $('pf-portrait').replaceChildren(avatarEl(draft, 'full', 6));
     };
     $('prof-name').textContent = app.me.user.username;
-    const rows = AVATAR_ORDER.map((slot) => {
+    const rows = AVATAR_ORDER.filter(inCatalog).map((slot) => {
       const cat = catalog[slot];
       const label = el('span', { class: 'val' });
       const swatch = el('span', { class: 'swatch' });
@@ -2493,12 +2498,12 @@
     function wardrobe() {
       const GROUPS = [
         ['Tête', ['cheveux', 'couleur', 'chapeau']],
-        ['Visage', ['peau', 'yeux', 'barbe']],
+        ['Visage', ['peau', 'yeux', 'barbe', 'trait']],
         ['Corps', ['forme', 'tenue']],
         ['Outil', ['objet', 'lieu']],
       ];
       const FULL = new Set(['forme', 'tenue', 'objet']);
-      const THUMBS = new Set(['forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'chapeau', 'tenue', 'objet']);
+      const THUMBS = new Set(['forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'chapeau', 'tenue', 'objet']);
       let current = 0;
       const tabs = el('div', { class: 'wr-tabs', role: 'tablist' });
       const panel = el('div', { class: 'wr-panel' });
@@ -2511,7 +2516,7 @@
           }),
         );
         panel.replaceChildren(
-          ...GROUPS[current][1].map((slot) => {
+          ...GROUPS[current][1].filter(inCatalog).map((slot) => {
             const cat = catalog[slot];
             const grid = el('div', { class: `wr-grid${THUMBS.has(slot) ? '' : ' text'}` });
             cat.options.forEach((opt) => {
@@ -2532,7 +2537,7 @@
       };
       const random = el('button', { class: 'btn ghost', type: 'button' }, 'Au hasard');
       random.addEventListener('click', () => {
-        for (const slot of AVATAR_ORDER) {
+        for (const slot of AVATAR_ORDER.filter(inCatalog)) {
           const free = catalog[slot].options.filter((o) => o.unlocked);
           draft[slot] = free[Math.floor(Math.random() * free.length)].id;
         }
@@ -2549,7 +2554,7 @@
     let timer = null;
     function commit() {
       clearTimeout(timer);
-      const locked = AVATAR_ORDER.map((slot) => catalog[slot].options.find((o) => o.id === draft[slot])).filter((o) => o && !o.unlocked);
+      const locked = AVATAR_ORDER.filter(inCatalog).map((slot) => catalog[slot].options.find((o) => o.id === draft[slot])).filter((o) => o && !o.unlocked);
       if (locked.length) {
         $('avatar-status').textContent = `🔒 ${locked.map((o) => o.hint).join(' — ')} (pas enregistré tant que ce n'est pas débloqué)`;
         return;
@@ -2667,12 +2672,46 @@
 
   const dayLabel = (day) => formatDay(day, { day: 'numeric', month: 'long', year: 'numeric' });
 
+  const chosenTitleLabel = (profile) => ((profile.titles || []).find((t) => t.id === profile.title) || {}).label || null;
+
+  /** Choix du titre affiché à côté du pseudo : les titres débloqués d'abord, les autres derrière « Voir ceux à gagner ». */
+  function renderTitlePicker(profile) {
+    const titles = profile.titles || [];
+    const mine = titles.filter((t) => t.unlocked);
+    const rest = titles.filter((t) => !t.unlocked);
+    const option = (t) => {
+      const on = t ? profile.title === t.id : !profile.title;
+      const b = el('button', { class: `tp-opt${on ? ' sel' : ''}${t && !t.unlocked ? ' locked' : ''}`, type: 'button', 'aria-pressed': String(on), title: t ? (t.unlocked ? t.label : t.hint) : 'Ne pas afficher de titre' }, t ? `${t.unlocked ? '' : '🔒 '}${t.label}` : 'Aucun titre');
+      if (!t || t.unlocked) {
+        b.addEventListener('click', async () => {
+          try {
+            await api('/api/profile/title', { title: t ? t.id : null });
+            profile.title = t ? t.id : null;
+            $('pf-name').replaceChildren(app.me.user.username, titleChip(chosenTitleLabel(profile)));
+            renderTitlePicker(profile);
+          } catch (err) {
+            showNotice(err.message);
+          }
+        });
+      } else b.disabled = true;
+      return b;
+    };
+    $('pf-titlepick-grid').replaceChildren(option(null), ...mine.map(option), ...(prof.titlesAll ? rest.map(option) : []));
+    const more = $('btn-tp-more');
+    more.hidden = !rest.length;
+    more.textContent = prof.titlesAll ? 'Masquer ceux à gagner' : `Voir les ${rest.length} titres à gagner`;
+  }
+  $('btn-tp-more').addEventListener('click', () => {
+    prof.titlesAll = !prof.titlesAll;
+    if (app.profile) renderTitlePicker(app.profile);
+  });
+
   /** Carte de mineur : portrait, titre, série et étais, et un mot de la taupe. */
   function renderProfileHero(profile) {
     const st = profile.stats;
     const rank = rankOf(st.daysPlayed);
     $('pf-portrait').replaceChildren(avatarEl(profile.avatar, 'full', 6));
-    $('pf-name').textContent = app.me.user.username;
+    $('pf-name').replaceChildren(app.me.user.username, titleChip(chosenTitleLabel(profile)));
     const trophy = rank.index > 0 ? el('canvas', { class: 'pf-trophy', width: '16', height: '16', 'aria-hidden': 'true' }) : null;
     if (trophy) Icons.drawIcon(trophy, `titre-${rank.index}`);
     $('pf-title').replaceChildren(...(trophy ? [trophy] : []), rank.title);
@@ -2834,7 +2873,7 @@
     const on = betaOn('betaProfil');
     $('pf-hero').hidden = !on;
     $('pf-tabs').hidden = !on;
-    for (const id of ['pf-tiles', 'pf-titles', 'pf-showcase', 'pf-charts', 'pf-timeline']) $(id).hidden = !on;
+    for (const id of ['pf-tiles', 'pf-titles', 'pf-titlepick', 'pf-showcase', 'pf-charts', 'pf-timeline']) $(id).hidden = !on;
     $('pf-next').hidden = !on || $('next-badges').hidden;
     if (!on) return void delete $('view-profile').dataset.active;
     document.querySelectorAll('#view-profile > details.fold').forEach((d) => (d.open = true));
@@ -2843,6 +2882,7 @@
     renderProfileHero(profile);
     renderProfileTiles(profile);
     renderProfileTitles(profile);
+    renderTitlePicker(profile);
     renderProfileShowcase(profile);
     renderProfileTimeline(profile);
     setProfileTab(prof.tab || 'apercu');
@@ -4455,7 +4495,7 @@
           'li',
           { class: e.me ? 'me' : '' },
           el('span', {}, `${e.rank}.`),
-          el('span', { class: 'who-av' }, avatarEl(e.avatar), el('span', { class: 'who-name' }, e.username, board.period === 'day' ? null : el('span', { class: 'days' }, ` (${e.days} j)`))),
+          el('span', { class: 'who-av' }, avatarEl(e.avatar), el('span', { class: 'who-name' }, e.username, titleChip(e.title), board.period === 'day' ? null : el('span', { class: 'days' }, ` (${e.days} j)`))),
           el('span', {}, pts(e.score)),
         ),
       );
@@ -5141,7 +5181,7 @@
             { class: e.me ? 'me' : '' },
             e.rank <= 3 ? medalCanvas(e.rank) : el('span', { class: 'gz-rank' }, `${e.rank}.`),
             avatarEl(e.avatar, 'head', 2),
-            el('span', { class: 'who-name' }, e.username),
+            el('span', { class: 'who-name' }, e.username, titleChip(e.title)),
             el('span', {}, data.kind === 'day' ? pts(e.score) : `${pts(e.score)} · ${e.days} j`),
           ),
         ),
@@ -5339,7 +5379,7 @@
               el(
                 'div',
                 { class: `score-bar${p.me ? ' me' : ''}` },
-                el('span', { class: 'who' }, avatarEl(p.avatar, 'head', 2), p.username),
+                el('span', { class: 'who' }, avatarEl(p.avatar, 'head', 2), el('span', { class: 'who-text' }, p.username, titleChip(p.title))),
                 el('span', { class: 'track' }, el('span', { class: 'fill', style: { width: `${Math.round((p.score / top) * 100)}%`, background: Pixel.TIER_COLORS[scoreTier(p.score)] } })),
                 el('span', { class: 'n' }, pts(p.score)),
               ),
@@ -5369,7 +5409,7 @@
                 'li',
                 { class: `${p.me ? 'me' : ''}${mark}${r.outcome === 'joker' ? ' joker' : ''}${r.spare ? ' spare' : ''}` },
                 el('span', { class: 'swatch', style: { background: Pixel.TIER_COLORS[r.tier] || '#666' } }),
-                el('span', { class: 'who' }, avatarEl(p.avatar, 'head', 2), p.username),
+                el('span', { class: 'who' }, avatarEl(p.avatar, 'head', 2), el('span', { class: 'who-text' }, p.username, titleChip(p.title))),
                 el('span', { class: 'what' }, what),
                 el('span', { class: 'pts' }, r.outcome === 'joker' ? '—' : pts(r.points || 0)),
                 app.me && app.me.isAdmin && (r.outcome === 'timeout' || r.outcome === 'skip' || r.outcome === 'answer') ? assignButton(day, back, p, r, th) : null,
