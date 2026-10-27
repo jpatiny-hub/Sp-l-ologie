@@ -1483,10 +1483,20 @@ kbd { padding: 0 6px; border: 2px solid var(--line); background: var(--well); fo
 
 /* Titres affichés à côté des pseudos */
 .ptitle { display: inline-block; margin-left: 6px; padding: 0 6px; font-size: 0.72em; line-height: 1.5; color: var(--accent); border: 1px solid currentColor; border-radius: 3px; white-space: nowrap; vertical-align: middle; opacity: 0.9; }
-.tp-grid { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
-.tp-opt { font: inherit; font-size: 0.85rem; padding: 4px 10px; color: var(--ink); background: transparent; border: 1px solid var(--muted); border-radius: 4px; cursor: pointer; }
-.tp-opt.sel { color: var(--accent); border-color: var(--accent); font-weight: bold; }
-.tp-opt.locked, .tp-opt:disabled { opacity: 0.55; cursor: default; }
+button.pf-title { border: 0; cursor: pointer; text-align: left; }
+button.pf-title:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.pf-title .caret { margin-left: 2px; opacity: 0.7; }
+.title-dialog { max-width: 380px; width: calc(100% - 24px); }
+.title-list { display: flex; flex-direction: column; gap: 4px; margin: 10px 0 14px; max-height: 55dvh; overflow-y: auto; }
+.title-list h3 { margin: 10px 0 2px; font-size: calc(13px * var(--fs)); color: var(--muted); }
+.tl-row { display: grid; grid-template-columns: 1.4em 1fr; align-items: baseline; gap: 2px 6px; width: 100%; padding: 8px 10px; font: inherit; text-align: left; color: var(--ink); background: var(--well); border: 0; cursor: pointer; }
+.tl-row .tl-mark { color: var(--accent); }
+.tl-row .tl-name { font-size: calc(17px * var(--fs)); }
+.tl-row .tl-hint { grid-column: 2; font-size: calc(14px * var(--fs)); color: var(--muted); }
+.tl-row.sel { background: var(--panel-2); box-shadow: 0 0 0 3px var(--accent); }
+.tl-row.sel .tl-name { color: var(--accent); }
+.tl-row.locked { opacity: 0.6; cursor: default; }
+.tl-row:not(.locked):hover { background: var(--panel-2); }
 .who-text { display: flex; flex-direction: column; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .who-text .ptitle { margin: 2px 0 0; font-size: 0.62em; align-self: flex-start; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .score-bar .who, .compare-list .who { max-width: none; }

@@ -60,6 +60,12 @@
     </div>
   </dialog>
 
+  <dialog class="card info-dialog title-dialog" id="title-dialog" aria-labelledby="title-dialog-h">
+    <h2 id="title-dialog-h">Mon titre</h2>
+    <p class="muted small">Le titre choisi s'affiche à côté de ton pseudo, dans le classement et dans les récapitulatifs des réponses.</p>
+    <div class="title-list" id="title-list"></div>
+    <button class="btn" id="title-close" type="button">Fermer</button>
+  </dialog>
   <dialog class="card info-dialog sheet" id="mode-dialog" aria-labelledby="mode-title">
     <h2 id="mode-title"></h2>
     <div id="mode-step-mode">
@@ -143,8 +149,8 @@
         <p class="hint">Dans les modes daltoniens, chaque niveau de rareté a aussi son propre symbole : la couleur n'est jamais la seule information.</p>
       </fieldset>
       <fieldset id="beta-box" hidden>
-        <legend>Version bêta (contremaître)</legend>
-        <p class="hint">Des nouveautés à l'essai, visibles seulement pour toi : les autres joueurs ne les voient pas.</p>
+        <legend>Nouveau look (contremaître)</legend>
+        <p class="hint">Tout est actif pour tous les joueurs. Décoche une case pour revoir l'ancienne version, uniquement sur ton appareil.</p>
         <label class="check"><input type="checkbox" name="betaKeys"> Clavier : flèches, Entrée, O / N dans les propositions, « ? » pour l'aide</label>
         <label class="check"><input type="checkbox" name="betaHints"> Retours précis quand une réponse est refusée</label>
         <label class="check"><input type="checkbox" name="betaHome"> Nouvel accueil : fiche taupe, forage en haut, podium remonté, barre du bas illustrée</label>
@@ -614,7 +620,8 @@
             <div class="pf-portrait" id="pf-portrait"></div>
             <div class="pf-identity">
               <p class="pf-name" id="pf-name"></p>
-              <p class="pf-title" id="pf-title"></p>
+              <button class="pf-title" id="pf-title" type="button" aria-haspopup="dialog"></button>
+              <p class="muted small" id="pf-title-hint"></p>
               <p class="muted small" id="pf-since"></p>
               <div class="pf-chips" id="pf-chips"></div>
             </div>
@@ -638,7 +645,6 @@
         </div>
         <div class="card pf-tiles" id="pf-tiles" data-ptab="apercu" hidden><ul class="pf-tile-grid" id="pf-tile-grid"></ul></div>
         <div class="card pf-titles" id="pf-titles" data-ptab="apercu" hidden><h2>Titres de mineur</h2><ol class="pf-title-row" id="pf-title-row"></ol><p class="muted small" id="pf-title-note"></p></div>
-        <div class="card pf-titlepick" id="pf-titlepick" data-ptab="vestiaire" hidden><h2>Titre affiché</h2><p class="muted small">Il apparaît à côté de ton pseudo dans les récapitulatifs et le classement.</p><div class="tp-grid" id="pf-titlepick-grid"></div><button class="link" id="btn-tp-more" type="button" hidden></button></div>
         <div class="card pf-showcase" id="pf-showcase" data-ptab="apercu" hidden>
           <h2>Vitrine</h2>
           <div class="badge-table" id="pf-showcase-list"></div>

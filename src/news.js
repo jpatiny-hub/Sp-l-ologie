@@ -170,6 +170,22 @@ const NEWS = [
       "Chrono : quand le décompte arrive à zéro, la galerie de secours n'est plus proposée (elle obligeait à revenir en arrière) ; le thème est simplement noté « temps écoulé ».",
     ],
   },
+  {
+    id: 11,
+    date: '2026-10-28',
+    title: 'Nouvelle mine : accueil, profil et cosmétiques',
+    highlights: [
+      { icon: 'maison', text: 'Un accueil et un profil entièrement refaits, avec une petite taupe mineuse' },
+      { icon: 'casque', text: 'Des titres à afficher à côté de ton pseudo, et plein de nouveaux cosmétiques' },
+      { icon: 'taupe', text: 'Un court tutoriel pour (re)découvrir le principe du jeu' },
+    ],
+    items: [
+      "Interface refaite : nouvel accueil (ton mineur, le forage du jour, la vie de la mine, le podium), barre de navigation en bas de l'écran avec des pastilles pour les nouveautés, et un profil en onglets avec carte de mineur, tuiles, vitrine et vestiaire.",
+      "Titres : touche le cadre de titre sur ta carte de mineur pour choisir celui qui s'affiche à côté de ton pseudo. Ils se gagnent avec les jours forés et avec les badges.",
+      "Cosmétiques : épées, haches et autres forets, blindages armés, casques, armures, tenues de pirate ou de cuisinier, monocle, cache-œil, barbes et traits du visage. Plusieurs se gagnent en duel.",
+      "Tutoriel : cinq écrans pour rappeler le principe (la réponse correcte la moins probable rapporte le plus de points) et les modes de jeu. Tu peux le revoir depuis les réglages.",
+    ],
+  },
 ];
 
 const LATEST_NEWS_ID = NEWS[NEWS.length - 1].id;

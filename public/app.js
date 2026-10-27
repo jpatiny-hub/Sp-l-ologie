@@ -40,7 +40,7 @@
   const SETTINGS_KEY = 'speleologie.settings';
   const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false };
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
-  for (const flag of BETA_FLAGS) settings[flag] = false;
+  for (const flag of BETA_FLAGS) settings[flag] = true;
   const home = { moved: false, origin: new Map() }; // état du nouvel accueil (voir layoutHome)
   const prof = { moved: false, tab: 'apercu', timelineAll: false, locked: { body: false, bit: false, timer: false } }; // état du nouveau profil (voir layoutProfile)
   try {
@@ -48,7 +48,10 @@
     // Ancien réglage « mode daltonien » (case à cocher) : devenu « rouge-vert ».
     if (saved.colorblind && !saved.colors) saved.colors = 'rouge-vert';
     delete saved.colorblind;
+    // Les anciens réglages de la bêta (tout décoché par défaut) ne valent plus : le nouveau look est la norme.
+    if (saved.betaV !== 2) for (const flag of BETA_FLAGS) delete saved[flag];
     Object.assign(settings, saved);
+    settings.betaV = 2;
   } catch {
     /* stockage indisponible : réglages par défaut */
   }
@@ -66,7 +69,8 @@
   const isLight = () => settings.lisible || settings.theme === 'clair' || (settings.theme === 'auto' && !!(lightQuery && lightQuery.matches));
   if (lightQuery && lightQuery.addEventListener) lightQuery.addEventListener('change', () => settings.theme === 'auto' && applySettings());
   /** Nouveautés à l'essai : réservées au responsable du jeu, une par une. */
-  const betaOn = (name) => !!(app.me && app.me.isAdmin && settings[name]);
+  // Nouveau look : pour tous les joueurs ; le responsable peut en retirer des morceaux dans les réglages pour comparer.
+  const betaOn = (name) => !!(app.me && (!app.me.isAdmin || settings[name]));
 
   const isHalloween = () => document.documentElement.dataset.season === 'halloween';
   const reducedMotion = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -2799,47 +2803,66 @@
 
   const chosenTitleLabel = (profile) => ((profile.titles || []).find((t) => t.id === profile.title) || {}).label || null;
 
-  /** Choix du titre affiché à côté du pseudo : les titres débloqués d'abord, les autres derrière « Voir ceux à gagner ». */
-  function renderTitlePicker(profile) {
+  /** Cadre du titre sur la carte de mineur : le titre affiché (sinon celui du rang), à toucher pour en changer. */
+  function renderTitleFrame(profile) {
+    const rank = rankOf(profile.stats.daysPlayed);
+    const chosen = chosenTitleLabel(profile);
+    const trophy = rank.index > 0 ? el('canvas', { class: 'pf-trophy', width: '16', height: '16', 'aria-hidden': 'true' }) : null;
+    if (trophy) Icons.drawIcon(trophy, `titre-${rank.index}`);
+    $('pf-title').replaceChildren(...(trophy ? [trophy] : []), el('span', {}, chosen || rank.title), el('span', { class: 'caret', 'aria-hidden': 'true' }, '▾'));
+    $('pf-title').title = 'Choisir le titre affiché à côté de ton pseudo';
+    $('pf-title-hint').textContent = chosen ? '' : 'Touche le cadre pour choisir un titre à afficher à côté de ton pseudo.';
+  }
+
+  /** Liste des titres : ceux qu'on a débloqués à toucher, puis ceux à gagner avec leur condition. */
+  function renderTitleList(profile) {
     const titles = profile.titles || [];
-    const mine = titles.filter((t) => t.unlocked);
-    const rest = titles.filter((t) => !t.unlocked);
-    const option = (t) => {
+    const choose = async (t) => {
+      try {
+        await api('/api/profile/title', { title: t ? t.id : null });
+        profile.title = t ? t.id : null;
+        renderTitleFrame(profile);
+        $('title-dialog').close();
+      } catch (err) {
+        showNotice(err.message);
+      }
+    };
+    const row = (t) => {
       const on = t ? profile.title === t.id : !profile.title;
-      const b = el('button', { class: `tp-opt${on ? ' sel' : ''}${t && !t.unlocked ? ' locked' : ''}`, type: 'button', 'aria-pressed': String(on), title: t ? (t.unlocked ? t.label : t.hint) : 'Ne pas afficher de titre' }, t ? `${t.unlocked ? '' : '🔒 '}${t.label}` : 'Aucun titre');
-      if (!t || t.unlocked) {
-        b.addEventListener('click', async () => {
-          try {
-            await api('/api/profile/title', { title: t ? t.id : null });
-            profile.title = t ? t.id : null;
-            $('pf-name').replaceChildren(app.me.user.username, titleChip(chosenTitleLabel(profile)));
-            renderTitlePicker(profile);
-          } catch (err) {
-            showNotice(err.message);
-          }
-        });
-      } else b.disabled = true;
+      const b = el(
+        'button',
+        { class: `tl-row${on ? ' sel' : ''}${t && !t.unlocked ? ' locked' : ''}`, type: 'button', 'aria-pressed': String(on) },
+        el('span', { class: 'tl-mark', 'aria-hidden': 'true' }, on ? '▶' : t && !t.unlocked ? '🔒' : ''),
+        el('span', { class: 'tl-name' }, t ? t.label : 'Aucun titre'),
+        t && !t.unlocked ? el('span', { class: 'tl-hint' }, t.hint) : null,
+      );
+      if (!t || t.unlocked) b.addEventListener('click', () => choose(t));
+      else b.disabled = true;
       return b;
     };
-    $('pf-titlepick-grid').replaceChildren(option(null), ...mine.map(option), ...(prof.titlesAll ? rest.map(option) : []));
-    const more = $('btn-tp-more');
-    more.hidden = !rest.length;
-    more.textContent = prof.titlesAll ? 'Masquer ceux à gagner' : `Voir les ${rest.length} titres à gagner`;
+    const mine = titles.filter((t) => t.unlocked);
+    const rest = titles.filter((t) => !t.unlocked);
+    $('title-list').replaceChildren(
+      row(null),
+      ...mine.map(row),
+      ...(rest.length ? [el('h3', {}, `À gagner (${rest.length})`), ...rest.map(row)] : []),
+    );
   }
-  $('btn-tp-more').addEventListener('click', () => {
-    prof.titlesAll = !prof.titlesAll;
-    if (app.profile) renderTitlePicker(app.profile);
+  $('pf-title').addEventListener('click', () => {
+    if (!app.profile) return;
+    renderTitleList(app.profile);
+    $('title-dialog').showModal();
   });
+  $('title-close').addEventListener('click', () => $('title-dialog').close());
+  $('title-dialog').addEventListener('click', (event) => event.target === $('title-dialog') && $('title-dialog').close());
 
   /** Carte de mineur : portrait, titre, série et étais, et un mot de la taupe. */
   function renderProfileHero(profile) {
     const st = profile.stats;
     const rank = rankOf(st.daysPlayed);
     $('pf-portrait').replaceChildren(avatarEl(profile.avatar, 'full', 6));
-    $('pf-name').replaceChildren(app.me.user.username, titleChip(chosenTitleLabel(profile)));
-    const trophy = rank.index > 0 ? el('canvas', { class: 'pf-trophy', width: '16', height: '16', 'aria-hidden': 'true' }) : null;
-    if (trophy) Icons.drawIcon(trophy, `titre-${rank.index}`);
-    $('pf-title').replaceChildren(...(trophy ? [trophy] : []), rank.title);
+    $('pf-name').textContent = app.me.user.username;
+    renderTitleFrame(profile);
     $('pf-since').textContent = profile.joinedAt ? `Mineur depuis le ${dayLabel(new Date(profile.joinedAt).toISOString().slice(0, 10))}` : '';
     const lantern = el('canvas', { class: 'streak-lantern', width: '16', height: '16', 'aria-hidden': 'true' });
     Icons.drawLantern(lantern, st.currentStreak, { dim: st.currentStreak === 0 });
@@ -2998,7 +3021,7 @@
     const on = betaOn('betaProfil');
     $('pf-hero').hidden = !on;
     $('pf-tabs').hidden = !on;
-    for (const id of ['pf-tiles', 'pf-titles', 'pf-titlepick', 'pf-showcase', 'pf-charts', 'pf-timeline']) $(id).hidden = !on;
+    for (const id of ['pf-tiles', 'pf-titles', 'pf-showcase', 'pf-charts', 'pf-timeline']) $(id).hidden = !on;
     $('pf-next').hidden = !on || $('next-badges').hidden;
     if (!on) return void delete $('view-profile').dataset.active;
     document.querySelectorAll('#view-profile > details.fold').forEach((d) => (d.open = true));
@@ -3007,7 +3030,6 @@
     renderProfileHero(profile);
     renderProfileTiles(profile);
     renderProfileTitles(profile);
-    renderTitlePicker(profile);
     renderProfileShowcase(profile);
     renderProfileTimeline(profile);
     setProfileTab(prof.tab || 'apercu');

@@ -236,7 +236,7 @@ for (const [camp, list] of Object.entries(CRUSH_BADGES)) {
 DRAW_BADGES.forEach(([id, name, description, icon, body]) => {
   define(id, { category: 'duel', name, description: () => description, icon, unlock: body ? { type: 'body', id: body } : null });
 });
-// Foreuses encore en bêta : réservées au responsable du jeu.
+// Foreuses que `profile(…, false)` masque encore (interrupteur de sécurité ; tout le monde les voit par défaut).
 const BETA_BODIES = new Set(['blinde-arme', 'catapulte', 'drakkar']);
 const BETA_BITS = new Set(['epee', 'rapiere', 'hache', 'trident', 'excalibur']);
 
@@ -712,7 +712,7 @@ class BadgeService {
   }
 
   /** Carnet du joueur : statistiques, badges (obtenus ou à gagner) et apparences débloquées. */
-  profile(userId, today, beta = false) {
+  profile(userId, today, beta = true) {
     this.awardPodiums(today);
     const days = this.playedDays(userId);
     const rows = this.db
@@ -786,7 +786,7 @@ class BadgeService {
   }
 
   /** Choisit le titre affiché à côté du pseudo (ou aucun avec `null`). Renvoie false si le titre n'est pas débloqué. */
-  setTitle(userId, today, id, beta = false) {
+  setTitle(userId, today, id, beta = true) {
     if (id !== null) {
       if (!beta) return false;
       const profile = this.profile(userId, today, beta);
@@ -797,7 +797,7 @@ class BadgeService {
   }
 
   /** Enregistre l'avatar du joueur s'il ne contient que des éléments débloqués. Renvoie l'avatar, ou null. */
-  setAvatar(userId, today, candidate, beta = false) {
+  setAvatar(userId, today, candidate, beta = true) {
     const clean = Avatar.validate(candidate, userId, this.profile(userId, today, beta).badges, beta);
     if (!clean) return null;
     this.db.prepare('UPDATE users SET avatar = ? WHERE id = ?').run(JSON.stringify(clean), userId);
@@ -813,7 +813,7 @@ class BadgeService {
   }
 
   /** Change l'apparence de la foreuse, si elle est débloquée. Renvoie false sinon. */
-  setSkin(userId, today, { body, bit, timer }, beta = false) {
+  setSkin(userId, today, { body, bit, timer }, beta = true) {
     const profile = this.profile(userId, today, beta);
     const ok = (list, id) => list.some((s) => s.id === id && s.unlocked);
     const chosenTimer = timer === undefined ? profile.skin.timer : timer;

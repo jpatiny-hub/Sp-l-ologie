@@ -84,7 +84,7 @@ test('titre affiché : choix, refus des titres verrouillés, visible dans le cla
   }
 });
 
-test('bêta : titres et nouveaux cosmétiques réservés au responsable du jeu', async () => {
+test('titres et nouveaux cosmétiques : ouverts à tous les joueurs', async () => {
   const app = await startServer();
   try {
     const boss = client(app.base);
@@ -94,21 +94,18 @@ test('bêta : titres et nouveaux cosmétiques réservés au responsable du jeu',
     await playDaily(app, joueur);
 
     const mine = (await joueur('/api/profile')).data;
-    assert.deepEqual(mine.titles, [], 'pas de titres hors bêta');
-    assert.equal((await joueur('/api/profile/title', { title: 'apprenti-foreur' })).status, 403);
-    assert.equal(mine.bodies.some((b) => b.id === 'blinde-arme'), false);
-    assert.equal(mine.bits.some((b) => b.id === 'epee'), false);
-    assert.equal(mine.avatarCatalog.tenue.options.some((o) => o.id === 'armure'), false);
-    assert.equal(mine.avatarCatalog.trait.options.length, 1, 'aucun seul : la catégorie reste masquée');
+    assert.ok(mine.titles.length > 40);
+    assert.ok(mine.bodies.some((b) => b.id === 'blinde-arme'));
+    assert.ok(mine.bits.some((b) => b.id === 'epee'));
+    assert.ok(mine.avatarCatalog.trait.options.length > 1);
+    assert.equal((await joueur('/api/profile/title', { title: 'apprenti-foreur' })).status, 200);
+    // Un élément verrouillé reste refusé.
+    assert.equal((await joueur('/api/profile/avatar', { avatar: { ...mine.avatar, trait: 'guerre' } })).status, 403);
     // Un avatar sans le champ « trait » (ancienne page restée ouverte) reste accepté.
     const { trait, ...old } = mine.avatar;
     assert.equal((await joueur('/api/profile/avatar', { avatar: old })).status, 200);
-    assert.equal((await joueur('/api/profile/avatar', { avatar: { ...mine.avatar, trait: 'guerre' } })).status, 403);
-
-    const chef = (await boss('/api/profile')).data;
-    assert.ok(chef.titles.length > 40);
-    assert.ok(chef.bodies.some((b) => b.id === 'blinde-arme'));
-    assert.ok(chef.avatarCatalog.trait.options.length > 1);
+    // La vie de la mine est ouverte à tous.
+    assert.equal((await joueur('/api/mine-today')).status, 200);
   } finally {
     await app.close();
   }

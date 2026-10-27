@@ -111,7 +111,7 @@ test('retours précis sur une réponse refusée : réservés au responsable, san
   }
 });
 
-test('vie de la mine : réservée au responsable, forages terminés et pépites', async () => {
+test('vie de la mine : ouverte à tous, forages terminés et pépites', async () => {
   const { playDaily } = require('./helpers');
   const app = await startServer();
   try {
@@ -119,7 +119,7 @@ test('vie de la mine : réservée au responsable, forages terminés et pépites'
     const eve = client(app.base);
     await adam('/api/signup', { username: 'adam', password: 'secret123' });
     await eve('/api/signup', { username: 'eve', password: 'secret123' });
-    assert.equal((await eve('/api/mine-today')).status, 403);
+    assert.equal((await eve('/api/mine-today')).status, 200);
     const empty = (await adam('/api/mine-today')).data;
     assert.equal(empty.started, 0);
     await playDaily(app, eve, 5);
