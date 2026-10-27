@@ -653,7 +653,8 @@
     const today = app.me && app.me.today;
     card.hidden = !(betaOn('betaSkin') && today);
     if (card.hidden) return;
-    const hour = Number(new Intl.DateTimeFormat('fr-BE', { hour: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Brussels' }).format(new Date()));
+    const hourPart = new Intl.DateTimeFormat('fr-BE', { hour: 'numeric', hourCycle: 'h23', timeZone: 'Europe/Brussels' }).formatToParts(new Date()).find((p) => p.type === 'hour');
+    const hour = hourPart ? Number(hourPart.value) : 12;
     const hello = hour >= 18 || hour < 5 ? 'Bonsoir' : 'Bonjour';
     $('beta-greet').textContent = `${hello} ${app.me.user.username} !`;
     const st = app.me.streak;
