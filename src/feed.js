@@ -73,4 +73,23 @@ function feed(game, userId, limit = 3) {
   return { now, events: events.slice(0, Math.max(1, Math.min(20, limit))) };
 }
 
-module.exports = { feed };
+/** « Aujourd'hui dans la mine » : combien de mineurs ont foré, et les derniers forages terminés. */
+function mineToday(game) {
+  const db = game.db;
+  const day = game.today();
+  const started = db.prepare("SELECT COUNT(DISTINCT user_id) AS n FROM games WHERE mode = 'daily' AND day = ?").get(day).n;
+  const rows = db
+    .prepare(
+      `SELECT g.user_id AS userId, g.score, g.finished_at AS at, u.username, u.avatar FROM games g JOIN users u ON u.id = g.user_id
+       WHERE g.mode = 'daily' AND g.day = ? AND g.finished_at IS NOT NULL ORDER BY g.finished_at DESC`,
+    )
+    .all(day);
+  return {
+    day,
+    started,
+    finished: rows.length,
+    recent: rows.slice(0, 3).map((r) => ({ username: r.username, avatar: Avatar.normalize(r.avatar, r.userId), score: r.score, at: r.at })),
+  };
+}
+
+module.exports = { feed, mineToday };

@@ -136,6 +136,11 @@
         <label class="check"><input type="checkbox" name="betaKeys"> Clavier : flèches, Entrée, O / N dans les propositions, « ? » pour l'aide</label>
         <label class="check"><input type="checkbox" name="betaHints"> Retours précis quand une réponse est refusée</label>
         <label class="check"><input type="checkbox" name="betaSkin"> Accueil chaleureux (aperçu du nouveau look)</label>
+        <label class="check"><input type="checkbox" name="betaMascot"> Mascotte : une petite taupe mineuse</label>
+        <label class="check"><input type="checkbox" name="betaNav"> Barre de navigation en bas (téléphone)</label>
+        <label class="check"><input type="checkbox" name="betaFx"> Étincelles, flamme et ambiance de mine</label>
+        <label class="check"><input type="checkbox" name="betaSocial"> La vie de la mine sur l'accueil</label>
+        <label class="check"><input type="checkbox" name="betaWarm"> Textes plus chaleureux</label>
       </fieldset>
       <fieldset id="share-box">
         <legend>Inviter des amis</legend>
@@ -175,6 +180,14 @@
   </div>
   <p class="notice" id="notice" role="alert" hidden></p>
 
+  <div class="fx-layer" id="fx-layer" aria-hidden="true"></div>
+  <nav class="bottom-nav" id="bottom-nav" aria-label="Navigation" hidden>
+    <button type="button" data-nav="home"><span class="nav-ico" aria-hidden="true">🏠</span><span>Accueil</span></button>
+    <button type="button" data-nav="play"><span class="nav-ico" aria-hidden="true">⛏️</span><span>Jouer</span></button>
+    <button type="button" data-nav="podium"><span class="nav-ico" aria-hidden="true">🏆</span><span>Podium</span></button>
+    <button type="button" data-nav="messages"><span class="nav-ico" aria-hidden="true">✉️</span><span>Messages</span><span class="tab-dot" id="nav-dot" hidden></span></button>
+    <button type="button" data-nav="profile"><span class="nav-ico" aria-hidden="true">👤</span><span>Profil</span></button>
+  </nav>
   <button class="drawer-tab" id="drawer-tab" type="button" aria-haspopup="dialog" aria-controls="drawer" hidden><span>Plus</span><span class="tab-dot" id="drawer-dot" hidden></span></button>
   <dialog class="drawer" id="drawer" aria-label="Plus">
     <div class="drawer-frame">
@@ -299,9 +312,22 @@
         <button class="card report-banner collective-banner" id="collective-banner" type="button" hidden><canvas id="collective-banner-icon" width="7" height="6" aria-hidden="true"></canvas><span><strong>Diamant atteint !</strong><span id="collective-banner-text"></span></span></button>
         <button class="card report-banner" id="report-banner" type="button" hidden>📬 Tu as une réponse à un de tes signalements</button>
         <div class="card beta-hello" id="beta-hello" hidden>
-          <p class="beta-greet" id="beta-greet"></p>
-          <p class="beta-sub" id="beta-sub"></p>
-          <div class="beta-dots" id="beta-dots" role="img" aria-label="Avancement du forage du jour"></div>
+          <div class="beta-hello-row">
+            <div class="beta-hello-text">
+              <p class="beta-greet" id="beta-greet"></p>
+              <p class="beta-sub" id="beta-sub"></p>
+              <div class="beta-dots" id="beta-dots" role="img" aria-label="Avancement du forage du jour"></div>
+            </div>
+            <div class="beta-mascot" id="beta-mascot" aria-hidden="true">
+              <canvas id="mascot-open" width="16" height="16"></canvas>
+              <canvas id="mascot-blink" width="16" height="16"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="card beta-social" id="beta-social" hidden>
+          <h2>Dans la mine aujourd'hui</h2>
+          <p id="beta-social-text"></p>
+          <ul class="beta-social-list" id="beta-social-list"></ul>
         </div>
         <div class="card profile-card">
           <div class="home-profile">

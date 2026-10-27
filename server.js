@@ -17,7 +17,7 @@ const { scheduleBackups, snapshotBeforeStart, backupNow } = require('./src/backu
 const { ErrorLog, healthReport } = require('./src/health');
 const { AnnouncementService } = require('./src/announcements');
 const { museum } = require('./src/museum');
-const { feed } = require('./src/feed');
+const { feed, mineToday } = require('./src/feed');
 const { seasonFor } = require('./src/specialdays');
 const { ReverseService } = require('./src/reverse');
 const { MessageService } = require('./src/messages');
@@ -480,6 +480,12 @@ function createApp({
     'GET /api/feed': async (req, res, _id, url) => {
       const user = requireUser(req, res);
       json(res, 200, feed(game, user.id, Number(url.searchParams.get('limit')) || 3));
+    },
+
+    // La vie de la mine sur l'accueil (version bêta, réservée au responsable pour l'instant).
+    'GET /api/mine-today': async (req, res) => {
+      requireAdmin(req, res);
+      json(res, 200, mineToday(game));
     },
 
     // Annonces du responsable : lecture par les joueurs, gestion par le responsable.

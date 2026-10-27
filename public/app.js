@@ -34,7 +34,9 @@
 
   // ---------- Paramètres (propres à l'appareil) ----------
   const SETTINGS_KEY = 'speleologie.settings';
-  const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false, betaKeys: false, betaHints: false, betaSkin: false };
+  const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false };
+  const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm'];
+  for (const flag of BETA_FLAGS) settings[flag] = false;
   try {
     const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
     // Ancien réglage « mode daltonien » (case à cocher) : devenu « rouge-vert ».
@@ -98,7 +100,14 @@
     if (isLight()) root.dataset.theme = 'clair';
     else delete root.dataset.theme;
     root.toggleAttribute('data-beta-skin', betaOn('betaSkin'));
-    if (app.me && app.me.today) renderBetaHello();
+    root.toggleAttribute('data-beta-nav', betaOn('betaNav'));
+    root.toggleAttribute('data-beta-fx', betaOn('betaFx'));
+    applyDaypart();
+    updateNav();
+    if (app.me && app.me.today) {
+      renderBetaHello();
+      renderBetaSocial();
+    }
     const button = $('btn-sound');
     button.setAttribute('aria-pressed', String(settings.sound));
     button.setAttribute('aria-label', settings.sound ? 'Couper le son' : 'Activer le son');
@@ -205,7 +214,7 @@
     settingsForm.elements.season.checked = settings.season !== false;
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
     $('beta-box').hidden = !(app.me && app.me.isAdmin);
-    for (const name of ['betaKeys', 'betaHints', 'betaSkin']) settingsForm.elements[name].checked = !!settings[name];
+    for (const name of BETA_FLAGS) settingsForm.elements[name].checked = !!settings[name];
     renderInstall();
     $('settings').showModal();
   });
@@ -218,7 +227,7 @@
     settings.theme = settingsForm.elements.theme.value || 'sombre';
     settings.lisible = settingsForm.elements.lisible.checked;
     settings.season = settingsForm.elements.season.checked;
-    for (const name of ['betaKeys', 'betaHints', 'betaSkin']) settings[name] = settingsForm.elements[name].checked;
+    for (const name of BETA_FLAGS) settings[name] = settingsForm.elements[name].checked;
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
     applySettings();
     saveSettings();
@@ -334,7 +343,7 @@
   let noticeTimer = null;
   function showNotice(text) {
     const box = $('notice');
-    box.textContent = text;
+    box.textContent = warm(text);
     box.hidden = false;
     clearTimeout(noticeTimer);
     noticeTimer = setTimeout(() => (box.hidden = true), 6000);
@@ -404,6 +413,8 @@
     $('btn-messages').hidden = !app.me;
     $('btn-invite').hidden = !app.me;
     $('drawer-tab').hidden = !(view === 'home' && app.me);
+    app.view = view;
+    updateNav();
     if ($('drawer').open) $('drawer').close();
     $('settings-account').hidden = !app.me;
     fitCanvas();
@@ -646,14 +657,154 @@
     updateCountdown();
   }
 
+  // ---------- Bêta : mascotte, ambiance, navigation, vie de la mine, textes ----------
+  // La taupe mineuse : 16 × 16 pixels, trois humeurs (éveillée, yeux fermés pour le clin d'œil, endormie).
+  const MOLE_COLORS = { o: '#1b1410', b: '#8a5a32', d: '#5d3a1e', p: '#f0a0a0', h: '#f2c230', H: '#a77f12', w: '#ffffff', k: '#1b1410', l: '#fff4b0', c: '#e8d8b0' };
+  const MOLE = [
+    '....oooooooo....',
+    '...ohhhhhhhhHo..',
+    '..ohhhhllhhhhHo.',
+    '..oHHHHHHHHHHHo.',
+    '...obbbbbbbbbo..',
+    '..obbwwbbbbwwbo.',
+    '..obbwkbbbbwkbo.',
+    '..obbbbbppbbbbo.',
+    '..obbbbkkkkbbbo.',
+    '...obbbbbbbbbo..',
+    '..ocbbbbbbbbbco.',
+    '..ocbbbbbbbbbco.',
+    '...obbbbbbbbbo..',
+    '...oddbbbbbddo..',
+    '....oddoooddo...',
+    '................',
+  ];
+  function drawMascot(canvas, mood) {
+    const rows = MOLE.map((r) => r.split(''));
+    const set = (y, x, ch) => { if (rows[y] && x >= 0 && x < 16) rows[y][x] = ch; };
+    if (mood === 'blink' || mood === 'sleep') {
+      for (const y of [5, 6]) for (const x of [5, 6, 11, 12]) set(y, x, 'b');
+      for (const x of [5, 6, 11, 12]) set(6, x, 'k');
+    }
+    if (mood === 'happy') {
+      for (const x of [7, 8, 9]) set(7, x, 'p');
+      for (const x of [6, 7, 8, 9, 10]) set(8, x, 'k');
+      set(7, 4, 'p'); set(7, 13, 'p');
+    }
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, 16, 16);
+    rows.forEach((row, y) => row.forEach((ch, x) => {
+      if (ch === '.') return;
+      ctx.fillStyle = MOLE_COLORS[ch];
+      ctx.fillRect(x, y, 1, 1);
+    }));
+  }
+
+  /** Heure (0 à 23) à Bruxelles. */
+  function brusselsHour() {
+    const part = new Intl.DateTimeFormat('fr-BE', { hour: 'numeric', hourCycle: 'h23', timeZone: 'Europe/Brussels' }).formatToParts(new Date()).find((p) => p.type === 'hour');
+    return part ? Number(part.value) : 12;
+  }
+
+  /** Moment de la journée (heure de Bruxelles) : teinte douce du décor quand l'ambiance est active. */
+  function applyDaypart() {
+    const root = document.documentElement;
+    if (!betaOn('betaFx')) return void delete root.dataset.daypart;
+    const hour = brusselsHour();
+    root.dataset.daypart = hour < 6 ? 'nuit' : hour < 12 ? 'matin' : hour < 18 ? 'jour' : hour < 22 ? 'soir' : 'nuit';
+    const layer = $('fx-layer');
+    if (!layer.childElementCount) {
+      for (let i = 0; i < 14; i++) {
+        const fly = el('span', { class: 'firefly' });
+        fly.style.setProperty('--x', `${Math.round(Math.random() * 100)}%`);
+        fly.style.setProperty('--y', `${Math.round(40 + Math.random() * 60)}%`);
+        fly.style.setProperty('--d', `${(6 + Math.random() * 8).toFixed(1)}s`);
+        fly.style.setProperty('--delay', `${(-Math.random() * 10).toFixed(1)}s`);
+        layer.append(fly);
+      }
+    }
+  }
+
+  /** Étincelles autour du résultat d'un thème (rare : quelques-unes ; pépite : une gerbe dorée). */
+  function burstSparks(parent, tierId) {
+    const count = tierId === 'pepite' ? 22 : tierId === 'rare' ? 12 : 0;
+    if (!count || reducedMotion()) return;
+    const colors = tierId === 'pepite' ? ['#f2c230', '#fff4b0', '#ffffff', '#7fd8ff'] : ['#f2c230', '#fff4b0'];
+    const burst = el('div', { class: 'sparks', 'aria-hidden': 'true' });
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+      const dist = 50 + Math.random() * 70;
+      const spark = el('span', { class: 'spark' });
+      spark.style.setProperty('--dx', `${Math.round(Math.cos(angle) * dist)}px`);
+      spark.style.setProperty('--dy', `${Math.round(Math.sin(angle) * dist - 20)}px`);
+      spark.style.setProperty('--c', colors[i % colors.length]);
+      burst.append(spark);
+    }
+    parent.append(burst);
+    setTimeout(() => burst.remove(), 1100);
+  }
+
+  /** Barre du bas (téléphone) : mêmes destinations que les boutons de l'accueil. */
+  function updateNav() {
+    const nav = $('bottom-nav');
+    if (!nav) return;
+    const view = app.view;
+    const hiddenViews = ['auth', 'game', 'results', 'recap', 'duel'];
+    nav.hidden = !(betaOn('betaNav') && app.me && view && !hiddenViews.includes(view));
+    nav.querySelectorAll('button').forEach((b) => b.classList.toggle('active', (b.dataset.nav === 'home' && view === 'home') || (b.dataset.nav === 'podium' && view === 'podium') || (b.dataset.nav === 'messages' && view === 'messages') || (b.dataset.nav === 'profile' && view === 'profile')));
+    $('nav-dot').hidden = $('msg-dot').hidden;
+  }
+  $('bottom-nav').addEventListener('click', async (event) => {
+    const button = event.target.closest('button[data-nav]');
+    if (!button) return;
+    const go = button.dataset.nav;
+    if (go === 'messages') return openMessages();
+    if (go === 'profile') return $('btn-carnet').click();
+    if (go === 'podium') return $('btn-podium').click();
+    if (app.view !== 'home') await goHome();
+    if (go === 'play') document.querySelector('.play-card').scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
+    else window.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' });
+  });
+
+  /** La vie de la mine : combien de mineurs ont foré aujourd'hui et les derniers forages terminés. */
+  async function renderBetaSocial() {
+    const card = $('beta-social');
+    card.hidden = !(betaOn('betaSocial') && app.me && app.me.today);
+    if (card.hidden) return;
+    try {
+      const mine = await api('/api/mine-today');
+      const text = $('beta-social-text');
+      if (!mine.started) text.textContent = 'La mine est encore silencieuse : tu pourrais être le premier à descendre aujourd\'hui !';
+      else text.textContent = `${plural(mine.started, 'mineur est descendu', 'mineurs sont descendus')} aujourd'hui, ${mine.finished} ${mine.finished > 1 ? 'ont fini' : 'a fini'} leur forage.`;
+      $('beta-social-list').replaceChildren(
+        ...mine.recent.map((r) => el('li', { class: 'beta-social-row' }, whoEl(r.avatar, r.username), el('span', { class: 'muted' }, `vient de finir avec ${pts(r.score)}`))),
+      );
+    } catch {
+      card.hidden = true;
+    }
+  }
+
+  /** Textes plus chaleureux (bêta) : remplace quelques messages secs par des phrases plus humaines. */
+  const WARM = [
+    [/^Le serveur ne répond pas pour le moment\./, 'Oups, la mine ne répond pas pour le moment. On souffle un instant et on réessaie !'],
+    [/^Connecte-toi pour jouer\./, 'Il faut descendre avec ton compte : connecte-toi d\'abord !'],
+    [/^Trop de tentatives\./, 'Doucement, mineur ! Attends quelques minutes avant de réessayer.'],
+    [/^Identifiant ou mot de passe incorrect\./, 'Hmm, ces identifiants ne passent pas la porte de la mine. Vérifie et réessaie !'],
+    [/^Erreur inattendue, réessaie\./, 'Un éboulement imprévu ! Réessaie dans un instant.'],
+  ];
+  const warm = (text) => {
+    if (!betaOn('betaWarm') || typeof text !== 'string') return text;
+    const hit = WARM.find(([re]) => re.test(text));
+    return hit ? hit[1] : text;
+  };
+
   /** Accueil chaleureux (bêta) : salutation, phrase selon l'avancement du jour et une pastille par thème. */
   function renderBetaHello() {
     const card = $('beta-hello');
     if (!card) return;
     const today = app.me && app.me.today;
-    card.hidden = !(betaOn('betaSkin') && today);
+    card.hidden = !((betaOn('betaSkin') || betaOn('betaMascot')) && today);
     if (card.hidden) return;
-    const hour = Number(new Intl.DateTimeFormat('fr-BE', { hour: '2-digit', hourCycle: 'h23', timeZone: 'Europe/Brussels' }).format(new Date()));
+    const hour = brusselsHour();
     const hello = hour >= 18 || hour < 5 ? 'Bonsoir' : 'Bonjour';
     $('beta-greet').textContent = `${hello} ${app.me.user.username} !`;
     const st = app.me.streak;
@@ -664,6 +815,15 @@
     $('beta-sub').textContent = sub;
     const done = today.finished ? ROUNDS : today.roundsDone || 0;
     $('beta-dots').replaceChildren(...Array.from({ length: ROUNDS }, (_, i) => el('span', { class: `beta-dot${i < done ? ' on' : ''}` })));
+    const mascot = $('beta-mascot');
+    mascot.hidden = !betaOn('betaMascot');
+    if (!mascot.hidden) {
+      const mood = hour < 6 ? 'sleep' : today.finished ? 'happy' : 'idle';
+      drawMascot($('mascot-open'), mood);
+      drawMascot($('mascot-blink'), 'blink');
+      mascot.dataset.mood = mood;
+      mascot.title = mood === 'sleep' ? 'Zzz… la taupe dort' : mood === 'happy' ? 'La taupe est contente de toi !' : 'La taupe te souhaite un bon forage';
+    }
   }
 
   /** Série en cours (lanterne de mineur) et badge le plus proche. */
@@ -1307,7 +1467,9 @@
           ? 'D\'accord, essaie autre chose !'
           : betaOn('betaHints') && res.hint
             ? `« ${text} » : ${res.hint.text}`
-            : `« ${text} » ne fait pas partie des réponses connues pour ce thème. Essaie autre chose !`;
+            : betaOn('betaWarm')
+              ? `Hmm, « ${text} » n'est pas dans mes plans de la mine pour ce thème. Essaie une autre piste !`
+              : `« ${text} » ne fait pas partie des réponses connues pour ce thème. Essaie autre chose !`;
         app.tried.add(triedKey(text));
         input.classList.remove('shake');
         void input.offsetWidth;
@@ -1323,7 +1485,7 @@
     } catch (err) {
       // La réponse a pu être notée juste avant une coupure : on reprend l'état du serveur.
       if ((err.status === 409 || err.status === 0) && (await resync())) return;
-      $('answer-error').textContent = err.message;
+      $('answer-error').textContent = warm(err.message);
     } finally {
       app.busy = false;
     }
@@ -1544,6 +1706,13 @@
     tier.dataset.tier = round.tier.id;
     tier.style.color = Pixel.TIER_COLORS[round.tier.id];
     const pepites = state.rounds.filter((r) => r.tier && r.tier.id === 'pepite').length;
+    if (betaOn('betaFx')) {
+      const points = $('feedback-points');
+      points.classList.remove('pop');
+      void points.offsetWidth;
+      points.classList.add('pop');
+      burstSparks($('pane-feedback'), round.tier.id);
+    }
     Sound.tier(round.tier.id, pepites);
     Sound.buzz(round.tier.id, pepites);
     const answer = $('feedback-answer');
@@ -2228,7 +2397,7 @@
           return el('li', {}, icon, e.user ? avatarEl(e.user.avatar, 'head', 2) : null, el('div', { class: 'feed-text' }, el('span', {}, e.text), el('span', { class: 'feed-ago' }, ago(e.ts, now))));
         }),
       );
-      if (!events.length) $('feed-list').append(el('li', { class: 'muted' }, "Pas encore de nouvelles : la mine est calme."));
+      if (!events.length) $('feed-list').append(el('li', { class: 'muted' }, betaOn('betaWarm') ? 'Pas encore de nouvelles : la mine est calme… pour l\'instant !' : "Pas encore de nouvelles : la mine est calme."));
       $('btn-feed-more').hidden = limit >= 10 || events.length < limit;
     } catch {
       /* le journal est facultatif */
