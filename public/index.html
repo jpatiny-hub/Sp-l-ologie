@@ -135,6 +135,8 @@
         <p class="hint">Des nouveautés à l'essai, visibles seulement pour toi : les autres joueurs ne les voient pas.</p>
         <label class="check"><input type="checkbox" name="betaKeys"> Clavier : flèches, Entrée, O / N dans les propositions, « ? » pour l'aide</label>
         <label class="check"><input type="checkbox" name="betaHints"> Retours précis quand une réponse est refusée</label>
+        <label class="check"><input type="checkbox" name="betaHome"> Nouvel accueil : fiche taupe, forage en haut, podium remonté, barre du bas illustrée</label>
+        <label class="check"><input type="checkbox" name="betaProfil"> Nouveau profil : carte de mineur, tuiles, vitrine, vestiaire, onglets</label>
         <label class="check"><input type="checkbox" name="betaSkin"> Accueil chaleureux (aperçu du nouveau look)</label>
         <label class="check"><input type="checkbox" name="betaMascot"> Mascotte : une petite taupe mineuse</label>
         <label class="check"><input type="checkbox" name="betaNav"> Barre de navigation en bas (téléphone)</label>
@@ -182,13 +184,24 @@
 
   <div class="fx-layer" id="fx-layer" aria-hidden="true"></div>
   <nav class="bottom-nav" id="bottom-nav" aria-label="Navigation" hidden>
-    <button type="button" data-nav="home"><span class="nav-ico" aria-hidden="true">🏠</span><span>Accueil</span></button>
-    <button type="button" data-nav="play"><span class="nav-ico" aria-hidden="true">⛏️</span><span>Jouer</span></button>
-    <button type="button" data-nav="podium"><span class="nav-ico" aria-hidden="true">🏆</span><span>Podium</span></button>
-    <button type="button" data-nav="messages"><span class="nav-ico" aria-hidden="true">✉️</span><span>Messages</span><span class="tab-dot" id="nav-dot" hidden></span></button>
-    <button type="button" data-nav="profile"><span class="nav-ico" aria-hidden="true">👤</span><span>Profil</span></button>
+    <button type="button" data-nav="home" aria-label="Accueil"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Accueil</span><span class="nav-bubble" hidden></span></button>
+    <button type="button" data-nav="play" aria-label="Jouer"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Jouer</span><span class="nav-bubble" hidden></span></button>
+    <button type="button" data-nav="messages" aria-label="Messages"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Messages</span><span class="nav-bubble" hidden></span></button>
+    <button type="button" data-nav="mine" aria-label="Mine"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Mine</span><span class="nav-bubble" hidden></span></button>
+    <button type="button" data-nav="profile" aria-label="Profil"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Profil</span><span class="nav-bubble" hidden></span></button>
+    <button type="button" data-nav="admin" aria-label="Admin" hidden><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Admin</span><span class="nav-bubble" hidden></span></button>
   </nav>
   <button class="drawer-tab" id="drawer-tab" type="button" aria-haspopup="dialog" aria-controls="drawer" hidden><span>Plus</span><span class="tab-dot" id="drawer-dot" hidden></span></button>
+  <dialog class="drawer play-sheet" id="play-sheet" aria-label="Jouer">
+    <div class="drawer-frame">
+      <div class="drawer-head">
+        <h2>Jouer</h2>
+        <button class="icon-btn" id="btn-sheet-close" type="button" aria-label="Fermer"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h2v2H1zM3 3h2v2H3zM5 5h2v2H5zM7 7h2v2H7zM9 9h2v2H9zM9 1h2v2H9zM7 3h2v2H7zM3 7h2v2H3zM1 9h2v2H1z"/></svg></button>
+      </div>
+      <div class="drawer-body" id="play-sheet-body"></div>
+    </div>
+  </dialog>
+
   <dialog class="drawer" id="drawer" aria-label="Plus">
     <div class="drawer-frame">
       <div class="drawer-head">
@@ -312,17 +325,18 @@
         <button class="card report-banner collective-banner" id="collective-banner" type="button" hidden><canvas id="collective-banner-icon" width="7" height="6" aria-hidden="true"></canvas><span><strong>Diamant atteint !</strong><span id="collective-banner-text"></span></span></button>
         <button class="card report-banner" id="report-banner" type="button" hidden>📬 Tu as une réponse à un de tes signalements</button>
         <div class="card beta-hello" id="beta-hello" hidden>
-          <div class="beta-hello-row">
-            <div class="beta-hello-text">
-              <p class="beta-greet" id="beta-greet"></p>
-              <p class="beta-sub" id="beta-sub"></p>
-              <div class="beta-dots" id="beta-dots" role="img" aria-label="Avancement du forage du jour"></div>
-            </div>
+          <p class="beta-greet" id="beta-greet"></p>
+          <div class="hero-row">
+            <div class="hero-player" id="hero-player"></div>
             <div class="beta-mascot" id="beta-mascot" aria-hidden="true">
-              <canvas id="mascot-open" width="16" height="16"></canvas>
-              <canvas id="mascot-blink" width="16" height="16"></canvas>
+              <canvas id="mascot-open" class="m-open" width="24" height="16"></canvas>
+              <canvas id="mascot-blink" class="m-blink" width="24" height="16"></canvas>
+              <canvas id="mascot-tool" class="m-tool" width="24" height="16"></canvas>
             </div>
           </div>
+          <p class="beta-sub" id="beta-sub"></p>
+          <div class="hero-chips" id="hero-chips"></div>
+          <div class="beta-dots" id="beta-dots" role="img" aria-label="Avancement du forage du jour" hidden></div>
         </div>
         <div class="card beta-social" id="beta-social" hidden>
           <h2>Dans la mine aujourd'hui</h2>
@@ -578,7 +592,48 @@
       <!-- Profil : avatar, badges, atelier, carnet, bilan, statistiques -->
       <div class="view" id="view-profile" hidden>
         <button class="btn ghost back-btn" id="btn-profile-home" type="button">◀ Retour à l'accueil</button>
-        <details class="card fold" data-fold="profil" id="fold-profil" open>
+        <div class="card pf-hero" id="pf-hero" hidden>
+          <div class="pf-hero-main">
+            <div class="pf-portrait" id="pf-portrait"></div>
+            <div class="pf-identity">
+              <p class="pf-name" id="pf-name"></p>
+              <p class="pf-title" id="pf-title"></p>
+              <p class="muted small" id="pf-since"></p>
+              <div class="pf-chips" id="pf-chips"></div>
+            </div>
+          </div>
+          <div class="pf-says">
+            <div class="beta-mascot pf-mole" id="pf-mole" aria-hidden="true">
+              <canvas class="m-open" width="24" height="16"></canvas>
+              <canvas class="m-blink" width="24" height="16"></canvas>
+              <canvas class="m-tool" width="24" height="16"></canvas>
+            </div>
+            <p class="pf-bubble" id="pf-bubble"></p>
+          </div>
+          <button class="btn secondary" id="btn-pf-share" type="button">Partager ma carte de mineur</button>
+          <p class="muted small" id="pf-share-status" role="status"></p>
+        </div>
+        <div class="pf-tabs" id="pf-tabs" role="tablist" aria-label="Sections du profil" hidden>
+          <button class="tab active" type="button" role="tab" data-ptab-go="apercu" aria-selected="true">Aperçu</button>
+          <button class="tab" type="button" role="tab" data-ptab-go="badges" aria-selected="false">Badges</button>
+          <button class="tab" type="button" role="tab" data-ptab-go="vestiaire" aria-selected="false">Vestiaire</button>
+          <button class="tab" type="button" role="tab" data-ptab-go="carnet" aria-selected="false">Carnet</button>
+        </div>
+        <div class="card pf-tiles" id="pf-tiles" data-ptab="apercu" hidden><ul class="pf-tile-grid" id="pf-tile-grid"></ul></div>
+        <div class="card pf-titles" id="pf-titles" data-ptab="apercu" hidden><h2>Titres de mineur</h2><ol class="pf-title-row" id="pf-title-row"></ol><p class="muted small" id="pf-title-note"></p></div>
+        <div class="card pf-showcase" id="pf-showcase" data-ptab="apercu" hidden>
+          <h2>Vitrine</h2>
+          <div class="badge-table" id="pf-showcase-list"></div>
+          <button class="btn secondary" id="btn-pf-allbadges" type="button">Voir tous les badges</button>
+        </div>
+        <div class="card pf-next" id="pf-next" data-ptab="apercu" hidden><h2>Prochains badges</h2></div>
+        <div class="card pf-charts" id="pf-charts" data-ptab="apercu" hidden><h2>Tes forages</h2></div>
+        <div class="card pf-timeline" id="pf-timeline" data-ptab="apercu" hidden>
+          <h2>Journal de bord</h2>
+          <ol class="pf-timeline-list" id="pf-timeline-list"></ol>
+          <button class="btn ghost" id="btn-pf-more" type="button" hidden>Voir plus</button>
+        </div>
+        <details class="card fold" data-ptab="vestiaire" data-fold="profil" id="fold-profil" open>
           <summary><span class="fold-t"><h2>Profil</h2><span class="sub" id="profil-sub">ton nom et ton personnage</span></span><span class="pm" aria-hidden="true"></span></summary>
           <div class="prof-head">
             <div class="prof-avatar" id="prof-avatar"></div>
@@ -603,12 +658,12 @@
           <div id="avatar-options"></div>
           <p class="muted small" id="avatar-status" role="status"></p>
         </details>
-        <details class="card fold" data-fold="cranes" id="fold-cranes" hidden>
+        <details class="card fold" data-ptab="badges" data-fold="cranes" id="fold-cranes" hidden>
           <summary><span class="fold-t"><h2>Collection de crânes</h2><span class="sub" id="skulls-sub"></span></span><span class="pm" aria-hidden="true"></span></summary>
           <div class="skull-grid" id="skull-grid"></div>
           <p class="muted small" id="skull-note"></p>
         </details>
-        <details class="card fold" data-fold="badges">
+        <details class="card fold" data-ptab="badges" data-fold="badges">
           <summary><span class="fold-t"><h2>Badges</h2></span><span class="pm" aria-hidden="true"></span></summary>
           <div class="badge-tools">
             <input type="search" id="badge-search" placeholder="Chercher un badge…" aria-label="Chercher un badge" autocomplete="off" autocapitalize="off" spellcheck="false">
@@ -620,26 +675,29 @@
           </div>
           <div id="badge-sections"></div>
         </details>
-        <details class="card fold" data-fold="atelier">
+        <details class="card fold" data-ptab="vestiaire" data-fold="atelier">
           <summary><span class="fold-t"><h2>Atelier</h2><span class="sub">l'apparence de ta foreuse, sur tous tes appareils</span></span><span class="pm" aria-hidden="true"></span></summary>
           <div class="workshop">
             <canvas class="skin-preview" id="skin-preview" width="32" height="40" aria-label="Aperçu de ta foreuse"></canvas>
             <div class="workshop-choices">
               <h3>Carrosserie</h3>
               <div class="skin-grid" id="skin-bodies"></div>
+              <button class="link wk-toggle" type="button" data-wk="body" hidden></button>
               <h3>Foret</h3>
               <div class="skin-grid" id="skin-bits"></div>
+              <button class="link wk-toggle" type="button" data-wk="bit" hidden></button>
               <h3>Chrono</h3>
               <div class="skin-grid" id="skin-timers"></div>
+              <button class="link wk-toggle" type="button" data-wk="timer" hidden></button>
             </div>
           </div>
           <p class="muted small" id="skin-status" role="status"></p>
         </details>
-        <details class="card fold" data-fold="carnet">
+        <details class="card fold" data-ptab="carnet" data-fold="carnet">
           <summary><span class="fold-t"><h2>Ton carnet de spéléo</h2></span><span class="pm" aria-hidden="true"></span></summary>
           <dl class="stats" id="profile-stats"></dl>
         </details>
-        <details class="card fold" data-fold="bilan">
+        <details class="card fold" data-ptab="carnet" data-fold="bilan">
           <summary><span class="fold-t"><h2>Bilan du mois</h2><span class="sub" id="bilan-sub">tes forages, mois par mois</span></span><span class="pm" aria-hidden="true"></span></summary>
           <div class="week-nav">
             <button class="btn ghost small-btn" id="btn-bilan-prev" type="button" aria-label="Mois précédent">◀</button>
@@ -648,7 +706,7 @@
           </div>
           <div id="bilan-body"></div>
         </details>
-        <details class="card fold" data-fold="stats">
+        <details class="card fold" data-ptab="carnet" data-fold="stats">
           <summary><span class="fold-t"><h2>Statistiques</h2><span class="sub">forages du jour et mode illimité</span></span><span class="pm" aria-hidden="true"></span></summary>
           <div id="player-stats"></div>
           <h3>Tes jours forés <span class="muted small">12 dernières semaines</span></h3>
@@ -660,7 +718,7 @@
           <h3>Ta meilleure profondeur</h3>
           <svg class="chart earth-chart" id="chart-earth" viewBox="0 0 320 150" role="img" aria-label="Coupe de la Terre avec ta meilleure profondeur"></svg>
         </details>
-        <details class="card fold" data-fold="proposer" id="fold-proposer">
+        <details class="card fold" data-ptab="carnet" data-fold="proposer" id="fold-proposer">
           <summary><span class="fold-t"><h2>Proposer un thème <span id="report-mine-dot" class="dot" hidden>●</span></h2><span class="sub">une idée de liste à deviner ? · tes réponses signalées</span></span><span class="pm" aria-hidden="true"></span></summary>
           <form id="form-suggest" class="form">
             <label for="suggest-title">Le thème</label>
@@ -679,6 +737,7 @@
       <!-- Musée des pépites -->
       <div class="view" id="view-museum" hidden>
         <button class="btn ghost back-btn" id="btn-museum-home" type="button">◀ Retour à l'accueil</button>
+        <div id="mine-journal"></div>
         <div class="card museum">
           <h2>Musée des pépites</h2>
           <p class="muted" id="museum-intro"></p>
@@ -687,6 +746,7 @@
           <input type="search" id="museum-search" placeholder="Chercher une réponse, un thème, un joueur…" aria-label="Chercher dans le musée" autocomplete="off" autocapitalize="off" spellcheck="false">
           <div id="museum-list"></div>
         </div>
+        <div id="mine-rules"></div>
       </div>
 
       <!-- Contre maître : réservé au responsable du jeu -->

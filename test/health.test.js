@@ -110,3 +110,44 @@ test('retours précis sur une réponse refusée : réservés au responsable, san
     await app.close();
   }
 });
+
+test('vie de la mine : réservée au responsable, forages terminés et pépites', async () => {
+  const { playDaily } = require('./helpers');
+  const app = await startServer();
+  try {
+    const adam = client(app.base);
+    const eve = client(app.base);
+    await adam('/api/signup', { username: 'adam', password: 'secret123' });
+    await eve('/api/signup', { username: 'eve', password: 'secret123' });
+    assert.equal((await eve('/api/mine-today')).status, 403);
+    const empty = (await adam('/api/mine-today')).data;
+    assert.equal(empty.started, 0);
+    await playDaily(app, eve, 5);
+    const mine = (await adam('/api/mine-today')).data;
+    assert.equal(mine.started, 1);
+    assert.equal(mine.finished, 1);
+    assert.equal(mine.recent[0].username, 'eve');
+    assert.ok(mine.recent[0].pepites >= 1, 'un forage de réponses rares compte des pépites');
+  } finally {
+    await app.close();
+  }
+});
+
+test('profil : date d\'arrivée et jours qui ont donné chaque titre de mineur', async () => {
+  const { playDaily } = require('./helpers');
+  const app = await startServer();
+  try {
+    const eve = client(app.base);
+    await eve('/api/signup', { username: 'eve', password: 'secret123' });
+    const before = (await eve('/api/profile')).data;
+    assert.ok(before.joinedAt > 0);
+    assert.deepEqual(before.stats.titleDays, {});
+    await playDaily(app, eve, 2);
+    const after = (await eve('/api/profile')).data;
+    assert.equal(after.stats.daysPlayed, 1);
+    assert.deepEqual(Object.keys(after.stats.titleDays), ['1']);
+    assert.match(after.stats.titleDays[1], /^\d{4}-\d{2}-\d{2}$/);
+  } finally {
+    await app.close();
+  }
+});
