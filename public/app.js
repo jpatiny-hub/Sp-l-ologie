@@ -35,8 +35,9 @@
   // ---------- Paramètres (propres à l'appareil) ----------
   const SETTINGS_KEY = 'speleologie.settings';
   const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false };
-  const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm'];
+  const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome'];
   for (const flag of BETA_FLAGS) settings[flag] = false;
+  const home = { moved: false, origin: new Map() }; // état du nouvel accueil (voir layoutHome)
   try {
     const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
     // Ancien réglage « mode daltonien » (case à cocher) : devenu « rouge-vert ».
@@ -100,7 +101,9 @@
     if (isLight()) root.dataset.theme = 'clair';
     else delete root.dataset.theme;
     root.toggleAttribute('data-beta-skin', betaOn('betaSkin'));
-    root.toggleAttribute('data-beta-nav', betaOn('betaNav'));
+    root.toggleAttribute('data-beta-nav', betaOn('betaNav') || betaOn('betaHome'));
+    root.toggleAttribute('data-beta-home', betaOn('betaHome'));
+    layoutHome(betaOn('betaHome'));
     root.toggleAttribute('data-beta-fx', betaOn('betaFx'));
     applyDaypart();
     updateNav();
@@ -183,8 +186,8 @@
     const n = app.drawerNews || {};
     $('drawer-dot').hidden = !(n.admin || n.feed);
   }
-  $('drawer-tab').addEventListener('click', () => {
-    $('drawer').showModal();
+  /** Le journal de la mine est ouvert : les nouvelles sont lues (tiroir « Plus » et onglet Journal). */
+  function markFeedSeen() {
     app.drawerNews = app.drawerNews || {};
     if (app.feedNewest) {
       try {
@@ -193,8 +196,14 @@
         /* stockage indisponible : la pastille reviendra */
       }
       app.drawerNews.feed = false;
+      app.feedNew = 0;
       updateDrawerDot();
+      if (typeof updateBubbles === 'function' && !$('bottom-nav').hidden) updateBubbles();
     }
+  }
+  $('drawer-tab').addEventListener('click', () => {
+    $('drawer').showModal();
+    markFeedSeen();
   });
   $('btn-drawer-close').addEventListener('click', () => $('drawer').close());
   $('drawer').addEventListener('click', (event) => {
@@ -649,6 +658,8 @@
     }
     renderStreak();
     renderBetaHello();
+    renderBetaSocial();
+    updateNav();
     renderDuelDot();
     renderAdminHome();
     loadFeed(3);
@@ -678,25 +689,140 @@
     '....oddoooddo...',
     '................',
   ];
+  const OX = 4; // la taupe occupe les colonnes 4 à 19 d'un canevas de 24 × 16 ; les outils dépassent de chaque côté
   function drawMascot(canvas, mood) {
+    canvas.width = 24;
+    canvas.height = 16;
     const rows = MOLE.map((r) => r.split(''));
     const set = (y, x, ch) => { if (rows[y] && x >= 0 && x < 16) rows[y][x] = ch; };
     if (mood === 'blink' || mood === 'sleep') {
       for (const y of [5, 6]) for (const x of [5, 6, 11, 12]) set(y, x, 'b');
       for (const x of [5, 6, 11, 12]) set(6, x, 'k');
     }
+    if (mood === 'look') for (const x of [6, 12]) { set(5, x, 'w'); set(6, x, 'k'); set(6, x - 1, 'w'); }
     if (mood === 'happy') {
       for (const x of [7, 8, 9]) set(7, x, 'p');
       for (const x of [6, 7, 8, 9, 10]) set(8, x, 'k');
       set(7, 4, 'p'); set(7, 13, 'p');
     }
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, 16, 16);
+    ctx.clearRect(0, 0, 24, 16);
     rows.forEach((row, y) => row.forEach((ch, x) => {
       if (ch === '.') return;
       ctx.fillStyle = MOLE_COLORS[ch];
-      ctx.fillRect(x, y, 1, 1);
+      ctx.fillRect(x + OX, y, 1, 1);
     }));
+  }
+
+  // Outils de la taupe : motifs posés sur le canevas de 24 × 16, au-dessus de la taupe.
+  const TOOL_COLORS = { k: '#1b1410', n: '#8a5a2b', S: '#c9ccd3', s: '#7d7d86', y: '#f2c230', Y: '#a77f12', W: '#fff6b0', f: '#ff9a2e', r: '#d9342b', R: '#8f1f19', c: '#9fe8ff', B: '#5ec8f0', w: '#ffffff', e: '#ece4cf', p: '#f3e9d2', P: '#b8a68a', g: '#5fa83a', t: '#c9a36b', h: '#e8d8b0' };
+  function stamp(ctx, x, y, rows) {
+    rows.forEach((row, dy) => [...row].forEach((ch, dx) => {
+      if (ch === '.') return;
+      ctx.fillStyle = TOOL_COLORS[ch];
+      ctx.fillRect(x + dx, y + dy, 1, 1);
+    }));
+  }
+  const hand = (ctx, x, y) => stamp(ctx, x, y, ['kh', 'hh']);
+  function plan(ctx) {
+    stamp(ctx, 5, 9, ['kkkkkkkkkkkkkk', 'kPPPPPppppppPk', 'kpppnnpppprprk', 'kpppppnnpprrpk', 'kpPPpppnnrprPk', 'kkkkkkkkkkkkkk']);
+    hand(ctx, 6, 9);
+    hand(ctx, 16, 9);
+  }
+  // Chaque activité : une phrase de la taupe, un dessin et une animation douce (classe CSS).
+  const ACTIVITIES = {
+    pioche: {
+      say: 'Encore un petit coup de pioche !',
+      anim: 'swing',
+      draw(ctx) {
+        stamp(ctx, 13, 1, ['..kkkkkkk...', '.kSSSSSSSk..', 'kSk..kn.kSk.', 'kk...kn..kk.', '.....kn.....', '.....kn.....', '.....kn.....', '.....kn.....', '.....kn.....', '.....kn.....', '.....kk.....']);
+        hand(ctx, 17, 9);
+      },
+    },
+    lanterne: {
+      say: 'Ma lanterne éclaire le chemin.',
+      anim: 'glow',
+      draw(ctx) {
+        stamp(ctx, 1, 8, ['..kk..', '.k..k.', 'ksssSk', 'kyWWyk', 'kWWWWk', 'kyWWyk', 'ksssSk']);
+        hand(ctx, 6, 9);
+      },
+    },
+    plan: { say: 'Je vérifie le plan de la galerie…', anim: 'bob', mood: 'look', draw: plan },
+    cafe: {
+      say: 'Pause café avant de redescendre.',
+      anim: 'bob',
+      draw(ctx) {
+        stamp(ctx, 18, 3, ['.e.', 'e..', '.e.']);
+        stamp(ctx, 16, 7, ['knnnnk..', 'keeeek..', 'keeeekkk', 'keeeek.k', 'keeeekkk', 'kkkkkk..']);
+        hand(ctx, 15, 10);
+      },
+    },
+    diamant: {
+      say: 'Regarde ce que j\'ai trouvé !',
+      anim: 'sparkle',
+      mood: 'happy',
+      draw(ctx) {
+        stamp(ctx, 17, 6, ['.kkkkk.', 'kcwccBk', 'kkkkkkk', '.kcccBk', '..kcBk.', '...kk..']);
+        stamp(ctx, 22, 3, ['.w.', 'www', '.w.']);
+        hand(ctx, 16, 10);
+      },
+    },
+    wagonnet: {
+      say: 'Je remonte le minerai du jour.',
+      anim: 'roll',
+      draw(ctx) {
+        stamp(ctx, 0, 9, ['..yyYyyYy...', '.yyyyyyyyyy.', 'kkkkkkkkkkkk', 'kSSSSSSSSSSk', '.ksssssssssk', '..kkk..kkk..']);
+        hand(ctx, 6, 10);
+      },
+    },
+    dynamite: {
+      say: 'Reculez… un tout petit boum !',
+      anim: 'flicker',
+      draw(ctx) {
+        stamp(ctx, 19, 5, ['..yf', '.kk.', 'kRRk', 'krrk', 'krrk', 'krrk', 'kRRk', '.kk.']);
+        hand(ctx, 17, 10);
+      },
+    },
+    carnet: {
+      say: 'Je note les trouvailles du jour.',
+      anim: 'scribble',
+      mood: 'look',
+      draw(ctx) {
+        stamp(ctx, 1, 8, ['kkkkkk', 'kppppk', 'kpPPpk', 'kppppk', 'kpPPpk', 'kppppk', 'kkkkkk']);
+        stamp(ctx, 18, 7, ['..yr', '.yy.', 'yy..', 'k...']);
+        hand(ctx, 6, 10);
+        hand(ctx, 16, 9);
+      },
+    },
+    sandwich: {
+      say: 'Un petit casse-croûte, ça creuse !',
+      anim: 'bob',
+      mood: 'happy',
+      draw(ctx) {
+        stamp(ctx, 17, 6, ['.tttt.', 'tggggt', 'trrrrt', 'tggggt', '.tttt.']);
+        hand(ctx, 16, 10);
+      },
+    },
+    sieste: { say: 'Zzz… la mine dort.', anim: '', mood: 'sleep', draw() {} },
+  };
+  const ACTIVITY_KEY = 'speleo-mascot-last';
+  /** Une activité différente à chaque ouverture de la page (jamais deux fois de suite la même) ; la nuit, la taupe dort. */
+  function pickActivity() {
+    if (brusselsHour() < 6) return 'sieste';
+    const ids = Object.keys(ACTIVITIES).filter((id) => id !== 'sieste');
+    let last = null;
+    try { last = localStorage.getItem(ACTIVITY_KEY); } catch { /* sans stockage : au hasard */ }
+    const choices = ids.filter((id) => id !== last);
+    const id = choices[Math.floor(Math.random() * choices.length)];
+    try { localStorage.setItem(ACTIVITY_KEY, id); } catch { /* sans stockage */ }
+    return id;
+  }
+  function drawActivity(canvas, id) {
+    const ctx = canvas.getContext('2d');
+    canvas.width = 24;
+    canvas.height = 16;
+    ctx.clearRect(0, 0, 24, 16);
+    ACTIVITIES[id].draw(ctx);
   }
 
   /** Heure (0 à 23) à Bruxelles. */
@@ -743,15 +869,105 @@
     setTimeout(() => burst.remove(), 1100);
   }
 
-  /** Barre du bas (téléphone) : mêmes destinations que les boutons de l'accueil. */
+  // ---------- Nouvel accueil (bêta) ----------
+  /** Déplace un bloc existant (avec ses identifiants et ses écouteurs) vers `target` ; `restore` le remet à sa place d'origine. */
+  function relocate(node, target) {
+    if (!home.origin.has(node)) home.origin.set(node, { parent: node.parentNode, next: node.nextSibling });
+    target.append(node);
+  }
+  function restore(node) {
+    const o = home.origin.get(node);
+    if (o && o.parent) o.parent.insertBefore(node, o.next && o.next.parentNode === o.parent ? o.next : null);
+  }
+
+  /**
+   * Nouvel accueil : le portrait, la lanterne et les étais rejoignent la fiche de la taupe ; le forage du jour passe en deuxième ;
+   * le duel et l'infini quittent la page pour la feuille « Jouer » de la barre du bas. Rien n'est recréé : les blocs existants
+   * sont déplacés, puis remis en place quand l'option est coupée.
+   */
+  function layoutHome(on) {
+    if (on === home.moved) return;
+    home.moved = on;
+    const nodes = {
+      player: document.querySelector('.home-profile'),
+      chips: document.querySelector('.home-chips'),
+      note: $('streak-note'),
+      tabs: $('mode-tabs'),
+      duel: $('mode-duel'),
+      training: $('mode-training'),
+    };
+    const title = document.querySelector('.play-card > h2');
+    if (on) {
+      relocate(nodes.player, $('hero-player'));
+      relocate(nodes.chips, $('hero-chips'));
+      relocate(nodes.note, $('hero-chips'));
+      relocate(nodes.duel, $('play-sheet-body'));
+      relocate(nodes.training, $('play-sheet-body'));
+      nodes.tabs.hidden = true;
+      nodes.duel.hidden = false;
+      nodes.training.hidden = false;
+      $('mode-daily').hidden = false;
+      title.textContent = 'Forage du jour';
+    } else {
+      for (const key of ['player', 'chips', 'note', 'tabs', 'duel', 'training']) restore(nodes[key]);
+      nodes.tabs.hidden = false;
+      const active = document.querySelector('#mode-tabs .tab.active');
+      const mode = active ? active.dataset.mode : 'daily';
+      $('mode-daily').hidden = mode !== 'daily';
+      nodes.duel.hidden = mode !== 'duel';
+      nodes.training.hidden = mode !== 'training';
+      title.textContent = 'Jouer';
+    }
+  }
+
+  /** Icônes en pixel art de la barre du bas (le profil montre la tête du personnage du joueur). */
+  const NAV_ICONS = { home: 'maison', play: 'pioche', podium: 'trophee', messages: 'enveloppe', museum: 'pepite', journal: 'journal' };
+  function drawNavIcons() {
+    document.querySelectorAll('#bottom-nav button').forEach((button) => {
+      const kind = button.dataset.nav;
+      const slot = button.querySelector('.nav-ico');
+      if (kind === 'profile') {
+        const head = app.me && app.me.avatar ? avatarEl(app.me.avatar, 'head', 2) : null;
+        if (head) return void slot.replaceChildren(head);
+      }
+      const canvas = slot.querySelector('canvas') || el('canvas', { width: '16', height: '16', 'aria-hidden': 'true' });
+      if (!canvas.parentNode) slot.replaceChildren(canvas);
+      Icons.drawIcon(canvas, NAV_ICONS[kind] || 'lampe');
+    });
+  }
+
+  /** Pastilles de la barre du bas : un nombre ou un point quand il y a du nouveau dans l'onglet. */
+  function setBubble(kind, value) {
+    const bubble = document.querySelector(`#bottom-nav [data-nav="${kind}"] .nav-bubble`);
+    if (!bubble) return;
+    const n = typeof value === 'number' ? value : value ? 1 : 0;
+    bubble.hidden = !n;
+    bubble.textContent = typeof value === 'number' && n > 0 ? (n > 9 ? '9+' : String(n)) : '';
+    bubble.classList.toggle('dot', typeof value !== 'number');
+  }
+  function updateBubbles() {
+    const me = app.me;
+    if (!me) return;
+    setBubble('messages', me.unreadMessages || 0);
+    setBubble('play', me.today && !me.today.finished ? true : !$('duel-dot').hidden);
+    setBubble('podium', (me.celebrations || []).length || 0);
+    setBubble('profile', me.unseenBadges || 0);
+    setBubble('museum', app.museumNew || 0);
+    setBubble('journal', app.feedNew || 0);
+  }
+
+  /** Barre du bas : mêmes destinations que sur l'accueil, plus le musée et le journal. */
   function updateNav() {
     const nav = $('bottom-nav');
     if (!nav) return;
     const view = app.view;
     const hiddenViews = ['auth', 'game', 'results', 'recap', 'duel'];
-    nav.hidden = !(betaOn('betaNav') && app.me && view && !hiddenViews.includes(view));
-    nav.querySelectorAll('button').forEach((b) => b.classList.toggle('active', (b.dataset.nav === 'home' && view === 'home') || (b.dataset.nav === 'podium' && view === 'podium') || (b.dataset.nav === 'messages' && view === 'messages') || (b.dataset.nav === 'profile' && view === 'profile')));
-    $('nav-dot').hidden = $('msg-dot').hidden;
+    nav.hidden = !((betaOn('betaNav') || betaOn('betaHome')) && app.me && view && !hiddenViews.includes(view));
+    nav.querySelectorAll('button').forEach((b) => b.classList.toggle('active', (b.dataset.nav === 'home' && view === 'home') || (b.dataset.nav === 'podium' && view === 'podium') || (b.dataset.nav === 'messages' && view === 'messages') || (b.dataset.nav === 'museum' && view === 'museum') || (b.dataset.nav === 'profile' && view === 'profile')));
+    if (!nav.hidden) {
+      drawNavIcons();
+      updateBubbles();
+    }
   }
   $('bottom-nav').addEventListener('click', async (event) => {
     const button = event.target.closest('button[data-nav]');
@@ -760,15 +976,33 @@
     if (go === 'messages') return openMessages();
     if (go === 'profile') return $('btn-carnet').click();
     if (go === 'podium') return $('btn-podium').click();
+    if (go === 'museum') return openMuseum();
+    if (go === 'journal') {
+      $('drawer').showModal();
+      $('feed-fold').open = true;
+      await loadFeed(10);
+      return markFeedSeen();
+    }
+    if (go === 'play' && betaOn('betaHome')) {
+      if (app.view !== 'home') await goHome();
+      loadDuels();
+      return $('play-sheet').showModal();
+    }
     if (app.view !== 'home') await goHome();
     if (go === 'play') document.querySelector('.play-card').scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
     else window.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' });
   });
+  $('btn-sheet-close').addEventListener('click', () => $('play-sheet').close());
+  $('play-sheet').addEventListener('click', (event) => {
+    if (event.target === $('play-sheet')) return $('play-sheet').close();
+    const button = event.target.closest('button.btn');
+    if (button && button.id !== 'btn-duel-new') $('play-sheet').close();
+  });
 
-  /** La vie de la mine : combien de mineurs ont foré aujourd'hui et les derniers forages terminés. */
+  /** La vie de la mine : combien de mineurs ont foré aujourd'hui, les derniers forages terminés et leurs pépites. */
   async function renderBetaSocial() {
     const card = $('beta-social');
-    card.hidden = !(betaOn('betaSocial') && app.me && app.me.today);
+    card.hidden = !((betaOn('betaSocial') || betaOn('betaHome')) && app.me && app.me.today);
     if (card.hidden) return;
     try {
       const mine = await api('/api/mine-today');
@@ -776,7 +1010,12 @@
       if (!mine.started) text.textContent = 'La mine est encore silencieuse : tu pourrais être le premier à descendre aujourd\'hui !';
       else text.textContent = `${plural(mine.started, 'mineur est descendu', 'mineurs sont descendus')} aujourd'hui, ${mine.finished} ${mine.finished > 1 ? 'ont fini' : 'a fini'} leur forage.`;
       $('beta-social-list').replaceChildren(
-        ...mine.recent.map((r) => el('li', { class: 'beta-social-row' }, whoEl(r.avatar, r.username), el('span', { class: 'muted' }, `vient de finir avec ${pts(r.score)}`))),
+        ...mine.recent.map((r) => {
+          const gem = r.pepites
+            ? el('span', { class: 'gem' }, (() => { const c = el('canvas', { width: '16', height: '16', 'aria-hidden': 'true' }); Icons.drawIcon(c, 'pepite'); return c; })(), el('span', {}, r.pepites > 1 ? `${r.pepites} pépites !` : 'Pépite !'))
+            : null;
+          return el('li', { class: `beta-social-row${r.pepites ? ' has-gem' : ''}` }, whoEl(r.avatar, r.username), el('span', { class: 'muted' }, `${pts(r.score)}`), gem);
+        }),
       );
     } catch {
       card.hidden = true;
@@ -797,33 +1036,40 @@
     return hit ? hit[1] : text;
   };
 
-  /** Accueil chaleureux (bêta) : salutation, phrase selon l'avancement du jour et une pastille par thème. */
+  /** Fiche d'accueil (bêta) : salutation, la taupe et son activité du jour, puis portrait, lanterne et étais. */
   function renderBetaHello() {
     const card = $('beta-hello');
     if (!card) return;
     const today = app.me && app.me.today;
-    card.hidden = !((betaOn('betaSkin') || betaOn('betaMascot')) && today);
+    card.hidden = !((betaOn('betaSkin') || betaOn('betaMascot') || betaOn('betaHome')) && today);
     if (card.hidden) return;
     const hour = brusselsHour();
     const hello = hour >= 18 || hour < 5 ? 'Bonsoir' : 'Bonjour';
     $('beta-greet').textContent = `${hello} ${app.me.user.username} !`;
+    const mascot = $('beta-mascot');
+    mascot.hidden = !(betaOn('betaMascot') || betaOn('betaHome'));
+    const withMascot = !mascot.hidden;
+    if (!app.mascotActivity) app.mascotActivity = pickActivity();
+    const activity = ACTIVITIES[app.mascotActivity];
+    if (withMascot) {
+      const mood = activity.mood || (hour < 6 ? 'sleep' : 'idle');
+      drawMascot($('mascot-open'), mood);
+      drawMascot($('mascot-blink'), mood === 'look' ? 'look' : 'blink');
+      drawActivity($('mascot-tool'), app.mascotActivity);
+      mascot.dataset.mood = mood;
+      mascot.dataset.anim = activity.anim || '';
+      mascot.title = activity.say;
+    }
+    // Phrase de la taupe, suivie de l'avancement du forage.
     const st = app.me.streak;
-    let sub;
-    if (!today.gameId) sub = st && st.current > 1 ? `${st.current} jours d'affilée : ne casse pas la série, 7 thèmes t'attendent.` : '7 nouveaux thèmes t\'attendent au fond de la mine.';
-    else if (!today.finished) sub = `Tu as déjà creusé ${today.roundsDone} thème${today.roundsDone > 1 ? 's' : ''} sur ${ROUNDS} : reprends ton forage !`;
-    else sub = `Beau forage : ${pts(today.score)} aujourd'hui. Rendez-vous demain pour de nouveaux thèmes !`;
-    $('beta-sub').textContent = sub;
+    let tail;
+    if (!today.gameId) tail = st && st.current > 1 ? `${st.current} jours d'affilée : 7 thèmes t'attendent !` : '7 nouveaux thèmes t\'attendent.';
+    else if (!today.finished) tail = `Plus que ${ROUNDS - (today.roundsDone || 0)} thème${ROUNDS - (today.roundsDone || 0) > 1 ? 's' : ''} à creuser.`;
+    else tail = `Beau forage : ${pts(today.score)} aujourd'hui !`;
+    $('beta-sub').textContent = withMascot ? `« ${activity.say} » ${tail}` : tail;
     const done = today.finished ? ROUNDS : today.roundsDone || 0;
     $('beta-dots').replaceChildren(...Array.from({ length: ROUNDS }, (_, i) => el('span', { class: `beta-dot${i < done ? ' on' : ''}` })));
-    const mascot = $('beta-mascot');
-    mascot.hidden = !betaOn('betaMascot');
-    if (!mascot.hidden) {
-      const mood = hour < 6 ? 'sleep' : today.finished ? 'happy' : 'idle';
-      drawMascot($('mascot-open'), mood);
-      drawMascot($('mascot-blink'), 'blink');
-      mascot.dataset.mood = mood;
-      mascot.title = mood === 'sleep' ? 'Zzz… la taupe dort' : mood === 'happy' ? 'La taupe est contente de toi !' : 'La taupe te souhaite un bon forage';
-    }
+    $('beta-dots').hidden = betaOn('betaHome');
   }
 
   /** Série en cours (lanterne de mineur) et badge le plus proche. */
@@ -2310,6 +2556,8 @@
     try {
       const data = await api('/api/museum');
       app.museum = data;
+      app.museumNew = 0;
+      try { localStorage.setItem(MUSEUM_SEEN_KEY, String(data.total)); } catch { /* sans stockage */ }
       renderMuseum();
       show('museum');
     } catch (err) {
@@ -2353,9 +2601,19 @@
   $('btn-museum-home').addEventListener('click', () => goHome());
   $('museum-search').addEventListener('input', () => app.museum && renderMuseum());
 
+  const MUSEUM_SEEN_KEY = 'speleo-museum-seen';
   async function loadMuseumNote() {
     try {
       const d = await api('/api/museum');
+      app.museumTotal = d.total;
+      let seen = null;
+      try { seen = localStorage.getItem(MUSEUM_SEEN_KEY); } catch { /* sans stockage */ }
+      if (seen === null) {
+        try { localStorage.setItem(MUSEUM_SEEN_KEY, String(d.total)); } catch { /* sans stockage */ }
+        seen = String(d.total);
+      }
+      app.museumNew = Math.max(0, d.total - Number(seen));
+      if (!$('bottom-nav').hidden) updateBubbles();
       $('museum-note').textContent = d.total
         ? `${plural(d.total, 'pépite découverte', 'pépites découvertes')} par le groupe${d.todayCount ? `, et ${plural(d.todayCount, 'nouvelle', 'nouvelles')} aujourd'hui à dévoiler demain` : ''}.`
         : "Toutes les réponses que personne n'avait trouvées avant.";
@@ -2377,9 +2635,10 @@
 
   async function loadFeed(limit = 3) {
     try {
-      const { events, now } = await api(`/api/feed?limit=${limit}`);
+      const { events: all, now } = await api(`/api/feed?limit=${Math.max(limit, 10)}`);
+      const events = all.slice(0, limit);
       app.feedLimit = limit;
-      app.feedNewest = events.reduce((m, e) => Math.max(m, e.ts || 0), 0);
+      app.feedNewest = all.reduce((m, e) => Math.max(m, e.ts || 0), 0);
       let seen = 0;
       try {
         seen = Number(localStorage.getItem(FEED_SEEN_KEY)) || 0;
@@ -2389,7 +2648,9 @@
       }
       app.drawerNews = app.drawerNews || {};
       app.drawerNews.feed = app.feedNewest > seen;
+      app.feedNew = all.filter((e) => (e.ts || 0) > seen).length;
       updateDrawerDot();
+      if (!$('bottom-nav').hidden) updateBubbles();
       $('feed-list').replaceChildren(
         ...events.map((e) => {
           const icon = el('canvas', { class: 'feed-icon', width: '16', height: '16', 'aria-hidden': 'true' });
@@ -2398,7 +2659,7 @@
         }),
       );
       if (!events.length) $('feed-list').append(el('li', { class: 'muted' }, betaOn('betaWarm') ? 'Pas encore de nouvelles : la mine est calme… pour l\'instant !' : "Pas encore de nouvelles : la mine est calme."));
-      $('btn-feed-more').hidden = limit >= 10 || events.length < limit;
+      $('btn-feed-more').hidden = limit >= 10 || all.length <= limit;
     } catch {
       /* le journal est facultatif */
     }
@@ -3371,6 +3632,7 @@
     dot.hidden = !n;
     dot.textContent = n > 9 ? '9+' : String(n || '');
     $('btn-messages').setAttribute('aria-label', n ? `Messages (${plural(n, 'non lu', 'non lus')})` : 'Messages');
+    if (!$('bottom-nav').hidden) updateBubbles();
   }
 
   function msgTime(at) {

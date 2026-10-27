@@ -135,6 +135,7 @@
         <p class="hint">Des nouveautés à l'essai, visibles seulement pour toi : les autres joueurs ne les voient pas.</p>
         <label class="check"><input type="checkbox" name="betaKeys"> Clavier : flèches, Entrée, O / N dans les propositions, « ? » pour l'aide</label>
         <label class="check"><input type="checkbox" name="betaHints"> Retours précis quand une réponse est refusée</label>
+        <label class="check"><input type="checkbox" name="betaHome"> Nouvel accueil : fiche taupe, forage en haut, podium remonté, barre du bas illustrée</label>
         <label class="check"><input type="checkbox" name="betaSkin"> Accueil chaleureux (aperçu du nouveau look)</label>
         <label class="check"><input type="checkbox" name="betaMascot"> Mascotte : une petite taupe mineuse</label>
         <label class="check"><input type="checkbox" name="betaNav"> Barre de navigation en bas (téléphone)</label>
@@ -182,13 +183,25 @@
 
   <div class="fx-layer" id="fx-layer" aria-hidden="true"></div>
   <nav class="bottom-nav" id="bottom-nav" aria-label="Navigation" hidden>
-    <button type="button" data-nav="home"><span class="nav-ico" aria-hidden="true">🏠</span><span>Accueil</span></button>
-    <button type="button" data-nav="play"><span class="nav-ico" aria-hidden="true">⛏️</span><span>Jouer</span></button>
-    <button type="button" data-nav="podium"><span class="nav-ico" aria-hidden="true">🏆</span><span>Podium</span></button>
-    <button type="button" data-nav="messages"><span class="nav-ico" aria-hidden="true">✉️</span><span>Messages</span><span class="tab-dot" id="nav-dot" hidden></span></button>
-    <button type="button" data-nav="profile"><span class="nav-ico" aria-hidden="true">👤</span><span>Profil</span></button>
+    <button type="button" data-nav="home" aria-label="Accueil"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Accueil</span><span class="nav-bubble" hidden></span></button>
+    <button type="button" data-nav="play" aria-label="Jouer"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Jouer</span><span class="nav-bubble" hidden></span></button>
+    <button type="button" data-nav="podium" aria-label="Podium"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Podium</span><span class="nav-bubble" hidden></span></button>
+    <button type="button" data-nav="messages" aria-label="Messages"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Messages</span><span class="nav-bubble" hidden></span></button>
+    <button type="button" data-nav="museum" aria-label="Musée"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Musée</span><span class="nav-bubble" hidden></span></button>
+    <button type="button" data-nav="journal" aria-label="Journal"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Journal</span><span class="nav-bubble" hidden></span></button>
+    <button type="button" data-nav="profile" aria-label="Profil"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Profil</span><span class="nav-bubble" hidden></span></button>
   </nav>
   <button class="drawer-tab" id="drawer-tab" type="button" aria-haspopup="dialog" aria-controls="drawer" hidden><span>Plus</span><span class="tab-dot" id="drawer-dot" hidden></span></button>
+  <dialog class="drawer play-sheet" id="play-sheet" aria-label="Jouer">
+    <div class="drawer-frame">
+      <div class="drawer-head">
+        <h2>Jouer</h2>
+        <button class="icon-btn" id="btn-sheet-close" type="button" aria-label="Fermer"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h2v2H1zM3 3h2v2H3zM5 5h2v2H5zM7 7h2v2H7zM9 9h2v2H9zM9 1h2v2H9zM7 3h2v2H7zM3 7h2v2H3zM1 9h2v2H1z"/></svg></button>
+      </div>
+      <div class="drawer-body" id="play-sheet-body"></div>
+    </div>
+  </dialog>
+
   <dialog class="drawer" id="drawer" aria-label="Plus">
     <div class="drawer-frame">
       <div class="drawer-head">
@@ -312,17 +325,18 @@
         <button class="card report-banner collective-banner" id="collective-banner" type="button" hidden><canvas id="collective-banner-icon" width="7" height="6" aria-hidden="true"></canvas><span><strong>Diamant atteint !</strong><span id="collective-banner-text"></span></span></button>
         <button class="card report-banner" id="report-banner" type="button" hidden>📬 Tu as une réponse à un de tes signalements</button>
         <div class="card beta-hello" id="beta-hello" hidden>
-          <div class="beta-hello-row">
-            <div class="beta-hello-text">
-              <p class="beta-greet" id="beta-greet"></p>
-              <p class="beta-sub" id="beta-sub"></p>
-              <div class="beta-dots" id="beta-dots" role="img" aria-label="Avancement du forage du jour"></div>
-            </div>
+          <p class="beta-greet" id="beta-greet"></p>
+          <div class="hero-row">
+            <div class="hero-player" id="hero-player"></div>
             <div class="beta-mascot" id="beta-mascot" aria-hidden="true">
-              <canvas id="mascot-open" width="16" height="16"></canvas>
-              <canvas id="mascot-blink" width="16" height="16"></canvas>
+              <canvas id="mascot-open" width="24" height="16"></canvas>
+              <canvas id="mascot-blink" width="24" height="16"></canvas>
+              <canvas id="mascot-tool" width="24" height="16"></canvas>
             </div>
           </div>
+          <p class="beta-sub" id="beta-sub"></p>
+          <div class="hero-chips" id="hero-chips"></div>
+          <div class="beta-dots" id="beta-dots" role="img" aria-label="Avancement du forage du jour" hidden></div>
         </div>
         <div class="card beta-social" id="beta-social" hidden>
           <h2>Dans la mine aujourd'hui</h2>

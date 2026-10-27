@@ -1244,8 +1244,8 @@ kbd { padding: 0 6px; border: 2px solid var(--line); background: var(--well); fo
 /* ---------- Version bêta : mascotte, barre du bas, ambiance, vie de la mine ---------- */
 .beta-hello-row { display: flex; align-items: center; gap: 14px; }
 .beta-hello-text { flex: 1; min-width: 0; }
-.beta-mascot { position: relative; flex: none; width: 64px; height: 64px; }
-.beta-mascot canvas { position: absolute; inset: 0; width: 64px; height: 64px; image-rendering: pixelated; }
+.beta-mascot { position: relative; flex: none; width: 120px; height: 80px; }
+.beta-mascot canvas { position: absolute; inset: 0; width: 120px; height: 80px; image-rendering: pixelated; }
 .beta-mascot #mascot-blink { opacity: 0; animation: mascot-blink 5s steps(1) infinite; }
 .beta-mascot[data-mood='sleep'] #mascot-blink { opacity: 1; animation: none; }
 .beta-mascot[data-mood='sleep']::after { content: 'z z Z'; position: absolute; right: -6px; top: -14px; font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--accent); letter-spacing: 2px; animation: mascot-zzz 2.6s ease-in-out infinite; }
@@ -1315,3 +1315,67 @@ kbd { padding: 0 6px; border: 2px solid var(--line); background: var(--well); fo
 :root[data-beta-fx] .streak.lit .streak-lantern { filter: drop-shadow(0 0 6px rgba(255, 180, 60, 0.8)); }
 @keyframes streak-glow { 0%, 100% { box-shadow: 0 0 0 rgba(255, 170, 40, 0); } 50% { box-shadow: 0 0 16px rgba(255, 170, 40, 0.45); } }
 @media (prefers-reduced-motion: reduce) { :root[data-beta-fx] .streak.lit { animation: none; } .feedback-points.pop, .spark { animation: none; } }
+
+/* ---------- Nouvel accueil (bêta) : fiche taupe, ordre des blocs, barre du bas illustrée ---------- */
+.hero-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.hero-player { flex: 1; min-width: 0; }
+.hero-player .home-profile { margin: 0; }
+.hero-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.hero-chips .home-chips { margin: 0; }
+.hero-chips #streak-note { flex-basis: 100%; margin: 0; }
+.beta-sub { margin: 4px 0 10px; }
+
+/* Animations douces des outils de la taupe (une par activité). */
+#mascot-tool { pointer-events: none; }
+.beta-mascot[data-anim='swing'] #mascot-tool { transform-origin: 80% 85%; animation: tool-swing 1.8s ease-in-out infinite; }
+.beta-mascot[data-anim='glow'] #mascot-tool { animation: tool-glow 2.2s ease-in-out infinite; }
+.beta-mascot[data-anim='bob'] #mascot-tool { animation: tool-bob 2.4s ease-in-out infinite; }
+.beta-mascot[data-anim='sparkle'] #mascot-tool { animation: tool-sparkle 1.6s ease-in-out infinite; }
+.beta-mascot[data-anim='roll'] #mascot-tool { animation: tool-roll 1.4s ease-in-out infinite; }
+.beta-mascot[data-anim='flicker'] #mascot-tool { animation: tool-flicker 0.5s steps(2) infinite; }
+.beta-mascot[data-anim='scribble'] #mascot-tool { animation: tool-scribble 0.5s ease-in-out infinite; }
+@keyframes tool-swing { 0%, 100% { transform: rotate(-10deg); } 45% { transform: rotate(14deg); } 55% { transform: rotate(14deg); } }
+@keyframes tool-glow { 0%, 100% { filter: drop-shadow(0 0 2px rgba(255, 220, 120, 0.4)); } 50% { filter: drop-shadow(0 0 10px rgba(255, 220, 120, 0.95)); } }
+@keyframes tool-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes tool-sparkle { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.5) drop-shadow(0 0 6px #9fe8ff); } }
+@keyframes tool-roll { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(6px); } }
+@keyframes tool-flicker { 0% { filter: brightness(1); } 100% { filter: brightness(1.4) drop-shadow(0 0 4px #ff9a2e); } }
+@keyframes tool-scribble { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(3px, -2px); } }
+@media (prefers-reduced-motion: reduce) { #mascot-tool { animation: none !important; } }
+
+:root[data-beta-home] #view-home { display: flex; flex-direction: column; gap: 12px; }
+:root[data-beta-home] #view-home > * { order: 0; }
+:root[data-beta-home] #view-home > .beta-hello { order: 1; }
+:root[data-beta-home] #view-home > .play-card { order: 2; }
+:root[data-beta-home] #view-home > .beta-social { order: 3; }
+:root[data-beta-home] #view-home > .podium-card { order: 4; }
+:root[data-beta-home] #view-home > .challenge { order: 5; }
+:root[data-beta-home] #view-home > .profile-card { display: none; }
+:root[data-beta-home] #view-home > * { margin: var(--px); }
+
+.beta-social-row .gem { display: inline-flex; align-items: center; gap: 4px; color: var(--accent); font-size: calc(18px * var(--fs)); }
+.beta-social-row .gem canvas { width: 24px; height: 24px; image-rendering: pixelated; }
+.beta-social-row.has-gem { box-shadow: inset 4px 0 0 var(--accent); }
+
+#play-sheet-body #mode-duel::before, #play-sheet-body #mode-training::before {
+  display: block; margin: 0 0 8px; font-family: 'Press Start 2P', ui-monospace, monospace; font-size: calc(14px * var(--fs)); color: var(--accent);
+}
+#play-sheet-body #mode-duel::before { content: 'Duel'; }
+#play-sheet-body #mode-training { margin-top: 16px; padding-top: 12px; border-top: 2px dashed rgba(0, 0, 0, 0.35); }
+#play-sheet-body #mode-training::before { content: 'Infini'; }
+
+/* Barre du bas : sept onglets en pixel art, avec pastilles de nouveautés. */
+.bottom-nav button { padding: 4px 0; min-width: 0; }
+.nav-ico { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; }
+.nav-ico canvas { width: 32px; height: 32px; image-rendering: pixelated; }
+.nav-lab { font-size: calc(15px * var(--fs)); line-height: 1; }
+.nav-bubble {
+  position: absolute; top: 0; right: 50%; margin-right: -26px; min-width: 18px; height: 18px; padding: 0 3px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--danger); color: #fff; font-family: 'Press Start 2P', ui-monospace, monospace; font-size: 8px;
+  box-shadow: 0 0 0 2px var(--panel);
+}
+.nav-bubble.dot { min-width: 10px; width: 10px; height: 10px; padding: 0; background: var(--accent); }
+.bottom-nav button.active .nav-ico { transform: translateY(-3px); }
+.bottom-nav button.active .nav-lab { color: var(--accent); }
+:root[data-season] .fx-layer { display: none; }

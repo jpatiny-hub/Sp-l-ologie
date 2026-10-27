@@ -32,6 +32,9 @@
   }
 
   const ICONS = {
+    maison: ['............', '.....rr.....', '....rrrr....', '...rrrrrr...', '..rrrrrrrr..', '.rrrrrrrrrr.', '..eeeeeeee..', '..ebbeennee.', '..ebbeennee.', '..eeeeennee.', '..kkkkkkkkk.', '............'],
+    enveloppe: ['............', '............', 'kkkkkkkkkkkk', 'keSeeeeeeSek', 'keeSeeeeSeek', 'keeeSeeSeeek', 'keeeeSSeeeek', 'keeeeeeeeeek', 'keeeeeeeeeek', 'kkkkkkkkkkkk', '............', '............'],
+    journal: ['............', 'kkkkkkkkkkkk', 'kwwwwwwwwwwk', 'kwkkkkwSSSwk', 'kwwwwwwwwwwk', 'kwSSSwkkkkwk', 'kwSSSwwwwwwk', 'kwwwwwSSSSwk', 'kwkkkkwwwwwk', 'kwwwwwwwwwwk', 'kkkkkkkkkkkk', '............'],
     lampe: ['............', '....kkkk....', '...kyyyyk...', '..kyywwyyk..', '..kyywwyyk..', '..kyyyyyyk..', '...kkkkkk...', '..kSSSSSSk..', '..kS....Sk..', '..kS....Sk..', '...kkkkkk...', '............'],
     pioche: ['............', '..kkkkkkk...', '.kSSSSSSSk..', 'kSk..kn.kSk.', 'kk...kn..kk.', '.....kn.....', '.....kn.....', '.....kn.....', '.....kn.....', '.....kn.....', '.....kk.....', '............'],
     'couche-1': earth(1),

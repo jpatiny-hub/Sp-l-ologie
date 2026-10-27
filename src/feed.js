@@ -84,11 +84,22 @@ function mineToday(game) {
        WHERE g.mode = 'daily' AND g.day = ? AND g.finished_at IS NOT NULL ORDER BY g.finished_at DESC`,
     )
     .all(day);
+  // Pépites (réponses que personne n'avait trouvées : 100 points et plus) de chacun des derniers forages terminés.
+  const pepites = db.prepare(
+    `SELECT COUNT(*) AS n FROM rounds r JOIN games g ON g.id = r.game_id
+     WHERE g.user_id = ? AND g.mode = 'daily' AND g.day = ? AND r.outcome = 'answer' AND r.points >= 100`,
+  );
   return {
     day,
     started,
     finished: rows.length,
-    recent: rows.slice(0, 3).map((r) => ({ username: r.username, avatar: Avatar.normalize(r.avatar, r.userId), score: r.score, at: r.at })),
+    recent: rows.slice(0, 5).map((r) => ({
+      username: r.username,
+      avatar: Avatar.normalize(r.avatar, r.userId),
+      score: r.score,
+      at: r.at,
+      pepites: pepites.get(r.userId, day).n,
+    })),
   };
 }
 
