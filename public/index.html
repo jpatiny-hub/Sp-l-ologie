@@ -89,6 +89,18 @@
     <button class="btn" id="assign-confirm" type="button" disabled>Associer</button>
     <button class="btn ghost" id="assign-cancel" type="button">Annuler</button>
   </dialog>
+  <dialog class="card tutorial" id="tutorial" aria-labelledby="tuto-title">
+    <div class="tuto-art" id="tuto-art" aria-hidden="true"></div>
+    <h2 id="tuto-title"></h2>
+    <div class="tuto-body" id="tuto-body"></div>
+    <div class="tuto-dots" id="tuto-dots" aria-hidden="true"></div>
+    <div class="row tuto-nav">
+      <button class="btn ghost" id="tuto-prev" type="button">‹ Précédent</button>
+      <button class="btn" id="tuto-next" type="button">Suivant ›</button>
+    </div>
+    <button class="link tuto-skip" id="tuto-skip" type="button">Passer le tutoriel</button>
+  </dialog>
+
   <dialog class="card settings" id="settings">
     <form method="dialog" class="form" id="form-settings">
       <h2>Paramètres</h2>
@@ -141,6 +153,11 @@
         <label class="check"><input type="checkbox" name="betaFx"> Étincelles, flamme et ambiance de mine</label>
         <label class="check"><input type="checkbox" name="betaSocial"> La vie de la mine sur l'accueil</label>
         <label class="check"><input type="checkbox" name="betaWarm"> Textes plus chaleureux</label>
+      </fieldset>
+      <fieldset id="tuto-box">
+        <legend>Tutoriel</legend>
+        <p class="hint">Les grandes lignes du jeu en quelques images.</p>
+        <button class="btn secondary" id="btn-tuto-again" type="button">Revoir le tutoriel</button>
       </fieldset>
       <fieldset id="share-box">
         <legend>Inviter des amis</legend>

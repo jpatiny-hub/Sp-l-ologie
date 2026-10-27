@@ -549,6 +549,130 @@
     show('auth');
   });
 
+  // ---------- Petit tutoriel (première connexion) ----------
+  const TIERS_TUTO = [
+    ['evident', 'Gravier', '10 à 20 pts', 'tout le monde y pense'],
+    ['courant', 'Soufre', '20 à 40 pts', 'une réponse courante'],
+    ['original', 'Cuivre', '40 à 60 pts', 'une réponse originale'],
+    ['rare', 'Rubis', '60 à 90 pts', 'très peu de joueurs y pensent'],
+    ['pepite', 'Pépite !', '100 pts', 'personne ne l\'avait encore trouvée'],
+  ];
+  const tutoIcon = (name, size = 48) => {
+    const c = el('canvas', { width: '16', height: '16', 'aria-hidden': 'true' });
+    Icons.drawIcon(c, name);
+    c.style.width = `${size}px`;
+    c.style.height = `${size}px`;
+    return c;
+  };
+  const SLIDES = [
+    {
+      title: 'Bienvenue dans la mine !',
+      art: () => {
+        const mole = el('canvas', { class: 'tuto-mole', width: '16', height: '16', 'aria-hidden': 'true' });
+        drawMascot(mole, 'happy');
+        return el('div', { class: 'tuto-art-row' }, mole, tutoIcon('pioche', 64));
+      },
+      body: () => [
+        el('p', {}, 'Chaque jour, tu creuses le plus profond possible en répondant à ', el('strong', {}, '7 thèmes'), '.'),
+        el('p', {}, 'Plus tu marques de points, plus ta foreuse descend à travers les couches de la Terre, jusqu\'au centre.'),
+      ],
+    },
+    {
+      title: 'Trouve la réponse la moins probable',
+      art: () => el('div', { class: 'tuto-ladder' }, ...TIERS_TUTO.map(([id, label, points, hint]) => {
+        const chip = el('span', { class: 'tuto-chip' });
+        chip.style.background = Pixel.TIER_COLORS[id];
+        return el('div', { class: 'tuto-rung' }, chip, el('strong', {}, label), el('span', { class: 'tuto-points' }, points), el('span', { class: 'muted small' }, hint));
+      })),
+      body: () => [
+        el('p', {}, 'Pour chaque thème, par exemple « Un fruit rouge », donne une réponse correcte. Mais ne choisis pas la plus évidente : ', el('strong', {}, 'moins il y a de joueurs qui y pensent, plus tu gagnes de points'), '.'),
+        el('p', { class: 'muted' }, 'Fraise ? Tout le monde y pense. Airelle ? Beaucoup moins !'),
+      ],
+    },
+    {
+      title: 'Le forage du jour',
+      art: () => {
+        const dots = el('div', { class: 'tuto-dots7' }, ...Array.from({ length: 7 }, () => el('span', { class: 'tuto-dot7' })));
+        return el('div', { class: 'tuto-art-col' }, dots, el('div', { class: 'tuto-timer' }, el('strong', {}, '30'), el('span', { class: 'muted' }, ' secondes par thème')));
+      },
+      body: () => [
+        el('p', {}, 'Chaque jour, tous les joueurs reçoivent ', el('strong', {}, 'les mêmes 7 thèmes'), ', avec ', el('strong', {}, '30 secondes'), ' pour répondre à chacun. Une seule partie par jour.'),
+        el('p', {}, 'Les nouveaux thèmes arrivent à 2 h du matin. Compare ton score à celui des autres sur le podium !'),
+      ],
+    },
+    {
+      title: 'Duel et mode infini',
+      art: () => el('div', { class: 'tuto-art-row' }, el('div', { class: 'tuto-mode' }, tutoIcon('sabre', 56), el('strong', {}, 'Duel')), el('div', { class: 'tuto-mode' }, tutoIcon('lampe', 56), el('strong', {}, 'Infini'))),
+      body: () => [
+        el('p', {}, el('strong', {}, 'Duel : '), 'défie un joueur sur 7 thèmes. Chacun joue quand il veut, et le résultat est dévoilé le lendemain matin.'),
+        el('p', {}, el('strong', {}, 'Infini : '), 'des thèmes au hasard, autant que tu veux, pour t\'entraîner. Ça ne compte pas pour le podium.'),
+        el('p', { class: 'muted' }, 'Chacun des deux existe en deux versions : ', el('strong', {}, 'Standard'), ' (30 secondes par thème) ou ', el('strong', {}, 'À l\'aise'), ' (sans chrono).'),
+      ],
+    },
+    {
+      title: 'À toi de jouer !',
+      art: () => {
+        const mole = el('canvas', { class: 'tuto-mole', width: '16', height: '16', 'aria-hidden': 'true' });
+        drawMascot(mole, 'idle');
+        return el('div', { class: 'tuto-art-row' }, mole, tutoIcon('diamant', 64));
+      },
+      body: () => [
+        el('p', {}, 'Tape ta réponse sans te soucier des accents ni des petites fautes : si elle ressemble à une réponse connue, le jeu te la propose.'),
+        el('p', {}, 'Réponse refusée alors que tu la crois juste ? Tu peux la signaler, et réessayer tant que le chrono tourne.'),
+        el('p', {}, el('strong', {}, 'Bon forage, mineur !')),
+      ],
+    },
+  ];
+  const tuto = { index: 0, first: false };
+
+  function renderTutorial() {
+    const slide = SLIDES[tuto.index];
+    $('tuto-title').textContent = slide.title;
+    $('tuto-art').replaceChildren(slide.art());
+    $('tuto-body').replaceChildren(...slide.body());
+    $('tuto-dots').replaceChildren(...SLIDES.map((_, i) => el('span', { class: `tuto-pip${i === tuto.index ? ' on' : ''}` })));
+    $('tuto-prev').hidden = tuto.index === 0;
+    const last = tuto.index === SLIDES.length - 1;
+    $('tuto-next').textContent = last ? 'C\'est parti !' : 'Suivant ›';
+    $('tuto-skip').hidden = last;
+  }
+  function openTutorial(first = false) {
+    tuto.index = 0;
+    tuto.first = first;
+    renderTutorial();
+    if (!$('tutorial').open) $('tutorial').showModal();
+  }
+  function closeTutorial() {
+    if ($('tutorial').open) $('tutorial').close();
+    if (tuto.first && app.me && !app.me.tutorialSeen) {
+      app.me.tutorialSeen = true;
+      api('/api/tutorial/seen', {}).catch(() => {});
+    }
+    tuto.first = false;
+  }
+  $('tuto-next').addEventListener('click', () => {
+    if (tuto.index >= SLIDES.length - 1) return closeTutorial();
+    tuto.index++;
+    renderTutorial();
+  });
+  $('tuto-prev').addEventListener('click', () => {
+    if (tuto.index > 0) tuto.index--;
+    renderTutorial();
+  });
+  $('tuto-skip').addEventListener('click', closeTutorial);
+  $('tutorial').addEventListener('cancel', (event) => {
+    event.preventDefault();
+    closeTutorial();
+  });
+  $('tutorial').addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowRight') $('tuto-next').click();
+    else if (event.key === 'ArrowLeft' && tuto.index > 0) $('tuto-prev').click();
+  });
+  $('btn-tuto-again').addEventListener('click', () => {
+    $('settings').close();
+    openTutorial(false);
+  });
+
   // ---------- Accueil ----------
   async function goHome() {
     stopTimer();
@@ -576,6 +700,7 @@
     loadCarnetSummary();
     updateMessageDot(app.me.unreadMessages || 0);
     if (app.me.celebrations && app.me.celebrations.length) openCelebrations(app.me.celebrations);
+    if (!app.me.tutorialSeen) openTutorial(true);
   }
 
   async function loadCarnetSummary() {
