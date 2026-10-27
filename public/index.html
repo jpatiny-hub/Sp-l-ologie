@@ -223,10 +223,10 @@
         </div>
         <details class="card fold feed-fold" id="feed-fold">
           <summary><span class="fold-t"><h2>Le Petit Mineur</h2><span class="sub">les dernières nouvelles de la mine</span></span><span class="pm" aria-hidden="true"></span></summary>
-          <div class="feed-tools" id="feed-tools" hidden>
-            <label class="small muted" for="feed-date">Un jour précis</label>
-            <input type="date" id="feed-date">
-            <button class="link" id="btn-feed-recent" type="button" hidden>Revenir aux dernières nouvelles</button>
+          <div class="week-nav feed-nav" id="feed-tools" hidden>
+            <button class="btn ghost small-btn" id="btn-feed-prev" type="button" aria-label="Jour précédent">◀</button>
+            <h3 id="feed-label">Dernières nouvelles</h3>
+            <button class="btn ghost small-btn" id="btn-feed-next" type="button" aria-label="Jour suivant" disabled>▶</button>
           </div>
           <ul class="feed-list" id="feed-list"></ul>
           <button class="btn secondary" id="btn-feed-more" type="button" hidden>Plus de nouvelles</button>
