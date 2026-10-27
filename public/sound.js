@@ -10,6 +10,7 @@
   let master = null;
   let noise = null;
   let drill = null;
+  let amb = null;
   let enabled = true;
   let volume = 0.6;
 
@@ -78,7 +79,10 @@
       if ('enabled' in options) enabled = Boolean(options.enabled);
       if ('volume' in options) volume = Math.max(0, Math.min(1, options.volume));
       if (master) master.gain.setTargetAtTime(enabled ? volume : 0, ctx.currentTime, 0.05);
-      if (!enabled) this.drill(false);
+      if (!enabled) {
+        this.drill(false);
+        this.ambientStop();
+      }
     },
 
     unlock() {
@@ -132,6 +136,86 @@
       lfo.start();
       src.onended = () => lfo.stop();
       drill = { src, osc, filter, out };
+    },
+
+    /**
+     * Ambiance de l'accueil (essai réservé au responsable) : coups de pioche lointains, ronronnement grave
+     * et mélodie très douce. Chaque élément se coupe séparément ; tout s'arrête avec `ambientStop()`.
+     */
+    ambient({ taps = false, rumble = false, melody = false } = {}) {
+      this.ambientStop();
+      if (!(taps || rumble || melody) || !ready()) return;
+      const a = { timers: [], nodes: [] };
+      amb = a;
+      if (rumble) {
+        const src = ctx.createBufferSource();
+        src.buffer = noise;
+        src.loop = true;
+        const low = ctx.createBiquadFilter();
+        low.type = 'lowpass';
+        low.frequency.value = 130;
+        const hum = ctx.createOscillator();
+        hum.type = 'sine';
+        hum.frequency.value = 52;
+        const humGain = ctx.createGain();
+        humGain.gain.value = 0.05;
+        const out = ctx.createGain();
+        out.gain.value = 0.0001;
+        out.gain.setTargetAtTime(0.16, ctx.currentTime, 1.2);
+        // Respiration lente : le grondement monte et descend.
+        const lfo = ctx.createOscillator();
+        lfo.frequency.value = 0.22;
+        const lfoGain = ctx.createGain();
+        lfoGain.gain.value = 0.05;
+        lfo.connect(lfoGain).connect(out.gain);
+        src.connect(low).connect(out);
+        hum.connect(humGain).connect(out);
+        out.connect(master);
+        src.start();
+        hum.start();
+        lfo.start();
+        a.nodes.push({ stop: () => out.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.3) }, src, hum, lfo);
+      }
+      const later = (fn, min, max) => a.timers.push(setTimeout(() => amb === a && fn(), min + Math.random() * (max - min)));
+      if (taps) {
+        const tap = () => {
+          if (ctx.state === 'running') {
+            const hits = Math.random() < 0.3 ? 2 : 1;
+            for (let i = 0; i < hits; i++) {
+              burst({ at: i * 0.18, dur: 0.05, freq: 2200, gain: 0.16, type: 'bandpass' });
+              tone(880 - i * 90, { at: i * 0.18, dur: 0.07, type: 'triangle', gain: 0.07, to: 520 });
+            }
+          }
+          later(tap, 2500, 6500);
+        };
+        later(tap, 1200, 3000);
+      }
+      if (melody) {
+        let i = 3;
+        const note = () => {
+          if (ctx.state === 'running') {
+            i = Math.max(0, Math.min(6, i + [-2, -1, -1, 1, 1, 2][Math.floor(Math.random() * 6)]));
+            tone(PENTA[i], { dur: 1.6, type: 'sine', gain: 0.045 });
+            tone(PENTA[i] * 2, { at: 0.02, dur: 1.1, type: 'sine', gain: 0.012 });
+          }
+          later(note, 1500, 3200);
+        };
+        later(note, 800, 1800);
+      }
+    },
+
+    ambientStop() {
+      if (!amb) return;
+      const a = amb;
+      amb = null;
+      a.timers.forEach(clearTimeout);
+      for (const n of a.nodes) {
+        try {
+          n.stop(ctx.currentTime + 0.6);
+        } catch {
+          /* déjà arrêté */
+        }
+      }
     },
 
     /** Passage d'une couche géologique : choc sourd puis petite note. */

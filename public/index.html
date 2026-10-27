@@ -167,6 +167,13 @@
         <p class="hint">Les grandes lignes du jeu en quelques images.</p>
         <button class="btn secondary" id="btn-tuto-again" type="button">Revoir le tutoriel</button>
       </fieldset>
+      <fieldset id="lab-box" hidden>
+        <legend>Labo sonore (contremaître)</legend>
+        <p class="hint">Des essais d'ambiance sur l'accueil, jamais montrés aux autres joueurs. Ils suivent le réglage « Bruitages » ci-dessus.</p>
+        <label class="check"><input type="checkbox" name="labTaps"> Coups de pioche lointains</label>
+        <label class="check"><input type="checkbox" name="labRumble"> Grondement de la foreuse</label>
+        <label class="check"><input type="checkbox" name="labMelody"> Mélodie douce</label>
+      </fieldset>
       <fieldset id="share-box">
         <legend>Inviter des amis</legend>
         <p class="hint">Envoie le lien du jeu à tes amis : ils créent leur compte en quelques secondes et rejoignent la mine.</p>
@@ -239,6 +246,11 @@
         </div>
         <details class="card fold feed-fold" id="feed-fold">
           <summary><span class="fold-t"><h2>Le Petit Mineur</h2><span class="sub">les dernières nouvelles de la mine</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <div class="feed-tools" id="feed-tools" hidden>
+            <label class="small muted" for="feed-date">Un jour précis</label>
+            <input type="date" id="feed-date">
+            <button class="link" id="btn-feed-recent" type="button" hidden>Revenir aux dernières nouvelles</button>
+          </div>
           <ul class="feed-list" id="feed-list"></ul>
           <button class="btn secondary" id="btn-feed-more" type="button" hidden>Plus de nouvelles</button>
         </details>
@@ -761,6 +773,10 @@
       <!-- Musée des pépites -->
       <div class="view" id="view-museum" hidden>
         <button class="btn ghost back-btn" id="btn-museum-home" type="button">◀ Retour à l'accueil</button>
+        <div class="card jack-card" id="jack-card" hidden>
+          <div class="jack-figure" aria-hidden="true"><canvas id="jack-base" width="32" height="48"></canvas><canvas id="jack-glow" width="32" height="48"></canvas></div>
+          <div class="jack-text"><h2 id="jack-title"></h2><p class="muted" id="jack-sub"></p></div>
+        </div>
         <div id="mine-journal"></div>
         <div class="card museum">
           <h2>Musée des pépites</h2>
