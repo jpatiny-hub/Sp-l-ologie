@@ -183,6 +183,7 @@ const NEWS = [
       "Interface refaite : nouvel accueil (ton mineur, le forage du jour, la vie de la mine, le podium), barre de navigation en bas de l'écran avec des pastilles pour les nouveautés, un profil en onglets avec carte de mineur, tuiles, vitrine et vestiaire, et un journal de la mine (Petit Mineur) qu'on peut feuilleter jour par jour.",
       "Titres : touche le cadre de titre sur ta carte de mineur pour choisir celui qui s'affiche à côté de ton pseudo. Ils se gagnent avec les jours forés et avec les badges.",
       "Cosmétiques : épées, haches et autres forets, blindages armés, casques, armures, tenues de pirate ou de cuisinier, monocle, cache-œil, barbes et traits du visage. Plusieurs se gagnent en duel.",
+      "Duels : un défi doit être relevé dans les 4 jours. Le décompte est affiché, et le Contremaître t'envoie un message pour te prévenir (puis un rappel à 24 h et à 6 h de la fin) : sans réponse, c'est forfait et le duel est annulé.",
       "Tutoriel : cinq écrans pour rappeler le principe (la réponse correcte la moins probable rapporte le plus de points) et les modes de jeu. Tu peux le revoir depuis les réglages.",
     ],
   },
