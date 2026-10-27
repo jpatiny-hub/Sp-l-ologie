@@ -1375,6 +1375,8 @@ kbd { padding: 0 6px; border: 2px solid var(--line); background: var(--well); fo
   background: var(--danger); color: #fff; font-family: 'Press Start 2P', ui-monospace, monospace; font-size: 8px;
   box-shadow: 0 0 0 2px var(--panel);
 }
+.nav-bubble.blue { right: auto; left: 50%; margin-right: 0; margin-left: -26px; background: #2f7fd0; }
+.tab-dot.blue { background: #2f7fd0; }
 .nav-bubble.dot { min-width: 10px; width: 10px; height: 10px; padding: 0; background: var(--accent); }
 .bottom-nav button.active .nav-ico { transform: translateY(-3px); }
 .bottom-nav button.active .nav-lab { color: var(--accent); }

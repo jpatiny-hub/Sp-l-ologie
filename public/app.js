@@ -450,6 +450,7 @@
     $('btn-invite').hidden = !app.me;
     $('drawer-tab').hidden = !(view === 'home' && app.me);
     app.view = view;
+    if (view !== 'museum') setMinePastilles();
     updateNav();
     syncAmbient();
     if ($('drawer').open) $('drawer').close();
@@ -978,7 +979,7 @@
 
   /** Pastilles de la barre du bas : un nombre ou un point quand il y a du nouveau dans l'onglet. */
   function setBubble(kind, value) {
-    const bubble = document.querySelector(`#bottom-nav [data-nav="${kind}"] .nav-bubble`);
+    const bubble = document.querySelector(`#bottom-nav [data-nav="${kind}"] .nav-bubble:not(.blue)`);
     if (!bubble) return;
     const n = typeof value === 'number' ? value : value ? 1 : 0;
     bubble.hidden = !n;
@@ -992,7 +993,13 @@
     setBubble('play', me.today && !me.today.finished ? true : !$('duel-dot').hidden);
     setBubble('profile', me.unseenBadges || 0);
     // « Mine » : nouvelles pépites au musée, plus les nouvelles du journal (les annonces de pépites y sont déjà comptées au musée).
-    setBubble('mine', (app.museumNew || 0) + (app.feedNew || 0));
+    // Deux pastilles pour « Mine » : rouge pour les nouvelles du journal, bleue pour les nouvelles pépites du musée.
+    setBubble('mine', app.feedNew || 0);
+    const blue = document.querySelector('#bottom-nav [data-nav="mine"] .nav-bubble.blue');
+    if (blue) {
+      blue.hidden = !app.museumNew;
+      blue.textContent = app.museumNew > 9 ? '9+' : String(app.museumNew || '');
+    }
     setBubble('admin', me.isAdmin ? app.adminPending || 0 : 0);
   }
 
@@ -1022,7 +1029,10 @@
         $('feed-fold').open = true;
         await loadFeed();
       }
+      // Ce qui était nouveau reste signalé dans l'écran (pastilles rouge et bleue) jusqu'à ce qu'on le quitte.
+      const fresh = { feed: app.feedNew || 0, museum: app.museumNew || 0 };
       await openMuseum();
+      setMinePastilles(fresh);
       return markFeedSeen();
     }
     if (go === 'play' && betaOn('betaHome')) {
@@ -3033,6 +3043,15 @@
     drawJack();
     $('jack-title').textContent = left === 0 ? "Jack-o'-lantern arrive ce soir" : left === 1 ? "Jack-o'-lantern arrive demain" : `Jack-o'-lantern arrive dans ${left} jours`;
     $('jack-sub').textContent = left === 0 ? 'Quelque chose remue dans les galeries…' : 'Quelque chose approche dans les galeries…';
+  }
+
+  function setMinePastilles({ feed = 0, museum = 0 } = {}) {
+    const set = (id, n) => {
+      $(id).hidden = !n;
+      $(id).textContent = n > 9 ? '9+' : String(n || '');
+    };
+    set('journal-pastille', feed);
+    set('museum-pastille', museum);
   }
 
   async function openMuseum() {
