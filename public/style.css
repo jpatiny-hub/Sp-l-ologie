@@ -1480,3 +1480,13 @@ kbd { padding: 0 6px; border: 2px solid var(--line); background: var(--well); fo
 .tuto-pip.on { background: var(--accent); }
 .tuto-nav .btn { margin: 4px 0; }
 .tuto-skip { display: block; margin: 6px auto 0; align-self: center; }
+
+/* Titres affichés à côté des pseudos */
+.ptitle { display: inline-block; margin-left: 6px; padding: 0 6px; font-size: 0.72em; line-height: 1.5; color: var(--accent); border: 1px solid currentColor; border-radius: 3px; white-space: nowrap; vertical-align: middle; opacity: 0.9; }
+.tp-grid { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.tp-opt { font: inherit; font-size: 0.85rem; padding: 4px 10px; color: var(--ink); background: transparent; border: 1px solid var(--muted); border-radius: 4px; cursor: pointer; }
+.tp-opt.sel { color: var(--accent); border-color: var(--accent); font-weight: bold; }
+.tp-opt.locked, .tp-opt:disabled { opacity: 0.55; cursor: default; }
+.who-text { display: flex; flex-direction: column; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.who-text .ptitle { margin: 2px 0 0; font-size: 0.62em; align-self: flex-start; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.score-bar .who, .compare-list .who { max-width: none; }
