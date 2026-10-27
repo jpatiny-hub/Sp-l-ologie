@@ -453,6 +453,7 @@
     updateNav();
     syncAmbient();
     if ($('drawer').open) $('drawer').close();
+    if ($('play-sheet').open) $('play-sheet').close(); // un duel lancé depuis la feuille « Jouer » ouvre le forage : la feuille se referme
     $('settings-account').hidden = !app.me;
     fitCanvas();
     window.scrollTo(0, 0);
