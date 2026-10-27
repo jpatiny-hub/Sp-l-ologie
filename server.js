@@ -417,7 +417,7 @@ function createApp({
     'GET /api/profile': async (req, res) => {
       const user = requireUser(req, res);
       const joined = db.prepare('SELECT created_at FROM users WHERE id = ?').get(user.id);
-      json(res, 200, { ...game.badges.profile(user.id, game.today()), joinedAt: joined ? joined.created_at : null, playerStats: game.playerStats(user.id), skulls: { ...game.skulls.collection(user.id), active: game.skulls.isSkullDay(game.today()) } });
+      json(res, 200, { ...game.badges.profile(user.id, game.today(), isAdmin(user)), joinedAt: joined ? joined.created_at : null, playerStats: game.playerStats(user.id), skulls: { ...game.skulls.collection(user.id), active: game.skulls.isSkullDay(game.today()) } });
     },
 
     // Titre de mineur affiché à côté du pseudo : un titre débloqué, ou null pour n'en afficher aucun.
@@ -425,7 +425,7 @@ function createApp({
       const user = requireUser(req, res);
       const { title } = await readJson(req);
       if (title !== null && typeof title !== 'string') throw new HttpError(400, 'Titre inconnu.');
-      if (!game.badges.setTitle(user.id, game.today(), title)) throw new HttpError(403, "Ce titre n'est pas encore débloqué.");
+      if (!game.badges.setTitle(user.id, game.today(), title, isAdmin(user))) throw new HttpError(403, "Ce titre n'est pas encore débloqué.");
       json(res, 200, { title });
     },
 
@@ -584,7 +584,7 @@ function createApp({
     'POST /api/profile/skin': async (req, res) => {
       const user = requireUser(req, res);
       const { body, bit, timer } = await readJson(req);
-      if (!game.badges.setSkin(user.id, game.today(), { body, bit, timer })) throw new HttpError(403, 'Cette apparence n\'est pas encore débloquée.');
+      if (!game.badges.setSkin(user.id, game.today(), { body, bit, timer }, isAdmin(user))) throw new HttpError(403, 'Cette apparence n\'est pas encore débloquée.');
       json(res, 200, { skin: game.badges.skinOf(db.prepare('SELECT skin_body, skin_bit, skin_timer FROM users WHERE id = ?').get(user.id)) });
     },
 
@@ -592,7 +592,7 @@ function createApp({
     'POST /api/profile/avatar': async (req, res) => {
       const user = requireUser(req, res);
       const { avatar } = await readJson(req);
-      const saved = game.badges.setAvatar(user.id, game.today(), avatar);
+      const saved = game.badges.setAvatar(user.id, game.today(), avatar, isAdmin(user));
       if (!saved) throw new HttpError(403, "Cet avatar contient un élément pas encore débloqué.");
       json(res, 200, { avatar: saved });
     },

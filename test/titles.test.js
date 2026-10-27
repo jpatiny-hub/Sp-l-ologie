@@ -53,7 +53,7 @@ test('avatar : nouveaux traits, tenues et accessoires sont valides mais verrouil
   assert.equal(base.trait, 'aucun');
   assert.equal(Avatar.normalize({ ...base, trait: 'cicatrice' }, 1).trait, 'cicatrice');
   assert.equal(Avatar.normalize({ ...base, trait: 'nimporte' }, 1).trait, 'aucun');
-  const cat = Avatar.catalog([]);
+  const cat = Avatar.catalog([], true);
   assert.ok(cat.trait, 'nouveau groupe « trait »');
   assert.equal(cat.tenue.options.find((o) => o.id === 'armure').unlocked, false);
   assert.equal(cat.trait.options.find((o) => o.id === 'aucun').unlocked, true);
@@ -79,6 +79,36 @@ test('titre affiché : choix, refus des titres verrouillés, visible dans le cla
     assert.equal(board.entries.find((e) => e.username === 'ada').title, 'Apprenti foreur');
     assert.equal((await ada('/api/profile/title', { title: null })).status, 200);
     assert.equal((await ada('/api/profile')).data.title, null);
+  } finally {
+    await app.close();
+  }
+});
+
+test('bêta : titres et nouveaux cosmétiques réservés au responsable du jeu', async () => {
+  const app = await startServer();
+  try {
+    const boss = client(app.base);
+    await boss('/api/signup', { username: 'boss', password: 'secret123' });
+    const joueur = client(app.base);
+    await joueur('/api/signup', { username: 'joueur', password: 'secret123' });
+    await playDaily(app, joueur);
+
+    const mine = (await joueur('/api/profile')).data;
+    assert.deepEqual(mine.titles, [], 'pas de titres hors bêta');
+    assert.equal((await joueur('/api/profile/title', { title: 'apprenti-foreur' })).status, 403);
+    assert.equal(mine.bodies.some((b) => b.id === 'blinde-arme'), false);
+    assert.equal(mine.bits.some((b) => b.id === 'epee'), false);
+    assert.equal(mine.avatarCatalog.tenue.options.some((o) => o.id === 'armure'), false);
+    assert.equal(mine.avatarCatalog.trait.options.length, 1, 'aucun seul : la catégorie reste masquée');
+    // Un avatar sans le champ « trait » (ancienne page restée ouverte) reste accepté.
+    const { trait, ...old } = mine.avatar;
+    assert.equal((await joueur('/api/profile/avatar', { avatar: old })).status, 200);
+    assert.equal((await joueur('/api/profile/avatar', { avatar: { ...mine.avatar, trait: 'guerre' } })).status, 403);
+
+    const chef = (await boss('/api/profile')).data;
+    assert.ok(chef.titles.length > 40);
+    assert.ok(chef.bodies.some((b) => b.id === 'blinde-arme'));
+    assert.ok(chef.avatarCatalog.trait.options.length > 1);
   } finally {
     await app.close();
   }

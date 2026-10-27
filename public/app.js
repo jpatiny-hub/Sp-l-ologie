@@ -2463,13 +2463,14 @@
 
   function renderAvatarEditor(profile) {
     const catalog = profile.avatarCatalog;
+    const inCatalog = (slot) => !!catalog[slot] && catalog[slot].options.length > 1; // « traits » n'existe que pour le responsable (bêta)
     const draft = { ...profile.avatar };
     const preview = () => {
       $('prof-avatar').replaceChildren(avatarEl(draft, 'full', 6));
       if (betaOn('betaProfil')) $('pf-portrait').replaceChildren(avatarEl(draft, 'full', 6));
     };
     $('prof-name').textContent = app.me.user.username;
-    const rows = AVATAR_ORDER.map((slot) => {
+    const rows = AVATAR_ORDER.filter(inCatalog).map((slot) => {
       const cat = catalog[slot];
       const label = el('span', { class: 'val' });
       const swatch = el('span', { class: 'swatch' });
@@ -2515,7 +2516,7 @@
           }),
         );
         panel.replaceChildren(
-          ...GROUPS[current][1].map((slot) => {
+          ...GROUPS[current][1].filter(inCatalog).map((slot) => {
             const cat = catalog[slot];
             const grid = el('div', { class: `wr-grid${THUMBS.has(slot) ? '' : ' text'}` });
             cat.options.forEach((opt) => {
@@ -2536,7 +2537,7 @@
       };
       const random = el('button', { class: 'btn ghost', type: 'button' }, 'Au hasard');
       random.addEventListener('click', () => {
-        for (const slot of AVATAR_ORDER) {
+        for (const slot of AVATAR_ORDER.filter(inCatalog)) {
           const free = catalog[slot].options.filter((o) => o.unlocked);
           draft[slot] = free[Math.floor(Math.random() * free.length)].id;
         }
@@ -2553,7 +2554,7 @@
     let timer = null;
     function commit() {
       clearTimeout(timer);
-      const locked = AVATAR_ORDER.map((slot) => catalog[slot].options.find((o) => o.id === draft[slot])).filter((o) => o && !o.unlocked);
+      const locked = AVATAR_ORDER.filter(inCatalog).map((slot) => catalog[slot].options.find((o) => o.id === draft[slot])).filter((o) => o && !o.unlocked);
       if (locked.length) {
         $('avatar-status').textContent = `🔒 ${locked.map((o) => o.hint).join(' — ')} (pas enregistré tant que ce n'est pas débloqué)`;
         return;

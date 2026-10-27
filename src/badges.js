@@ -236,6 +236,10 @@ for (const [camp, list] of Object.entries(CRUSH_BADGES)) {
 DRAW_BADGES.forEach(([id, name, description, icon, body]) => {
   define(id, { category: 'duel', name, description: () => description, icon, unlock: body ? { type: 'body', id: body } : null });
 });
+// Foreuses encore en bêta : réservées au responsable du jeu.
+const BETA_BODIES = new Set(['blinde-arme', 'catapulte', 'drakkar']);
+const BETA_BITS = new Set(['epee', 'rapiere', 'hache', 'trident', 'excalibur']);
+
 // Foreuses (carrosseries et forets) gagnées en duel.
 const DUEL_UNLOCKS = {
   'attaquant-5': { type: 'bit', id: 'epee' },
@@ -708,7 +712,7 @@ class BadgeService {
   }
 
   /** Carnet du joueur : statistiques, badges (obtenus ou à gagner) et apparences débloquées. */
-  profile(userId, today) {
+  profile(userId, today, beta = false) {
     this.awardPodiums(today);
     const days = this.playedDays(userId);
     const rows = this.db
@@ -770,21 +774,22 @@ class BadgeService {
         titleDays: Object.fromEntries(TITLE_STEPS.filter((n) => days.length >= n).map((n) => [n, days[n - 1]])),
       },
       badges,
-      bodies: skinList(BODIES, 'body'),
-      bits: skinList(BITS, 'bit'),
+      bodies: skinList(BODIES, 'body').filter((s) => beta || !BETA_BODIES.has(s.id)),
+      bits: skinList(BITS, 'bit').filter((s) => beta || !BETA_BITS.has(s.id)),
       timers: skinList(TIMERS, 'timer'),
       skin: this.skinOf(user),
       avatar: Avatar.normalize(user && user.avatar, userId),
-      avatarCatalog: Avatar.catalog(badges),
-      title: user && Titles.labelOf(user.title) ? user.title : null,
-      titles: Titles.catalog(badges, days.length),
+      avatarCatalog: Avatar.catalog(badges, beta),
+      title: beta && user && Titles.labelOf(user.title) ? user.title : null,
+      titles: beta ? Titles.catalog(badges, days.length) : [],
     };
   }
 
   /** Choisit le titre affiché à côté du pseudo (ou aucun avec `null`). Renvoie false si le titre n'est pas débloqué. */
-  setTitle(userId, today, id) {
+  setTitle(userId, today, id, beta = false) {
     if (id !== null) {
-      const profile = this.profile(userId, today);
+      if (!beta) return false;
+      const profile = this.profile(userId, today, beta);
       if (!Titles.isUnlocked(id, profile.badges, profile.stats.daysPlayed)) return false;
     }
     this.db.prepare('UPDATE users SET title = ? WHERE id = ?').run(id, userId);
@@ -792,8 +797,8 @@ class BadgeService {
   }
 
   /** Enregistre l'avatar du joueur s'il ne contient que des éléments débloqués. Renvoie l'avatar, ou null. */
-  setAvatar(userId, today, candidate) {
-    const clean = Avatar.validate(candidate, userId, this.profile(userId, today).badges);
+  setAvatar(userId, today, candidate, beta = false) {
+    const clean = Avatar.validate(candidate, userId, this.profile(userId, today, beta).badges, beta);
     if (!clean) return null;
     this.db.prepare('UPDATE users SET avatar = ? WHERE id = ?').run(JSON.stringify(clean), userId);
     return clean;
@@ -808,8 +813,8 @@ class BadgeService {
   }
 
   /** Change l'apparence de la foreuse, si elle est débloquée. Renvoie false sinon. */
-  setSkin(userId, today, { body, bit, timer }) {
-    const profile = this.profile(userId, today);
+  setSkin(userId, today, { body, bit, timer }, beta = false) {
+    const profile = this.profile(userId, today, beta);
     const ok = (list, id) => list.some((s) => s.id === id && s.unlocked);
     const chosenTimer = timer === undefined ? profile.skin.timer : timer;
     if (!ok(profile.bodies, body) || !ok(profile.bits, bit) || !ok(profile.timers, chosenTimer)) return false;

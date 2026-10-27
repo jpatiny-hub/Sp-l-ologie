@@ -112,14 +112,23 @@ function normalize(raw, userId) {
   return out;
 }
 
+// Éléments encore en bêta : réservés au responsable du jeu (voir `catalog`).
+const BETA = new Set([
+  'yeux:monocle', 'yeux:cache-oeil', 'yeux:etoiles', 'barbe:guidon', 'barbe:favoris', 'barbe:sage',
+  'trait:taches', 'trait:joues', 'trait:cicatrice', 'trait:guerre',
+  'chapeau:viking', 'chapeau:heaume', 'chapeau:toque', 'chapeau:bandana',
+  'tenue:armure', 'tenue:pirate', 'tenue:cuisinier', 'tenue:blouse',
+  'objet:epee', 'objet:bouclier', 'objet:marteau',
+]);
+
 /** Catalogue pour l'éditeur : éléments débloqués ou non (selon la liste des badges du joueur, avec leur nom). */
-function catalog(badges) {
+function catalog(badges, beta = false) {
   const byId = new Map(badges.map((b) => [b.id, b]));
   const out = {};
   for (const slot of SLOTS) {
     out[slot] = {
       label: LABELS[slot],
-      options: OPTIONS[slot].map(([id, label]) => {
+      options: OPTIONS[slot].filter(([id]) => beta || !BETA.has(`${slot}:${id}`)).map(([id, label]) => {
         const need = LOCKS[`${slot}:${id}`];
         if (!need) return { id, label, unlocked: true, hint: null };
         const defs = need.map((k) => byId.get(k)).filter(Boolean);
@@ -133,16 +142,18 @@ function catalog(badges) {
 }
 
 /** Vérifie qu'un avatar ne contient que des éléments connus et débloqués. Renvoie l'avatar nettoyé, ou null. */
-function validate(candidate, userId, badges) {
+function validate(candidate, userId, badges, beta = false) {
   if (!candidate || typeof candidate !== 'object') return null;
-  const cat = catalog(badges);
+  const cat = catalog(badges, beta);
   const out = {};
   for (const slot of SLOTS) {
-    const opt = cat[slot].options.find((o) => o.id === candidate[slot]);
+    // Une application restée ouverte avant l'arrivée des traits du visage n'envoie pas ce champ : on garde « aucun ».
+    const want = slot === 'trait' && candidate[slot] === undefined ? 'aucun' : candidate[slot];
+    const opt = cat[slot].options.find((o) => o.id === want);
     if (!opt || !opt.unlocked) return null;
     out[slot] = opt.id;
   }
   return out;
 }
 
-module.exports = { OPTIONS, LOCKS, defaultAvatar, normalize, catalog, validate };
+module.exports = { OPTIONS, LOCKS, BETA, defaultAvatar, normalize, catalog, validate };
