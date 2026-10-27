@@ -420,6 +420,15 @@ function createApp({
       json(res, 200, { ...game.badges.profile(user.id, game.today()), joinedAt: joined ? joined.created_at : null, playerStats: game.playerStats(user.id), skulls: { ...game.skulls.collection(user.id), active: game.skulls.isSkullDay(game.today()) } });
     },
 
+    // Titre de mineur affiché à côté du pseudo : un titre débloqué, ou null pour n'en afficher aucun.
+    'POST /api/profile/title': async (req, res) => {
+      const user = requireUser(req, res);
+      const { title } = await readJson(req);
+      if (title !== null && typeof title !== 'string') throw new HttpError(400, 'Titre inconnu.');
+      if (!game.badges.setTitle(user.id, game.today(), title)) throw new HttpError(403, "Ce titre n'est pas encore débloqué.");
+      json(res, 200, { title });
+    },
+
     // Bilan d'un mois (AAAA-MM, le mois courant par défaut).
     'GET /api/month': async (req, res, _id, url) => {
       const user = requireUser(req, res);

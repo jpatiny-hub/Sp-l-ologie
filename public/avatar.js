@@ -32,7 +32,7 @@
       P(3, oy + 17, 10, 1, '#a77f12');
     }
     // Jambes.
-    const legs = { smoking: '#222', scaphandre: '#6b7a8c', cape: '#3a4a6b' }[outfit] || '#3a4a6b';
+    const legs = { smoking: '#222', scaphandre: '#6b7a8c', cape: '#3a4a6b', armure: '#8a8f98', pirate: '#5a3a1a', cuisinier: '#4a4a52' }[outfit] || '#3a4a6b';
     if (outfit === 'robe') {
       P(5, oy + 15, 2, 5, skin);
       P(9, oy + 15, 2, 5, skin);
@@ -45,7 +45,7 @@
       P(8, oy + 21, 3, 1, K);
     }
     // Torse et bras.
-    const top = { mineur: '#d9772b', salopette: '#d9772b', robe: '#e86aa8', smoking: '#222', pull: '#4a86e8', scaphandre: '#8aa0b8', cape: '#4a86e8' }[outfit] || '#d9772b';
+    const top = { mineur: '#d9772b', salopette: '#d9772b', robe: '#e86aa8', smoking: '#222', pull: '#4a86e8', scaphandre: '#8aa0b8', cape: '#4a86e8', armure: '#aeb6c2', pirate: '#f3f3f3', cuisinier: '#ffffff', blouse: '#f3f3f3' }[outfit] || '#d9772b';
     if (fem) {
       P(5, oy + 7, 6, 4, top);
       if (outfit === 'robe') {
@@ -81,6 +81,25 @@
     if (outfit === 'cape') {
       P(7, oy + 7, 2, 1, '#f2c230');
     }
+    if (outfit === 'armure') {
+      P(1, oy + 6, 3, 2, '#8a8f98');
+      P(12, oy + 6, 3, 2, '#8a8f98');
+      P(7, oy + 8, 2, 5, '#d9dde4');
+      P(4, oy + 13, 8, 1, '#6b7078');
+    }
+    if (outfit === 'pirate') {
+      for (const dy of [8, 10]) P(4, oy + dy, 8, 1, '#2a4a9a');
+      P(4, oy + 13, 8, 1, '#c8362d');
+    }
+    if (outfit === 'cuisinier') {
+      P(8, oy + 7, 1, 6, '#e1e4ea');
+      for (const dy of [8, 10, 12]) P(6, oy + dy, 1, 1, '#222');
+    }
+    if (outfit === 'blouse') {
+      P(6, oy + 7, 4, 1, '#d6dae2');
+      P(9, oy + 10, 2, 2, '#d6dae2');
+      P(10, oy + 10, 1, 1, '#2a6fdb');
+    }
     // Mains.
     P(2, oy + 13, 2, 1, skin);
     P(12, oy + 13, 2, 1, skin);
@@ -108,6 +127,25 @@
       P(9, oy + 4, 2, 1, K);
       P(6, oy + 3, 1, 1, K);
       P(9, oy + 3, 1, 1, K);
+    }
+    else if (eyes === 'monocle') {
+      P(6, oy + 3, 1, 1, K);
+      P(9, oy + 3, 1, 1, K);
+      P(5, oy + 2, 3, 1, '#f2c230');
+      P(5, oy + 4, 3, 1, '#f2c230');
+      P(5, oy + 3, 1, 1, '#f2c230');
+      P(7, oy + 3, 1, 1, '#f2c230');
+      P(4, oy + 5, 1, 3, '#f2c230');
+    } else if (eyes === 'cache-oeil') {
+      P(4, oy + 2, 8, 1, K);
+      P(5, oy + 3, 3, 2, K);
+      P(9, oy + 3, 1, 1, K);
+    } else if (eyes === 'etoiles') {
+      for (const x of [6, 9]) {
+        P(x, oy + 2, 1, 3, '#ffd84a');
+        P(x - 1, oy + 3, 3, 1, '#ffd84a');
+        P(x, oy + 3, 1, 1, '#fff');
+      }
     }
     P(7, oy + 5, 2, 1, '#c25a4a');
     if (fem) {
@@ -154,6 +192,35 @@
       P(9, oy + 5, 1, 1, hair);
     } else if (b === 'bouc') {
       P(7, oy + 6, 2, 2, hair);
+    } else if (b === 'guidon') {
+      P(5, oy + 4, 6, 1, hair);
+      P(4, oy + 3, 1, 1, hair);
+      P(11, oy + 3, 1, 1, hair);
+    } else if (b === 'favoris') {
+      P(4, oy + 2, 1, 4, hair);
+      P(11, oy + 2, 1, 4, hair);
+    } else if (b === 'sage') {
+      P(5, oy + 5, 6, 3, hair);
+      P(6, oy + 8, 4, 3, hair);
+      P(7, oy + 11, 2, 2, hair);
+      P(7, oy + 5, 2, 1, '#c25a4a');
+    }
+    // Traits du visage.
+    const tr = o.trait || 'aucun';
+    if (tr === 'taches') {
+      for (const [x, y] of [[5, 4], [7, 4], [8, 4], [10, 4], [6, 5], [9, 5]]) P(x, oy + y, 1, 1, '#b8693c');
+    } else if (tr === 'joues') {
+      P(5, oy + 4, 2, 1, '#f08a8a');
+      P(9, oy + 4, 2, 1, '#f08a8a');
+    } else if (tr === 'cicatrice') {
+      P(10, oy + 2, 1, 2, '#c25a4a');
+      P(11, oy + 4, 1, 1, '#c25a4a');
+      P(10, oy + 3, 2, 1, '#f3e9d2');
+    } else if (tr === 'guerre') {
+      P(5, oy + 4, 2, 1, '#c8362d');
+      P(9, oy + 4, 2, 1, '#c8362d');
+      P(5, oy + 5, 2, 1, '#f3f3f3');
+      P(9, oy + 5, 2, 1, '#f3f3f3');
     }
     // Couvre-chef.
     const hat = o.chapeau || 'aucun';
@@ -186,6 +253,29 @@
       P(4, oy - 3, 8, 3, '#4a86e8');
       P(4, oy - 1, 8, 1, '#2d5bb0');
       P(7, oy - 4, 2, 1, '#fff');
+    } else if (hat === 'viking') {
+      P(4, oy - 2, 8, 3, '#8a8f98');
+      P(3, oy, 10, 1, '#6b7078');
+      P(7, oy, 2, 3, '#6b7078');
+      for (const [x, y] of [[3, -1], [2, -2], [2, -3], [12, -1], [13, -2], [13, -3]]) P(x, oy + y, 1, 1, '#f3e9d2');
+    } else if (hat === 'heaume') {
+      P(4, oy - 3, 8, 5, '#aeb6c2');
+      P(4, oy + 2, 1, 3, '#aeb6c2');
+      P(11, oy + 2, 1, 3, '#aeb6c2');
+      P(5, oy + 1, 6, 1, K);
+      P(7, oy - 5, 2, 2, '#c8362d');
+    } else if (hat === 'toque') {
+      P(4, oy - 1, 8, 2, '#fff');
+      P(3, oy - 5, 10, 4, '#fff');
+      P(5, oy - 6, 6, 1, '#fff');
+      P(6, oy - 4, 1, 2, '#e1e4ea');
+      P(9, oy - 4, 1, 2, '#e1e4ea');
+    } else if (hat === 'bandana') {
+      P(4, oy - 1, 8, 2, '#c8362d');
+      P(5, oy - 1, 1, 1, '#fff');
+      P(8, oy, 1, 1, '#fff');
+      P(12, oy, 2, 2, '#c8362d');
+      P(13, oy + 2, 1, 1, '#c8362d');
     } else if (hat === 'couronne') {
       P(4, oy - 3, 8, 3, '#f2c230');
       P(4, oy - 4, 1, 1, '#f2c230');
@@ -230,6 +320,21 @@
       P(14, oy + 13, 1, 1, '#9fe8ff');
       P(14, oy + 11, 1, 1, '#fff');
       P(13, oy + 10, 3, 1, '#d8f6ff');
+    } else if (it === 'epee') {
+      P(14, oy + 3, 1, 9, '#dfe6ee');
+      P(14, oy + 2, 1, 1, '#fff');
+      P(13, oy + 12, 3, 1, '#f2c230');
+      P(14, oy + 13, 1, 2, '#8b5a2b');
+      P(14, oy + 15, 1, 1, '#f2c230');
+    } else if (it === 'bouclier') {
+      P(12, oy + 8, 4, 5, '#c0261d');
+      P(12, oy + 8, 4, 1, '#f2c230');
+      P(13, oy + 13, 2, 1, '#c0261d');
+      P(13, oy + 10, 2, 1, '#f3e9d2');
+    } else if (it === 'marteau') {
+      P(14, oy + 6, 1, 9, '#8b5a2b');
+      P(12, oy + 4, 4, 3, '#6b7078');
+      P(12, oy + 4, 4, 1, '#a9b0b8');
     } else if (it === 'torche') {
       P(14, oy + 9, 1, 6, '#8b5a2b');
       P(13, oy + 6, 3, 3, '#ff9a3c');

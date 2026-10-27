@@ -10,25 +10,29 @@ const OPTIONS = {
   peau: [['clair', 'Teint clair'], ['mat', 'Teint mat'], ['brun', 'Teint brun'], ['fonce', 'Teint foncé']],
   cheveux: [['court', 'Courts'], ['long', 'Longs'], ['chignon', 'Chignon'], ['crete', 'Crête'], ['afro', 'Afro'], ['tresses', 'Tresses'], ['chauve', 'Chauve']],
   couleur: [['brun', 'Brun'], ['noir', 'Noir'], ['blond', 'Blond'], ['roux', 'Roux'], ['gris', 'Gris'], ['rose', 'Rose'], ['bleu', 'Bleu']],
-  yeux: [['points', 'Discrets'], ['grands', 'Grands'], ['lunettes', 'Lunettes'], ['heureux', 'Rieurs']],
-  barbe: [['aucune', 'Aucune'], ['barbe', 'Barbe'], ['moustache', 'Moustache'], ['bouc', 'Bouc']],
+  yeux: [['points', 'Discrets'], ['grands', 'Grands'], ['lunettes', 'Lunettes'], ['heureux', 'Rieurs'], ['monocle', 'Monocle'], ['cache-oeil', 'Cache-œil'], ['etoiles', 'Yeux étoilés']],
+  barbe: [['aucune', 'Aucune'], ['barbe', 'Barbe'], ['moustache', 'Moustache'], ['bouc', 'Bouc'], ['guidon', 'Moustache en guidon'], ['favoris', 'Favoris'], ['sage', 'Longue barbe de sage']],
+  trait: [['aucun', 'Aucun'], ['taches', 'Taches de rousseur'], ['joues', 'Joues rosées'], ['cicatrice', 'Cicatrice'], ['guerre', 'Peinture de guerre']],
   chapeau: [
     ['aucun', 'Aucun'], ['casque', 'Casque de mineur'], ['haut', 'Haut-de-forme'], ['diademe', 'Diadème'], ['bonnet', 'Bonnet'],
     ['casque-blanc', 'Casque de chef de chantier'], ['casque-or', 'Casque doré'], ['couronne', 'Couronne'],
+    ['viking', 'Casque viking'], ['heaume', 'Heaume de chevalier'], ['toque', 'Toque de chef'], ['bandana', 'Bandana de pirate'],
   ],
   tenue: [
     ['mineur', 'Tenue de mineur'], ['salopette', 'Salopette'], ['robe', 'Robe rose'], ['smoking', 'Smoking'], ['pull', 'Pull bleu'],
     ['scaphandre', 'Combinaison de forage'], ['cape', 'Cape dorée'],
+    ['armure', 'Armure de chevalier'], ['pirate', 'Marinière de pirate'], ['cuisinier', 'Veste de cuisinier'], ['blouse', 'Blouse de laboratoire'],
   ],
   objet: [
     ['aucun', 'Rien'], ['pioche', 'Pioche'], ['lanterne', 'Lanterne'], ['fleur', 'Fleur'], ['canne', 'Canne'], ['ballon', 'Ballon'],
     ['fanion', 'Fanion de chantier'], ['dynamite', 'Bâton de dynamite'], ['diamant', 'Diamant'], ['torche', 'Torche'],
+    ['epee', 'Épée'], ['bouclier', 'Bouclier'], ['marteau', 'Marteau de forgeron'],
   ],
   lieu: [['hublot', 'Au hublot de la foreuse'], ['surface', 'À la surface'], ['aucun', 'Nulle part']],
 };
 
 const LABELS = {
-  forme: 'Silhouette', peau: 'Teint', cheveux: 'Cheveux', couleur: 'Couleur', yeux: 'Yeux', barbe: 'Barbe',
+  forme: 'Silhouette', peau: 'Teint', cheveux: 'Cheveux', couleur: 'Couleur', yeux: 'Yeux', barbe: 'Barbe', trait: 'Traits du visage',
   chapeau: 'Couvre-chef', tenue: 'Tenue', objet: 'Objet en main', lieu: 'Pendant le forage',
 };
 const SLOTS = Object.keys(OPTIONS);
@@ -44,6 +48,26 @@ const LOCKS = {
   'objet:dynamite': ['in-extremis'],
   'tenue:scaphandre': ['entrainement-50', 'entrainement-200'],
   'objet:torche': ['sainte-barbe'],
+  // Cosmétiques de duel : armes, armures et traits de guerrier.
+  'objet:epee': ['attaquant-1'],
+  'objet:bouclier': ['defenseur-1'],
+  'chapeau:heaume': ['defenseur-5'],
+  'chapeau:viking': ['sentinelle-3'],
+  'tenue:armure': ['attaquant-15', 'defenseur-15'],
+  'yeux:monocle': ['diplomate-3'],
+  'yeux:cache-oeil': ['nemesis'],
+  'trait:cicatrice': ['rival'],
+  'trait:guerre': ['coup-de-boutoir', 'imprenable'],
+  // Autres vêtements et traits à gagner.
+  'chapeau:toque': ['themes-250'],
+  'chapeau:bandana': ['entrainement-10'],
+  'tenue:pirate': ['serie-14'],
+  'tenue:cuisinier': ['paques', 'noel'],
+  'tenue:blouse': ['themes-500'],
+  'objet:marteau': ['defi-5'],
+  'yeux:etoiles': ['public-10'],
+  'barbe:guidon': ['serie-7'],
+  'barbe:sage': ['serie-30'],
 };
 
 function defaultAvatar(userId) {
@@ -58,8 +82,9 @@ function defaultAvatar(userId) {
     peau: pick('peau', 2),
     cheveux: pick('cheveux', 3, ['court', 'long', 'chignon', 'crete', 'afro', 'tresses', 'chauve']),
     couleur: pick('couleur', 4),
-    yeux: pick('yeux', 5),
-    barbe: forme === 'm' ? pick('barbe', 6) : 'aucune',
+    yeux: pick('yeux', 5, ['points', 'grands', 'lunettes', 'heureux']),
+    barbe: forme === 'm' ? pick('barbe', 6, ['aucune', 'barbe', 'moustache', 'bouc']) : 'aucune',
+    trait: 'aucun',
     chapeau: 'casque',
     tenue: 'mineur',
     objet: 'pioche',

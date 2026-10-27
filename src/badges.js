@@ -4,6 +4,7 @@ const { addDays, weekStart, monthStart, monthEnd, addMonths } = require('./dates
 const { ROUNDS_PER_GAME, TIMER_SECONDS, FREEZE_FROM } = require('./config');
 const { challengeProgress } = require('./challenges');
 const Avatar = require('./avatar');
+const Titles = require('./titles');
 
 /*
  * Badges
@@ -235,26 +236,33 @@ for (const [camp, list] of Object.entries(CRUSH_BADGES)) {
 DRAW_BADGES.forEach(([id, name, description, icon, body]) => {
   define(id, { category: 'duel', name, description: () => description, icon, unlock: body ? { type: 'body', id: body } : null });
 });
-const DUEL_BODIES = { 'attaquant-15': 'gladiateur', 'defenseur-15': 'rempart' };
+// Foreuses (carrosseries et forets) gagnées en duel.
+const DUEL_UNLOCKS = {
+  'attaquant-5': { type: 'bit', id: 'epee' },
+  'attaquant-15': { type: 'body', id: 'gladiateur' },
+  'defenseur-5': { type: 'bit', id: 'hache' },
+  'defenseur-15': { type: 'body', id: 'rempart' },
+  'sentinelle-6': { type: 'body', id: 'drakkar' },
+};
 ATTAQUANT.forEach(([n, name]) => {
-  define(`attaquant-${n}`, { category: 'duel', name, description: () => (n === 1 ? 'Lancer et terminer un premier duel' : `Lancer et terminer ${n} duels`), icon: 'sabre', label: n > 1 ? String(n) : null, unlock: DUEL_BODIES[`attaquant-${n}`] ? { type: 'body', id: DUEL_BODIES[`attaquant-${n}`] } : null });
+  define(`attaquant-${n}`, { category: 'duel', name, description: () => (n === 1 ? 'Lancer et terminer un premier duel' : `Lancer et terminer ${n} duels`), icon: 'sabre', label: n > 1 ? String(n) : null, unlock: DUEL_UNLOCKS[`attaquant-${n}`] || null });
 });
 DEFENSEUR.forEach(([n, name]) => {
-  define(`defenseur-${n}`, { category: 'duel', name, description: () => (n === 1 ? 'Relever et terminer un premier duel' : `Relever et terminer ${n} duels`), icon: 'bouclier', label: n > 1 ? String(n) : null, unlock: DUEL_BODIES[`defenseur-${n}`] ? { type: 'body', id: DUEL_BODIES[`defenseur-${n}`] } : null });
+  define(`defenseur-${n}`, { category: 'duel', name, description: () => (n === 1 ? 'Relever et terminer un premier duel' : `Relever et terminer ${n} duels`), icon: 'bouclier', label: n > 1 ? String(n) : null, unlock: DUEL_UNLOCKS[`defenseur-${n}`] || null });
 });
 DIPLOMATE.forEach(([n, name]) => {
   define(`diplomate-${n}`, { category: 'duel', name, description: () => `Défier ${n} joueurs différents`, icon: 'drapeau', label: String(n) });
 });
 SENTINELLE.forEach(([n, name]) => {
-  define(`sentinelle-${n}`, { category: 'duel', name, description: () => `Relever le défi de ${n} joueurs différents`, icon: 'oeil', label: String(n) });
+  define(`sentinelle-${n}`, { category: 'duel', name, description: () => `Relever le défi de ${n} joueurs différents`, icon: 'oeil', label: String(n), unlock: DUEL_UNLOCKS[`sentinelle-${n}`] || null });
 });
 define('pensees-jumelles', { category: 'duel', name: 'Pensées jumelles', description: () => 'Trouver, à deux, la même pépite dans un duel', icon: 'jumeaux', secret: true });
-define('rival', { category: 'duel', name: 'Rival', description: () => 'Terminer 5 duels contre le même joueur', icon: 'cible', label: '5' });
-define('souffre-douleur', { category: 'duel', name: 'Souffre-douleur', description: () => 'Battre 3 fois le même joueur en duel', icon: 'taupe', label: '3' });
+define('rival', { category: 'duel', name: 'Rival', description: () => 'Terminer 5 duels contre le même joueur', icon: 'cible', label: '5', unlock: { type: 'body', id: 'catapulte' } });
+define('souffre-douleur', { category: 'duel', name: 'Souffre-douleur', description: () => 'Battre 3 fois le même joueur en duel', icon: 'taupe', label: '3', unlock: { type: 'bit', id: 'trident' } });
 define('nemesis', { category: 'duel', name: 'Némésis', description: () => 'Perdre 3 fois contre le même joueur en duel : il est ta némésis', icon: 'fantome', label: '3', unlock: { type: 'body', id: 'nemesis' } });
-define('invaincu', { category: 'duel', name: 'Invaincu', description: () => 'Gagner 5 duels standard d\'affilée', icon: 'trophee', label: '5' });
-define('duel-parfait', { category: 'duel', name: 'Duel parfait', description: () => 'Gagner les 7 thèmes d\'un duel standard', icon: 'etoile-or', label: '7' });
-define('remontada', { category: 'duel', name: 'Remontada', description: () => 'Gagner un duel standard après avoir perdu les 3 premiers thèmes', icon: 'eclair' });
+define('invaincu', { category: 'duel', name: 'Invaincu', description: () => 'Gagner 5 duels standard d\'affilée', icon: 'trophee', label: '5', unlock: { type: 'body', id: 'blinde-arme' } });
+define('duel-parfait', { category: 'duel', name: 'Duel parfait', description: () => 'Gagner les 7 thèmes d\'un duel standard', icon: 'etoile-or', label: '7', unlock: { type: 'bit', id: 'excalibur' } });
+define('remontada', { category: 'duel', name: 'Remontada', description: () => 'Gagner un duel standard après avoir perdu les 3 premiers thèmes', icon: 'eclair', unlock: { type: 'bit', id: 'rapiere' } });
 PUBLIC.forEach(([n, name]) => {
   define(`public-${n}`, { category: 'reactions', name, description: () => `Recevoir ${n} réactions à tes réponses dans le comparatif`, icon: n >= 50 ? 'etoile-or' : 'coeur', label: String(n), unlock: n === 50 ? { type: 'body', id: 'ovation' } : null });
 });
@@ -291,11 +299,11 @@ const BODIES = [
   ['feu-artifice', "Feu d'artifice"], ['cupidon', 'Cupidon'], ['globe', 'Planète bleue'], ['oeuf', 'Œuf de Pâques'],
   ['tricolore', 'Tricolore'], ['fierte', 'Arc-en-ciel'], ['taupe', 'Taupe'], ['citrouille', 'Citrouille diabolique'], ['jack-o-lantern', "Jack-o'-lantern"], ['spectre', 'Spectre'],
   ['casque', 'Casque de mineur'], ['mitre', 'Mitre'], ['noel', 'Noël'], ['chat-noir', 'Chat noir'],
-  ['gladiateur', 'Gladiateur'], ['rempart', 'Rempart'], ['belier', 'Bélier'], ['tank', 'Blindé'], ['pierre', 'Pierre'], ['muraille-de-troie', 'Muraille de Troie'], ['jumeaux', 'Jumeaux'], ['nemesis', 'Némésis'], ['ovation', 'Ovation'], ['claque', 'Claque'],
+  ['gladiateur', 'Gladiateur'], ['rempart', 'Rempart'], ['belier', 'Bélier'], ['tank', 'Blindé'], ['blinde-arme', 'Blindage armé'], ['drakkar', 'Drakkar'], ['catapulte', 'Catapulte'], ['pierre', 'Pierre'], ['muraille-de-troie', 'Muraille de Troie'], ['jumeaux', 'Jumeaux'], ['nemesis', 'Némésis'], ['ovation', 'Ovation'], ['claque', 'Claque'],
 ];
 // Apparences du décompte du chrono : la batterie de lampe est offerte, les autres se débloquent avec des badges.
 const TIMERS = [['batterie', 'Batterie de lampe'], ['meche', 'Mèche de dynamite'], ['wagonnet', 'Wagonnet'], ['lanterne', 'Lanterne']];
-const BITS = [['standard', 'Foret standard'], ['tariere', 'Tarière'], ['tricone', 'Tricône'], ['diamant', 'Couronne diamantée'], ['carotteuse', 'Carotteuse']];
+const BITS = [['standard', 'Foret standard'], ['tariere', 'Tarière'], ['tricone', 'Tricône'], ['diamant', 'Couronne diamantée'], ['carotteuse', 'Carotteuse'], ['epee', 'Épée'], ['rapiere', 'Rapière'], ['hache', 'Hache de guerre'], ['trident', 'Trident'], ['excalibur', 'Excalibur']];
 
 const PODIUM_MIN_PLAYERS = 3;
 
@@ -745,7 +753,7 @@ class BadgeService {
         const hint = hintFor(type, id);
         return { id, name, unlocked: !hint || unlocked.has(`${type}:${id}`), hint };
       });
-    const user = this.db.prepare('SELECT skin_body, skin_bit, skin_timer, avatar FROM users WHERE id = ?').get(userId);
+    const user = this.db.prepare('SELECT skin_body, skin_bit, skin_timer, avatar, title FROM users WHERE id = ?').get(userId);
     const pepites = this.pepiteCount(userId);
     const bestScore = this.db.prepare("SELECT MAX(score) AS s FROM games WHERE user_id = ? AND mode = 'daily'").get(userId).s || 0;
     const info = BadgeService.streakInfo(days, today);
@@ -768,7 +776,19 @@ class BadgeService {
       skin: this.skinOf(user),
       avatar: Avatar.normalize(user && user.avatar, userId),
       avatarCatalog: Avatar.catalog(badges),
+      title: user && Titles.labelOf(user.title) ? user.title : null,
+      titles: Titles.catalog(badges, days.length),
     };
+  }
+
+  /** Choisit le titre affiché à côté du pseudo (ou aucun avec `null`). Renvoie false si le titre n'est pas débloqué. */
+  setTitle(userId, today, id) {
+    if (id !== null) {
+      const profile = this.profile(userId, today);
+      if (!Titles.isUnlocked(id, profile.badges, profile.stats.daysPlayed)) return false;
+    }
+    this.db.prepare('UPDATE users SET title = ? WHERE id = ?').run(id, userId);
+    return true;
   }
 
   /** Enregistre l'avatar du joueur s'il ne contient que des éléments débloqués. Renvoie l'avatar, ou null. */
@@ -802,4 +822,4 @@ class BadgeService {
   }
 }
 
-module.exports = { BadgeService, CATALOG, calendarKinds, easter, STREAKS };
+module.exports = { BadgeService, CATALOG, calendarKinds, easter, STREAKS, BODIES, BITS };
