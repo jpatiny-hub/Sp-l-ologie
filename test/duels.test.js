@@ -333,14 +333,14 @@ test('duel : le Contremaître prévient l\'adversaire (invitation, rappels à 24
     assert.equal(convs.conversations[0].username, 'Le Contremaître');
     assert.equal(convs.conversations[0].system, true);
     let thread = (await eve('/api/messages/thread?with=Le%20Contremaître')).data;
-    assert.match(thread.messages[0].body, /adam te défie en duel.*4 jours.*forfait/);
+    assert.match(thread.messages[0].body, /adam te défie en duel.*3 jours.*forfait/);
     assert.equal((await eve('/api/messages/send', { to: 'Le Contremaître', text: 'salut' })).status, 403, 'le Contremaître ne lit pas les réponses');
     assert.equal((await eve('/api/messages/people')).data.people.some((p) => p.username === 'Le Contremaître'), false);
     assert.equal((await eve('/api/duels')).data.opponents.some((p) => p.username === 'Le Contremaître'), false);
     assert.equal((await eve('/api/duels')).data.received[0].expiresAt > app.clock.now, true, 'le décompte est fourni');
 
     // À 24 h de la fin : un rappel, une seule fois.
-    app.clock.now += 3 * 24 * 3600 * 1000 + 60 * 1000;
+    app.clock.now += 2 * 24 * 3600 * 1000 + 60 * 1000;
     await eve('/api/duels');
     await eve('/api/duels');
     thread = (await eve('/api/messages/thread?with=Le%20Contremaître')).data;

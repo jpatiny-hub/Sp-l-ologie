@@ -15,12 +15,12 @@ const Avatar = require('./avatar');
  * quand il veut, sans connaître la rareté de ses réponses : le résultat se révèle quand les deux ont fini.
  * Deux modes : « standard » (30 secondes par thème) et « à l'aise » (sans chrono).
  */
-const DUEL_TTL_MS = 4 * 24 * 3600 * 1000;
+const DUEL_TTL_MS = 3 * 24 * 3600 * 1000;
 const MAX_OPEN = 5;
 const MODES = ['standard', 'aise'];
 const HOUR = 3600 * 1000;
 
-/** « 4 jours », « 30 heures », « moins d'une heure » : le temps qu'il reste, en toutes lettres. */
+/** « 3 jours », « 30 heures », « moins d'une heure » : le temps qu'il reste, en toutes lettres. */
 function leftText(ms) {
   const hours = Math.max(0, Math.round(ms / HOUR));
   if (hours >= 48) return `${Math.floor(hours / 24)} jours`;
