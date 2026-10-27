@@ -262,7 +262,7 @@ const MIGRATIONS = [
   ['users', 'skin_bit', 'TEXT'],
   ['users', 'skin_timer', 'TEXT'],
   ['users', 'news_seen', 'INTEGER NOT NULL DEFAULT 0'],
-  // Petit tutoriel affiché à la première connexion (les joueurs déjà inscrits sont réputés l'avoir vu).
+  // Petit tutoriel affiché une fois à chaque joueur : à la première connexion pour les nouveaux comptes, et à la première ouverture après la mise en ligne pour les comptes existants.
   ['users', 'tutorial_seen', 'INTEGER NOT NULL DEFAULT 0'],
   // Avatar (JSON des choix) et date du dernier changement de pseudo (un changement par semaine).
   ['users', 'avatar', 'TEXT'],
@@ -350,7 +350,6 @@ function openDb(file) {
       db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
       // Les duels déjà terminés avant la mise en place de la validation sont réputés validés.
       if (column === 'validated_at') db.exec("UPDATE duels SET validated_at = COALESCE(finished_at, 0) WHERE status = 'done'");
-      if (column === 'tutorial_seen') db.exec('UPDATE users SET tutorial_seen = 1');
     }
   }
   // Aucun responsable : le premier compte créé le devient.
