@@ -372,7 +372,7 @@ class GameService {
       .all(addDays(today, -6));
     const week = weekStart(today);
     const players = this.db.prepare("SELECT COUNT(DISTINCT user_id) AS n FROM games WHERE mode = 'daily' AND day >= ?").get(week).n;
-    const total = this.db.prepare('SELECT COUNT(*) AS n FROM users').get().n;
+    const total = this.db.prepare('SELECT COUNT(*) AS n FROM users WHERE is_system = 0').get().n;
     const pending = this.db.prepare('SELECT COUNT(DISTINCT theme_id || input_key) AS n FROM answer_reports WHERE handled_at IS NULL').get().n;
     const trainingTotal = this.db.prepare('SELECT COALESCE(SUM(games), 0) AS n FROM training_stats').get().n;
     return { activePlayersThisWeek: players, totalPlayers: total, perDay, refused, refusedThemes, pendingReports: pending, trainingGames: trainingTotal };

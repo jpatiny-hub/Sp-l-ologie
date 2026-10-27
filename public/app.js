@@ -4321,6 +4321,14 @@
     if (!$('bottom-nav').hidden) updateBubbles();
   }
 
+  /** Portrait d'un correspondant : la petite taupe pour le Contremaître, sinon le personnage du joueur. */
+  function msgPortrait(person) {
+    if (!person.system) return avatarEl(person.avatar, 'head', 2);
+    const canvas = el('canvas', { class: 'msg-mole', 'aria-hidden': 'true' });
+    drawMascot(canvas, 'idle');
+    return canvas;
+  }
+
   function msgTime(at) {
     const d = new Date(at);
     const sameDay = new Date().toDateString() === d.toDateString();
@@ -4344,7 +4352,7 @@
           const button = el(
             'button',
             { type: 'button' },
-            avatarEl(c.avatar, 'head', 2),
+            msgPortrait(c),
             el('span', { class: 'who-name' }, c.username),
             el('span', { class: 'msg-last' }, `${c.last.mine ? 'Toi : ' : ''}${c.last.body}`),
             c.unread ? el('span', { class: 'tab-dot' }, String(c.unread)) : el('span', { class: 'muted small' }, msgTime(c.last.at)),
@@ -4375,6 +4383,9 @@
     app.msgWith = data.with.username;
     updateMessageDot(data.unread);
     $('msg-with').textContent = data.with.username;
+    // Le Contremaître n'écoute pas : pas de zone de réponse, de blocage ni de signalement.
+    $('form-msg-send').hidden = !!data.with.system;
+    $('btn-msg-block').hidden = !!data.with.system;
     const block = $('btn-msg-block');
     block.textContent = data.blocked ? 'Débloquer ce joueur' : 'Bloquer ce joueur';
     block.onclick = async () => {
@@ -4388,7 +4399,7 @@
     list.replaceChildren(
       ...data.messages.map((m) => {
         const meta = el('span', { class: 'msg-meta' }, msgTime(m.at));
-        if (!m.mine) {
+        if (!m.mine && !data.with.system) {
           const report = el('button', { class: 'link', type: 'button' }, 'Signaler');
           report.addEventListener('click', async () => {
             try {
@@ -4403,7 +4414,7 @@
         return el('li', { class: m.mine ? 'mine' : '' }, m.body, meta);
       }),
     );
-    if (!data.messages.length) list.append(el('li', { class: 'muted' }, `Écris le premier message à ${data.with.username}.`));
+    if (!data.messages.length && !data.with.system) list.append(el('li', { class: 'muted' }, `Écris le premier message à ${data.with.username}.`));
     list.scrollTop = list.scrollHeight;
   }
 
@@ -4893,6 +4904,14 @@
     }
   }
 
+  /** Temps qu'il reste pour répondre à un duel (sans minuterie : calculé à l'affichage). */
+  function timeLeft(expiresAt) {
+    const hours = Math.max(0, Math.round((expiresAt - Date.now()) / 3600000));
+    if (hours >= 48) return `forfait dans ${Math.floor(hours / 24)} jours`;
+    if (hours <= 0) return 'forfait imminent';
+    return `forfait dans ${hours} h`;
+  }
+
   function renderDuels(data) {
     const box = $('duel-lists');
     const person = (o) => el('span', { class: 'who-av' }, avatarEl(o.avatar, 'head', 2), el('span', { class: 'who-name' }, o.username));
@@ -4914,7 +4933,7 @@
       el(
         'li',
         {},
-        el('div', { class: 'duel-row' }, person(d.other), el('span', { class: 'muted small' }, `te défie · ${MODE_NAMES[d.mode]}`)),
+        el('div', { class: 'duel-row' }, person(d.other), el('span', { class: 'muted small' }, `te défie · ${MODE_NAMES[d.mode]}${d.status === 'invited' ? ` · ${timeLeft(d.expiresAt)}` : ''}`)),
         el(
           'div',
           { class: 'duel-actions' },
@@ -4934,7 +4953,7 @@
       el(
         'li',
         {},
-        el('div', { class: 'duel-row' }, person(d.other), el('span', { class: 'muted small' }, d.status === 'waiting' ? `en attente de sa réponse · ${MODE_NAMES[d.mode]}` : `à finir · ${MODE_NAMES[d.mode]}`)),
+        el('div', { class: 'duel-row' }, person(d.other), el('span', { class: 'muted small' }, d.status === 'waiting' ? `en attente de sa réponse · ${MODE_NAMES[d.mode]} · ${timeLeft(d.expiresAt)}` : `à finir · ${MODE_NAMES[d.mode]}`)),
         d.status === 'playing' ? el('div', { class: 'duel-actions' }, act('Reprendre', async () => enterGame(await api(`/api/game/${d.gameId}`)))) : null,
       ),
     );

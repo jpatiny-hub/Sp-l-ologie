@@ -85,8 +85,10 @@ function createApp({
   const game = new GameService(db, themes, now, specialDays);
   const reverse = new ReverseService(db, themes);
   const messages = new MessageService(db, now);
-  // Validation des duels le lendemain à 2 h 30 : vérifiée toutes les 5 minutes, même sans visite.
-  if (autoValidateDuels) setInterval(() => { try { game.duels.validateDue(); } catch (err) { console.error('Validation des duels impossible :', err.message); } }, 5 * 60 * 1000).unref();
+  // Les messages automatiques du Contremaître (délai pour relever un défi) passent par la messagerie.
+  game.duels.notify = (to, body) => messages.fromForeman(to, body);
+  // Validation des duels le lendemain à 2 h 30, rappels et forfaits : vérifiés toutes les 5 minutes, même sans visite.
+  if (autoValidateDuels) setInterval(() => { try { game.duels.expire(); } catch (err) { console.error('Suivi des duels impossible :', err.message); } }, 5 * 60 * 1000).unref();
   const announcements = new AnnouncementService(db, now);
   game.badges.backfill();
   const loginLimiter = new auth.RateLimiter(10, 15 * 60 * 1000);
@@ -253,7 +255,7 @@ function createApp({
       ]);
       let userId;
       try {
-        const first = db.prepare('SELECT COUNT(*) AS n FROM users').get().n === 0;
+        const first = db.prepare('SELECT COUNT(*) AS n FROM users WHERE is_system = 0').get().n === 0;
         userId = Number(
           db
             .prepare(

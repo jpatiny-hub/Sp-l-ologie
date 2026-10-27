@@ -18,6 +18,15 @@ const Avatar = require('./avatar');
 const DUEL_TTL_MS = 4 * 24 * 3600 * 1000;
 const MAX_OPEN = 5;
 const MODES = ['standard', 'aise'];
+const HOUR = 3600 * 1000;
+
+/** « 4 jours », « 30 heures », « moins d'une heure » : le temps qu'il reste, en toutes lettres. */
+function leftText(ms) {
+  const hours = Math.max(0, Math.round(ms / HOUR));
+  if (hours >= 48) return `${Math.floor(hours / 24)} jours`;
+  if (hours <= 0) return "moins d'une heure";
+  return hours === 1 ? '1 heure' : `${hours} heures`;
+}
 
 class DuelService {
   constructor(game) {
@@ -31,9 +40,71 @@ class DuelService {
 
   /** Les duels laissés trop longtemps sans réponse sont abandonnés. */
   expire() {
+    const now = this.now();
     // Un duel dont l'adversaire a commencé sa partie n'expire plus : il pourra la finir.
-    this.db.prepare("UPDATE duels SET status = 'expired' WHERE status = 'open' AND opponent_game_id IS NULL AND expires_at < ?").run(this.now());
+    const late = this.db
+      .prepare("SELECT * FROM duels WHERE status = 'open' AND opponent_game_id IS NULL AND expires_at < ?")
+      .all(now);
+    for (const d of late) {
+      this.db.prepare("UPDATE duels SET status = 'expired' WHERE id = ? AND status = 'open'").run(d.id);
+      this.notifyForfeit(d);
+    }
+    this.remind();
     this.validateDue();
+  }
+
+  /** Le Contremaître écrit à un joueur (sans effet si la messagerie n'est pas branchée). */
+  tell(userId, body) {
+    if (!this.notify) return;
+    try {
+      this.notify(userId, body);
+    } catch (err) {
+      console.error('Message du contremaître impossible :', err.message);
+    }
+  }
+
+  name(id) {
+    return (this.userRow(id) || {}).username || 'un joueur';
+  }
+
+  /** Le défieur a fini sa partie : l'adversaire en est informé et le décompte commence. */
+  announce(d) {
+    if (d.notice_at != null) return;
+    this.db.prepare('UPDATE duels SET notice_at = ? WHERE id = ?').run(this.now(), d.id);
+    const mode = d.mode === 'aise' ? 'à l\'aise' : 'standard';
+    this.tell(
+      d.opponent_id,
+      `${this.name(d.challenger_id)} te défie en duel (${mode}). Tu as ${leftText(d.expires_at - this.now())} pour jouer ton tour, sinon tu seras forfait.`,
+    );
+  }
+
+  /** Rappels avant le forfait : à 24 h puis à 6 h de la fin du délai, tant que l'adversaire n'a pas commencé. */
+  remind() {
+    const now = this.now();
+    const rows = this.db
+      .prepare(
+        `SELECT d.* FROM duels d JOIN games g ON g.id = d.challenger_game_id
+         WHERE d.status = 'open' AND d.opponent_game_id IS NULL AND g.finished_at IS NOT NULL
+           AND d.expires_at >= ? AND d.expires_at - ? <= ?`,
+      )
+      .all(now, now, 24 * HOUR);
+    for (const d of rows) {
+      const left = d.expires_at - now;
+      const stage = left <= 6 * HOUR ? 6 : 24;
+      const column = stage === 6 ? 'warn6_at' : 'warn24_at';
+      if (d[column] != null) continue;
+      // Un rappel à 24 h n'a plus de sens s'il ne reste que quelques heures : on ne le rattrape pas.
+      this.db.prepare(`UPDATE duels SET ${column} = ?${stage === 6 ? ', warn24_at = COALESCE(warn24_at, ?)' : ''} WHERE id = ?`).run(...(stage === 6 ? [now, now, d.id] : [now, d.id]));
+      this.tell(d.opponent_id, `plus que ${leftText(left)} pour jouer ton tour du duel contre ${this.name(d.challenger_id)}, sinon tu seras forfait.`);
+    }
+  }
+
+  /** Délai dépassé : le duel est annulé, les deux joueurs en sont informés. */
+  notifyForfeit(d) {
+    const cg = d.challenger_game_id && this.db.prepare('SELECT finished_at FROM games WHERE id = ?').get(d.challenger_game_id);
+    if (!cg || cg.finished_at == null) return; // le défieur n'avait pas fini lui-même : personne n'est en faute
+    this.tell(d.opponent_id, `le délai est passé, tu es forfait pour le duel contre ${this.name(d.challenger_id)}. Le duel est annulé.`);
+    this.tell(d.challenger_id, `${this.name(d.opponent_id)} n'a pas joué son tour à temps et est forfait. Le duel est annulé.`);
   }
 
   userRow(id) {
@@ -119,6 +190,7 @@ class DuelService {
     if (game.duel_id == null) return;
     const d = this.db.prepare('SELECT * FROM duels WHERE id = ?').get(game.duel_id);
     if (!d || d.status !== 'open') return;
+    if (d.challenger_game_id === game.id) this.announce(d);
     const get = (id) => (id ? this.db.prepare('SELECT * FROM games WHERE id = ?').get(id) : null);
     const cg = get(d.challenger_game_id);
     const og = get(d.opponent_game_id);
@@ -206,7 +278,7 @@ class DuelService {
 
   /** Les adversaires possibles, avec le bilan des duels déjà joués contre eux. */
   opponents(userId) {
-    const users = this.db.prepare('SELECT id, username, avatar FROM users WHERE id <> ? ORDER BY username_key').all(userId);
+    const users = this.db.prepare('SELECT id, username, avatar FROM users WHERE id <> ? AND is_system = 0 ORDER BY username_key').all(userId);
     const done = this.db
       .prepare("SELECT * FROM duels WHERE status = 'done' AND validated_at IS NOT NULL AND (challenger_id = ? OR opponent_id = ?)")
       .all(userId, userId);

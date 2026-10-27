@@ -644,7 +644,7 @@ class BadgeService {
       FROM badges b GROUP BY b.user_id, b.kind)`);
     const ids = this.db.prepare("SELECT id FROM games WHERE mode = 'daily' AND finished_at IS NOT NULL ORDER BY day").all();
     for (const { id } of ids) this.awardForGame(id);
-    const users = this.db.prepare('SELECT id FROM users').all();
+    const users = this.db.prepare('SELECT id FROM users WHERE is_system = 0').all();
     for (const { id } of users) this.awardThemes(id, new Date(this.now()).toISOString().slice(0, 10));
   }
 

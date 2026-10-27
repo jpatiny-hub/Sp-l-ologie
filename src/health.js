@@ -78,7 +78,7 @@ function healthReport(db, { errors, version, startedAt, now = Date.now }) {
     backups: { count: backups.length, latest, list: backups.slice(0, 12) },
     errors: { last24h: last24, recent: errors.recent(25) },
     totals: {
-      users: count('SELECT COUNT(*) AS n FROM users'),
+      users: count('SELECT COUNT(*) AS n FROM users WHERE is_system = 0'),
       games: count('SELECT COUNT(*) AS n FROM games'),
       duelsToValidate: count("SELECT COUNT(*) AS n FROM duels WHERE status = 'done' AND validated_at IS NULL"),
       reportsPending: count('SELECT COUNT(DISTINCT theme_id || input_key) AS n FROM answer_reports WHERE handled_at IS NULL'),

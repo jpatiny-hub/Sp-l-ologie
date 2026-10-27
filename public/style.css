@@ -1527,3 +1527,5 @@ button.pf-title:focus-visible { outline: 3px solid var(--ink); outline-offset: 2
 :root[data-beta-home] .hero-chips .freezes:hover { background: transparent; }
 :root[data-beta-home] .hero-chips .freezes:hover .freeze-info { color: var(--ink); }
 :root[data-beta-home] .hero-chips { gap: 16px; }
+
+.msg-mole { width: 40px; height: 27px; image-rendering: pixelated; flex: none; }

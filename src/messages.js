@@ -15,6 +15,7 @@ const MAX_LENGTH = 500;
 const PER_MINUTE = 20;
 const KEEP_MS = 90 * 24 * 3600 * 1000;
 const THREAD_LIMIT = 100;
+const FOREMAN_NAME = 'Le Contremaître';
 
 class MessageService {
   constructor(db, now = Date.now) {
@@ -32,13 +33,31 @@ class MessageService {
   }
 
   userByName(name) {
-    const u = this.db.prepare('SELECT id, username, avatar FROM users WHERE username_key = ?').get(usernameKey(String(name || '')));
+    const u = this.db.prepare('SELECT id, username, avatar, is_system FROM users WHERE username_key = ?').get(usernameKey(String(name || '')));
     if (!u) throw new HttpError(404, 'Joueur introuvable.');
     return u;
   }
 
   person(u) {
-    return { username: u.username, avatar: Avatar.normalize(u.avatar, u.id) };
+    return { username: u.username, avatar: Avatar.normalize(u.avatar, u.id), system: !!u.is_system };
+  }
+
+  /** Le compte technique « Le Contremaître », créé au premier message automatique. */
+  foreman() {
+    const found = this.db.prepare('SELECT id, username, avatar, is_system FROM users WHERE is_system = 1').get();
+    if (found) return found;
+    let key = usernameKey(FOREMAN_NAME);
+    if (this.db.prepare('SELECT 1 AS x FROM users WHERE username_key = ?').get(key)) key = `${key}-mascotte`;
+    const { lastInsertRowid } = this.db
+      .prepare("INSERT INTO users (username, username_key, password_hash, recovery_hash, created_at, is_admin, is_system) VALUES (?, ?, '!', '!', ?, 0, 1)")
+      .run(FOREMAN_NAME, key, this.now());
+    return this.db.prepare('SELECT id, username, avatar, is_system FROM users WHERE id = ?').get(Number(lastInsertRowid));
+  }
+
+  /** Message automatique du Contremaître à un joueur. */
+  fromForeman(recipientId, body) {
+    const f = this.foreman();
+    this.db.prepare('INSERT INTO messages (sender_id, recipient_id, body, created_at) VALUES (?, ?, ?, ?)').run(f.id, recipientId, String(body).slice(0, MAX_LENGTH), this.now());
   }
 
   unread(userId) {
@@ -48,7 +67,7 @@ class MessageService {
   /** Les joueurs avec qui écrire (tous les autres joueurs). */
   people(userId) {
     return this.db
-      .prepare('SELECT id, username, avatar FROM users WHERE id <> ? ORDER BY username_key')
+      .prepare('SELECT id, username, avatar, is_system FROM users WHERE id <> ? AND is_system = 0 ORDER BY username_key')
       .all(userId)
       .map((u) => this.person(u));
   }
@@ -76,7 +95,7 @@ class MessageService {
     return {
       unread: this.unread(userId),
       conversations: rows.map((m) => {
-        const other = this.db.prepare('SELECT id, username, avatar FROM users WHERE id = ?').get(m.other_id);
+        const other = this.db.prepare('SELECT id, username, avatar, is_system FROM users WHERE id = ?').get(m.other_id);
         return { ...this.person(other), last: { body: m.body, at: m.created_at, mine: m.sender_id === userId }, unread: unread.get(m.other_id) || 0, blocked: blocked.has(m.other_id) };
       }),
     };
@@ -109,6 +128,7 @@ class MessageService {
   send(userId, name, text) {
     const other = this.userByName(name);
     if (other.id === userId) throw new HttpError(400, 'Choisis un autre joueur que toi-même.');
+    if (other.is_system) throw new HttpError(403, 'Le Contremaître ne lit pas les messages : il se contente de t\'en envoyer.');
     const body = String(text || '').replace(/\r\n/g, '\n').trim();
     if (!body) throw new HttpError(400, 'Écris un message.');
     if (body.length > MAX_LENGTH) throw new HttpError(400, `Message trop long (${MAX_LENGTH} caractères au plus).`);

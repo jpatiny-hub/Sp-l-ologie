@@ -316,3 +316,54 @@ test('badges de victoire écrasante et d\'égalité en duel', async () => {
     await app.close();
   }
 });
+
+test('duel : le Contremaître prévient l\'adversaire (invitation, rappels à 24 h et 6 h) puis annonce le forfait', async () => {
+  const app = await startServer();
+  try {
+    const { adam, eve } = await twoPlayers(app);
+    const started = (await adam('/api/duels', { opponent: 'eve', mode: 'standard' })).data;
+    // Pas de message tant qu'Adam n'a pas fini sa partie : Eve ne peut pas encore jouer.
+    assert.equal((await eve('/api/messages')).data.conversations.length, 0);
+    for (let i = 0; i < 7; i++) {
+      await adam(`/api/game/${started.id}/reveal`, {});
+      await adam(`/api/game/${started.id}/answer`, { text: answerFor(app.db, started.id, 1) });
+    }
+    let convs = (await eve('/api/messages')).data;
+    assert.equal(convs.unread, 1);
+    assert.equal(convs.conversations[0].username, 'Le Contremaître');
+    assert.equal(convs.conversations[0].system, true);
+    let thread = (await eve('/api/messages/thread?with=Le%20Contremaître')).data;
+    assert.match(thread.messages[0].body, /adam te défie en duel.*4 jours.*forfait/);
+    assert.equal((await eve('/api/messages/send', { to: 'Le Contremaître', text: 'salut' })).status, 403, 'le Contremaître ne lit pas les réponses');
+    assert.equal((await eve('/api/messages/people')).data.people.some((p) => p.username === 'Le Contremaître'), false);
+    assert.equal((await eve('/api/duels')).data.opponents.some((p) => p.username === 'Le Contremaître'), false);
+    assert.equal((await eve('/api/duels')).data.received[0].expiresAt > app.clock.now, true, 'le décompte est fourni');
+
+    // À 24 h de la fin : un rappel, une seule fois.
+    app.clock.now += 3 * 24 * 3600 * 1000 + 60 * 1000;
+    await eve('/api/duels');
+    await eve('/api/duels');
+    thread = (await eve('/api/messages/thread?with=Le%20Contremaître')).data;
+    assert.equal(thread.messages.length, 2);
+    assert.match(thread.messages[1].body, /plus que 24 heures.*adam.*forfait/);
+    // À 6 h de la fin : un second rappel.
+    app.clock.now += 18 * 3600 * 1000;
+    await eve('/api/duels');
+    thread = (await eve('/api/messages/thread?with=Le%20Contremaître')).data;
+    assert.equal(thread.messages.length, 3);
+    assert.match(thread.messages[2].body, /plus que 6 heures/);
+    // Le délai passe : forfait, les deux joueurs sont prévenus et le duel disparaît.
+    app.clock.now += 7 * 3600 * 1000;
+    await eve('/api/duels');
+    thread = (await eve('/api/messages/thread?with=Le%20Contremaître')).data;
+    assert.equal(thread.messages.length, 4);
+    assert.match(thread.messages[3].body, /tu es forfait.*adam.*annulé/);
+    const adamThread = (await adam('/api/messages/thread?with=Le%20Contremaître')).data;
+    assert.match(adamThread.messages[0].body, /eve n'a pas joué son tour.*forfait/);
+    assert.equal((await adam('/api/duels')).data.sent.length, 0);
+    // Un seul compte technique, hors des totaux de joueurs.
+    assert.equal(app.db.prepare('SELECT COUNT(*) AS n FROM users WHERE is_system = 1').get().n, 1);
+  } finally {
+    await app.close();
+  }
+});
