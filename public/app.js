@@ -35,9 +35,10 @@
   // ---------- Paramètres (propres à l'appareil) ----------
   const SETTINGS_KEY = 'speleologie.settings';
   const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false };
-  const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome'];
+  const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
   for (const flag of BETA_FLAGS) settings[flag] = false;
   const home = { moved: false, origin: new Map() }; // état du nouvel accueil (voir layoutHome)
+  const prof = { moved: false, tab: 'apercu', timelineAll: false }; // état du nouveau profil (voir layoutProfile)
   try {
     const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
     // Ancien réglage « mode daltonien » (case à cocher) : devenu « rouge-vert ».
@@ -104,6 +105,8 @@
     root.toggleAttribute('data-beta-nav', betaOn('betaNav') || betaOn('betaHome'));
     root.toggleAttribute('data-beta-home', betaOn('betaHome'));
     layoutHome(betaOn('betaHome'));
+    root.toggleAttribute('data-beta-profil', betaOn('betaProfil'));
+    layoutProfile(betaOn('betaProfil'));
     root.toggleAttribute('data-beta-fx', betaOn('betaFx'));
     applyDaypart();
     updateNav();
@@ -2459,6 +2462,7 @@
     const draft = { ...profile.avatar };
     const preview = () => {
       $('prof-avatar').replaceChildren(avatarEl(draft, 'full', 6));
+      if (betaOn('betaProfil')) $('pf-portrait').replaceChildren(avatarEl(draft, 'full', 6));
     };
     $('prof-name').textContent = app.me.user.username;
     const rows = AVATAR_ORDER.map((slot) => {
@@ -2485,7 +2489,62 @@
       refresh();
       return el('div', { class: 'opt' }, el('span', { class: 'lab' }, cat.label), prev, el('span', { class: 'val-wrap' }, SWATCH[slot] ? swatch : null, label), next);
     });
-    $('avatar-options').replaceChildren(...rows);
+    // Vestiaire (bêta) : des vignettes à toucher, rangées en quatre onglets, au lieu de dix lignes de flèches.
+    function wardrobe() {
+      const GROUPS = [
+        ['Tête', ['cheveux', 'couleur', 'chapeau']],
+        ['Visage', ['peau', 'yeux', 'barbe']],
+        ['Corps', ['forme', 'tenue']],
+        ['Outil', ['objet', 'lieu']],
+      ];
+      const FULL = new Set(['forme', 'tenue', 'objet']);
+      const THUMBS = new Set(['forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'chapeau', 'tenue', 'objet']);
+      let current = 0;
+      const tabs = el('div', { class: 'wr-tabs', role: 'tablist' });
+      const panel = el('div', { class: 'wr-panel' });
+      const render = () => {
+        tabs.replaceChildren(
+          ...GROUPS.map(([name], i) => {
+            const b = el('button', { class: `tab${i === current ? ' active' : ''}`, type: 'button', role: 'tab', 'aria-selected': String(i === current) }, name);
+            b.addEventListener('click', () => { current = i; render(); });
+            return b;
+          }),
+        );
+        panel.replaceChildren(
+          ...GROUPS[current][1].map((slot) => {
+            const cat = catalog[slot];
+            const grid = el('div', { class: `wr-grid${THUMBS.has(slot) ? '' : ' text'}` });
+            cat.options.forEach((opt) => {
+              const selected = draft[slot] === opt.id;
+              const content = THUMBS.has(slot) ? avatarEl({ ...draft, [slot]: opt.id }, FULL.has(slot) ? 'full' : 'bust', 2) : null;
+              const b = el('button', { class: `wr-opt${selected ? ' sel' : ''}${opt.unlocked ? '' : ' locked'}`, type: 'button', title: opt.unlocked ? opt.label : opt.hint || opt.label, 'aria-pressed': String(selected) }, content, el('span', { class: 'wr-lab' }, `${opt.unlocked ? '' : '🔒 '}${opt.label}`));
+              b.addEventListener('click', () => {
+                draft[slot] = opt.id;
+                preview();
+                commit();
+                render();
+              });
+              grid.append(b);
+            });
+            return el('div', { class: 'wr-slot' }, el('h4', {}, cat.label), grid);
+          }),
+        );
+      };
+      const random = el('button', { class: 'btn ghost', type: 'button' }, 'Au hasard');
+      random.addEventListener('click', () => {
+        for (const slot of AVATAR_ORDER) {
+          const free = catalog[slot].options.filter((o) => o.unlocked);
+          draft[slot] = free[Math.floor(Math.random() * free.length)].id;
+        }
+        preview();
+        commit();
+        render();
+      });
+      render();
+      return el('div', { class: 'wardrobe' }, tabs, panel, random);
+    }
+
+    $('avatar-options').replaceChildren(...(betaOn('betaProfil') ? [wardrobe()] : rows));
     preview();
     let timer = null;
     function commit() {
@@ -2537,6 +2596,233 @@
     }
   });
 
+  // ---------- Nouveau profil (bêta) ----------
+  const RANKS = [
+    [0, 'Taupe novice'],
+    [1, 'Apprenti foreur'],
+    [5, 'Mineur confirmé'],
+    [15, 'Mineur de fond'],
+    [30, 'Maître foreur'],
+    [60, 'Gardien du noyau'],
+  ];
+  /** Titre du mineur selon ses jours forés, et ce qu'il lui manque pour le suivant. */
+  function rankOf(days) {
+    let index = 0;
+    RANKS.forEach(([n], i) => { if (days >= n) index = i; });
+    const next = RANKS[index + 1];
+    return { index, title: RANKS[index][1], next: next ? { title: next[1], remaining: next[0] - days } : null };
+  }
+
+  /** Le nouveau profil déplace des blocs existants (rien n'est recréé) : calendrier, coupe de la Terre, prochains badges. */
+  function layoutProfile(on) {
+    if (on === prof.moved) return;
+    prof.moved = on;
+    const next = $('next-badges');
+    const calendar = $('chart-calendar');
+    const earth = $('chart-earth');
+    const heading = document.querySelector('#fold-profil .fold-t h2');
+    const sub = $('profil-sub');
+    const calHead = calendar.previousElementSibling;
+    const earthHead = earth.previousElementSibling;
+    if (on) {
+      for (const h of [calHead, earthHead]) if (h && h.tagName === 'H3') h.hidden = true;
+      relocate(next, $('pf-next'));
+      const cal = el('h3', { id: 'pf-cal-title' }, 'Tes jours forés');
+      const ear = el('h3', { id: 'pf-earth-title' }, 'Ta meilleure profondeur');
+      $('pf-charts').append(cal);
+      relocate(calendar, $('pf-charts'));
+      $('pf-charts').append(ear);
+      relocate(earth, $('pf-charts'));
+      heading.textContent = 'Vestiaire';
+      sub.textContent = 'ton personnage et ton pseudo';
+    } else {
+      for (const h of document.querySelectorAll('#fold-stats-fix, #view-profile h3[hidden]')) h.hidden = false;
+      restore(next);
+      restore(calendar);
+      restore(earth);
+      for (const id of ['pf-cal-title', 'pf-earth-title']) if ($(id)) $(id).remove();
+      heading.textContent = 'Profil';
+      sub.textContent = 'ton nom et ton personnage';
+    }
+  }
+
+  function setProfileTab(tab) {
+    prof.tab = tab;
+    $('view-profile').dataset.active = tab;
+    $('pf-tabs').querySelectorAll('button').forEach((b) => {
+      const active = b.dataset.ptabGo === tab;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-selected', String(active));
+    });
+  }
+  $('pf-tabs').addEventListener('click', (event) => {
+    const b = event.target.closest('button[data-ptab-go]');
+    if (!b) return;
+    setProfileTab(b.dataset.ptabGo);
+    $('pf-tabs').scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
+  });
+  $('btn-pf-allbadges').addEventListener('click', () => setProfileTab('badges'));
+
+  const dayLabel = (day) => formatDay(day, { day: 'numeric', month: 'long', year: 'numeric' });
+
+  /** Carte de mineur : portrait, titre, série et étais, et un mot de la taupe. */
+  function renderProfileHero(profile) {
+    const st = profile.stats;
+    const rank = rankOf(st.daysPlayed);
+    $('pf-portrait').replaceChildren(avatarEl(profile.avatar, 'full', 6));
+    $('pf-name').textContent = app.me.user.username;
+    $('pf-title').textContent = rank.title;
+    $('pf-since').textContent = profile.joinedAt ? `Mineur depuis le ${dayLabel(new Date(profile.joinedAt).toISOString().slice(0, 10))}` : '';
+    const lantern = el('canvas', { class: 'streak-lantern', width: '16', height: '16', 'aria-hidden': 'true' });
+    Icons.drawLantern(lantern, st.currentStreak, { dim: st.currentStreak === 0 });
+    const props = Array.from({ length: 3 }, (_, i) => {
+      const c = el('canvas', { class: `freeze-icon${i < st.freezes ? ' full' : ''}`, width: '16', height: '16', title: i < st.freezes ? 'Étai disponible' : 'Emplacement vide' });
+      Icons.drawIcon(c, 'etai', { dim: i >= st.freezes });
+      return c;
+    });
+    $('pf-chips').replaceChildren(
+      el('div', { class: 'streak lit' }, lantern, el('span', { class: 'streak-count' }, st.currentStreak > 0 ? plural(st.currentStreak, 'jour', 'jours') : 'Pas de série')),
+      el('div', { class: 'freezes' }, ...props),
+    );
+    // La taupe commente : le prochain titre s'il est proche, sinon le prochain badge.
+    const nexts = (app.me.streak && (app.me.streak.nexts || (app.me.streak.next ? [app.me.streak.next] : []))) || [];
+    let text;
+    if (rank.next && rank.next.remaining <= 5) text = `Encore ${plural(rank.next.remaining, 'jour foré', 'jours forés')} et tu deviens « ${rank.next.title} » !`;
+    else if (nexts.length) text = `Plus que ${nexts[0].remaining} ${nexts[0].unit} pour le badge « ${nexts[0].name} ».`;
+    else if (rank.next) text = `Prochain titre : « ${rank.next.title} », dans ${plural(rank.next.remaining, 'jour foré', 'jours forés')}.`;
+    else text = 'Quelle belle carrière de mineur : tu as atteint le plus haut titre !';
+    $('pf-bubble').textContent = text;
+    if (!app.mascotActivity) app.mascotActivity = pickActivity();
+    const activity = ACTIVITIES[app.mascotActivity];
+    const mole = $('pf-mole');
+    const [open, blink, tool] = mole.querySelectorAll('canvas');
+    const mood = activity.mood || 'idle';
+    drawMascot(open, mood);
+    drawMascot(blink, mood === 'look' ? 'look' : 'blink');
+    drawActivity(tool, app.mascotActivity);
+    mole.dataset.mood = mood;
+    mole.dataset.anim = activity.anim || '';
+  }
+
+  /** Six chiffres clés avec leur icône en pixel art. */
+  function renderProfileTiles(profile) {
+    const st = profile.stats;
+    const earned = profile.badges.filter((b) => b.count).length;
+    const tiles = [
+      ['calendrier-29', 'Jours forés', String(st.daysPlayed)],
+      ['trophee', 'Meilleur score', pts(st.bestScore)],
+      ['carotte', 'Profondeur max', Pixel.formatDepth(st.bestScore)],
+      ['pepite', 'Pépites', String(st.pepites)],
+      ['lampe', 'Série record', plural(st.bestStreak, 'jour', 'jours')],
+      ['medaille', 'Badges', `${earned} / ${profile.badges.length}`],
+    ];
+    $('pf-tile-grid').replaceChildren(
+      ...tiles.map(([icon, label, value]) => {
+        const c = el('canvas', { width: '16', height: '16', 'aria-hidden': 'true' });
+        Icons.drawIcon(c, icon);
+        return el('li', { class: 'pf-tile' }, c, el('strong', {}, value), el('span', { class: 'muted small' }, label));
+      }),
+    );
+  }
+
+  /** Vitrine : les six derniers badges obtenus, comme sur une étagère. */
+  function renderProfileShowcase(profile) {
+    const got = profile.badges.filter((b) => b.count).sort((a, b) => String(b.lastOn).localeCompare(String(a.lastOn)));
+    const box = $('pf-showcase-list');
+    box.replaceChildren(...(got.length ? got.slice(0, 6).map(badgeTile) : [el('p', { class: 'muted' }, 'Pas encore de badge : fore aujourd\'hui pour décrocher le premier !')]));
+    $('btn-pf-allbadges').textContent = `Voir les ${profile.badges.length} badges`;
+  }
+
+  /** Journal de bord : l'arrivée dans la mine puis chaque badge, du plus récent au plus ancien. */
+  function renderProfileTimeline(profile) {
+    const events = profile.badges.filter((b) => b.count && b.firstOn).map((b) => ({ day: b.firstOn, icon: b.icon, label: `Badge « ${b.name} »`, badge: b }));
+    if (profile.joinedAt) events.push({ day: new Date(profile.joinedAt).toISOString().slice(0, 10), icon: 'pioche', label: 'Arrivée dans la mine' });
+    events.sort((a, b) => b.day.localeCompare(a.day));
+    const shown = prof.timelineAll ? events : events.slice(0, 8);
+    $('pf-timeline-list').replaceChildren(
+      ...shown.map((e) => {
+        const c = el('canvas', { width: '16', height: '16', 'aria-hidden': 'true' });
+        Icons.drawIcon(c, e.icon);
+        return el('li', {}, c, el('div', {}, el('span', {}, e.label), el('span', { class: 'muted small' }, dayLabel(e.day))));
+      }),
+    );
+    $('btn-pf-more').hidden = prof.timelineAll || events.length <= 8;
+  }
+  $('btn-pf-more').addEventListener('click', () => {
+    prof.timelineAll = true;
+    renderProfileTimeline(app.profile);
+  });
+
+  /** Carte à partager : une image avec le portrait, le titre et trois chiffres. */
+  async function shareProfileCard() {
+    const profile = app.profile;
+    const st = profile.stats;
+    const status = $('pf-share-status');
+    status.textContent = '';
+    try {
+      await document.fonts.ready;
+      const canvas = document.createElement('canvas');
+      canvas.width = 480;
+      canvas.height = 270;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      const bg = ctx.createLinearGradient(0, 0, 480, 270);
+      bg.addColorStop(0, '#3a2c22');
+      bg.addColorStop(1, '#1b1410');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, 480, 270);
+      ctx.strokeStyle = '#f2c230';
+      ctx.lineWidth = 6;
+      ctx.strokeRect(6, 6, 468, 258);
+      const portrait = avatarEl(profile.avatar, 'full', 1);
+      ctx.fillStyle = '#120d0a';
+      ctx.fillRect(26, 26, 150, 218);
+      ctx.drawImage(portrait, 51, 36, 100, 175);
+      ctx.fillStyle = '#f2c230';
+      ctx.font = '20px "Press Start 2P", monospace';
+      ctx.fillText(app.me.user.username.slice(0, 14), 196, 62);
+      ctx.fillStyle = '#f3e9d2';
+      ctx.font = '14px "Press Start 2P", monospace';
+      ctx.fillText(rankOf(st.daysPlayed).title, 196, 92);
+      ctx.font = '26px VT323, monospace';
+      const lines = [`${st.daysPlayed} jours forés`, `Meilleur forage : ${st.bestScore} pts`, `${st.pepites} pépites trouvées`, `Série record : ${st.bestStreak} j`];
+      lines.forEach((line, i) => ctx.fillText(line, 196, 134 + i * 34));
+      ctx.fillStyle = '#b8a68a';
+      ctx.font = '12px "Press Start 2P", monospace';
+      ctx.fillText('SPÉLÉOLOGIE', 196, 252);
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+      const file = new File([blob], 'carte-de-mineur.png', { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'Ma carte de mineur' });
+      } else {
+        const link = el('a', { href: URL.createObjectURL(blob), download: 'carte-de-mineur.png' });
+        link.click();
+        status.textContent = 'Carte enregistrée sur cet appareil.';
+      }
+    } catch (err) {
+      if (err && err.name !== 'AbortError') status.textContent = 'Impossible de créer la carte sur cet appareil.';
+    }
+  }
+  $('btn-pf-share').addEventListener('click', shareProfileCard);
+
+  /** Nouveau profil : appelé après l'affichage de l'écran (les blocs sont tous ouverts, les onglets choisissent ce qu'on voit). */
+  function finishBetaProfile(profile) {
+    const on = betaOn('betaProfil');
+    $('pf-hero').hidden = !on;
+    $('pf-tabs').hidden = !on;
+    for (const id of ['pf-tiles', 'pf-showcase', 'pf-charts', 'pf-timeline']) $(id).hidden = !on;
+    $('pf-next').hidden = !on || $('next-badges').hidden;
+    if (!on) return void delete $('view-profile').dataset.active;
+    document.querySelectorAll('#view-profile > details.fold').forEach((d) => (d.open = true));
+    $('next-badges').open = true;
+    prof.timelineAll = false;
+    renderProfileHero(profile);
+    renderProfileTiles(profile);
+    renderProfileShowcase(profile);
+    renderProfileTimeline(profile);
+    setProfileTab(prof.tab || 'apercu');
+  }
+
   async function openProfile() {
     stopTimer();
     try {
@@ -2546,6 +2832,7 @@
       renderProfile(profile);
       show('profile');
       initFolds();
+      finishBetaProfile(profile);
       loadSuggestions();
       loadBilan(app.bilanMonth || null);
       if (profile.badges.some((b) => b.isNew)) {
@@ -3121,7 +3408,7 @@
           el(
             'summary',
             {},
-            el('span', { class: 'fold-t' }, el('span', {}, title), el('span', { class: 'muted small' }, ` ${earned}/${all.length}`), fresh ? el('span', { class: 'new-dot' }, 'nouveau') : null),
+            el('span', { class: 'fold-t' }, el('span', {}, title), el('span', { class: 'muted small' }, ` ${earned}/${all.length}`), betaOn('betaProfil') ? el('span', { class: 'mini-bar', 'aria-hidden': 'true' }, (() => { const f = el('span', { class: 'mini-fill' }); f.style.width = `${Math.round((earned / all.length) * 100)}%`; return f; })()) : null, fresh ? el('span', { class: 'new-dot' }, 'nouveau') : null),
             el('span', { class: 'pm', 'aria-hidden': 'true' }),
           ),
           el('div', { class: 'badge-table' }, ...list.map(badgeTile)),

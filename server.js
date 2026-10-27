@@ -416,7 +416,8 @@ function createApp({
     // Carnet du joueur : badges, statistiques et apparences de la foreuse.
     'GET /api/profile': async (req, res) => {
       const user = requireUser(req, res);
-      json(res, 200, { ...game.badges.profile(user.id, game.today()), playerStats: game.playerStats(user.id), skulls: { ...game.skulls.collection(user.id), active: game.skulls.isSkullDay(game.today()) } });
+      const joined = db.prepare('SELECT created_at FROM users WHERE id = ?').get(user.id);
+      json(res, 200, { ...game.badges.profile(user.id, game.today()), joinedAt: joined ? joined.created_at : null, playerStats: game.playerStats(user.id), skulls: { ...game.skulls.collection(user.id), active: game.skulls.isSkullDay(game.today()) } });
     },
 
     // Bilan d'un mois (AAAA-MM, le mois courant par défaut).
