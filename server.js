@@ -489,7 +489,7 @@ function createApp({
 
     'GET /api/feed': async (req, res, _id, url) => {
       const user = requireUser(req, res);
-      json(res, 200, feed(game, user.id, Number(url.searchParams.get('limit')) || 3));
+      json(res, 200, feed(game, user.id, Number(url.searchParams.get('limit')) || 3, url.searchParams.get('date')));
     },
 
     // La vie de la mine sur l'accueil (version bêta, réservée au responsable pour l'instant).

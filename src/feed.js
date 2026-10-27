@@ -3,7 +3,7 @@
 const Avatar = require('./avatar');
 const { CATALOG } = require('./badges');
 const { collectiveStatus } = require('./collective');
-const { addDays } = require('./dates');
+const { addDays, dayKey, isDay } = require('./dates');
 
 /*
  * « Le Petit Mineur » : les dernières nouvelles de la mine (duels terminés, pépites, badges, défi collectif).
@@ -12,7 +12,10 @@ const { addDays } = require('./dates');
 const SKIPPED_BADGES = new Set(['premier-forage', 'pensees-jumelles']);
 const SKIPPED_CATEGORIES = new Set(['themes', 'entrainement']);
 
-function feed(game, userId, limit = 3) {
+function feed(game, userId, limit = 3, date = null) {
+  // Un jour précis : on remonte bien plus loin dans l'historique, puis on ne garde que les nouvelles de ce jour-là.
+  const day = isDay(date) ? date : null;
+  const deep = day ? 500 : 15;
   const db = game.db;
   const now = game.now();
   const who = (id) => {
@@ -22,7 +25,7 @@ function feed(game, userId, limit = 3) {
   const events = [];
 
   // Duels terminés.
-  for (const d of db.prepare("SELECT * FROM duels WHERE status = 'done' AND validated_at IS NOT NULL ORDER BY finished_at DESC LIMIT 15").all()) {
+  for (const d of db.prepare("SELECT * FROM duels WHERE status = 'done' AND validated_at IS NOT NULL ORDER BY finished_at DESC LIMIT ?").all(deep)) {
     const a = who(d.challenger_id);
     const b = who(d.opponent_id);
     if (!a || !b) continue;
@@ -40,16 +43,16 @@ function feed(game, userId, limit = 3) {
   for (const r of db
     .prepare(
       `SELECT g.user_id AS userId, g.day, COUNT(*) AS n, MAX(r.answered_at) AS ts FROM rounds r JOIN games g ON g.id = r.game_id
-       WHERE g.mode = 'daily' AND r.outcome = 'answer' AND r.points >= 100 GROUP BY g.id ORDER BY ts DESC LIMIT 15`,
+       WHERE g.mode = 'daily' AND r.outcome = 'answer' AND r.points >= 100 GROUP BY g.id ORDER BY ts DESC LIMIT ?`,
     )
-    .all()) {
+    .all(deep)) {
     const u = who(r.userId);
     if (u) events.push({ type: 'pepite', ts: r.ts, icon: 'pepite', user: u, text: `${u.username} a trouvé ${r.n > 1 ? `${r.n} pépites` : 'une pépite'} dans son forage du ${r.day.slice(8)}/${r.day.slice(5, 7)}.` });
   }
 
   // Badges : regroupés par joueur et par jour.
   const byUserDay = new Map();
-  for (const b of db.prepare('SELECT user_id, kind, instance, earned_on, created_at FROM badges ORDER BY created_at DESC LIMIT 80').all()) {
+  for (const b of db.prepare('SELECT user_id, kind, instance, earned_on, created_at FROM badges ORDER BY created_at DESC LIMIT ?').all(day ? 1500 : 80)) {
     const def = CATALOG.get(b.kind);
     if (!def || SKIPPED_BADGES.has(b.kind) || SKIPPED_CATEGORIES.has(def.category)) continue;
     const key = `${b.user_id}|${b.earned_on}`;
@@ -70,7 +73,8 @@ function feed(game, userId, limit = 3) {
   }
 
   events.sort((a, b) => b.ts - a.ts);
-  return { now, events: events.slice(0, Math.max(1, Math.min(20, limit))) };
+  const wanted = day ? events.filter((e) => dayKey(e.ts) === day) : events;
+  return { now, date: day, events: wanted.slice(0, Math.max(1, Math.min(60, limit))) };
 }
 
 /** « Aujourd'hui dans la mine » : combien de mineurs ont foré, et les derniers forages terminés. */

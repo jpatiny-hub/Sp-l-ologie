@@ -41,6 +41,10 @@
   const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false };
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
   for (const flag of BETA_FLAGS) settings[flag] = false;
+  // Labo sonore : essais d'ambiance réservés au responsable, qui restent hors de la bêta ouverte à tous.
+  const LAB_FLAGS = ['labTaps', 'labRumble', 'labMelody'];
+  let ambientKey = ''; // dernier état de l'ambiance sonore (voir syncAmbient)
+  for (const flag of LAB_FLAGS) settings[flag] = false;
   const home = { moved: false, origin: new Map() }; // état du nouvel accueil (voir layoutHome)
   const prof = { moved: false, tab: 'apercu', timelineAll: false, locked: { body: false, bit: false, timer: false } }; // état du nouveau profil (voir layoutProfile)
   try {
@@ -66,6 +70,7 @@
   const isLight = () => settings.lisible || settings.theme === 'clair' || (settings.theme === 'auto' && !!(lightQuery && lightQuery.matches));
   if (lightQuery && lightQuery.addEventListener) lightQuery.addEventListener('change', () => settings.theme === 'auto' && applySettings());
   /** Nouveautés à l'essai : réservées au responsable du jeu, une par une. */
+  const labOn = (name) => !!(app.me && app.me.isAdmin && settings[name]);
   const betaOn = (name) => !!(app.me && app.me.isAdmin && settings[name]);
 
   const isHalloween = () => document.documentElement.dataset.season === 'halloween';
@@ -114,6 +119,7 @@
     root.toggleAttribute('data-beta-fx', betaOn('betaFx'));
     applyDaypart();
     updateNav();
+    syncAmbient();
     if (app.me && app.me.today) {
       renderBetaHello();
       renderBetaSocial();
@@ -231,6 +237,8 @@
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
     $('beta-box').hidden = !(app.me && app.me.isAdmin);
     for (const name of BETA_FLAGS) settingsForm.elements[name].checked = !!settings[name];
+    $('lab-box').hidden = !(app.me && app.me.isAdmin);
+    for (const name of LAB_FLAGS) settingsForm.elements[name].checked = !!settings[name];
     renderInstall();
     $('settings').showModal();
   });
@@ -244,6 +252,7 @@
     settings.lisible = settingsForm.elements.lisible.checked;
     settings.season = settingsForm.elements.season.checked;
     for (const name of BETA_FLAGS) settings[name] = settingsForm.elements[name].checked;
+    for (const name of LAB_FLAGS) settings[name] = settingsForm.elements[name].checked;
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
     applySettings();
     saveSettings();
@@ -416,6 +425,17 @@
     window._paq.push(['trackPageView']);
   }
 
+  /** Ambiance sonore de l'accueil (labo du responsable) : seulement sur l'accueil, onglet visible, son activé. */
+  function syncAmbient() {
+    const on = !!(app.me && app.me.isAdmin && app.view === 'home' && !document.hidden && settings.sound && LAB_FLAGS.some((f) => settings[f]));
+    const key = on ? LAB_FLAGS.map((f) => settings[f]).join() : '';
+    if (key === ambientKey) return;
+    ambientKey = key;
+    if (on) Sound.ambient({ taps: settings.labTaps, rumble: settings.labRumble, melody: settings.labMelody });
+    else Sound.ambientStop();
+  }
+  document.addEventListener('visibilitychange', syncAmbient);
+
   function show(view) {
     trackView(view);
     closeFoldsOfLeftView(view);
@@ -431,6 +451,7 @@
     $('drawer-tab').hidden = !(view === 'home' && app.me);
     app.view = view;
     updateNav();
+    syncAmbient();
     if ($('drawer').open) $('drawer').close();
     $('settings-account').hidden = !app.me;
     fitCanvas();
@@ -669,7 +690,7 @@
     updateNav();
     renderDuelDot();
     renderAdminHome();
-    loadFeed(3);
+    loadFeed();
     loadMuseumNote();
     if (!$('mode-duel').hidden) loadDuels();
     updateCountdown();
@@ -910,8 +931,11 @@
       relocate(nodes.player, $('hero-player'));
       relocate(nodes.chips, $('hero-chips'));
       relocate(nodes.note, $('hero-chips'));
-      relocate(nodes.duel, $('play-sheet-body'));
       relocate(nodes.training, $('play-sheet-body'));
+      relocate(nodes.duel, $('play-sheet-body'));
+      home.texts = home.texts || { duel: nodes.duel.querySelector('p').textContent, training: nodes.training.querySelector('p').textContent };
+      nodes.duel.querySelector('p').textContent = 'Défie un joueur sur 7 thèmes. Résultat dévoilé le lendemain matin.';
+      nodes.training.querySelector('p').textContent = 'Des thèmes au hasard, sans classement.';
       relocate(nodes.feed, $('mine-journal'));
       relocate(nodes.rules, $('mine-rules'));
       nodes.tabs.hidden = true;
@@ -921,6 +945,10 @@
       title.textContent = 'Forage du jour';
     } else {
       for (const key of ['player', 'chips', 'note', 'tabs', 'duel', 'training', 'feed', 'rules']) restore(nodes[key]);
+      if (home.texts) {
+        nodes.duel.querySelector('p').textContent = home.texts.duel;
+        nodes.training.querySelector('p').textContent = home.texts.training;
+      }
       nodes.tabs.hidden = false;
       const active = document.querySelector('#mode-tabs .tab.active');
       const mode = active ? active.dataset.mode : 'daily';
@@ -991,7 +1019,7 @@
     if (go === 'mine') {
       if (betaOn('betaHome')) {
         $('feed-fold').open = true;
-        await loadFeed(10);
+        await loadFeed();
       }
       await openMuseum();
       return markFeedSeen();
@@ -2910,6 +2938,102 @@
   }
 
   // ---------- Musée des pépites ----------
+  /**
+   * Annonce de l'arrivée de Jack-o'-lantern (31 octobre) au-dessus du journal de la mine : du 28 au 31 octobre,
+   * avec un compte à rebours et un épouvantail à tête de citrouille aux yeux verts. On n'en dit pas plus.
+   */
+  function drawJack() {
+    const draw = (id, rows, pal) => {
+      const ctx = $(id).getContext('2d');
+      ctx.clearRect(0, 0, 32, 48);
+      rows.forEach((row, y) => [...row.padEnd(32, '.')].forEach((c, x) => {
+        if (pal[c]) {
+          ctx.fillStyle = pal[c];
+          ctx.fillRect(x, y, 1, 1);
+        }
+      }));
+    };
+    // Tête (citrouille), cou, chapeau de paille, bras en croix, haillons et poteau : 32 x 48.
+    const base = [
+      '..........kkkkkkkkkk..........',
+      '.........kssssssssssk.........',
+      '......kkkkkssssssssskkkkk.....',
+      '.....kssssssssssssssssssk.....',
+      '..........kkkkkkkkkk..........',
+      '........kkoooooooooookk.......',
+      '.......koooooooooooooook......',
+      '......kooooooooooooooooook.....',
+      '......koooooooooooooooook......',
+      '......kooooooooooooooooook.....',
+      '......kooooooooooooooooook.....',
+      '......kooooooooooooooooook.....',
+      '......kooooooooooooooooook.....',
+      '......kooooooooooooooooook.....',
+      '.......kooooooooooooooook......',
+      '........kkoooooooooookk.......',
+      '..........kkkkggkkkkk.........',
+      '.............kgk..............',
+      '.....kkkkkkkkkgkkkkkkkkkk.....',
+      '....kwwwkwwwwkgkwwwwkwwwwk....',
+      '...kswkkskkkkkgkkkkkkwkwwk....',
+      '...kk.kkcccccccccccckk.kk.....',
+      '.......kcccccccccccck.........',
+      '.......kcpcccccccpcck.........',
+      '.......kcccccccccccck.........',
+      '.......kccppcccccccck.........',
+      '.......kcccccccccpcck.........',
+      '.......kkcccccccccckk.........',
+      '........kwkwkwkwkwkk..........',
+      '.............kgk..............',
+      '.............kgk..............',
+      '.............kgk..............',
+      '.............kgk..............',
+      '.............kgk..............',
+      '.............kgk..............',
+      '.............kgk..............',
+      '.............kgk..............',
+      '.............kgk..............',
+      '.............kgk..............',
+      '.............kgk..............',
+      '.............kgk..............',
+      '.............kgk..............',
+      '.............kgk..............',
+      '.............kgk..............',
+      '.............kgk..............',
+      '.............kgk..............',
+      '.............kgk..............',
+      '.............kkk..............',
+    ];
+    draw('jack-base', base, { k: '#1b1410', s: '#d9b84a', o: '#d9772b', c: '#4a3a5c', p: '#7a5a8a', w: '#e8c547', g: '#6b4a2b' });
+    // Yeux et bouche : un vert qui luit (le halo vit dans le CSS, sans minuteur).
+    const glow = new Array(48).fill('.'.repeat(32)).map((r) => r.split(''));
+    const put = (x, y, w = 1, h = 1) => {
+      for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) glow[y + j][x + i] = 'e';
+    };
+    put(10, 10, 2, 2); // œil gauche
+    put(17, 10, 2, 2); // œil droit
+    put(9, 13, 1, 1);
+    put(11, 14, 8, 1); // bouche
+    put(10, 13, 1, 1);
+    put(19, 13, 1, 1);
+    put(12, 13, 1, 1);
+    put(15, 13, 1, 1);
+    put(18, 13, 1, 1);
+    draw('jack-glow', glow.map((r) => r.join('')), { e: '#7dff5a' });
+  }
+  function renderJack() {
+    const card = $('jack-card');
+    const day = app.me && app.me.today && app.me.today.day;
+    const md = day ? day.slice(5) : '';
+    const show = betaOn('betaHome') && day && md >= '10-28' && md <= '10-31';
+    card.hidden = !show;
+    if (!show) return;
+    const left = 31 - Number(md.slice(3));
+    drawJack();
+    $('jack-title').textContent = left === 0 ? "Jack-o'-lantern arrive ce soir" : left === 1 ? "Jack-o'-lantern arrive demain" : `Jack-o'-lantern arrive dans ${left} jours`;
+    $('jack-sub').textContent = left === 0 ? 'Quelque chose remue dans les galeries…' : 'Quelque chose approche dans les galeries…';
+  }
+
   async function openMuseum() {
     try {
       const data = await api('/api/museum');
@@ -2917,6 +3041,7 @@
       app.museumNew = 0;
       try { localStorage.setItem(MUSEUM_SEEN_KEY, String(data.total)); } catch { /* sans stockage */ }
       renderMuseum();
+      renderJack();
       show('museum');
     } catch (err) {
       showNotice(err.message);
@@ -2991,38 +3116,62 @@
     return d === 1 ? 'hier' : `il y a ${d} jours`;
   }
 
-  async function loadFeed(limit = 3) {
+  /**
+   * Journal de la mine. Nouvel accueil : cinq nouvelles récentes, « Tout voir » pour le reste, et un jour précis au choix.
+   * `date` (AAAA-MM-JJ) : uniquement les nouvelles de ce jour-là.
+   */
+  async function loadFeed(limit, date = null) {
+    const nice = betaOn('betaHome');
+    if (limit === undefined) limit = nice ? 5 : 3;
     try {
-      const { events: all, now } = await api(`/api/feed?limit=${Math.max(limit, 10)}`);
+      const { events: all, now } = await api(`/api/feed?limit=${date ? 60 : nice && limit > 10 ? 60 : Math.max(limit, 10)}${date ? `&date=${date}` : ''}`);
       const events = all.slice(0, limit);
       app.feedLimit = limit;
-      app.feedNewest = all.reduce((m, e) => Math.max(m, e.ts || 0), 0);
-      let seen = 0;
-      try {
-        seen = Number(localStorage.getItem(FEED_SEEN_KEY)) || 0;
-      } catch {
-        /* sans stockage : pas de pastille pour le journal */
-        seen = app.feedNewest;
+      app.feedDate = date;
+      if (!date) {
+        app.feedNewest = all.reduce((m, e) => Math.max(m, e.ts || 0), 0);
+        let seen = 0;
+        try {
+          seen = Number(localStorage.getItem(FEED_SEEN_KEY)) || 0;
+        } catch {
+          /* sans stockage : pas de pastille pour le journal */
+          seen = app.feedNewest;
+        }
+        app.drawerNews = app.drawerNews || {};
+        app.drawerNews.feed = app.feedNewest > seen;
+        app.feedNew = all.filter((e) => (e.ts || 0) > seen && e.type !== 'pepite').length;
+        updateDrawerDot();
+        if (!$('bottom-nav').hidden) updateBubbles();
       }
-      app.drawerNews = app.drawerNews || {};
-      app.drawerNews.feed = app.feedNewest > seen;
-      app.feedNew = all.filter((e) => (e.ts || 0) > seen && e.type !== 'pepite').length;
-      updateDrawerDot();
-      if (!$('bottom-nav').hidden) updateBubbles();
       $('feed-list').replaceChildren(
         ...events.map((e) => {
           const icon = el('canvas', { class: 'feed-icon', width: '16', height: '16', 'aria-hidden': 'true' });
           Icons.drawIcon(icon, e.icon);
-          return el('li', {}, icon, e.user ? avatarEl(e.user.avatar, 'head', 2) : null, el('div', { class: 'feed-text' }, el('span', {}, e.text), el('span', { class: 'feed-ago' }, ago(e.ts, now))));
+          return el('li', {}, icon, e.user ? avatarEl(e.user.avatar, 'head', 2) : null, el('div', { class: 'feed-text' }, el('span', {}, e.text), el('span', { class: 'feed-ago' }, date ? hourOf(e.ts) : ago(e.ts, now))));
         }),
       );
-      if (!events.length) $('feed-list').append(el('li', { class: 'muted' }, betaOn('betaWarm') ? 'Pas encore de nouvelles : la mine est calme… pour l\'instant !' : "Pas encore de nouvelles : la mine est calme."));
-      $('btn-feed-more').hidden = limit >= 10 || all.length <= limit;
+      if (!events.length) {
+        $('feed-list').append(el('li', { class: 'muted' }, date ? 'Rien de notable ce jour-là.' : betaOn('betaWarm') ? 'Pas encore de nouvelles : la mine est calme… pour l\'instant !' : 'Pas encore de nouvelles : la mine est calme.'));
+      }
+      $('feed-tools').hidden = !nice;
+      $('btn-feed-recent').hidden = !date;
+      if (!date) $('feed-date').value = '';
+      const more = $('btn-feed-more');
+      more.hidden = date ? false : limit >= (nice ? 60 : 10) || all.length <= limit;
+      more.textContent = nice ? 'Tout voir' : 'Plus de nouvelles';
+      if (date) more.hidden = true;
     } catch {
       /* le journal est facultatif */
     }
   }
-  $('btn-feed-more').addEventListener('click', () => loadFeed(10));
+  const hourOf = (ts) => new Date(ts).toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Brussels' });
+  $('btn-feed-more').addEventListener('click', () => loadFeed(betaOn('betaHome') ? 60 : 10));
+  $('feed-date').addEventListener('change', () => {
+    const value = $('feed-date').value;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) loadFeed(60, value);
+    else loadFeed();
+  });
+  $('btn-feed-recent').addEventListener('click', () => loadFeed());
 
   // ---------- Annonces du responsable ----------
   function renderAnnouncements() {
@@ -4653,12 +4802,22 @@
       return row;
     });
     const r = data.record;
+    // Nouvel accueil : trois résultats récents seulement, le reste sur demande.
+    const compact = betaOn('betaHome') && !app.duelResultsAll && results.length > 3;
+    const more = betaOn('betaHome') && results.length > 3 ? el('button', { class: 'link', type: 'button' }, compact ? `Voir les ${results.length} résultats` : 'Réduire la liste') : null;
+    if (more) {
+      more.addEventListener('click', () => {
+        app.duelResultsAll = !app.duelResultsAll;
+        renderDuels(data);
+      });
+    }
     box.replaceChildren(
       ...[
         section('À toi de jouer', received),
         section('En cours', sent),
         section('Chez le contremaître', checking),
-        section('Résultats', results),
+        section('Résultats', compact ? results.slice(0, 3) : results),
+        more,
         r.wins + r.losses + r.draws ? el('p', { class: 'muted small' }, `Bilan : ${r.wins} victoire${r.wins > 1 ? 's' : ''}, ${r.losses} défaite${r.losses > 1 ? 's' : ''}${r.draws ? `, ${r.draws} égalité${r.draws > 1 ? 's' : ''}` : ''}.`) : null,
       ].filter(Boolean),
     );
