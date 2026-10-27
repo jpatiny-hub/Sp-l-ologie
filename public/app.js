@@ -3301,8 +3301,9 @@
         $('feed-list').append(el('li', { class: 'muted' }, date ? 'Rien de notable ce jour-là.' : betaOn('betaWarm') ? 'Pas encore de nouvelles : la mine est calme… pour l\'instant !' : 'Pas encore de nouvelles : la mine est calme.'));
       }
       $('feed-tools').hidden = !nice;
-      $('btn-feed-recent').hidden = !date;
-      if (!date) $('feed-date').value = '';
+      const today = app.me && app.me.today ? app.me.today.day : null;
+      $('feed-label').textContent = date ? `${date === today ? 'Aujourd\'hui · ' : ''}${formatDay(date, { weekday: 'long', day: 'numeric', month: 'long' })}` : 'Dernières nouvelles';
+      $('btn-feed-next').disabled = !date;
       const more = $('btn-feed-more');
       more.hidden = date ? false : limit >= (nice ? 60 : 10) || all.length <= limit;
       more.textContent = nice ? 'Tout voir' : 'Plus de nouvelles';
@@ -3313,12 +3314,23 @@
   }
   const hourOf = (ts) => new Date(ts).toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Brussels' });
   $('btn-feed-more').addEventListener('click', () => loadFeed(betaOn('betaHome') ? 60 : 10));
-  $('feed-date').addEventListener('change', () => {
-    const value = $('feed-date').value;
-    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) loadFeed(60, value);
-    else loadFeed();
+  // Parcourir le journal jour par jour (flèches, comme le podium) : « Dernières nouvelles » est l'état de départ.
+  const shiftFeedDay = (day, n) => {
+    const d = new Date(`${day}T12:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + n);
+    return d.toISOString().slice(0, 10);
+  };
+  $('btn-feed-prev').addEventListener('click', () => {
+    const today = app.me && app.me.today ? app.me.today.day : null;
+    if (!today) return;
+    loadFeed(60, app.feedDate ? shiftFeedDay(app.feedDate, -1) : today);
   });
-  $('btn-feed-recent').addEventListener('click', () => loadFeed());
+  $('btn-feed-next').addEventListener('click', () => {
+    const today = app.me && app.me.today ? app.me.today.day : null;
+    if (!app.feedDate) return;
+    const next = shiftFeedDay(app.feedDate, 1);
+    loadFeed(...(today && next > today ? [] : [60, next]));
+  });
 
   // ---------- Annonces du responsable ----------
   function renderAnnouncements() {

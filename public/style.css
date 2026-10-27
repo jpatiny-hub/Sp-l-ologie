@@ -1511,10 +1511,9 @@ button.pf-title:focus-visible { outline: 3px solid var(--ink); outline-offset: 2
 .jack-text h2 { margin: 0 0 6px; color: #8dff6a; text-shadow: 0 0 8px rgba(125, 255, 90, 0.35); }
 .jack-text p { margin: 0; }
 
-/* Journal : outils de date */
-.feed-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0 10px; }
-.feed-tools input[type='date'] { font: inherit; padding: 4px 6px; color: var(--ink); background: var(--well); border: 2px solid var(--line); color-scheme: dark; }
-:root[data-theme='clair'] .feed-tools input[type='date'] { color-scheme: light; }
+/* Journal : navigation par jour, comme le podium */
+.feed-nav { margin: 6px 0 10px; }
+.feed-nav h3 { margin: 0; flex: 1; text-align: center; font-size: calc(10px * var(--fs)); color: var(--accent); line-height: 1.5; }
 
 /* Nouvel accueil : lanterne et étais plus discrets */
 :root[data-beta-home] .hero-chips .streak, :root[data-beta-home] .hero-chips .freezes { background: transparent; box-shadow: none; padding: 0; gap: 6px; }
