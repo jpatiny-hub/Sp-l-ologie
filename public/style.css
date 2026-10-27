@@ -1379,3 +1379,9 @@ kbd { padding: 0 6px; border: 2px solid var(--line); background: var(--well); fo
 .bottom-nav button.active .nav-ico { transform: translateY(-3px); }
 .bottom-nav button.active .nav-lab { color: var(--accent); }
 :root[data-season] .fx-layer { display: none; }
+
+/* Nouvel accueil : l'onglet vertical « Plus » n'a plus lieu d'être (musée, journal, règles : onglet « Mine » ; administration : onglet « Admin »). */
+:root[data-beta-home] .drawer-tab { display: none !important; }
+.nav-lab { font-size: calc(17px * var(--fs)); }
+#mine-journal > .card, #mine-rules > .card { margin: var(--px); }
+#mine-journal, #mine-rules { display: flex; flex-direction: column; }

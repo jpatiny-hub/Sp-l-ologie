@@ -895,6 +895,8 @@
       tabs: $('mode-tabs'),
       duel: $('mode-duel'),
       training: $('mode-training'),
+      feed: $('feed-fold'),
+      rules: document.querySelector('#drawer .rules'),
     };
     const title = document.querySelector('.play-card > h2');
     if (on) {
@@ -903,13 +905,15 @@
       relocate(nodes.note, $('hero-chips'));
       relocate(nodes.duel, $('play-sheet-body'));
       relocate(nodes.training, $('play-sheet-body'));
+      relocate(nodes.feed, $('mine-journal'));
+      relocate(nodes.rules, $('mine-rules'));
       nodes.tabs.hidden = true;
       nodes.duel.hidden = false;
       nodes.training.hidden = false;
       $('mode-daily').hidden = false;
       title.textContent = 'Forage du jour';
     } else {
-      for (const key of ['player', 'chips', 'note', 'tabs', 'duel', 'training']) restore(nodes[key]);
+      for (const key of ['player', 'chips', 'note', 'tabs', 'duel', 'training', 'feed', 'rules']) restore(nodes[key]);
       nodes.tabs.hidden = false;
       const active = document.querySelector('#mode-tabs .tab.active');
       const mode = active ? active.dataset.mode : 'daily';
@@ -921,7 +925,7 @@
   }
 
   /** Icônes en pixel art de la barre du bas (le profil montre la tête du personnage du joueur). */
-  const NAV_ICONS = { home: 'maison', play: 'pioche', podium: 'trophee', messages: 'enveloppe', museum: 'pepite', journal: 'journal' };
+  const NAV_ICONS = { home: 'maison', play: 'pioche', messages: 'enveloppe', mine: 'pepite', admin: 'bouclier' };
   function drawNavIcons() {
     document.querySelectorAll('#bottom-nav button').forEach((button) => {
       const kind = button.dataset.nav;
@@ -950,10 +954,10 @@
     if (!me) return;
     setBubble('messages', me.unreadMessages || 0);
     setBubble('play', me.today && !me.today.finished ? true : !$('duel-dot').hidden);
-    setBubble('podium', (me.celebrations || []).length || 0);
     setBubble('profile', me.unseenBadges || 0);
-    setBubble('museum', app.museumNew || 0);
-    setBubble('journal', app.feedNew || 0);
+    // « Mine » : nouvelles pépites au musée, plus les nouvelles du journal (les annonces de pépites y sont déjà comptées au musée).
+    setBubble('mine', (app.museumNew || 0) + (app.feedNew || 0));
+    setBubble('admin', me.isAdmin ? app.adminPending || 0 : 0);
   }
 
   /** Barre du bas : mêmes destinations que sur l'accueil, plus le musée et le journal. */
@@ -963,7 +967,8 @@
     const view = app.view;
     const hiddenViews = ['auth', 'game', 'results', 'recap', 'duel'];
     nav.hidden = !((betaOn('betaNav') || betaOn('betaHome')) && app.me && view && !hiddenViews.includes(view));
-    nav.querySelectorAll('button').forEach((b) => b.classList.toggle('active', (b.dataset.nav === 'home' && view === 'home') || (b.dataset.nav === 'podium' && view === 'podium') || (b.dataset.nav === 'messages' && view === 'messages') || (b.dataset.nav === 'museum' && view === 'museum') || (b.dataset.nav === 'profile' && view === 'profile')));
+    nav.querySelectorAll('button').forEach((b) => b.classList.toggle('active', (b.dataset.nav === 'home' && view === 'home') || (b.dataset.nav === 'podium' && view === 'podium') || (b.dataset.nav === 'messages' && view === 'messages') || (b.dataset.nav === 'mine' && view === 'museum') || (b.dataset.nav === 'admin' && view === 'admin') || (b.dataset.nav === 'profile' && view === 'profile')));
+    nav.querySelector('[data-nav="admin"]').hidden = !(app.me && app.me.isAdmin);
     if (!nav.hidden) {
       drawNavIcons();
       updateBubbles();
@@ -975,12 +980,13 @@
     const go = button.dataset.nav;
     if (go === 'messages') return openMessages();
     if (go === 'profile') return $('btn-carnet').click();
-    if (go === 'podium') return $('btn-podium').click();
-    if (go === 'museum') return openMuseum();
-    if (go === 'journal') {
-      $('drawer').showModal();
-      $('feed-fold').open = true;
-      await loadFeed(10);
+    if (go === 'admin') return openAdmin();
+    if (go === 'mine') {
+      if (betaOn('betaHome')) {
+        $('feed-fold').open = true;
+        await loadFeed(10);
+      }
+      await openMuseum();
       return markFeedSeen();
     }
     if (go === 'play' && betaOn('betaHome')) {
@@ -2648,7 +2654,7 @@
       }
       app.drawerNews = app.drawerNews || {};
       app.drawerNews.feed = app.feedNewest > seen;
-      app.feedNew = all.filter((e) => (e.ts || 0) > seen).length;
+      app.feedNew = all.filter((e) => (e.ts || 0) > seen && e.type !== 'pepite').length;
       updateDrawerDot();
       if (!$('bottom-nav').hidden) updateBubbles();
       $('feed-list').replaceChildren(
@@ -2851,6 +2857,8 @@
       $('admin-home-note').textContent = bits.length ? bits.join(' · ') : 'Rien à traiter pour le moment.';
       app.drawerNews = app.drawerNews || {};
       app.drawerNews.admin = bits.length > 0;
+      app.adminPending = (dash.pendingReports || 0) + pending;
+      if (!$('bottom-nav').hidden) updateBubbles();
       updateDrawerDot();
     } catch {
       /* le bouton reste utilisable sans ces compteurs */
