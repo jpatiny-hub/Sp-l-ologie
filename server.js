@@ -356,6 +356,12 @@ function createApp({
       json(res, 200, { ok: true });
     },
 
+    // Signaux discrets sur la façon dont les réponses sont données (collage, page quittée…), pour le responsable.
+    'GET /api/admin/suspicions': async (req, res, _id, url) => {
+      requireAdmin(req, res);
+      json(res, 200, game.signals.report(Number(url.searchParams.get('days')) || 14));
+    },
+
     // Duels terminés en attente de validation, et validation immédiate à la demande du responsable.
     'GET /api/admin/duels/pending': async (req, res) => {
       requireAdmin(req, res);
@@ -677,9 +683,9 @@ function createApp({
 
     'POST /api/game/:id/answer': async (req, res, id) => {
       const user = requireUser(req, res);
-      const { text, accept, reject } = await readJson(req);
+      const { text, accept, reject, sig } = await readJson(req);
       // Retours précis sur les réponses refusées : version bêta, réservée au responsable pour l'instant.
-      json(res, 200, game.answer(id, user.id, text, { accept: typeof accept === 'string' ? accept : null, reject: reject === true, hints: isAdmin(user) }));
+      json(res, 200, game.answer(id, user.id, text, { accept: typeof accept === 'string' ? accept : null, reject: reject === true, hints: isAdmin(user), sig }));
     },
 
     'POST /api/game/:id/skip': async (req, res, id) => {

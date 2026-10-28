@@ -2018,6 +2018,44 @@
     }
   });
 
+  /**
+   * Intitulé du thème : le texte est du contenu généré (CSS), donc absent de la sélection et du presse-papiers ; les lecteurs d'écran
+   * le lisent grâce à l'étiquette. Ce n'est qu'un frein (une capture d'écran passe toujours), pas une garantie.
+   */
+  function protectText(node, text) {
+    node.textContent = '';
+    node.dataset.t = text;
+    node.classList.add('protected');
+    node.setAttribute('aria-label', text);
+  }
+
+  // Signaux discrets envoyés avec chaque réponse (texte collé, temps passé hors de la page, tentatives de copie) : de simples
+  // indices pour le responsable du jeu, ils ne bloquent ni ne punissent rien.
+  let signals = { p: 0, a: 0, n: 0, c: 0, e: 0, away: 0 };
+  const resetSignals = () => (signals = { p: 0, a: 0, n: 0, c: 0, e: 0, away: 0 });
+  const currentSignals = () => ({ p: signals.p, a: signals.a, n: signals.n, c: signals.c, e: signals.e });
+  const roundOn = () => !$('pane-prompt').hidden;
+  const inField = (event) => !!(event.target && event.target.closest && event.target.closest('input, textarea'));
+  $('answer-input').addEventListener('paste', () => (signals.p += 1));
+  $('answer-input').addEventListener('drop', () => (signals.p += 1));
+  $('answer-input').addEventListener('input', () => (signals.e += 1));
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (roundOn()) signals.away = Date.now();
+    } else if (signals.away) {
+      signals.a += Date.now() - signals.away;
+      signals.n += 1;
+      signals.away = 0;
+    }
+  });
+  for (const type of ['copy', 'cut', 'contextmenu', 'selectstart', 'dragstart']) {
+    $('pane-prompt').addEventListener(type, (event) => {
+      if (inField(event)) return;
+      event.preventDefault();
+      if (type === 'copy' || type === 'contextmenu') signals.c += 1;
+    });
+  }
+
   function showPrompt(round, remainingMs) {
     app.tried = new Set();
     app.triedTexts = [];
@@ -2026,7 +2064,8 @@
     $('pane-prompt').hidden = false;
     updateBanner();
     $('prompt-index').textContent = `Thème ${round.slot + 1} sur ${ROUNDS}`;
-    $('prompt-title').textContent = round.title;
+    protectText($('prompt-title'), round.title);
+    resetSignals();
     const jokerReady = !!(app.game.joker && app.game.joker.available);
     $('btn-skip').textContent = jokerReady ? 'Galerie de secours' : 'Passer';
     $('joker-note').hidden = !jokerReady;
@@ -2094,7 +2133,7 @@
     app.busy = true;
     const input = $('answer-input');
     try {
-      const res = await api(`/api/game/${app.game.id}/answer`, { text, ...extra });
+      const res = await api(`/api/game/${app.game.id}/answer`, { text, ...extra, sig: currentSignals() });
       if (res.result === 'confirm') {
         app.game = res.state;
         app.pending = { text, suggestion: res.suggestion };

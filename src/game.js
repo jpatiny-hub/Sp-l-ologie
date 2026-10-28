@@ -11,6 +11,7 @@ const { loadSpecialDays } = require('./specialdays');
 const config = require('./config');
 const { matchAnswer, toKey, editDistance, nearAnswers } = require('./matching');
 const { labelOf } = require('./titles');
+const { PlaySignals } = require('./suspicion');
 const { scoreAnswer, probabilities, pointsFor, tierFor } = require('./scoring');
 const { BadgeService } = require('./badges');
 const { usernameKey } = require('./auth');
@@ -40,6 +41,7 @@ class GameService {
     this.badges = new BadgeService(db, now);
     this.duels = new DuelService(this);
     this.skulls = new SkullService(db, this);
+    this.signals = new PlaySignals(db, now, themes);
   }
 
   today() {
@@ -616,7 +618,7 @@ class GameService {
    * le jeu propose la réponse reconnue (`confirm`) : le joueur la renvoie dans `accept` pour valider,
    * ou envoie `reject` pour la refuser et tenter autre chose.
    */
-  answer(gameId, userId, text, { accept = null, reject = false, hints = false } = {}) {
+  answer(gameId, userId, text, { accept = null, reject = false, hints = false, sig = null } = {}) {
     const input = typeof text === 'string' ? text.trim().slice(0, 80) : '';
     if (!input) throw new HttpError(400, 'Réponse vide.');
     const { game, round } = this.activeRound(gameId, userId);
@@ -631,6 +633,7 @@ class GameService {
       return resultFor('timeout');
     }
 
+    this.signals.record(game, round, input, sig);
     const theme = this.themes.get(round.theme_id);
     const match = theme ? matchAnswer(theme, input) : null;
     if (!match || (match.approximate && reject)) {

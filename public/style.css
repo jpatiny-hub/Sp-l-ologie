@@ -223,6 +223,10 @@ input:focus, textarea:focus { outline: none; box-shadow: inset 4px 4px 0 0 rgba(
 #game-score { color: var(--accent); }
 
 .theme-title { font-size: calc(16px * var(--fs)); color: var(--ink); line-height: 1.6; }
+/* Intitulé du thème : affiché comme contenu généré, que ni la sélection ni le copier-coller n'emportent. */
+.protected::before { content: attr(data-t); }
+#pane-prompt, #pane-ready { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+#pane-prompt input { -webkit-user-select: text; user-select: text; }
 .timer { display: flex; align-items: center; background: var(--well); box-shadow: 0 0 0 4px var(--line); margin: 4px 4px 16px; }
 .timer canvas { display: block; flex: 1; min-width: 0; aspect-ratio: 96 / 20; image-rendering: pixelated; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

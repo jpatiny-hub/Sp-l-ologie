@@ -96,6 +96,25 @@ CREATE TABLE IF NOT EXISTS answer_reports (
   PRIMARY KEY (user_id, theme_id, input_key)
 );
 
+-- Signaux discrets pour le responsable : comment une réponse a été donnée (collage, page quittée, copie de l'intitulé, rapidité).
+-- Simples indices, jamais des preuves ; conservés 90 jours.
+CREATE TABLE IF NOT EXISTS play_signals (
+  game_id    INTEGER NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+  slot       INTEGER NOT NULL,
+  user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at INTEGER NOT NULL,
+  first_ms   INTEGER,
+  last_ms    INTEGER,
+  paste_n    INTEGER NOT NULL DEFAULT 0,
+  away_ms    INTEGER NOT NULL DEFAULT 0,
+  away_n     INTEGER NOT NULL DEFAULT 0,
+  copy_n     INTEGER NOT NULL DEFAULT 0,
+  edits_n    INTEGER NOT NULL DEFAULT 0,
+  len        INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (game_id, slot)
+);
+CREATE INDEX IF NOT EXISTS play_signals_by_user ON play_signals(user_id, created_at);
+
 -- Thème de remplacement du jour (le « joker » : le même pour tous les joueurs).
 CREATE TABLE IF NOT EXISTS daily_spare (
   day      TEXT PRIMARY KEY,
