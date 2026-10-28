@@ -43,7 +43,7 @@
   for (const flag of BETA_FLAGS) settings[flag] = true;
   // Labo sonore : essais d'ambiance réservés au responsable, qui restent hors de la bêta ouverte à tous.
   const AMBIENT_FLAGS = ['labTaps', 'labRumble', 'labMelody'];
-  const LAB_FLAGS = [...AMBIENT_FLAGS, 'labTabs', 'labClicks', 'labTimer'];
+  const LAB_FLAGS = [...AMBIENT_FLAGS, 'labTabs', 'labClicks', 'labTimer', 'labMole', 'labReward'];
   let ambientKey = ''; // dernier état de l'ambiance sonore (voir syncAmbient)
   for (const flag of LAB_FLAGS) settings[flag] = false;
   const home = { moved: false, origin: new Map() }; // état du nouvel accueil (voir layoutHome)
@@ -922,7 +922,7 @@
 
   // ---------- Bêta : mascotte, ambiance, navigation, vie de la mine, textes ----------
   // La taupe mineuse : 16 × 16 pixels, trois humeurs (éveillée, yeux fermés pour le clin d'œil, endormie).
-  const MOLE_COLORS = { o: '#1b1410', b: '#8a5a32', d: '#5d3a1e', p: '#f0a0a0', h: '#f2c230', H: '#a77f12', w: '#ffffff', k: '#1b1410', l: '#fff4b0', c: '#e8d8b0' };
+  const MOLE_COLORS = { z: '#9fe8ff', o: '#1b1410', b: '#8a5a32', d: '#5d3a1e', p: '#f0a0a0', h: '#f2c230', H: '#a77f12', w: '#ffffff', k: '#1b1410', l: '#fff4b0', c: '#e8d8b0' };
   const MOLE = [
     '....oooooooo....',
     '...ohhhhhhhhHo..',
@@ -957,6 +957,22 @@
       for (const x of [6, 7, 8, 9, 10]) set(8, x, 'k');
       set(7, 4, 'p'); set(7, 13, 'p');
     }
+    if (mood === 'sad') {
+      // Sourcils tombants, paupière à moitié baissée, bouche en U renversé et une larme.
+      for (const x of [5, 6, 11, 12]) set(4, x, 'k');
+      for (const x of [5, 6, 11, 12]) set(5, x, 'b');
+      for (const x of [7, 8, 9, 10]) set(8, x, 'b');
+      set(8, 8, 'k'); set(8, 9, 'k'); set(9, 7, 'k'); set(9, 10, 'k');
+      set(7, 4, 'z'); set(8, 4, 'z');
+    }
+    if (mood === 'stars') {
+      // Des étoiles dans les yeux.
+      for (const x of [5, 11]) {
+        for (const [dy, dx, ch] of [[-1, 0, 'h'], [0, -1, 'h'], [0, 0, 'l'], [0, 1, 'h'], [1, 0, 'h'], [-1, 1, 'l'], [1, 1, 'l']]) set(5 + dy + 0, x + dx, ch);
+      }
+      for (const x of [7, 8, 9]) set(7, x, 'p');
+      for (const x of [6, 7, 8, 9, 10]) set(8, x, 'k');
+    }
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, 24, 16);
     rows.forEach((row, y) => row.forEach((ch, x) => {
@@ -965,6 +981,43 @@
       ctx.fillRect(x + OX, y, 1, 1);
     }));
   }
+
+  /**
+   * La taupe en forage (labo du responsable) : une bulle et une humeur selon ce qui se passe. Jamais de réaction à la rareté en duel.
+   */
+  const MOLE_LINES = {
+    start: ['Allez, on creuse !', 'Je sens du filon par ici…', 'À toi de jouer, mineur !', 'Mine de rien, ça va être bien !', 'Le casque est vissé, on y va !'],
+    wrong: ['Pas de panique, je ne suis pas au bout de mes galeries !', 'Raté… mais ça ne mine pas le moral !', 'Hmm… creuse une autre piste !', 'Gneiss essai ! Mais pas la bonne roche.', 'Un coup de pioche à côté, ça arrive.'],
+    confirm: ['Tu y es presque, je le sens !', 'Tu voulais dire ça ? Je te laisse juge.'],
+    low: ['Du caillou ordinaire, mais du caillou quand même !', 'Une réponse bien connue… ça rapporte toujours un peu.', 'On a vu plus rare, mais on avance !'],
+    mid: ['Joli filon !', 'Pas mal du tout, ça roche !', 'Du bon minerai, bravo !', 'Là, tu creuses profond !'],
+    high: ["Quel filon ! C'est du rare !", 'Waouh, je suis taupe-là !', 'Tu as du flair, mineur !', 'Du rubis, ni plus ni moins !'],
+    pepite: ["C'est taupissime !!!", "UNE PÉPITE ! Je n'en reviens pas !", 'Tu es au taupe, mineur !', "Du pur diamant… enfin, de l'or !", 'Je vais en faire des taupes-ries de joie !'],
+    skip: ['On passe ? Ça arrive, même aux meilleurs mineurs.', 'Pas grave, un autre thème nous attend !'],
+    timeout: ['Le chrono a eu raison de nous… la prochaine fois !', 'Trop tard ! Même les taupes ont des journées sans.'],
+    duel: ["Réponse enregistrée ! Suspense jusqu'au résultat…", 'Bien joué ! Le contremaître garde le secret.', 'Chut… personne ne sait rien avant demain !'],
+  };
+  const MOLE_MOODS = { start: 'look', wrong: 'sad', confirm: 'look', low: 'idle', mid: 'happy', high: 'happy', pepite: 'stars', skip: 'sad', timeout: 'sad', duel: 'happy' };
+  const moleLast = {};
+  /** Fait parler la taupe dans la zone `where` (« prompt » ou « feedback ») ; sans effet hors labo ou en réduisant les animations n'est pas nécessaire (pas d'animation). */
+  function moleSay(where, event) {
+    const box = $(`mole-${where}`);
+    if (!box) return;
+    if (!labOn('labMole')) {
+      box.hidden = true;
+      return;
+    }
+    const lines = MOLE_LINES[event] || [];
+    if (!lines.length) return void (box.hidden = true);
+    let text = lines[Math.floor(Math.random() * lines.length)];
+    if (lines.length > 1 && text === moleLast[event]) text = lines[(lines.indexOf(text) + 1) % lines.length];
+    moleLast[event] = text;
+    box.hidden = false;
+    drawMascot(box.querySelector('canvas'), MOLE_MOODS[event] || 'idle');
+    box.querySelector('.bubble').textContent = text;
+    box.dataset.mood = MOLE_MOODS[event] || 'idle';
+  }
+  const moleEventFor = (tierId) => ({ evident: 'low', courant: 'low', original: 'mid', rare: 'high', pepite: 'pepite', skip: 'skip', timeout: 'timeout' })[tierId] || 'low';
 
   // Outils de la taupe : motifs posés sur le canevas de 24 × 16, au-dessus de la taupe.
   const TOOL_COLORS = { k: '#1b1410', n: '#8a5a2b', S: '#c9ccd3', s: '#7d7d86', y: '#f2c230', Y: '#a77f12', W: '#fff6b0', f: '#ff9a2e', r: '#d9342b', R: '#8f1f19', c: '#9fe8ff', B: '#5ec8f0', w: '#ffffff', e: '#ece4cf', p: '#f3e9d2', P: '#b8a68a', g: '#5fa83a', t: '#c9a36b', h: '#e8d8b0' };
@@ -1119,6 +1172,28 @@
     }
     parent.append(burst);
     setTimeout(() => burst.remove(), 1100);
+  }
+
+  /**
+   * Récompense renforcée (labo) : plusieurs vagues d'étoiles, un éclat doré et un gros « pop » des points pour une pépite ;
+   * une vague plus discrète pour une réponse rare. Rien pour les autres (et rien si les animations sont réduites).
+   */
+  function rewardShower(pane, tierId) {
+    if (reducedMotion() || (tierId !== 'pepite' && tierId !== 'rare')) return;
+    const big = tierId === 'pepite';
+    pane.classList.remove('reward-flash');
+    void pane.offsetWidth;
+    pane.classList.add('reward-flash');
+    const waves = big ? 3 : 1;
+    for (let w = 0; w < waves; w++) {
+      setTimeout(() => burstSparks(pane, big ? 'pepite' : 'rare'), w * 260);
+    }
+    if (big) {
+      const points = $('feedback-points');
+      points.classList.remove('pop-big');
+      void points.offsetWidth;
+      points.classList.add('pop-big');
+    }
   }
 
   // ---------- Nouvel accueil (bêta) ----------
@@ -1917,6 +1992,7 @@
     $('answer-error').textContent = '';
     clearPending();
     hideReport();
+    moleSay('prompt', 'start');
     const input = $('answer-input');
     input.value = '';
     input.focus();
@@ -1985,6 +2061,7 @@
         $('answer-actions').hidden = true;
         hideReport();
         $('answer-error').textContent = '';
+        moleSay('prompt', 'confirm');
         Sound.ask();
         if (betaOn('betaKeys')) $('btn-confirm-yes').focus();
       } else if (res.result === 'unknown') {
@@ -2007,6 +2084,7 @@
         else input.select();
         app.game = res.state;
         offerReport(text);
+        moleSay('prompt', 'wrong');
         Sound.wrong();
       } else {
         clearPending();
@@ -2263,6 +2341,8 @@
       points.classList.add('pop');
       burstSparks($('pane-feedback'), round.tier.id);
     }
+    moleSay('feedback', moleEventFor(round.tier.id));
+    if (labOn('labReward')) rewardShower($('pane-feedback'), round.tier.id);
     Sound.tier(round.tier.id, pepites);
     Sound.buzz(round.tier.id, pepites);
     const answer = $('feedback-answer');
@@ -2296,6 +2376,7 @@
     $('pane-feedback').hidden = false;
     updateBanner();
     $('game-score').textContent = '—';
+    moleSay('feedback', 'duel');
     $('feedback-theme').textContent = round.title;
     $('feedback-points').textContent = round.outcome === 'answer' ? '✓' : '—';
     const tier = $('feedback-tier');

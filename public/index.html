@@ -193,6 +193,8 @@
         <label class="check"><input type="checkbox" name="labTabs"> Bruit léger entre les onglets (majeurs et mineurs)</label>
         <label class="check"><input type="checkbox" name="labClicks"> Bruit léger sur les boutons du forage et des duels</label>
         <label class="check"><input type="checkbox" name="labTimer"> Chrono sonore selon l'apparence du chrono</label>
+        <label class="check"><input type="checkbox" name="labMole"> Mascotte en forage : bulles et réactions</label>
+        <label class="check"><input type="checkbox" name="labReward"> Animation de récompense renforcée (pépites)</label>
       </fieldset>
       <fieldset id="share-box">
         <legend>Inviter des amis</legend>
@@ -570,6 +572,7 @@
         </div>
 
         <div class="card" id="pane-prompt" hidden>
+          <div class="game-mole" id="mole-prompt" hidden><canvas width="24" height="16" aria-hidden="true"></canvas><p class="bubble"></p></div>
           <p class="muted" id="prompt-index"></p>
           <h2 class="theme-title" id="prompt-title"></h2>
           <p class="muted small notimer-note" id="notimer-note" hidden>Mode « À l'aise » : pas de chrono, prends ton temps.</p>
@@ -599,6 +602,7 @@
         </div>
 
         <div class="card" id="pane-feedback" hidden>
+          <div class="game-mole" id="mole-feedback" hidden><canvas width="24" height="16" aria-hidden="true"></canvas><p class="bubble"></p></div>
           <p class="muted" id="feedback-theme"></p>
           <p class="feedback-points" id="feedback-points"></p>
           <p class="feedback-tier" id="feedback-tier"></p>
