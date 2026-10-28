@@ -1606,3 +1606,11 @@ button.pf-title:focus-visible { outline: 3px solid var(--ink); outline-offset: 2
 .sec-icon, .fold-icon { width: 24px; height: 24px; image-rendering: pixelated; flex: none; }
 details.fold > summary .fold-icon { width: 28px; height: 28px; }
 :root[data-beta-profil] #view-profile details.fold > summary .fold-icon { display: none; }
+
+/* Ancienne version (contremaître) */
+.versions { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 10px; }
+.version-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; height: auto; margin: 0; padding: 10px 12px; }
+.version-btn strong { font-family: 'Press Start 2P', monospace; font-size: calc(10px * var(--fs)); color: inherit; }
+.version-btn span { font-size: calc(15px * var(--fs)); font-family: inherit; text-transform: none; font-weight: normal; white-space: normal; line-height: 1.3; }
+.version-detail { margin-top: 6px; }
+.version-detail > summary { cursor: pointer; color: var(--muted); margin-bottom: 6px; }

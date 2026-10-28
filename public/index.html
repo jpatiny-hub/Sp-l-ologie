@@ -135,6 +135,8 @@
         <p class="hint">Sur téléphone : en forage, la saisie et les boutons restent en bas de l'écran, à portée du pouce.</p>
         <label class="check"><input type="checkbox" name="contrast"> Haut contraste</label>
         <p class="hint">Couleurs plus tranchées et contours nets partout.</p>
+        <label class="check"><input type="checkbox" name="mole"> Mascotte en forage</label>
+        <p class="hint">La taupe t'encourage et réagit à tes réponses, avec une bulle de dialogue.</p>
         <label class="check"><input type="checkbox" name="calm"> Réduire les animations</label>
         <p class="hint">Moins de mouvement : étincelles, flammes, secousses et défilements sont supprimés.</p>
       </fieldset>
@@ -168,8 +170,11 @@
         <p class="hint">Dans les modes daltoniens, chaque niveau de rareté a aussi son propre symbole : la couleur n'est jamais la seule information.</p>
       </fieldset>
       <fieldset id="beta-box" hidden>
-        <legend>Nouveau look (contremaître)</legend>
-        <p class="hint">Tout est actif pour tous les joueurs. Décoche une case pour revoir l'ancienne version, uniquement sur ton appareil.</p>
+        <legend>Ancienne version (contremaître)</legend>
+        <p class="hint">Revois le jeu tel qu'il était à une date donnée, uniquement sur cet appareil : les autres joueurs ne sont pas touchés.</p>
+        <div class="versions" id="version-list"></div>
+        <details class="version-detail">
+          <summary>Réglage détaillé</summary>
         <label class="check"><input type="checkbox" name="betaKeys"> Clavier : flèches, Entrée, O / N dans les propositions, « ? » pour l'aide</label>
         <label class="check"><input type="checkbox" name="betaHints"> Retours précis quand une réponse est refusée</label>
         <label class="check"><input type="checkbox" name="betaHome"> Nouvel accueil : fiche taupe, forage en haut, podium remonté, barre du bas illustrée</label>
@@ -180,6 +185,7 @@
         <label class="check"><input type="checkbox" name="betaFx"> Étincelles, flamme et ambiance de mine</label>
         <label class="check"><input type="checkbox" name="betaSocial"> La vie de la mine sur l'accueil</label>
         <label class="check"><input type="checkbox" name="betaWarm"> Textes plus chaleureux</label>
+        </details>
       </fieldset>
       <fieldset id="tuto-box">
         <legend>Tutoriel</legend>
@@ -189,14 +195,18 @@
       <fieldset id="lab-box" hidden>
         <legend>Labo sonore (contremaître)</legend>
         <p class="hint">Des essais d'ambiance sur l'accueil, jamais montrés aux autres joueurs. Ils suivent le réglage « Bruitages » ci-dessus.</p>
-        <label class="check"><input type="checkbox" name="labTaps"> Coups de pioche lointains</label>
-        <label class="check"><input type="checkbox" name="labRumble"> Grondement de la foreuse</label>
-        <label class="check"><input type="checkbox" name="labMelody"> Mélodie douce</label>
+        <label class="check"><input type="checkbox" name="labTaps"> Coups de pioche dans la roche (avec écho de galerie)</label>
+        <label class="check"><input type="checkbox" name="labRumble"> Grondement lointain de la mine</label>
+        <p class="hint">Musique d'accueil :</p>
+        <div class="choices">
+          <label><input type="radio" name="labMusic" value=""> Aucune</label>
+          <label><input type="radio" name="labMusic" value="galerie"> Galerie (calme)</label>
+          <label><input type="radio" name="labMusic" value="forge"> Forge (rythmée)</label>
+          <label><input type="radio" name="labMusic" value="cristal"> Cristal (boîte à musique)</label>
+        </div>
         <label class="check"><input type="checkbox" name="labTabs"> Bruit léger entre les onglets (majeurs et mineurs)</label>
         <label class="check"><input type="checkbox" name="labClicks"> Bruit léger sur les boutons du forage et des duels</label>
         <label class="check"><input type="checkbox" name="labTimer"> Chrono sonore selon l'apparence du chrono</label>
-        <label class="check"><input type="checkbox" name="labMole"> Mascotte en forage : bulles et réactions</label>
-        <label class="check"><input type="checkbox" name="labReward"> Animation de récompense renforcée (pépites)</label>
       </fieldset>
       <fieldset id="share-box">
         <legend>Inviter des amis</legend>
@@ -985,6 +995,7 @@
   </div>
 
   <script src="analytics.js"></script>
+  <script src="ambience.js"></script>
   <script src="sound.js"></script>
   <script src="pixel.js"></script>
   <script src="icons.js"></script>

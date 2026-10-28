@@ -38,14 +38,25 @@
 
   // ---------- Paramètres (propres à l'appareil) ----------
   const SETTINGS_KEY = 'speleologie.settings';
-  const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false, btn: 'normal', onehand: false, contrast: false, calm: false };
+  const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false, btn: 'normal', onehand: false, contrast: false, calm: false, mole: true };
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
   for (const flag of BETA_FLAGS) settings[flag] = true;
   // Labo sonore : essais d'ambiance réservés au responsable, qui restent hors de la bêta ouverte à tous.
-  const AMBIENT_FLAGS = ['labTaps', 'labRumble', 'labMelody'];
-  const LAB_FLAGS = [...AMBIENT_FLAGS, 'labTabs', 'labClicks', 'labTimer', 'labMole', 'labReward'];
+  const AMBIENT_FLAGS = ['labTaps', 'labRumble'];
+  const LAB_FLAGS = [...AMBIENT_FLAGS, 'labTabs', 'labClicks', 'labTimer'];
+  settings.labMusic = '';
   let ambientKey = ''; // dernier état de l'ambiance sonore (voir syncAmbient)
   for (const flag of LAB_FLAGS) settings[flag] = false;
+  /**
+   * Versions du jeu que le responsable peut revoir sur son appareil (section « Ancienne version » des réglages).
+   * À chaque nouvelle version majeure ou thématique (Halloween, Noël…), ajouter une ligne : `date` (AAAA-MM-JJ), `label`, `hint` et
+   * les réglages d'interface (`flags`) qui la reproduisent.
+   */
+  const ALL_BETA = (value) => Object.fromEntries(BETA_FLAGS.map((f) => [f, value]));
+  const VERSIONS = [
+    { id: 'actuelle', date: null, label: 'Version actuelle', hint: 'Tout le nouveau look, comme les joueurs.', flags: ALL_BETA(true) },
+    { id: '2026-10-27', date: '2026-10-27', label: 'Version du 27 octobre 2026', hint: "Avant le nouveau look : ancien accueil, ancien profil, sans barre du bas ni mascotte à l'accueil.", flags: ALL_BETA(false) },
+  ];
   const home = { moved: false, origin: new Map() }; // état du nouvel accueil (voir layoutHome)
   const prof = { moved: false, tab: 'apercu', timelineAll: false, locked: { body: false, bit: false, timer: false } }; // état du nouveau profil (voir layoutProfile)
   try {
@@ -56,6 +67,7 @@
     // Les anciens réglages de la bêta (tout décoché par défaut) ne valent plus : le nouveau look est la norme.
     if (saved.betaV !== 2) for (const flag of BETA_FLAGS) delete saved[flag];
     Object.assign(settings, saved);
+    if (saved.labMelody && !saved.labMusic) settings.labMusic = 'galerie'; // ancienne case « Mélodie douce »
     settings.betaV = 2;
   } catch {
     /* stockage indisponible : réglages par défaut */
@@ -247,16 +259,42 @@
     settingsForm.elements.onehand.checked = settings.onehand;
     settingsForm.elements.contrast.checked = settings.contrast;
     settingsForm.elements.calm.checked = settings.calm;
+    settingsForm.elements.mole.checked = settings.mole !== false;
     settingsForm.elements.lisible.checked = settings.lisible;
     settingsForm.elements.season.checked = settings.season !== false;
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
     $('beta-box').hidden = !(app.me && app.me.isAdmin);
+    renderVersions();
     for (const name of BETA_FLAGS) settingsForm.elements[name].checked = !!settings[name];
     $('lab-box').hidden = !(app.me && app.me.isAdmin);
     for (const name of LAB_FLAGS) settingsForm.elements[name].checked = !!settings[name];
+    settingsForm.elements.labMusic.value = settings.labMusic || '';
     renderInstall();
     $('settings').showModal();
   });
+  /** Boutons « Version de telle date » : un toucher règle d'un coup toutes les cases de l'interface. */
+  function currentVersion() {
+    return VERSIONS.find((v) => BETA_FLAGS.every((f) => !!settings[f] === !!v.flags[f])) || null;
+  }
+  function renderVersions() {
+    const active = currentVersion();
+    $('version-list').replaceChildren(
+      ...VERSIONS.map((v) => {
+        const on = !!active && active.id === v.id;
+        const button = el('button', { class: `btn${on ? '' : ' secondary'} version-btn`, type: 'button', 'aria-pressed': String(on) }, el('strong', {}, v.label), el('span', {}, v.hint));
+        button.addEventListener('click', () => {
+          Object.assign(settings, v.flags);
+          for (const name of BETA_FLAGS) settingsForm.elements[name].checked = !!settings[name];
+          applySettings();
+          saveSettings();
+          renderVersions();
+        });
+        return button;
+      }),
+      ...(active ? [] : [el('p', { class: 'hint' }, 'Réglage personnalisé (voir le réglage détaillé).')]),
+    );
+  }
+
   settingsForm.addEventListener('input', () => {
     const colors = settings.colors;
     settings.text = settingsForm.elements.text.value || 'normal';
@@ -268,14 +306,17 @@
     settings.onehand = settingsForm.elements.onehand.checked;
     settings.contrast = settingsForm.elements.contrast.checked;
     settings.calm = settingsForm.elements.calm.checked;
+    settings.mole = settingsForm.elements.mole.checked;
     settings.lisible = settingsForm.elements.lisible.checked;
     settings.season = settingsForm.elements.season.checked;
     for (const name of BETA_FLAGS) settings[name] = settingsForm.elements[name].checked;
     for (const name of LAB_FLAGS) settings[name] = settingsForm.elements[name].checked;
+    settings.labMusic = settingsForm.elements.labMusic.value || '';
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
     applySettings();
     saveSettings();
     fitCanvas();
+    if (!$('beta-box').hidden) renderVersions();
     if (colors !== settings.colors) refreshColors();
   });
   // Un clic en dehors de la fenêtre la ferme.
@@ -489,11 +530,11 @@
 
   /** Ambiance sonore de l'accueil (labo du responsable) : seulement sur l'accueil, onglet visible, son activé. */
   function syncAmbient() {
-    const on = !!(app.me && app.me.isAdmin && app.view === 'home' && !document.hidden && settings.sound && AMBIENT_FLAGS.some((f) => settings[f]));
-    const key = on ? AMBIENT_FLAGS.map((f) => settings[f]).join() : '';
+    const on = !!(app.me && app.me.isAdmin && app.view === 'home' && !document.hidden && settings.sound && (AMBIENT_FLAGS.some((f) => settings[f]) || settings.labMusic));
+    const key = on ? [...AMBIENT_FLAGS.map((f) => settings[f]), settings.labMusic].join() : '';
     if (key === ambientKey) return;
     ambientKey = key;
-    if (on) Sound.ambient({ taps: settings.labTaps, rumble: settings.labRumble, melody: settings.labMelody });
+    if (on) Sound.ambient({ taps: settings.labTaps, rumble: settings.labRumble, music: settings.labMusic || null });
     else Sound.ambientStop();
   }
   document.addEventListener('visibilitychange', syncAmbient);
@@ -984,7 +1025,7 @@
   }
 
   /**
-   * La taupe en forage (labo du responsable) : une bulle et une humeur selon ce qui se passe. Jamais de réaction à la rareté en duel.
+   * La taupe en forage : une bulle et une humeur selon ce qui se passe. Jamais de réaction à la rareté en duel.
    */
   const MOLE_LINES = {
     start: ['Allez, on creuse !', 'Je sens du filon par ici…', 'À toi de jouer, mineur !', 'Mine de rien, ça va être bien !', 'Le casque est vissé, on y va !'],
@@ -1000,11 +1041,11 @@
   };
   const MOLE_MOODS = { start: 'look', wrong: 'sad', confirm: 'look', low: 'idle', mid: 'happy', high: 'happy', pepite: 'stars', skip: 'sad', timeout: 'sad', duel: 'happy' };
   const moleLast = {};
-  /** Fait parler la taupe dans la zone `where` (« prompt » ou « feedback ») ; sans effet hors labo ou en réduisant les animations n'est pas nécessaire (pas d'animation). */
+  /** Fait parler la taupe dans la zone `where` (« prompt » ou « feedback ») ; coupée par le réglage « Mascotte en forage ». */
   function moleSay(where, event) {
     const box = $(`mole-${where}`);
     if (!box) return;
-    if (!labOn('labMole')) {
+    if (settings.mole === false) {
       box.hidden = true;
       return;
     }
@@ -1176,7 +1217,7 @@
   }
 
   /**
-   * Récompense renforcée (labo) : plusieurs vagues d'étoiles, un éclat doré et un gros « pop » des points pour une pépite ;
+   * Récompense renforcée : plusieurs vagues d'étoiles, un éclat doré et un gros « pop » des points pour une pépite ;
    * une vague plus discrète pour une réponse rare. Rien pour les autres (et rien si les animations sont réduites).
    */
   function rewardShower(pane, tierId) {
@@ -2343,7 +2384,7 @@
       burstSparks($('pane-feedback'), round.tier.id);
     }
     moleSay('feedback', moleEventFor(round.tier.id));
-    if (labOn('labReward')) rewardShower($('pane-feedback'), round.tier.id);
+    rewardShower($('pane-feedback'), round.tier.id);
     Sound.tier(round.tier.id, pepites);
     Sound.buzz(round.tier.id, pepites);
     const answer = $('feedback-answer');
@@ -6168,7 +6209,7 @@
   window.addEventListener('beforeinstallprompt', () => setTimeout(renderInstallNudge, 0));
 
   // ---------- Réglages et sections repliables : icônes et en-têtes plus lisibles ----------
-  const SETTINGS_ICONS = { 'Taille du texte': 'livre', 'Taille des boutons': 'pioche', Confort: 'casque', Lecture: 'journal', Son: 'note', Apparence: 'miroir', Couleurs: 'diamant', 'Nouveau look (contremaître)': 'lampe', Tutoriel: 'taupe', 'Labo sonore (contremaître)': 'note', 'Inviter des amis': 'enveloppe', "Installer l'application": 'maison' };
+  const SETTINGS_ICONS = { 'Taille du texte': 'livre', 'Taille des boutons': 'pioche', Confort: 'casque', Lecture: 'journal', Son: 'note', Apparence: 'miroir', Couleurs: 'diamant', 'Ancienne version (contremaître)': 'horloge', Tutoriel: 'taupe', 'Labo sonore (contremaître)': 'note', 'Inviter des amis': 'enveloppe', "Installer l'application": 'maison' };
   /** Chaque groupe de réglages devient une section repliable avec son icône ; seule la première reste ouverte au départ. */
   function decorateSettings() {
     document.querySelectorAll('#form-settings > fieldset').forEach((fieldset, index) => {
