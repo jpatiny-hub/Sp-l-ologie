@@ -38,7 +38,7 @@
 
   // ---------- Paramètres (propres à l'appareil) ----------
   const SETTINGS_KEY = 'speleologie.settings';
-  const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false };
+  const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false, btn: 'normal', onehand: false, contrast: false, calm: false };
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
   for (const flag of BETA_FLAGS) settings[flag] = true;
   // Labo sonore : essais d'ambiance réservés au responsable, qui restent hors de la bêta ouverte à tous.
@@ -79,7 +79,7 @@
   const betaOn = (name) => !!(app.me && (!app.me.isAdmin || settings[name]));
 
   const isHalloween = () => document.documentElement.dataset.season === 'halloween';
-  const reducedMotion = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const reducedMotion = () => !!(settings.calm || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches));
   let hauntTimer = null;
 
   /** Décor de saison (Halloween…) : interface et scène de forage, sauf en lecture facile et en thème clair. */
@@ -110,6 +110,12 @@
     root.classList.toggle('colorblind', settings.colors !== 'normal');
     if (settings.colors === 'normal') delete root.dataset.colors;
     else root.dataset.colors = settings.colors;
+    // Confort : taille des boutons, mode une main, haut contraste, animations réduites.
+    if (settings.btn === 'normal') delete root.dataset.btn;
+    else root.dataset.btn = settings.btn;
+    root.toggleAttribute('data-onehand', !!settings.onehand);
+    root.toggleAttribute('data-contrast', !!settings.contrast);
+    root.toggleAttribute('data-calm', !!settings.calm);
     // Lecture facile : police lisible, espacements larges et fond crème doux (apparence claire).
     if (settings.lisible) root.dataset.lisible = '';
     else delete root.dataset.lisible;
@@ -237,6 +243,10 @@
     settingsForm.elements.volume.value = settings.volume;
     settingsForm.elements.colors.value = settings.colors;
     settingsForm.elements.theme.value = settings.theme;
+    settingsForm.elements.btn.value = settings.btn;
+    settingsForm.elements.onehand.checked = settings.onehand;
+    settingsForm.elements.contrast.checked = settings.contrast;
+    settingsForm.elements.calm.checked = settings.calm;
     settingsForm.elements.lisible.checked = settings.lisible;
     settingsForm.elements.season.checked = settings.season !== false;
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
@@ -254,6 +264,10 @@
     settings.volume = Number(settingsForm.elements.volume.value);
     settings.colors = settingsForm.elements.colors.value || 'normal';
     settings.theme = settingsForm.elements.theme.value || 'sombre';
+    settings.btn = settingsForm.elements.btn.value || 'normal';
+    settings.onehand = settingsForm.elements.onehand.checked;
+    settings.contrast = settingsForm.elements.contrast.checked;
+    settings.calm = settingsForm.elements.calm.checked;
     settings.lisible = settingsForm.elements.lisible.checked;
     settings.season = settingsForm.elements.season.checked;
     for (const name of BETA_FLAGS) settings[name] = settingsForm.elements[name].checked;
@@ -1690,7 +1704,7 @@
   }
   setInterval(() => {
     if (!app.me || $('view-home').hidden || document.hidden) return;
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (reducedMotion()) return;
     const data = app.me.collective;
     if (data && !$('challenge-month').hidden) drawCollective($('collective-canvas'), data, performance.now() / 1000);
     const ch = app.me.streak && app.me.streak.challenge;
@@ -1891,7 +1905,7 @@
     const deadline = performance.now() + remainingMs;
     const canvas = $('timer-canvas');
     const skin = (app.skin && app.skin.timer) || 'batterie';
-    const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const calm = reducedMotion();
     let lastSecond = null;
     const tick = () => {
       const left = deadline - performance.now();
@@ -5240,7 +5254,7 @@
   }
   setInterval(() => {
     if (document.hidden || $('view-duel').hidden || $('duel-wait').hidden || $('duel-foreman').hidden) return;
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (reducedMotion()) return;
     drawForeman($('duel-foreman'), performance.now() / 1000);
   }, 120);
 
@@ -5605,7 +5619,7 @@
       }
     };
     draw(0);
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (reducedMotion()) return;
     recapTimer = setInterval(() => {
       if ($('view-recap').hidden || document.hidden) return;
       draw(performance.now() / 1000);

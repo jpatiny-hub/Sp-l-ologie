@@ -1172,7 +1172,7 @@
     /** Halloween : des fantômes translucides survolent l'écran pendant que la foreuse creuse. */
     drawGhosts(ctx, time) {
       if (season !== 'halloween' || !this.drilling) return;
-      if (global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if ((global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches) || global.document.documentElement.hasAttribute('data-calm')) return;
       ctx.save();
       ctx.globalAlpha = 0.5;
       for (let i = 0; i < 3; i++) {
