@@ -367,3 +367,31 @@ test('duel : le Contremaître prévient l\'adversaire (invitation, rappels à 24
     await app.close();
   }
 });
+
+test('le responsable peut valider un duel terminé tout de suite', async () => {
+  const app = await startServer();
+  try {
+    const { adam, eve } = await twoPlayers(app);
+    const started = (await adam('/api/duels', { opponent: 'eve', mode: 'aise' })).data;
+    await playGame(app, adam, started.id, 1);
+    const accepted = (await eve(`/api/duels/${started.duel.id}/accept`, {})).data;
+    await playGame(app, eve, accepted.id, 3);
+
+    assert.equal((await eve('/api/admin/duels/pending')).status, 403, 'réservé au responsable');
+    assert.equal((await eve('/api/admin/duels/validate', { id: started.duel.id })).status, 403);
+    const pending = (await adam('/api/admin/duels/pending')).data.duels;
+    assert.equal(pending.length, 1);
+    assert.deepEqual([pending[0].challenger, pending[0].opponent], ['adam', 'eve']);
+    assert.equal((await adam(`/api/duels/${started.duel.id}/result`)).data.pending, true, 'résultat caché avant validation');
+
+    assert.equal((await adam('/api/admin/duels/validate', { id: 9999 })).status, 404);
+    assert.equal((await adam('/api/admin/duels/validate', { id: started.duel.id })).status, 200);
+    assert.equal((await adam('/api/admin/duels/validate', { id: started.duel.id })).status, 409, 'une seule fois');
+    assert.equal((await adam('/api/admin/duels/pending')).data.duels.length, 0);
+    const result = await adam(`/api/duels/${started.duel.id}/result`);
+    assert.equal(result.status, 200);
+    assert.notEqual(result.data.pending, true, 'résultat visible après validation');
+  } finally {
+    await app.close();
+  }
+});
