@@ -6272,7 +6272,7 @@
   }
   decorateSettings();
 
-  const FOLD_ICONS = { defis: 'trophee', profil: 'casque', cranes: 'crane', badges: 'medaille', atelier: 'pioche', carnet: 'journal', bilan: 'horloge', stats: 'cible', proposer: 'livre', 'mes-signalements': 'drapeau', sante: 'lampe', annonces: 'enveloppe', suggestions: 'livre', signalements: 'drapeau', invitation: 'fanion', refusees: 'cible', essai: 'oeil', 'messages-signales': 'bouclier', inverse: 'miroir', tableau: 'trophee' };
+  const FOLD_ICONS = { defis: 'trophee', profil: 'casque', cranes: 'crane', badges: 'medaille', atelier: 'pioche', carnet: 'journal', bilan: 'horloge', stats: 'cible', proposer: 'livre', 'mes-signalements': 'drapeau', sante: 'lampe', annonces: 'enveloppe', suggestions: 'livre', signalements: 'drapeau', 'duels-valider': 'trophee', invitation: 'fanion', refusees: 'cible', essai: 'oeil', 'messages-signales': 'bouclier', inverse: 'miroir', tableau: 'trophee' };
   /** Une petite icône pixel art devant le titre de chaque section repliable. */
   function decorateFolds() {
     document.querySelectorAll('details.fold[data-fold] > summary').forEach((summary) => {
