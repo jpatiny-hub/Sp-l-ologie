@@ -803,7 +803,7 @@
           <svg class="chart earth-chart" id="chart-earth" viewBox="0 0 320 150" role="img" aria-label="Coupe de la Terre avec ta meilleure profondeur"></svg>
         </details>
         <details class="card fold" data-ptab="carnet" data-fold="proposer" id="fold-proposer">
-          <summary><span class="fold-t"><h2>Proposer un thème <span id="report-mine-dot" class="dot" hidden>●</span></h2><span class="sub">une idée de liste à deviner ? · tes réponses signalées</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <summary><span class="fold-t"><h2>Proposer un thème</h2><span class="sub">une idée de liste à deviner ?</span></span><span class="pm" aria-hidden="true"></span></summary>
           <form id="form-suggest" class="form">
             <label for="suggest-title">Le thème</label>
             <input id="suggest-title" type="text" maxlength="140" placeholder="Par exemple : un instrument à vent" autocomplete="off" required>
@@ -813,7 +813,10 @@
           </form>
           <p class="muted small" id="suggest-status" role="status"></p>
           <ul class="report-list" id="suggest-mine"></ul>
-          <h3 id="report-mine-title" hidden>Mes réponses signalées</h3>
+        </details>
+        <details class="card fold" data-ptab="carnet" data-fold="mes-signalements" id="fold-signalements">
+          <summary><span class="fold-t"><h2>Mes signalements <span id="report-mine-dot" class="dot" hidden>●</span></h2><span class="sub" id="report-mine-sub">les réponses que tu as signalées et ce qu'on en a fait</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <p class="muted small" id="report-mine-empty" hidden>Rien pour l'instant. Quand une réponse te semble juste mais refusée, signale-la pendant le forage : le résultat arrivera ici et dans ta messagerie.</p>
           <ul class="report-list" id="report-mine"></ul>
         </details>
       </div>

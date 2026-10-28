@@ -87,6 +87,7 @@ function createApp({
   const messages = new MessageService(db, now);
   // Les messages automatiques du Contremaître (délai pour relever un défi) passent par la messagerie.
   game.duels.notify = (to, body) => messages.fromForeman(to, body);
+  game.notify = game.duels.notify;
   // Validation des duels le lendemain à 2 h 30, rappels et forfaits : vérifiés toutes les 5 minutes, même sans visite.
   if (autoValidateDuels) setInterval(() => { try { game.duels.expire(); } catch (err) { console.error('Suivi des duels impossible :', err.message); } }, 5 * 60 * 1000).unref();
   const announcements = new AnnouncementService(db, now);

@@ -538,9 +538,19 @@ test('ajustement manuel d\'une faute : le responsable désigne la réponse visé
     assert.equal(mine.reports[0].verdict, 'accepted');
     assert.equal(mine.reports[0].message, 'Faute tolérée, points accordés.');
     assert.equal(mine.reports[0].status, 'handled');
-    assert.equal(mine.unread, 1);
-    await gus('/api/reports/mine/seen', {});
-    assert.equal((await gus('/api/reports/mine')).data.unread, 0);
+    assert.equal(mine.unread, 0, 'le retour est dans la messagerie : plus de rappel sur l\'accueil');
+    // Le Contremaître a écrit à chaque changement de verdict (refus puis acceptation).
+    const inbox = (await gus('/api/messages')).data;
+    assert.equal(inbox.unread, 2);
+    const foreman = inbox.conversations.find((c) => c.system);
+    assert.ok(foreman, 'conversation du Contremaître');
+    const thread = (await gus(`/api/messages/thread?with=${encodeURIComponent(foreman.username)}`)).data.messages.map((m) => m.body);
+    assert.equal(thread.length, 2);
+    assert.match(thread[0], new RegExp(`« ${typo} »`));
+    assert.match(thread[0], /refusée\. Trop éloigné\./);
+    assert.match(thread[1], /acceptée\. Faute tolérée, points accordés\. \+\d+ points accordés\./);
+    await admin('/api/admin/reports/reply', { themeId, inputKey, verdict: 'accepted', message: 'Faute tolérée, points accordés.' });
+    assert.equal((await gus(`/api/messages/thread?with=${encodeURIComponent(foreman.username)}`)).data.messages.length, 2, 'pas de doublon si rien ne change');
     assert.equal((await admin('/api/admin/reports')).data.reports[0].reply.verdict, 'accepted');
   } finally {
     await app.close();

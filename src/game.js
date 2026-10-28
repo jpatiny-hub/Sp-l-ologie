@@ -1033,15 +1033,36 @@ class GameService {
     return { points, answer: answer.label, previous: previous && { answer: previous.label, points: previous.points }, score: this.db.prepare('SELECT score FROM games WHERE id = ?').get(game.id).score };
   }
 
-  /** Retour du responsable aux joueurs ayant signalé cette saisie : verdict et message (modifiable). */
+  /** Retour du responsable aux joueurs ayant signalé cette saisie : verdict et message (modifiable), aussi envoyé dans leur messagerie. */
   replyToReport(themeId, inputKey, verdict, message) {
     if (verdict !== 'accepted' && verdict !== 'refused') throw new HttpError(400, 'Choisis « acceptée » ou « refusée ».');
     const text = String(message || '').trim().slice(0, 600);
+    const before = this.db.prepare('SELECT user_id, input, verdict, message, credit, points FROM answer_reports WHERE theme_id = ? AND input_key = ?').all(themeId, inputKey);
     const res = this.db
       .prepare('UPDATE answer_reports SET verdict = ?, message = ?, updated_at = ? WHERE theme_id = ? AND input_key = ?')
       .run(verdict, text || null, this.now(), themeId, inputKey);
     if (!res.changes) throw new HttpError(404, 'Signalement introuvable.');
+    for (const r of before) {
+      if (r.verdict === verdict && (r.message || '') === text) continue;
+      this.tellReporter(r.user_id, themeId, r.input, verdict, text, r.credit === 'credited' ? r.points : null);
+    }
     return { ok: true };
+  }
+
+  /** Le Contremaître écrit au joueur le résultat de son signalement (sans effet si la messagerie n'est pas branchée). */
+  tellReporter(userId, themeId, input, verdict, message, points) {
+    if (!this.notify) return;
+    const theme = this.themes.get(themeId);
+    const parts = [`Ton signalement « ${input} »${theme ? ` (${theme.title})` : ''} : ${verdict === 'accepted' ? 'acceptée' : 'refusée'}.`];
+    if (message) parts.push(message);
+    if (verdict === 'accepted' && points) parts.push(`+${points} points accordés.`);
+    try {
+      this.notify(userId, parts.join(' '));
+      // Le retour est déjà dans la messagerie : pas de second rappel sur l'accueil.
+      this.db.prepare('UPDATE answer_reports SET seen_at = updated_at WHERE user_id = ? AND theme_id = ? AND input = ?').run(userId, themeId, input);
+    } catch (err) {
+      console.error('Message du contremaître impossible :', err.message);
+    }
   }
 
   /** Les signalements d'un joueur, avec le retour reçu ; `unread` compte ceux dont le retour n'a pas été vu. */
@@ -1080,10 +1101,13 @@ class GameService {
     const recognised = theme && reports.length && matchAnswer(theme, reports[0].input);
     if (recognised) reports.forEach((r) => this.badges.awardLynx(r.user_id, this.today()));
     if (recognised) {
-      // Les joueurs reçoivent un retour (et un point rouge), sans écraser un retour déjà rédigé.
+      // Les joueurs reçoivent un retour (dans leur messagerie), sans écraser un retour déjà rédigé.
+      const note = 'Réponse ajoutée au thème : merci pour ton signalement !';
+      const waiting = this.db.prepare('SELECT user_id, input FROM answer_reports WHERE theme_id = ? AND input_key = ? AND verdict IS NULL').all(themeId, inputKey);
       this.db
-        .prepare("UPDATE answer_reports SET verdict = 'accepted', message = 'Réponse ajoutée au thème : merci pour ton signalement !', updated_at = ? WHERE theme_id = ? AND input_key = ? AND verdict IS NULL")
-        .run(this.now(), themeId, inputKey);
+        .prepare("UPDATE answer_reports SET verdict = 'accepted', message = ?, updated_at = ? WHERE theme_id = ? AND input_key = ? AND verdict IS NULL")
+        .run(note, this.now(), themeId, inputKey);
+      for (const r of waiting) this.tellReporter(r.user_id, themeId, r.input, 'accepted', note, null);
     }
     this.db
       .prepare('UPDATE answer_reports SET handled_at = ? WHERE theme_id = ? AND input_key = ? AND handled_at IS NULL')

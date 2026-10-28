@@ -3332,6 +3332,7 @@
       initFolds();
       finishBetaProfile(profile);
       loadSuggestions();
+      loadMyReports();
       loadBilan(app.bilanMonth || null);
       if (profile.badges.some((b) => b.isNew)) {
         api('/api/profile/seen', {}).catch(() => {});
@@ -4930,8 +4931,8 @@
     }
   }
 
-  $('fold-proposer').addEventListener('toggle', () => {
-    if (!$('fold-proposer').open) return;
+  $('fold-signalements').addEventListener('toggle', () => {
+    if (!$('fold-signalements').open) return;
     loadMyReports();
     if (!$('report-mine-dot').hidden) api('/api/reports/mine/seen', {}).then(() => ($('report-mine-dot').hidden = true)).catch(() => {});
   });
@@ -4954,7 +4955,8 @@
           );
         }),
       );
-      $('report-mine-title').hidden = !reports.length;
+      $('report-mine-empty').hidden = reports.length > 0;
+      $('report-mine-sub').textContent = reports.length ? `${reports.length} signalement${reports.length > 1 ? 's' : ''}, du plus récent au plus ancien` : 'les réponses que tu as signalées et ce qu\'on en a fait';
       $('report-mine-dot').hidden = !unread;
     } catch {
       /* la section reste vide */
@@ -5044,7 +5046,7 @@
   $('btn-carnet').addEventListener('click', () => openProfile());
   $('report-banner').addEventListener('click', async () => {
     await openProfile();
-    const fold = $('fold-proposer');
+    const fold = $('fold-signalements');
     fold.open = true;
     fold.scrollIntoView({ behavior: 'smooth', block: 'start' });
     if (app.me) app.me.unreadReports = 0;
@@ -6239,7 +6241,7 @@
   }
   decorateSettings();
 
-  const FOLD_ICONS = { defis: 'trophee', profil: 'casque', cranes: 'crane', badges: 'medaille', atelier: 'pioche', carnet: 'journal', bilan: 'horloge', stats: 'cible', proposer: 'livre', sante: 'lampe', annonces: 'enveloppe', suggestions: 'livre', signalements: 'drapeau', invitation: 'fanion', refusees: 'cible', essai: 'oeil', 'messages-signales': 'bouclier', inverse: 'miroir', tableau: 'trophee' };
+  const FOLD_ICONS = { defis: 'trophee', profil: 'casque', cranes: 'crane', badges: 'medaille', atelier: 'pioche', carnet: 'journal', bilan: 'horloge', stats: 'cible', proposer: 'livre', 'mes-signalements': 'drapeau', sante: 'lampe', annonces: 'enveloppe', suggestions: 'livre', signalements: 'drapeau', invitation: 'fanion', refusees: 'cible', essai: 'oeil', 'messages-signales': 'bouclier', inverse: 'miroir', tableau: 'trophee' };
   /** Une petite icône pixel art devant le titre de chaque section repliable. */
   function decorateFolds() {
     document.querySelectorAll('details.fold[data-fold] > summary').forEach((summary) => {
