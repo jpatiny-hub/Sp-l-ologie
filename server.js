@@ -647,8 +647,8 @@ function createApp({
 
     'POST /api/game/start': async (req, res) => {
       const user = requireUser(req, res);
-      const { mode, noTimer } = await readJson(req);
-      json(res, 200, game.startGame(user.id, mode, { noTimer: noTimer === true }));
+      const { mode, noTimer, timerSec } = await readJson(req);
+      json(res, 200, game.startGame(user.id, mode, { noTimer: noTimer === true, timerSec: Number.isInteger(timerSec) ? timerSec : null }));
     },
 
     'GET /api/game/:id': async (req, res, id) => {

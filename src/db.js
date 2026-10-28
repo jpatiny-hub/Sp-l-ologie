@@ -279,6 +279,8 @@ const MIGRATIONS = [
   ['rounds', 'swapped_from', 'TEXT'],
   // Partie sans chrono (mode « À l'aise » : duels et mode illimité) et duel auquel appartient la partie.
   ['games', 'no_timer', 'INTEGER NOT NULL DEFAULT 0'],
+  // Durée du chrono d'une partie d'infini ou de duel (15, 60 s…) ; vide = 30 secondes. Le forage du jour garde toujours 30 secondes.
+  ['games', 'timer_sec', 'INTEGER'],
   ['games', 'duel_id', 'INTEGER'],
   // Manche dont la réponse a été attribuée après coup par le responsable (ignorée par les badges de vitesse).
   ['rounds', 'credited', 'INTEGER NOT NULL DEFAULT 0'],

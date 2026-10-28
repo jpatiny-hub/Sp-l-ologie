@@ -1850,7 +1850,7 @@
       standardText: '30 secondes par thème.',
       aiseText: 'Sans chrono. Ne compte ni pour les badges ni pour les statistiques.',
     });
-    if (choice) startGame('training', { noTimer: choice.mode === 'aise' });
+    if (choice) startGame('training', { noTimer: choice.mode === 'aise', timerSec: { eclair: 15, long: 60 }[choice.mode] || null });
   });
   $('btn-podium').addEventListener('click', () => openPodium(homePodiumPeriod, null));
 
@@ -5089,10 +5089,10 @@
   $('btn-podium-home').addEventListener('click', () => goHome());
 
   // ---------- Duels ----------
-  const MODE_NAMES = { standard: 'Standard', aise: "À l'aise" };
+  const MODE_NAMES = { standard: 'Standard', aise: "À l'aise", eclair: 'Éclair (15 s)', long: 'Long (60 s)' };
 
   /** Fenêtre flottante : choix du mode (standard ou à l'aise), puis, pour un duel, de l'adversaire. Renvoie { mode, opponent } ou null. */
-  function askMode({ title, sub, standardText, aiseText, opponents = null }) {
+  function askMode({ title, sub, standardText, aiseText, eclairText = '15 secondes par thème : réflexes !', longText = '60 secondes par thème : le temps de chercher.', opponents = null }) {
     return new Promise((resolve) => {
       const dialog = $('mode-dialog');
       const ac = new AbortController();
@@ -5102,6 +5102,8 @@
       $('mode-sub').textContent = sub;
       $('mode-standard-text').textContent = standardText;
       $('mode-aise-text').textContent = aiseText;
+      $('mode-eclair-text').textContent = eclairText;
+      $('mode-long-text').textContent = longText;
       $('mode-step-mode').hidden = false;
       $('mode-step-opponent').hidden = true;
       const finish = (value) => {
@@ -5110,7 +5112,7 @@
       };
       const pick = (mode) => {
         if (!opponents) return finish({ mode });
-        $('mode-title').textContent = `Duel ${mode === 'standard' ? 'standard' : "à l'aise"} : qui défier ?`;
+        $('mode-title').textContent = `Duel ${(MODE_NAMES[mode] || mode).toLowerCase()} : qui défier ?`;
         $('mode-step-mode').hidden = true;
         $('mode-step-opponent').hidden = false;
         $('mode-opponent-sub').textContent = opponents.length ? 'Ton adversaire jouera les mêmes 7 thèmes, quand il voudra.' : "Aucun autre joueur n'est inscrit pour l'instant.";
@@ -5126,6 +5128,8 @@
       };
       on($('mode-standard'), 'click', () => pick('standard'));
       on($('mode-aise'), 'click', () => pick('aise'));
+      on($('mode-eclair'), 'click', () => pick('eclair'));
+      on($('mode-long'), 'click', () => pick('long'));
       on($('mode-cancel'), 'click', () => finish(null));
       on(dialog, 'click', (event) => event.target === dialog && finish(null));
       dialog.addEventListener(

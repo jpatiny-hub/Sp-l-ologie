@@ -1,7 +1,7 @@
 'use strict';
 
 const crypto = require('node:crypto');
-const { ROUNDS_PER_GAME, TIMER_SECONDS, TIMER_GRACE_MS } = require('./config');
+const { ROUNDS_PER_GAME, TIMER_SECONDS, TIMER_GRACE_MS, TIMER_CHOICES } = require('./config');
 const { dayKey, addDays, weekStart, monthStart, addMonths, monthEnd } = require('./dates');
 const { transaction } = require('./db');
 const { HttpError } = require('./errors');
@@ -123,7 +123,12 @@ class GameService {
     return pool.slice(0, count + extra);
   }
 
-  startGame(userId, mode, { noTimer = false } = {}) {
+  /** Durée du chrono d'une partie, en millisecondes. */
+  timerMsOf(game) {
+    return (game.timer_sec || TIMER_SECONDS) * 1000;
+  }
+
+  startGame(userId, mode, { noTimer = false, timerSec = null } = {}) {
     const day = this.today();
     if (mode === 'daily') {
       const existing = this.dailyGameFor(userId, day);
@@ -133,16 +138,16 @@ class GameService {
     if (mode === 'training') {
       const pool = this.randomThemes(ROUNDS_PER_GAME, 1);
       this.db.prepare("DELETE FROM games WHERE user_id = ? AND mode = 'training'").run(userId);
-      return this.state(this.createGame(userId, 'training', day, pool.slice(0, ROUNDS_PER_GAME), pool[ROUNDS_PER_GAME] || null, { noTimer }), userId);
+      return this.state(this.createGame(userId, 'training', day, pool.slice(0, ROUNDS_PER_GAME), pool[ROUNDS_PER_GAME] || null, { noTimer, timerSec: TIMER_CHOICES.includes(timerSec) ? timerSec : null }), userId);
     }
     throw new HttpError(400, 'Mode de jeu inconnu.');
   }
 
-  createGame(userId, mode, day, themeIds, spare = null, { duelId = null, noTimer = false } = {}) {
+  createGame(userId, mode, day, themeIds, spare = null, { duelId = null, noTimer = false, timerSec = null } = {}) {
     return transaction(this.db, () => {
       const { lastInsertRowid } = this.db
-        .prepare('INSERT INTO games (user_id, mode, day, created_at, spare_theme, duel_id, no_timer) VALUES (?, ?, ?, ?, ?, ?, ?)')
-        .run(userId, mode, day, this.now(), spare, duelId, noTimer ? 1 : 0);
+        .prepare('INSERT INTO games (user_id, mode, day, created_at, spare_theme, duel_id, no_timer, timer_sec) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+        .run(userId, mode, day, this.now(), spare, duelId, noTimer ? 1 : 0, timerSec);
       const gameId = Number(lastInsertRowid);
       const insert = this.db.prepare('INSERT INTO rounds (game_id, slot, theme_id) VALUES (?, ?, ?)');
       themeIds.forEach((id, slot) => insert.run(gameId, slot, id));
@@ -161,7 +166,7 @@ class GameService {
   expireIfNeeded(game, rounds) {
     const current = rounds.find((r) => r.answered_at == null);
     if (game.no_timer) return false;
-    if (current && current.served_at != null && this.now() > current.served_at + this.timerMs + TIMER_GRACE_MS) {
+    if (current && current.served_at != null && this.now() > current.served_at + this.timerMsOf(game) + TIMER_GRACE_MS) {
       this.finishRound(game, current, { outcome: 'timeout', points: 0 });
       return true;
     }
@@ -194,7 +199,7 @@ class GameService {
         .prepare('UPDATE games SET score = score + ?, finished_at = ? WHERE id = ?')
         .run(points, remaining === 0 ? now : null, game.id);
       // Le mode « à l'aise » (sans chrono) ne compte ni pour les badges ni pour les statistiques.
-      if (game.mode === 'training' && !game.no_timer) this.recordTraining(game, round, { outcome, points, answer }, remaining === 0);
+      if (game.mode === 'training' && !game.no_timer && !game.timer_sec) this.recordTraining(game, round, { outcome, points, answer }, remaining === 0);
       return remaining === 0;
     });
     if (answer && outcome === 'answer' && this.skulls.isSkullDay(game.day)) {
@@ -567,13 +572,13 @@ class GameService {
       finished,
       noTimer: !!game.no_timer,
       duel,
-      timerSeconds: TIMER_SECONDS,
+      timerSeconds: game.timer_sec || TIMER_SECONDS,
       // Joker : on peut changer gratuitement un thème par partie ; ensuite, passer coûte le thème.
       joker: { available: !finished && !!this.spareFor(game) && !!current, used: !!game.joker_used },
       rounds: rounds.map((r) => this.roundView(r, game)),
       dayScores: finished && game.mode === 'daily' ? this.dayScores(game.day) : null,
       current: current
-        ? { slot: current.slot, remainingMs: game.no_timer ? null : Math.max(0, current.served_at + this.timerMs - this.now()) }
+        ? { slot: current.slot, remainingMs: game.no_timer ? null : Math.max(0, current.served_at + this.timerMsOf(game) - this.now()) }
         : null,
     };
   }
@@ -621,7 +626,7 @@ class GameService {
       state: this.state(gameId, userId),
     });
 
-    if (!game.no_timer && this.now() > round.served_at + this.timerMs + TIMER_GRACE_MS) {
+    if (!game.no_timer && this.now() > round.served_at + this.timerMsOf(game) + TIMER_GRACE_MS) {
       this.finishRound(game, round, { outcome: 'timeout', points: 0 });
       return resultFor('timeout');
     }
@@ -1157,7 +1162,7 @@ class GameService {
 
   skip(gameId, userId) {
     const { game, round } = this.activeRound(gameId, userId);
-    const expired = !game.no_timer && this.now() >= round.served_at + this.timerMs;
+    const expired = !game.no_timer && this.now() >= round.served_at + this.timerMsOf(game);
     const spare = expired ? null : this.spareFor(game);
     if (spare && this.themes.get(spare)) {
       // Joker : le thème est remplacé (le même thème de remplacement pour tout le monde) et son chrono repart.
