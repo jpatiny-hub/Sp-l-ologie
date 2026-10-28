@@ -41,12 +41,12 @@
   const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false, btn: 'normal', onehand: false, contrast: false, calm: false, mole: true };
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
   for (const flag of BETA_FLAGS) settings[flag] = true;
-  // Ambiance sonore : coups de pioche, grondement, musiques d'accueil, bruits de boutons et chrono sonore, au choix de chaque joueur (désactivés au départ).
+  // Ambiance sonore : coups de pioche, grondement, musiques d'accueil, bruits de boutons et chrono sonore, au choix de chaque joueur : coups de pioche, grondement et musique « Galerie » activés au départ, le reste non.
   const AMBIENT_FLAGS = ['labTaps', 'labRumble'];
   const LAB_FLAGS = [...AMBIENT_FLAGS, 'labTabs', 'labClicks', 'labTimer'];
-  settings.labMusic = '';
+  settings.labMusic = 'galerie';
   let ambientKey = ''; // dernier état de l'ambiance sonore (voir syncAmbient)
-  for (const flag of LAB_FLAGS) settings[flag] = false;
+  for (const flag of LAB_FLAGS) settings[flag] = AMBIENT_FLAGS.includes(flag);
   /**
    * Versions du jeu que le responsable peut revoir sur son appareil (section « Ancienne version » des réglages).
    * À chaque nouvelle version majeure ou thématique (Halloween, Noël…), ajouter une ligne : `date` (AAAA-MM-JJ), `label`, `hint` et
