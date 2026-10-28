@@ -430,6 +430,21 @@
     window._paq.push(['trackPageView']);
   }
 
+  /**
+   * Rafraîchit les pastilles de l'onglet « Mine » (journal et musée) : au retour sur l'application, en changeant d'écran et à la fin
+   * d'un forage ou d'un duel, sans minuterie. `force` ignore le délai de 20 secondes entre deux rafraîchissements.
+   */
+  let mineRefreshedAt = 0;
+  function refreshMine(force = false) {
+    if (!app.me || document.hidden) return;
+    const now = Date.now();
+    if (!force && now - mineRefreshedAt < 20000) return;
+    mineRefreshedAt = now;
+    loadFeed();
+    loadMuseumNote();
+  }
+  document.addEventListener('visibilitychange', () => refreshMine());
+
   /** Ambiance sonore de l'accueil (labo du responsable) : seulement sur l'accueil, onglet visible, son activé. */
   function syncAmbient() {
     const on = !!(app.me && app.me.isAdmin && app.view === 'home' && !document.hidden && settings.sound && AMBIENT_FLAGS.some((f) => settings[f]));
@@ -474,7 +489,10 @@
     $('btn-invite').hidden = !app.me;
     $('drawer-tab').hidden = !(view === 'home' && app.me);
     app.view = view;
-    if (view !== 'museum') setMinePastilles();
+    if (view !== 'museum') {
+      setMinePastilles();
+      if (view !== 'game') refreshMine();
+    }
     updateNav();
     syncAmbient();
     if ($('drawer').open) $('drawer').close();
@@ -1188,7 +1206,7 @@
     if (go === 'mine') {
       if (betaOn('betaHome')) {
         $('feed-fold').open = true;
-        await loadFeed();
+        await Promise.all([loadFeed(), loadMuseumNote()]);
       }
       // Ce qui était nouveau reste signalé dans l'écran (pastilles rouge et bleue) jusqu'à ce qu'on le quitte.
       const fresh = { feed: app.feedNew || 0, museum: app.museumNew || 0 };
@@ -2241,6 +2259,7 @@
 
   function showResults(state) {
     stopTimer();
+    refreshMine(true);
     app.game = state;
     if (state.mode === 'duel') return afterDuelGame(state);
     scene.setLayers(layersOf(state), false);
@@ -3242,7 +3261,8 @@
       const data = await api('/api/museum');
       app.museum = data;
       app.museumNew = 0;
-      try { localStorage.setItem(MUSEUM_SEEN_KEY, String(data.total)); } catch { /* sans stockage */ }
+      writeKey(MUSEUM_SEEN_KEY, data.total);
+      writeKey(MUSEUM_TODAY_KEY, `${data.day}:${data.todayCount || 0}`);
       renderMuseum();
       renderJack();
       show('museum');
@@ -3288,17 +3308,47 @@
   $('museum-search').addEventListener('input', () => app.museum && renderMuseum());
 
   const MUSEUM_SEEN_KEY = 'speleo-museum-seen';
+  // Pépites du jour déjà vues (« AAAA-MM-JJ:n ») : elles n'entrent au musée que le lendemain, mais l'onglet « Mine » les signale tout de suite.
+  const MUSEUM_TODAY_KEY = 'speleo-museum-today';
+  const readKey = (key) => {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  };
+  const writeKey = (key, value) => {
+    try {
+      localStorage.setItem(key, String(value));
+    } catch {
+      /* sans stockage */
+    }
+  };
+  /** Nouvelles pépites : celles qui viennent d'entrer au musée, plus celles du jour pas encore vues. */
+  function museumFresh(d) {
+    let seen = readKey(MUSEUM_SEEN_KEY);
+    const [seenDay, seenN] = (readKey(MUSEUM_TODAY_KEY) || '').split(':');
+    if (seen === null) {
+      writeKey(MUSEUM_SEEN_KEY, d.total);
+      seen = String(d.total);
+    }
+    let base = Number(seen);
+    // Le jour a changé : les pépites du jour déjà vues viennent d'entrer au musée, on ne les compte pas deux fois.
+    if (seenDay && d.day && seenDay < d.day) {
+      if (d.day && Date.parse(`${d.day}T12:00:00Z`) - Date.parse(`${seenDay}T12:00:00Z`) <= 86400000) base += Number(seenN) || 0;
+      writeKey(MUSEUM_SEEN_KEY, Math.min(base, d.total));
+      writeKey(MUSEUM_TODAY_KEY, `${d.day}:0`);
+    }
+    const todaySeen = seenDay === d.day ? Number(seenN) || 0 : 0;
+    return Math.max(0, d.total - Math.min(base, d.total)) + Math.max(0, (d.todayCount || 0) - todaySeen);
+  }
   async function loadMuseumNote() {
     try {
-      const d = await api('/api/museum');
+      const d = await api('/api/museum?light=1');
       app.museumTotal = d.total;
-      let seen = null;
-      try { seen = localStorage.getItem(MUSEUM_SEEN_KEY); } catch { /* sans stockage */ }
-      if (seen === null) {
-        try { localStorage.setItem(MUSEUM_SEEN_KEY, String(d.total)); } catch { /* sans stockage */ }
-        seen = String(d.total);
-      }
-      app.museumNew = Math.max(0, d.total - Number(seen));
+      app.museumDay = d.day;
+      app.museumTodayCount = d.todayCount || 0;
+      app.museumNew = museumFresh(d);
       if (!$('bottom-nav').hidden) updateBubbles();
       $('museum-note').textContent = d.total
         ? `${plural(d.total, 'pépite découverte', 'pépites découvertes')} par le groupe${d.todayCount ? `, et ${plural(d.todayCount, 'nouvelle', 'nouvelles')} aujourd'hui à dévoiler demain` : ''}.`
