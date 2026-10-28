@@ -139,150 +139,24 @@
     },
 
     /**
-     * Ambiance de l'accueil (essai réservé au responsable) : coups de pioche lointains, ronronnement grave
-     * et mélodie très douce. Chaque élément se coupe séparément ; tout s'arrête avec `ambientStop()`.
+     * Ambiance de l'accueil (essai réservé au responsable) : coups de pioche dans la roche, grondement lointain et musique
+     * composée (« galerie », « forge » ou « cristal »). Le moteur est dans ambience.js ; `ambientStop()` coupe tout en fondu.
      */
-    ambient({ taps = false, rumble = false, melody = false } = {}) {
+    ambient({ taps = false, rumble = false, music = null } = {}) {
       this.ambientStop();
-      if (!(taps || rumble || melody) || !ready()) return;
-      const a = { timers: [], nodes: [] };
-      amb = a;
-      if (rumble) {
-        const src = ctx.createBufferSource();
-        src.buffer = noise;
-        src.loop = true;
-        const low = ctx.createBiquadFilter();
-        low.type = 'lowpass';
-        low.frequency.value = 130;
-        const hum = ctx.createOscillator();
-        hum.type = 'sine';
-        hum.frequency.value = 52;
-        const humGain = ctx.createGain();
-        humGain.gain.value = 0.05;
-        const out = ctx.createGain();
-        out.gain.value = 0.0001;
-        out.gain.setTargetAtTime(0.16, ctx.currentTime, 1.2);
-        // Respiration lente : le grondement monte et descend.
-        const lfo = ctx.createOscillator();
-        lfo.frequency.value = 0.22;
-        const lfoGain = ctx.createGain();
-        lfoGain.gain.value = 0.05;
-        lfo.connect(lfoGain).connect(out.gain);
-        src.connect(low).connect(out);
-        hum.connect(humGain).connect(out);
-        out.connect(master);
-        src.start();
-        hum.start();
-        lfo.start();
-        a.nodes.push({ stop: () => out.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.3) }, src, hum, lfo);
-      }
-      const later = (fn, min, max) => a.timers.push(setTimeout(() => amb === a && fn(), min + Math.random() * (max - min)));
-      if (taps) {
-        const tap = () => {
-          if (ctx.state === 'running') {
-            const hits = Math.random() < 0.3 ? 2 : 1;
-            for (let i = 0; i < hits; i++) {
-              burst({ at: i * 0.18, dur: 0.05, freq: 2200, gain: 0.16, type: 'bandpass' });
-              tone(880 - i * 90, { at: i * 0.18, dur: 0.07, type: 'triangle', gain: 0.07, to: 520 });
-            }
-          }
-          later(tap, 2500, 6500);
-        };
-        later(tap, 1200, 3000);
-      }
-      if (melody) {
-        let i = 3;
-        const note = () => {
-          if (ctx.state === 'running') {
-            i = Math.max(0, Math.min(6, i + [-2, -1, -1, 1, 1, 2][Math.floor(Math.random() * 6)]));
-            tone(PENTA[i], { dur: 1.6, type: 'sine', gain: 0.045 });
-            tone(PENTA[i] * 2, { at: 0.02, dur: 1.1, type: 'sine', gain: 0.012 });
-          }
-          later(note, 1500, 3200);
-        };
-        later(note, 800, 1800);
-      }
+      if (!(taps || rumble || music) || !ready() || !global.Ambience) return;
+      const engine = global.Ambience.make(ctx, master, noise, { taps, rumble, music });
+      const timer = setInterval(() => {
+        if (ctx.state === 'running') engine.tick(ctx.currentTime);
+      }, 50);
+      amb = { engine, timer };
     },
 
     ambientStop() {
       if (!amb) return;
-      const a = amb;
+      clearInterval(amb.timer);
+      amb.engine.stop();
       amb = null;
-      a.timers.forEach(clearTimeout);
-      for (const n of a.nodes) {
-        try {
-          n.stop(ctx.currentTime + 0.6);
-        } catch {
-          /* déjà arrêté */
-        }
-      }
-    },
-
-    /** Passage d'une couche géologique : choc sourd puis petite note. */
-    layer(zone) {
-      if (!ready()) return;
-      tone(140, { dur: 0.3, type: 'sine', gain: 0.5, to: 45 });
-      burst({ dur: 0.2, freq: 600, gain: 0.25 });
-      tone(PENTA[zone % PENTA.length] * 2, { at: 0.08, dur: 0.25, type: 'triangle', gain: 0.12 });
-    },
-
-    /**
-     * Réponse validée : plus elle est rare, plus l'arpège monte.
-     * `pepites` : nombre de pépites trouvées dans la partie, celle-ci comprise ; chaque pépite de plus
-     * ajoute du « scintillement » (plus d'étincelles, et une note de plus dans la montée finale).
-     */
-    tier(id, pepites = 1) {
-      if (!ready()) return;
-      const steps = { evident: 1, courant: 2, original: 3, rare: 4, pepite: 6 }[id] || 0;
-      if (!steps) return this.miss();
-      const notes = [392, 494, 587, 784, 988, 1175];
-      for (let i = 0; i < steps; i++) tone(notes[i], { at: i * 0.07, dur: 0.14, type: 'square', gain: 0.1 });
-      if (id === 'pepite') {
-        const n = Math.max(1, Math.min(7, pepites));
-        const sparks = 6 + n * 4;
-        for (let i = 0; i < sparks; i++) tone(1400 + Math.random() * (1600 + n * 250), { at: 0.45 + i * 0.045, dur: 0.12, type: 'sine', gain: 0.05 + n * 0.004 });
-        // Montée de carillon : une note de plus à chaque pépite.
-        for (let i = 0; i < n; i++) tone(PENTA[(i + 4) % PENTA.length] * 4, { at: 0.5 + sparks * 0.045 + i * 0.06, dur: 0.28, type: 'triangle', gain: 0.09 });
-      }
-    },
-
-    /** Vibration du téléphone (si le son est activé) : une impulsion par pépite, une légère pour un Rubis. */
-    buzz(id, pepites = 1) {
-      if (!enabled || !global.navigator || typeof global.navigator.vibrate !== 'function') return;
-      if (id === 'pepite') {
-        const n = Math.max(1, Math.min(6, pepites));
-        const pattern = [];
-        for (let i = 0; i < n; i++) pattern.push(45, 55);
-        global.navigator.vibrate(pattern);
-      } else if (id === 'rare') {
-        global.navigator.vibrate(25);
-      }
-    },
-
-    /** Réponse inconnue. */
-    wrong() {
-      if (!ready()) return;
-      tone(196, { dur: 0.09, gain: 0.12 });
-      tone(147, { at: 0.1, dur: 0.16, gain: 0.12 });
-    },
-
-    /** Le jeu propose une correction : petite question montante. */
-    ask() {
-      if (!ready()) return;
-      tone(523, { dur: 0.08, type: 'triangle', gain: 0.15 });
-      tone(784, { at: 0.09, dur: 0.12, type: 'triangle', gain: 0.15 });
-    },
-
-    /** Thème passé ou temps écoulé. */
-    miss() {
-      if (!ready()) return;
-      tone(330, { dur: 0.5, type: 'sawtooth', gain: 0.08, to: 90 });
-    },
-
-    /** Dernières secondes du chrono. */
-    tick(urgent) {
-      if (!ready()) return;
-      tone(urgent ? 1320 : 990, { dur: 0.04, type: 'square', gain: 0.05 });
     },
 
     /**

@@ -170,9 +170,15 @@
       <fieldset id="lab-box" hidden>
         <legend>Labo sonore (contremaître)</legend>
         <p class="hint">Des essais d'ambiance sur l'accueil, jamais montrés aux autres joueurs. Ils suivent le réglage « Bruitages » ci-dessus.</p>
-        <label class="check"><input type="checkbox" name="labTaps"> Coups de pioche lointains</label>
-        <label class="check"><input type="checkbox" name="labRumble"> Grondement de la foreuse</label>
-        <label class="check"><input type="checkbox" name="labMelody"> Mélodie douce</label>
+        <label class="check"><input type="checkbox" name="labTaps"> Coups de pioche dans la roche (avec écho de galerie)</label>
+        <label class="check"><input type="checkbox" name="labRumble"> Grondement lointain de la mine</label>
+        <p class="hint">Musique d'accueil :</p>
+        <div class="choices">
+          <label><input type="radio" name="labMusic" value=""> Aucune</label>
+          <label><input type="radio" name="labMusic" value="galerie"> Galerie (calme)</label>
+          <label><input type="radio" name="labMusic" value="forge"> Forge (rythmée)</label>
+          <label><input type="radio" name="labMusic" value="cristal"> Cristal (boîte à musique)</label>
+        </div>
         <label class="check"><input type="checkbox" name="labTabs"> Bruit léger entre les onglets (majeurs et mineurs)</label>
         <label class="check"><input type="checkbox" name="labClicks"> Bruit léger sur les boutons du forage et des duels</label>
         <label class="check"><input type="checkbox" name="labTimer"> Chrono sonore selon l'apparence du chrono</label>
@@ -954,6 +960,7 @@
   </div>
 
   <script src="analytics.js"></script>
+  <script src="ambience.js"></script>
   <script src="sound.js"></script>
   <script src="pixel.js"></script>
   <script src="icons.js"></script>
