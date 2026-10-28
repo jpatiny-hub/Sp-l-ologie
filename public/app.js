@@ -457,7 +457,35 @@
     loadFeed();
     loadMuseumNote();
   }
-  document.addEventListener('visibilitychange', () => refreshMine());
+  document.addEventListener('visibilitychange', () => {
+    refreshMine();
+    syncSoftRefresh();
+  });
+
+  /**
+   * Rafraîchissement doux : tant que l'accueil est affiché et l'onglet visible, une mise à jour discrète par minute
+   * (pastilles, vie de la mine, messages). Le minuteur s'arrête dès qu'on quitte l'accueil ou que l'onglet passe en arrière-plan.
+   */
+  let softTimer = null;
+  function syncSoftRefresh() {
+    const on = !!(app.me && app.view === 'home' && !document.hidden);
+    if (on && !softTimer) {
+      softTimer = setInterval(async () => {
+        if (document.hidden || app.view !== 'home') return syncSoftRefresh();
+        refreshMine(true);
+        renderBetaSocial();
+        try {
+          const { unread } = await api('/api/messages');
+          updateMessageDot(unread);
+        } catch {
+          /* le prochain tour réessaiera */
+        }
+      }, 60000);
+    } else if (!on && softTimer) {
+      clearInterval(softTimer);
+      softTimer = null;
+    }
+  }
 
   /** Ambiance sonore de l'accueil (labo du responsable) : seulement sur l'accueil, onglet visible, son activé. */
   function syncAmbient() {
@@ -503,6 +531,7 @@
     $('btn-invite').hidden = !app.me;
     $('drawer-tab').hidden = !(view === 'home' && app.me);
     app.view = view;
+    syncSoftRefresh();
     if (view !== 'museum') {
       setMinePastilles();
       if (view !== 'game') refreshMine();
