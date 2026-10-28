@@ -6167,6 +6167,50 @@
   window.addEventListener('appinstalled', renderInstallNudge);
   window.addEventListener('beforeinstallprompt', () => setTimeout(renderInstallNudge, 0));
 
+  // ---------- Réglages et sections repliables : icônes et en-têtes plus lisibles ----------
+  const SETTINGS_ICONS = { 'Taille du texte': 'livre', 'Taille des boutons': 'pioche', Confort: 'casque', Lecture: 'journal', Son: 'note', Apparence: 'miroir', Couleurs: 'diamant', 'Nouveau look (contremaître)': 'lampe', Tutoriel: 'taupe', 'Labo sonore (contremaître)': 'note', 'Inviter des amis': 'enveloppe', "Installer l'application": 'maison' };
+  /** Chaque groupe de réglages devient une section repliable avec son icône ; seule la première reste ouverte au départ. */
+  function decorateSettings() {
+    document.querySelectorAll('#form-settings > fieldset').forEach((fieldset, index) => {
+      const legend = fieldset.querySelector('legend');
+      if (!legend) return;
+      const icon = el('canvas', { class: 'sec-icon', width: '16', height: '16', 'aria-hidden': 'true' });
+      const title = legend.textContent.trim();
+      Icons.drawIcon(icon, SETTINGS_ICONS[title] || 'lampe');
+      // La légende d'un fieldset s'affiche à cheval sur sa bordure : on la garde pour les lecteurs d'écran et on dessine un vrai en-tête.
+      const head = el('div', { class: 'sec-head', role: 'button', tabindex: '0', 'aria-expanded': String(index === 0) }, icon, el('span', {}, title), el('span', { class: 'pm', 'aria-hidden': 'true' }));
+      legend.classList.add('sr-only');
+      fieldset.prepend(head);
+      fieldset.classList.add('sec');
+      if (index > 0) fieldset.classList.add('closed');
+      const toggle = () => {
+        const closed = fieldset.classList.toggle('closed');
+        head.setAttribute('aria-expanded', String(!closed));
+      };
+      head.addEventListener('click', toggle);
+      head.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          toggle();
+        }
+      });
+    });
+  }
+  decorateSettings();
+
+  const FOLD_ICONS = { defis: 'trophee', profil: 'casque', cranes: 'crane', badges: 'medaille', atelier: 'pioche', carnet: 'journal', bilan: 'horloge', stats: 'cible', proposer: 'livre', sante: 'lampe', annonces: 'enveloppe', suggestions: 'livre', signalements: 'drapeau', invitation: 'fanion', refusees: 'cible', essai: 'oeil', 'messages-signales': 'bouclier', inverse: 'miroir', tableau: 'trophee' };
+  /** Une petite icône pixel art devant le titre de chaque section repliable. */
+  function decorateFolds() {
+    document.querySelectorAll('details.fold[data-fold] > summary').forEach((summary) => {
+      const key = summary.parentElement.dataset.fold;
+      if (!FOLD_ICONS[key] || summary.querySelector('.fold-icon')) return;
+      const icon = el('canvas', { class: 'fold-icon', width: '16', height: '16', 'aria-hidden': 'true' });
+      Icons.drawIcon(icon, FOLD_ICONS[key]);
+      summary.prepend(icon);
+    });
+  }
+  decorateFolds();
+
   // ---------- Démarrage ----------
   fitCanvas();
   goHome().catch(() => show('auth'));

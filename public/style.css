@@ -1593,3 +1593,16 @@ button.pf-title:focus-visible { outline: 3px solid var(--ink); outline-offset: 2
 .install h2 { color: #7fc0ff; }
 .install .row { display: flex; gap: 8px; flex-wrap: wrap; }
 .install .row .btn { flex: 1 1 10em; }
+
+/* Réglages : sections repliables avec icône */
+.settings fieldset.sec { padding: 0; margin: 0 0 6px; background: var(--panel-2); box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.35); }
+.settings .sec-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer; color: var(--accent); }
+.settings .sec-head:focus-visible { outline: 2px solid var(--accent); }
+.settings .sec-head .pm { margin-left: auto; }
+.settings fieldset.sec > :not(.sec-head):not(legend) { margin-left: 12px; margin-right: 12px; }
+.settings fieldset.sec > :last-child:not(.sec-head) { margin-bottom: 12px; }
+.settings fieldset.sec.closed > :not(.sec-head):not(legend) { display: none; }
+.settings fieldset.sec:not(.closed) > .sec-head .pm::before { content: '−'; }
+.sec-icon, .fold-icon { width: 24px; height: 24px; image-rendering: pixelated; flex: none; }
+details.fold > summary .fold-icon { width: 28px; height: 28px; }
+:root[data-beta-profil] #view-profile details.fold > summary .fold-icon { display: none; }
