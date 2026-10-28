@@ -112,7 +112,7 @@ function normalize(raw, userId) {
   return out;
 }
 
-// Éléments encore en bêta : réservés au responsable du jeu (voir `catalog`).
+// Éléments que `catalog(…, false)` masque (interrupteur de sécurité ; tout le monde les voit par défaut).
 const BETA = new Set([
   'yeux:monocle', 'yeux:cache-oeil', 'yeux:etoiles', 'barbe:guidon', 'barbe:favoris', 'barbe:sage',
   'trait:taches', 'trait:joues', 'trait:cicatrice', 'trait:guerre',
@@ -122,7 +122,7 @@ const BETA = new Set([
 ]);
 
 /** Catalogue pour l'éditeur : éléments débloqués ou non (selon la liste des badges du joueur, avec leur nom). */
-function catalog(badges, beta = false) {
+function catalog(badges, beta = true) {
   const byId = new Map(badges.map((b) => [b.id, b]));
   const out = {};
   for (const slot of SLOTS) {
@@ -142,7 +142,7 @@ function catalog(badges, beta = false) {
 }
 
 /** Vérifie qu'un avatar ne contient que des éléments connus et débloqués. Renvoie l'avatar nettoyé, ou null. */
-function validate(candidate, userId, badges, beta = false) {
+function validate(candidate, userId, badges, beta = true) {
   if (!candidate || typeof candidate !== 'object') return null;
   const cat = catalog(badges, beta);
   const out = {};

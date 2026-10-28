@@ -85,8 +85,10 @@ function createApp({
   const game = new GameService(db, themes, now, specialDays);
   const reverse = new ReverseService(db, themes);
   const messages = new MessageService(db, now);
-  // Validation des duels le lendemain à 2 h 30 : vérifiée toutes les 5 minutes, même sans visite.
-  if (autoValidateDuels) setInterval(() => { try { game.duels.validateDue(); } catch (err) { console.error('Validation des duels impossible :', err.message); } }, 5 * 60 * 1000).unref();
+  // Les messages automatiques du Contremaître (délai pour relever un défi) passent par la messagerie.
+  game.duels.notify = (to, body) => messages.fromForeman(to, body);
+  // Validation des duels le lendemain à 2 h 30, rappels et forfaits : vérifiés toutes les 5 minutes, même sans visite.
+  if (autoValidateDuels) setInterval(() => { try { game.duels.expire(); } catch (err) { console.error('Suivi des duels impossible :', err.message); } }, 5 * 60 * 1000).unref();
   const announcements = new AnnouncementService(db, now);
   game.badges.backfill();
   const loginLimiter = new auth.RateLimiter(10, 15 * 60 * 1000);
@@ -253,7 +255,7 @@ function createApp({
       ]);
       let userId;
       try {
-        const first = db.prepare('SELECT COUNT(*) AS n FROM users').get().n === 0;
+        const first = db.prepare('SELECT COUNT(*) AS n FROM users WHERE is_system = 0').get().n === 0;
         userId = Number(
           db
             .prepare(
@@ -389,7 +391,7 @@ function createApp({
       const user = currentUser(req, res);
       if (!user) return json(res, 200, { user: null });
       game.badges.awardPodiums(game.today());
-      const row = db.prepare('SELECT skin_body, skin_bit, skin_timer, news_seen, avatar FROM users WHERE id = ?').get(user.id);
+      const row = db.prepare('SELECT skin_body, skin_bit, skin_timer, news_seen, avatar, tutorial_seen FROM users WHERE id = ?').get(user.id);
       json(res, 200, {
         user: userView(user),
         isAdmin: isAdmin(user),
@@ -397,6 +399,7 @@ function createApp({
         avatar: Avatar.normalize(row.avatar, user.id),
         unseenBadges: game.badges.unseenCount(user.id),
         news: unseenNews(row.news_seen),
+        tutorialSeen: !!row.tutorial_seen,
         today: game.todaySummary(user.id),
         streak: game.badges.homeSummary(user.id, game.today()),
         collective: collectiveStatus(db, game.today(), user.id),
@@ -417,7 +420,7 @@ function createApp({
     'GET /api/profile': async (req, res) => {
       const user = requireUser(req, res);
       const joined = db.prepare('SELECT created_at FROM users WHERE id = ?').get(user.id);
-      json(res, 200, { ...game.badges.profile(user.id, game.today(), isAdmin(user)), joinedAt: joined ? joined.created_at : null, playerStats: game.playerStats(user.id), skulls: { ...game.skulls.collection(user.id), active: game.skulls.isSkullDay(game.today()) } });
+      json(res, 200, { ...game.badges.profile(user.id, game.today()), joinedAt: joined ? joined.created_at : null, playerStats: game.playerStats(user.id), skulls: { ...game.skulls.collection(user.id), active: game.skulls.isSkullDay(game.today()) } });
     },
 
     // Titre de mineur affiché à côté du pseudo : un titre débloqué, ou null pour n'en afficher aucun.
@@ -425,7 +428,7 @@ function createApp({
       const user = requireUser(req, res);
       const { title } = await readJson(req);
       if (title !== null && typeof title !== 'string') throw new HttpError(400, 'Titre inconnu.');
-      if (!game.badges.setTitle(user.id, game.today(), title, isAdmin(user))) throw new HttpError(403, "Ce titre n'est pas encore débloqué.");
+      if (!game.badges.setTitle(user.id, game.today(), title)) throw new HttpError(403, "Ce titre n'est pas encore débloqué.");
       json(res, 200, { title });
     },
 
@@ -492,9 +495,9 @@ function createApp({
       json(res, 200, feed(game, user.id, Number(url.searchParams.get('limit')) || 3, url.searchParams.get('date')));
     },
 
-    // La vie de la mine sur l'accueil (version bêta, réservée au responsable pour l'instant).
+    // La vie de la mine sur l'accueil.
     'GET /api/mine-today': async (req, res) => {
-      requireAdmin(req, res);
+      requireUser(req, res);
       json(res, 200, mineToday(game));
     },
 
@@ -566,6 +569,14 @@ function createApp({
     },
 
     // Le joueur a lu les notes de mise à jour (jusqu'à la note `id` comprise).
+    // Petit tutoriel de la première connexion : vu (ou passé).
+    'POST /api/tutorial/seen': async (req, res) => {
+      const user = requireUser(req, res);
+      await readJson(req);
+      db.prepare('UPDATE users SET tutorial_seen = 1 WHERE id = ?').run(user.id);
+      json(res, 200, { ok: true });
+    },
+
     'POST /api/news/seen': async (req, res) => {
       const user = requireUser(req, res);
       const { id } = await readJson(req);
@@ -584,7 +595,7 @@ function createApp({
     'POST /api/profile/skin': async (req, res) => {
       const user = requireUser(req, res);
       const { body, bit, timer } = await readJson(req);
-      if (!game.badges.setSkin(user.id, game.today(), { body, bit, timer }, isAdmin(user))) throw new HttpError(403, 'Cette apparence n\'est pas encore débloquée.');
+      if (!game.badges.setSkin(user.id, game.today(), { body, bit, timer })) throw new HttpError(403, 'Cette apparence n\'est pas encore débloquée.');
       json(res, 200, { skin: game.badges.skinOf(db.prepare('SELECT skin_body, skin_bit, skin_timer FROM users WHERE id = ?').get(user.id)) });
     },
 
@@ -592,7 +603,7 @@ function createApp({
     'POST /api/profile/avatar': async (req, res) => {
       const user = requireUser(req, res);
       const { avatar } = await readJson(req);
-      const saved = game.badges.setAvatar(user.id, game.today(), avatar, isAdmin(user));
+      const saved = game.badges.setAvatar(user.id, game.today(), avatar);
       if (!saved) throw new HttpError(403, "Cet avatar contient un élément pas encore débloqué.");
       json(res, 200, { avatar: saved });
     },

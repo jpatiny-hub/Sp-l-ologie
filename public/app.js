@@ -40,7 +40,7 @@
   const SETTINGS_KEY = 'speleologie.settings';
   const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false };
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
-  for (const flag of BETA_FLAGS) settings[flag] = false;
+  for (const flag of BETA_FLAGS) settings[flag] = true;
   // Labo sonore : essais d'ambiance réservés au responsable, qui restent hors de la bêta ouverte à tous.
   const LAB_FLAGS = ['labTaps', 'labRumble', 'labMelody'];
   let ambientKey = ''; // dernier état de l'ambiance sonore (voir syncAmbient)
@@ -52,7 +52,10 @@
     // Ancien réglage « mode daltonien » (case à cocher) : devenu « rouge-vert ».
     if (saved.colorblind && !saved.colors) saved.colors = 'rouge-vert';
     delete saved.colorblind;
+    // Les anciens réglages de la bêta (tout décoché par défaut) ne valent plus : le nouveau look est la norme.
+    if (saved.betaV !== 2) for (const flag of BETA_FLAGS) delete saved[flag];
     Object.assign(settings, saved);
+    settings.betaV = 2;
   } catch {
     /* stockage indisponible : réglages par défaut */
   }
@@ -71,7 +74,8 @@
   if (lightQuery && lightQuery.addEventListener) lightQuery.addEventListener('change', () => settings.theme === 'auto' && applySettings());
   /** Nouveautés à l'essai : réservées au responsable du jeu, une par une. */
   const labOn = (name) => !!(app.me && app.me.isAdmin && settings[name]);
-  const betaOn = (name) => !!(app.me && app.me.isAdmin && settings[name]);
+  // Nouveau look : pour tous les joueurs ; le responsable peut en retirer des morceaux dans les réglages pour comparer.
+  const betaOn = (name) => !!(app.me && (!app.me.isAdmin || settings[name]));
 
   const isHalloween = () => document.documentElement.dataset.season === 'halloween';
   const reducedMotion = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -588,6 +592,130 @@
     show('auth');
   });
 
+  // ---------- Petit tutoriel (première connexion) ----------
+  const TIERS_TUTO = [
+    ['evident', 'Gravier', '10 à 20 pts', 'tout le monde y pense'],
+    ['courant', 'Soufre', '20 à 40 pts', 'une réponse courante'],
+    ['original', 'Cuivre', '40 à 60 pts', 'une réponse originale'],
+    ['rare', 'Rubis', '60 à 90 pts', 'très peu de joueurs y pensent'],
+    ['pepite', 'Pépite !', '100 pts', 'personne ne l\'avait encore trouvée'],
+  ];
+  const tutoIcon = (name, size = 48) => {
+    const c = el('canvas', { width: '16', height: '16', 'aria-hidden': 'true' });
+    Icons.drawIcon(c, name);
+    c.style.width = `${size}px`;
+    c.style.height = `${size}px`;
+    return c;
+  };
+  const SLIDES = [
+    {
+      title: 'Bienvenue dans la mine !',
+      art: () => {
+        const mole = el('canvas', { class: 'tuto-mole', width: '16', height: '16', 'aria-hidden': 'true' });
+        drawMascot(mole, 'happy');
+        return el('div', { class: 'tuto-art-row' }, mole, tutoIcon('pioche', 64));
+      },
+      body: () => [
+        el('p', {}, 'Chaque jour, tu creuses le plus profond possible en répondant à ', el('strong', {}, '7 thèmes'), '.'),
+        el('p', {}, 'Plus tu marques de points, plus ta foreuse descend à travers les couches de la Terre, jusqu\'au centre.'),
+      ],
+    },
+    {
+      title: 'Trouve la réponse la moins probable',
+      art: () => el('div', { class: 'tuto-ladder' }, ...TIERS_TUTO.map(([id, label, points, hint]) => {
+        const chip = el('span', { class: 'tuto-chip' });
+        chip.style.background = Pixel.TIER_COLORS[id];
+        return el('div', { class: 'tuto-rung' }, chip, el('strong', {}, label), el('span', { class: 'tuto-points' }, points), el('span', { class: 'muted small' }, hint));
+      })),
+      body: () => [
+        el('p', {}, 'Pour chaque thème, par exemple « Un fruit rouge », donne une réponse correcte. Mais ne choisis pas la plus évidente : ', el('strong', {}, 'moins il y a de joueurs qui y pensent, plus tu gagnes de points'), '.'),
+        el('p', { class: 'muted' }, 'Fraise ? Tout le monde y pense. Airelle ? Beaucoup moins !'),
+      ],
+    },
+    {
+      title: 'Le forage du jour',
+      art: () => {
+        const dots = el('div', { class: 'tuto-dots7' }, ...Array.from({ length: 7 }, () => el('span', { class: 'tuto-dot7' })));
+        return el('div', { class: 'tuto-art-col' }, dots, el('div', { class: 'tuto-timer' }, el('strong', {}, '30'), el('span', { class: 'muted' }, ' secondes par thème')));
+      },
+      body: () => [
+        el('p', {}, 'Chaque jour, tous les joueurs reçoivent ', el('strong', {}, 'les mêmes 7 thèmes'), ', avec ', el('strong', {}, '30 secondes'), ' pour répondre à chacun. Une seule partie par jour.'),
+        el('p', {}, 'Les nouveaux thèmes arrivent à 2 h du matin. Compare ton score à celui des autres sur le podium !'),
+      ],
+    },
+    {
+      title: 'Duel et mode infini',
+      art: () => el('div', { class: 'tuto-art-row' }, el('div', { class: 'tuto-mode' }, tutoIcon('sabre', 56), el('strong', {}, 'Duel')), el('div', { class: 'tuto-mode' }, tutoIcon('lampe', 56), el('strong', {}, 'Infini'))),
+      body: () => [
+        el('p', {}, el('strong', {}, 'Duel : '), 'défie un joueur sur 7 thèmes. Chacun joue quand il veut, et le résultat est dévoilé le lendemain matin.'),
+        el('p', {}, el('strong', {}, 'Infini : '), 'des thèmes au hasard, autant que tu veux, pour t\'entraîner. Ça ne compte pas pour le podium.'),
+        el('p', { class: 'muted' }, 'Chacun des deux existe en deux versions : ', el('strong', {}, 'Standard'), ' (30 secondes par thème) ou ', el('strong', {}, 'À l\'aise'), ' (sans chrono).'),
+      ],
+    },
+    {
+      title: 'À toi de jouer !',
+      art: () => {
+        const mole = el('canvas', { class: 'tuto-mole', width: '16', height: '16', 'aria-hidden': 'true' });
+        drawMascot(mole, 'idle');
+        return el('div', { class: 'tuto-art-row' }, mole, tutoIcon('diamant', 64));
+      },
+      body: () => [
+        el('p', {}, 'Tape ta réponse sans te soucier des accents ni des petites fautes : si elle ressemble à une réponse connue, le jeu te la propose.'),
+        el('p', {}, 'Réponse refusée alors que tu la crois juste ? Tu peux la signaler, et réessayer tant que le chrono tourne.'),
+        el('p', {}, el('strong', {}, 'Bon forage, mineur !')),
+      ],
+    },
+  ];
+  const tuto = { index: 0, first: false };
+
+  function renderTutorial() {
+    const slide = SLIDES[tuto.index];
+    $('tuto-title').textContent = slide.title;
+    $('tuto-art').replaceChildren(slide.art());
+    $('tuto-body').replaceChildren(...slide.body());
+    $('tuto-dots').replaceChildren(...SLIDES.map((_, i) => el('span', { class: `tuto-pip${i === tuto.index ? ' on' : ''}` })));
+    $('tuto-prev').hidden = tuto.index === 0;
+    const last = tuto.index === SLIDES.length - 1;
+    $('tuto-next').textContent = last ? 'C\'est parti !' : 'Suivant ›';
+    $('tuto-skip').hidden = last;
+  }
+  function openTutorial(first = false) {
+    tuto.index = 0;
+    tuto.first = first;
+    renderTutorial();
+    if (!$('tutorial').open) $('tutorial').showModal();
+  }
+  function closeTutorial() {
+    if ($('tutorial').open) $('tutorial').close();
+    if (tuto.first && app.me && !app.me.tutorialSeen) {
+      app.me.tutorialSeen = true;
+      api('/api/tutorial/seen', {}).catch(() => {});
+    }
+    tuto.first = false;
+  }
+  $('tuto-next').addEventListener('click', () => {
+    if (tuto.index >= SLIDES.length - 1) return closeTutorial();
+    tuto.index++;
+    renderTutorial();
+  });
+  $('tuto-prev').addEventListener('click', () => {
+    if (tuto.index > 0) tuto.index--;
+    renderTutorial();
+  });
+  $('tuto-skip').addEventListener('click', closeTutorial);
+  $('tutorial').addEventListener('cancel', (event) => {
+    event.preventDefault();
+    closeTutorial();
+  });
+  $('tutorial').addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowRight') $('tuto-next').click();
+    else if (event.key === 'ArrowLeft' && tuto.index > 0) $('tuto-prev').click();
+  });
+  $('btn-tuto-again').addEventListener('click', () => {
+    $('settings').close();
+    openTutorial(false);
+  });
+
   // ---------- Accueil ----------
   async function goHome() {
     stopTimer();
@@ -615,6 +743,7 @@
     loadCarnetSummary();
     updateMessageDot(app.me.unreadMessages || 0);
     if (app.me.celebrations && app.me.celebrations.length) openCelebrations(app.me.celebrations);
+    if (!app.me.tutorialSeen) openTutorial(true);
   }
 
   async function loadCarnetSummary() {
@@ -2713,47 +2842,66 @@
 
   const chosenTitleLabel = (profile) => ((profile.titles || []).find((t) => t.id === profile.title) || {}).label || null;
 
-  /** Choix du titre affiché à côté du pseudo : les titres débloqués d'abord, les autres derrière « Voir ceux à gagner ». */
-  function renderTitlePicker(profile) {
+  /** Cadre du titre sur la carte de mineur : le titre affiché (sinon celui du rang), à toucher pour en changer. */
+  function renderTitleFrame(profile) {
+    const rank = rankOf(profile.stats.daysPlayed);
+    const chosen = chosenTitleLabel(profile);
+    const trophy = rank.index > 0 ? el('canvas', { class: 'pf-trophy', width: '16', height: '16', 'aria-hidden': 'true' }) : null;
+    if (trophy) Icons.drawIcon(trophy, `titre-${rank.index}`);
+    $('pf-title').replaceChildren(...(trophy ? [trophy] : []), el('span', {}, chosen || rank.title), el('span', { class: 'caret', 'aria-hidden': 'true' }, '▾'));
+    $('pf-title').title = 'Choisir le titre affiché à côté de ton pseudo';
+    $('pf-title-hint').textContent = chosen ? '' : 'Touche le cadre pour choisir un titre à afficher à côté de ton pseudo.';
+  }
+
+  /** Liste des titres : ceux qu'on a débloqués à toucher, puis ceux à gagner avec leur condition. */
+  function renderTitleList(profile) {
     const titles = profile.titles || [];
-    const mine = titles.filter((t) => t.unlocked);
-    const rest = titles.filter((t) => !t.unlocked);
-    const option = (t) => {
+    const choose = async (t) => {
+      try {
+        await api('/api/profile/title', { title: t ? t.id : null });
+        profile.title = t ? t.id : null;
+        renderTitleFrame(profile);
+        $('title-dialog').close();
+      } catch (err) {
+        showNotice(err.message);
+      }
+    };
+    const row = (t) => {
       const on = t ? profile.title === t.id : !profile.title;
-      const b = el('button', { class: `tp-opt${on ? ' sel' : ''}${t && !t.unlocked ? ' locked' : ''}`, type: 'button', 'aria-pressed': String(on), title: t ? (t.unlocked ? t.label : t.hint) : 'Ne pas afficher de titre' }, t ? `${t.unlocked ? '' : '🔒 '}${t.label}` : 'Aucun titre');
-      if (!t || t.unlocked) {
-        b.addEventListener('click', async () => {
-          try {
-            await api('/api/profile/title', { title: t ? t.id : null });
-            profile.title = t ? t.id : null;
-            $('pf-name').replaceChildren(app.me.user.username, titleChip(chosenTitleLabel(profile)));
-            renderTitlePicker(profile);
-          } catch (err) {
-            showNotice(err.message);
-          }
-        });
-      } else b.disabled = true;
+      const b = el(
+        'button',
+        { class: `tl-row${on ? ' sel' : ''}${t && !t.unlocked ? ' locked' : ''}`, type: 'button', 'aria-pressed': String(on) },
+        el('span', { class: 'tl-mark', 'aria-hidden': 'true' }, on ? '▶' : t && !t.unlocked ? '🔒' : ''),
+        el('span', { class: 'tl-name' }, t ? t.label : 'Aucun titre'),
+        t && !t.unlocked ? el('span', { class: 'tl-hint' }, t.hint) : null,
+      );
+      if (!t || t.unlocked) b.addEventListener('click', () => choose(t));
+      else b.disabled = true;
       return b;
     };
-    $('pf-titlepick-grid').replaceChildren(option(null), ...mine.map(option), ...(prof.titlesAll ? rest.map(option) : []));
-    const more = $('btn-tp-more');
-    more.hidden = !rest.length;
-    more.textContent = prof.titlesAll ? 'Masquer ceux à gagner' : `Voir les ${rest.length} titres à gagner`;
+    const mine = titles.filter((t) => t.unlocked);
+    const rest = titles.filter((t) => !t.unlocked);
+    $('title-list').replaceChildren(
+      row(null),
+      ...mine.map(row),
+      ...(rest.length ? [el('h3', {}, `À gagner (${rest.length})`), ...rest.map(row)] : []),
+    );
   }
-  $('btn-tp-more').addEventListener('click', () => {
-    prof.titlesAll = !prof.titlesAll;
-    if (app.profile) renderTitlePicker(app.profile);
+  $('pf-title').addEventListener('click', () => {
+    if (!app.profile) return;
+    renderTitleList(app.profile);
+    $('title-dialog').showModal();
   });
+  $('title-close').addEventListener('click', () => $('title-dialog').close());
+  $('title-dialog').addEventListener('click', (event) => event.target === $('title-dialog') && $('title-dialog').close());
 
   /** Carte de mineur : portrait, titre, série et étais, et un mot de la taupe. */
   function renderProfileHero(profile) {
     const st = profile.stats;
     const rank = rankOf(st.daysPlayed);
     $('pf-portrait').replaceChildren(avatarEl(profile.avatar, 'full', 6));
-    $('pf-name').replaceChildren(app.me.user.username, titleChip(chosenTitleLabel(profile)));
-    const trophy = rank.index > 0 ? el('canvas', { class: 'pf-trophy', width: '16', height: '16', 'aria-hidden': 'true' }) : null;
-    if (trophy) Icons.drawIcon(trophy, `titre-${rank.index}`);
-    $('pf-title').replaceChildren(...(trophy ? [trophy] : []), rank.title);
+    $('pf-name').textContent = app.me.user.username;
+    renderTitleFrame(profile);
     $('pf-since').textContent = profile.joinedAt ? `Mineur depuis le ${dayLabel(new Date(profile.joinedAt).toISOString().slice(0, 10))}` : '';
     const lantern = el('canvas', { class: 'streak-lantern', width: '16', height: '16', 'aria-hidden': 'true' });
     Icons.drawLantern(lantern, st.currentStreak, { dim: st.currentStreak === 0 });
@@ -2912,7 +3060,7 @@
     const on = betaOn('betaProfil');
     $('pf-hero').hidden = !on;
     $('pf-tabs').hidden = !on;
-    for (const id of ['pf-tiles', 'pf-titles', 'pf-titlepick', 'pf-showcase', 'pf-charts', 'pf-timeline']) $(id).hidden = !on;
+    for (const id of ['pf-tiles', 'pf-titles', 'pf-showcase', 'pf-charts', 'pf-timeline']) $(id).hidden = !on;
     $('pf-next').hidden = !on || $('next-badges').hidden;
     if (!on) return void delete $('view-profile').dataset.active;
     document.querySelectorAll('#view-profile > details.fold').forEach((d) => (d.open = true));
@@ -2921,7 +3069,6 @@
     renderProfileHero(profile);
     renderProfileTiles(profile);
     renderProfileTitles(profile);
-    renderTitlePicker(profile);
     renderProfileShowcase(profile);
     renderProfileTimeline(profile);
     setProfileTab(prof.tab || 'apercu');
@@ -4193,6 +4340,14 @@
     if (!$('bottom-nav').hidden) updateBubbles();
   }
 
+  /** Portrait d'un correspondant : la petite taupe pour le Contremaître, sinon le personnage du joueur. */
+  function msgPortrait(person) {
+    if (!person.system) return avatarEl(person.avatar, 'head', 2);
+    const canvas = el('canvas', { class: 'msg-mole', 'aria-hidden': 'true' });
+    drawMascot(canvas, 'idle');
+    return canvas;
+  }
+
   function msgTime(at) {
     const d = new Date(at);
     const sameDay = new Date().toDateString() === d.toDateString();
@@ -4216,7 +4371,7 @@
           const button = el(
             'button',
             { type: 'button' },
-            avatarEl(c.avatar, 'head', 2),
+            msgPortrait(c),
             el('span', { class: 'who-name' }, c.username),
             el('span', { class: 'msg-last' }, `${c.last.mine ? 'Toi : ' : ''}${c.last.body}`),
             c.unread ? el('span', { class: 'tab-dot' }, String(c.unread)) : el('span', { class: 'muted small' }, msgTime(c.last.at)),
@@ -4247,6 +4402,9 @@
     app.msgWith = data.with.username;
     updateMessageDot(data.unread);
     $('msg-with').textContent = data.with.username;
+    // Le Contremaître n'écoute pas : pas de zone de réponse, de blocage ni de signalement.
+    $('form-msg-send').hidden = !!data.with.system;
+    $('btn-msg-block').hidden = !!data.with.system;
     const block = $('btn-msg-block');
     block.textContent = data.blocked ? 'Débloquer ce joueur' : 'Bloquer ce joueur';
     block.onclick = async () => {
@@ -4260,7 +4418,7 @@
     list.replaceChildren(
       ...data.messages.map((m) => {
         const meta = el('span', { class: 'msg-meta' }, msgTime(m.at));
-        if (!m.mine) {
+        if (!m.mine && !data.with.system) {
           const report = el('button', { class: 'link', type: 'button' }, 'Signaler');
           report.addEventListener('click', async () => {
             try {
@@ -4275,7 +4433,7 @@
         return el('li', { class: m.mine ? 'mine' : '' }, m.body, meta);
       }),
     );
-    if (!data.messages.length) list.append(el('li', { class: 'muted' }, `Écris le premier message à ${data.with.username}.`));
+    if (!data.messages.length && !data.with.system) list.append(el('li', { class: 'muted' }, `Écris le premier message à ${data.with.username}.`));
     list.scrollTop = list.scrollHeight;
   }
 
@@ -4765,6 +4923,14 @@
     }
   }
 
+  /** Temps qu'il reste pour répondre à un duel (sans minuterie : calculé à l'affichage). */
+  function timeLeft(expiresAt) {
+    const hours = Math.max(0, Math.round((expiresAt - Date.now()) / 3600000));
+    if (hours >= 48) return `forfait dans ${Math.floor(hours / 24)} jours`;
+    if (hours <= 0) return 'forfait imminent';
+    return `forfait dans ${hours} h`;
+  }
+
   function renderDuels(data) {
     const box = $('duel-lists');
     const person = (o) => el('span', { class: 'who-av' }, avatarEl(o.avatar, 'head', 2), el('span', { class: 'who-name' }, o.username));
@@ -4786,7 +4952,7 @@
       el(
         'li',
         {},
-        el('div', { class: 'duel-row' }, person(d.other), el('span', { class: 'muted small' }, `te défie · ${MODE_NAMES[d.mode]}`)),
+        el('div', { class: 'duel-row' }, person(d.other), el('span', { class: 'muted small' }, `te défie · ${MODE_NAMES[d.mode]}${d.status === 'invited' ? ` · ${timeLeft(d.expiresAt)}` : ''}`)),
         el(
           'div',
           { class: 'duel-actions' },
@@ -4806,7 +4972,7 @@
       el(
         'li',
         {},
-        el('div', { class: 'duel-row' }, person(d.other), el('span', { class: 'muted small' }, d.status === 'waiting' ? `en attente de sa réponse · ${MODE_NAMES[d.mode]}` : `à finir · ${MODE_NAMES[d.mode]}`)),
+        el('div', { class: 'duel-row' }, person(d.other), el('span', { class: 'muted small' }, d.status === 'waiting' ? `en attente de sa réponse · ${MODE_NAMES[d.mode]} · ${timeLeft(d.expiresAt)}` : `à finir · ${MODE_NAMES[d.mode]}`)),
         d.status === 'playing' ? el('div', { class: 'duel-actions' }, act('Reprendre', async () => enterGame(await api(`/api/game/${d.gameId}`)))) : null,
       ),
     );

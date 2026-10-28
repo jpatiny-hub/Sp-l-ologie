@@ -715,3 +715,33 @@ test('comparaison : la galerie de secours apparaît sur le thème remplacé, et 
     await app.close();
   }
 });
+
+test('tutoriel : proposé aux nouveaux comptes et aux comptes existants (une fois), marqué comme vu', async () => {
+  const app = await startServer();
+  try {
+    const eve = client(app.base);
+    await eve('/api/signup', { username: 'eve', password: 'secret123' });
+    assert.equal((await eve('/api/me')).data.tutorialSeen, false);
+    assert.equal((await eve('/api/tutorial/seen', {})).status, 200);
+    assert.equal((await eve('/api/me')).data.tutorialSeen, true);
+    // Migration : les joueurs déjà inscrits verront le tutoriel une fois après la mise en ligne.
+    const os = require('node:os');
+    const path = require('node:path');
+    const fs = require('node:fs');
+    const { openDb } = require('../src/db');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'spl-tuto-'));
+    const file = path.join(dir, 'speleologie.sqlite');
+    const db = openDb(file);
+    db.prepare("INSERT INTO users (username, username_key, password_hash, recovery_hash, created_at) VALUES ('ancien', 'ancien', 'x', 'y', 1)").run();
+    db.exec('ALTER TABLE users DROP COLUMN tutorial_seen');
+    db.close();
+    const reopened = openDb(file);
+    assert.equal(reopened.prepare("SELECT tutorial_seen FROM users WHERE username = 'ancien'").get().tutorial_seen, 0);
+    reopened.prepare("INSERT INTO users (username, username_key, password_hash, recovery_hash, created_at) VALUES ('nouveau', 'nouveau', 'x', 'y', 2)").run();
+    assert.equal(reopened.prepare("SELECT tutorial_seen FROM users WHERE username = 'nouveau'").get().tutorial_seen, 0);
+    reopened.close();
+    fs.rmSync(dir, { recursive: true, force: true });
+  } finally {
+    await app.close();
+  }
+});

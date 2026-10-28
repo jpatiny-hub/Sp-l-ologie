@@ -262,6 +262,8 @@ const MIGRATIONS = [
   ['users', 'skin_bit', 'TEXT'],
   ['users', 'skin_timer', 'TEXT'],
   ['users', 'news_seen', 'INTEGER NOT NULL DEFAULT 0'],
+  // Petit tutoriel affiché une fois à chaque joueur : à la première connexion pour les nouveaux comptes, et à la première ouverture après la mise en ligne pour les comptes existants.
+  ['users', 'tutorial_seen', 'INTEGER NOT NULL DEFAULT 0'],
   // Titre de mineur affiché à côté du pseudo (identifiant, voir src/titles.js).
   ['users', 'title', 'TEXT'],
   // Avatar (JSON des choix) et date du dernier changement de pseudo (un changement par semaine).
@@ -297,6 +299,12 @@ const MIGRATIONS = [
   ['duels', 'old_winner_id', 'INTEGER'],
   // Duel validé le lendemain à 2 h 30 (après les signalements) : seuls les duels validés comptent pour badges, défis et pépites.
   ['duels', 'validated_at', 'INTEGER'],
+  // Délai pour relever un défi : le contremaître prévient l'adversaire (invitation, puis 24 h et 6 h avant le forfait).
+  ['duels', 'notice_at', 'INTEGER'],
+  ['duels', 'warn24_at', 'INTEGER'],
+  ['duels', 'warn6_at', 'INTEGER'],
+  // Compte technique « Le Contremaître » (envoie les messages automatiques ; personne ne s'y connecte).
+  ['users', 'is_system', 'INTEGER NOT NULL DEFAULT 0'],
 ];
 
 /**
@@ -353,7 +361,7 @@ function openDb(file) {
     }
   }
   // Aucun responsable : le premier compte créé le devient.
-  db.exec('UPDATE users SET is_admin = 1 WHERE id = (SELECT MIN(id) FROM users) AND NOT EXISTS (SELECT 1 FROM users WHERE is_admin = 1)');
+  db.exec('UPDATE users SET is_admin = 1 WHERE id = (SELECT MIN(id) FROM users WHERE is_system = 0) AND NOT EXISTS (SELECT 1 FROM users WHERE is_admin = 1)');
   return db;
 }
 
