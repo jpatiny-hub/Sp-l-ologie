@@ -42,7 +42,8 @@
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
   for (const flag of BETA_FLAGS) settings[flag] = true;
   // Labo sonore : essais d'ambiance réservés au responsable, qui restent hors de la bêta ouverte à tous.
-  const LAB_FLAGS = ['labTaps', 'labRumble', 'labMelody'];
+  const AMBIENT_FLAGS = ['labTaps', 'labRumble', 'labMelody'];
+  const LAB_FLAGS = [...AMBIENT_FLAGS, 'labTabs', 'labClicks', 'labTimer'];
   let ambientKey = ''; // dernier état de l'ambiance sonore (voir syncAmbient)
   for (const flag of LAB_FLAGS) settings[flag] = false;
   const home = { moved: false, origin: new Map() }; // état du nouvel accueil (voir layoutHome)
@@ -431,14 +432,33 @@
 
   /** Ambiance sonore de l'accueil (labo du responsable) : seulement sur l'accueil, onglet visible, son activé. */
   function syncAmbient() {
-    const on = !!(app.me && app.me.isAdmin && app.view === 'home' && !document.hidden && settings.sound && LAB_FLAGS.some((f) => settings[f]));
-    const key = on ? LAB_FLAGS.map((f) => settings[f]).join() : '';
+    const on = !!(app.me && app.me.isAdmin && app.view === 'home' && !document.hidden && settings.sound && AMBIENT_FLAGS.some((f) => settings[f]));
+    const key = on ? AMBIENT_FLAGS.map((f) => settings[f]).join() : '';
     if (key === ambientKey) return;
     ambientKey = key;
     if (on) Sound.ambient({ taps: settings.labTaps, rumble: settings.labRumble, melody: settings.labMelody });
     else Sound.ambientStop();
   }
   document.addEventListener('visibilitychange', syncAmbient);
+
+  /**
+   * Labo sonore (responsable) : petits bruits de bouton. Onglets majeurs (barre du bas) et mineurs (onglets dans un écran),
+   * puis les boutons du forage et des duels.
+   */
+  document.addEventListener(
+    'click',
+    (event) => {
+      if (!app.me || !app.me.isAdmin || !settings.sound || !event.target.closest) return;
+      const target = event.target.closest('button, .tab');
+      if (!target || target.disabled) return;
+      if (settings.labTabs) {
+        if (target.closest('#bottom-nav')) return Sound.click('tab');
+        if (target.matches('.tab, [role="tab"]') || target.closest('.mini-tabs, .pf-tabs, .wr-tabs, #period-tabs')) return Sound.click('subtab');
+      }
+      if (settings.labClicks && target.closest('#view-game, #view-duel, #duel-lists, #mode-dialog, #play-sheet-body, #view-results')) return Sound.click('press');
+    },
+    true,
+  );
 
   function show(view) {
     trackView(view);
@@ -635,7 +655,7 @@
     {
       title: 'Le forage du jour',
       art: () => {
-        const dots = el('div', { class: 'tuto-dots7' }, ...Array.from({ length: 7 }, () => el('span', { class: 'tuto-dot7' })));
+        const dots = el('div', { class: 'tuto-dots7' }, ...Array.from({ length: 7 }, () => (() => { const d = el('span', { class: 'tuto-dot7' }); d.addEventListener('click', () => Sound.click('valid')); return d; })()));
         return el('div', { class: 'tuto-art-col' }, dots, el('div', { class: 'tuto-timer' }, el('strong', {}, '30'), el('span', { class: 'muted' }, ' secondes par thème')));
       },
       body: () => [
@@ -673,7 +693,18 @@
     $('tuto-title').textContent = slide.title;
     $('tuto-art').replaceChildren(slide.art());
     $('tuto-body').replaceChildren(...slide.body());
-    $('tuto-dots').replaceChildren(...SLIDES.map((_, i) => el('span', { class: `tuto-pip${i === tuto.index ? ' on' : ''}` })));
+    $('tuto-dots').replaceChildren(
+      ...SLIDES.map((_, i) => {
+        const pip = el('span', { class: `tuto-pip${i === tuto.index ? ' on' : ''}` });
+        pip.addEventListener('click', () => {
+          Sound.click('valid');
+          if (i === tuto.index) return;
+          tuto.index = i;
+          renderTutorial();
+        });
+        return pip;
+      }),
+    );
     $('tuto-prev').hidden = tuto.index === 0;
     const last = tuto.index === SLIDES.length - 1;
     $('tuto-next').textContent = last ? 'C\'est parti !' : 'Suivant ›';
@@ -694,6 +725,7 @@
     tuto.first = false;
   }
   $('tuto-next').addEventListener('click', () => {
+    Sound.click('valid');
     if (tuto.index >= SLIDES.length - 1) return closeTutorial();
     tuto.index++;
     renderTutorial();
@@ -1844,7 +1876,11 @@
     const tick = () => {
       const left = deadline - performance.now();
       const second = Math.ceil(left / 1000);
-      if (second <= 5 && second > 0 && second !== lastSecond) Sound.tick(second <= 3);
+      if (second > 0 && second !== lastSecond) {
+        // Labo (responsable) : un tic par seconde, de la couleur du chrono choisi ; sinon le tic habituel des cinq dernières secondes.
+        if (labOn('labTimer')) Sound.chrono(skin, second, second <= 5);
+        else if (second <= 5) Sound.tick(second <= 3);
+      }
       if (second !== lastSecond && (second % 10 === 0 || second <= 5)) $('timer-sr').textContent = `${Math.max(0, second)} secondes`;
       lastSecond = second;
       Timers.draw(canvas, skin, left / 1000, total / 1000, performance.now(), settings.colors, calm);

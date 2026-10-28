@@ -285,6 +285,47 @@
       tone(urgent ? 1320 : 990, { dur: 0.04, type: 'square', gain: 0.05 });
     },
 
+    /**
+     * Petits bruits de bouton, très discrets :
+     * « valid » (validation douce, tutoriel), « tab » (onglet majeur), « subtab » (onglet mineur), « press » (bouton de forage ou de duel).
+     */
+    click(kind = 'press') {
+      if (!ready()) return;
+      if (kind === 'valid') {
+        tone(660, { dur: 0.07, type: 'triangle', gain: 0.09 });
+        tone(990, { at: 0.06, dur: 0.11, type: 'triangle', gain: 0.08 });
+      } else if (kind === 'tab') {
+        tone(330, { dur: 0.06, type: 'triangle', gain: 0.09, to: 260 });
+        burst({ dur: 0.03, freq: 1800, gain: 0.05, type: 'bandpass' });
+      } else if (kind === 'subtab') {
+        tone(760, { dur: 0.04, type: 'sine', gain: 0.07, to: 620 });
+      } else {
+        burst({ dur: 0.035, freq: 2400, gain: 0.07, type: 'bandpass' });
+        tone(520, { dur: 0.05, type: 'square', gain: 0.035, to: 400 });
+      }
+    },
+
+    /**
+     * Chrono sonore, une fois par seconde, selon l'apparence du chrono choisie : batterie (bip électronique), mèche (crépitement),
+     * wagonnet (cliquetis de rails) et lanterne (petite clochette). Plus aigu et plus rapproché quand le temps presse.
+     */
+    chrono(style, second, urgent) {
+      if (!ready()) return;
+      if (style === 'meche') {
+        burst({ dur: 0.12, freq: urgent ? 5200 : 3800, gain: urgent ? 0.1 : 0.06, type: 'highpass' });
+        tone(urgent ? 700 : 420, { at: 0.02, dur: 0.05, type: 'sawtooth', gain: 0.03 });
+      } else if (style === 'wagonnet') {
+        burst({ dur: 0.04, freq: 900, gain: urgent ? 0.14 : 0.09, type: 'bandpass' });
+        burst({ at: urgent ? 0.1 : 0.16, dur: 0.04, freq: 700, gain: urgent ? 0.12 : 0.07, type: 'bandpass' });
+      } else if (style === 'lanterne') {
+        tone(urgent ? 1568 : 1175, { dur: 0.35, type: 'sine', gain: urgent ? 0.06 : 0.04 });
+        tone((urgent ? 1568 : 1175) * 2.01, { dur: 0.2, type: 'sine', gain: 0.012 });
+      } else {
+        tone(urgent ? 1320 : 880, { dur: 0.05, type: 'square', gain: urgent ? 0.05 : 0.03 });
+        if (urgent) tone(1320, { at: 0.09, dur: 0.05, type: 'square', gain: 0.04 });
+      }
+    },
+
     /** Nouveau badge : petite fanfare. */
     badge() {
       if (!ready()) return;
