@@ -41,7 +41,7 @@
   const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false, btn: 'normal', onehand: false, contrast: false, calm: false, mole: true };
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
   for (const flag of BETA_FLAGS) settings[flag] = true;
-  // Labo sonore : essais d'ambiance réservés au responsable, qui restent hors de la bêta ouverte à tous.
+  // Ambiance sonore : coups de pioche, grondement, musiques d'accueil, bruits de boutons et chrono sonore, au choix de chaque joueur (désactivés au départ).
   const AMBIENT_FLAGS = ['labTaps', 'labRumble'];
   const LAB_FLAGS = [...AMBIENT_FLAGS, 'labTabs', 'labClicks', 'labTimer'];
   settings.labMusic = '';
@@ -86,7 +86,7 @@
   const isLight = () => settings.lisible || settings.theme === 'clair' || (settings.theme === 'auto' && !!(lightQuery && lightQuery.matches));
   if (lightQuery && lightQuery.addEventListener) lightQuery.addEventListener('change', () => settings.theme === 'auto' && applySettings());
   /** Nouveautés à l'essai : réservées au responsable du jeu, une par une. */
-  const labOn = (name) => !!(app.me && app.me.isAdmin && settings[name]);
+  const labOn = (name) => !!(app.me && settings[name]);
   // Nouveau look : pour tous les joueurs ; le responsable peut en retirer des morceaux dans les réglages pour comparer.
   const betaOn = (name) => !!(app.me && (!app.me.isAdmin || settings[name]));
 
@@ -266,7 +266,7 @@
     $('beta-box').hidden = !(app.me && app.me.isAdmin);
     renderVersions();
     for (const name of BETA_FLAGS) settingsForm.elements[name].checked = !!settings[name];
-    $('lab-box').hidden = !(app.me && app.me.isAdmin);
+    $('lab-box').hidden = !app.me;
     for (const name of LAB_FLAGS) settingsForm.elements[name].checked = !!settings[name];
     settingsForm.elements.labMusic.value = settings.labMusic || '';
     renderInstall();
@@ -530,7 +530,7 @@
 
   /** Ambiance sonore de l'accueil (labo du responsable) : seulement sur l'accueil, onglet visible, son activé. */
   function syncAmbient() {
-    const on = !!(app.me && app.me.isAdmin && app.view === 'home' && !document.hidden && settings.sound && (AMBIENT_FLAGS.some((f) => settings[f]) || settings.labMusic));
+    const on = !!(app.me && app.view === 'home' && !document.hidden && settings.sound && (AMBIENT_FLAGS.some((f) => settings[f]) || settings.labMusic));
     const key = on ? [...AMBIENT_FLAGS.map((f) => settings[f]), settings.labMusic].join() : '';
     if (key === ambientKey) return;
     ambientKey = key;
@@ -540,13 +540,13 @@
   document.addEventListener('visibilitychange', syncAmbient);
 
   /**
-   * Labo sonore (responsable) : petits bruits de bouton. Onglets majeurs (barre du bas) et mineurs (onglets dans un écran),
+   * Ambiance sonore : petits bruits de bouton. Onglets majeurs (barre du bas) et mineurs (onglets dans un écran),
    * puis les boutons du forage et des duels.
    */
   document.addEventListener(
     'click',
     (event) => {
-      if (!app.me || !app.me.isAdmin || !settings.sound || !event.target.closest) return;
+      if (!app.me || !settings.sound || !event.target.closest) return;
       const target = event.target.closest('button, .tab');
       if (!target || target.disabled) return;
       if (settings.labTabs) {
@@ -6367,7 +6367,7 @@
   window.addEventListener('beforeinstallprompt', () => setTimeout(renderInstallNudge, 0));
 
   // ---------- Réglages et sections repliables : icônes et en-têtes plus lisibles ----------
-  const SETTINGS_ICONS = { 'Taille du texte': 'livre', 'Taille des boutons': 'pioche', Confort: 'casque', Lecture: 'journal', Son: 'note', Apparence: 'miroir', Couleurs: 'diamant', 'Ancienne version (contremaître)': 'horloge', Tutoriel: 'taupe', 'Labo sonore (contremaître)': 'note', 'Inviter des amis': 'enveloppe', "Installer l'application": 'maison' };
+  const SETTINGS_ICONS = { 'Taille du texte': 'livre', 'Taille des boutons': 'pioche', Confort: 'casque', Lecture: 'journal', Son: 'note', Apparence: 'miroir', Couleurs: 'diamant', 'Ancienne version (contremaître)': 'horloge', Tutoriel: 'taupe', 'Ambiance sonore': 'note', 'Inviter des amis': 'enveloppe', "Installer l'application": 'maison' };
   /** Chaque groupe de réglages devient une section repliable avec son icône ; seule la première reste ouverte au départ. */
   function decorateSettings() {
     document.querySelectorAll('#form-settings > fieldset').forEach((fieldset, index) => {
