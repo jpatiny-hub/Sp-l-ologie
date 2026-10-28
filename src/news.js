@@ -187,6 +187,19 @@ const NEWS = [
       "Tutoriel : cinq écrans pour rappeler le principe (la réponse correcte la moins probable rapporte le plus de points) et les modes de jeu. Tu peux le revoir depuis les réglages.",
     ],
   },
+  {
+    id: 12,
+    date: '2026-10-29',
+    title: 'Installe le jeu sur ton téléphone',
+    highlights: [
+      { icon: 'maison', text: 'Le jeu rejoint ton écran d\'accueil, en plein écran, comme une application' },
+      { icon: 'enveloppe', text: 'Un accès direct à ta mine, sans passer par le navigateur' },
+    ],
+    items: [
+      "Installer le jeu : il s'ouvre en plein écran, sans barre d'adresse, d'un seul toucher depuis ton écran d'accueil. Un cadre en haut de l'accueil t'explique comment faire selon ton appareil.",
+      "Si tu ouvres le jeu depuis Messenger, Instagram ou une autre application, ouvre d'abord le lien dans Chrome ou Safari : c'est là que l'installation est possible.",
+    ],
+  },
 ];
 
 const LATEST_NEWS_ID = NEWS[NEWS.length - 1].id;

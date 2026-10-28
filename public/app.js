@@ -883,6 +883,7 @@
 
   function renderHome() {
     renderAnnouncements();
+    renderInstallNudge();
     renderNews();
     const today = app.me.today;
     $('today-date').textContent = formatDay(today.day, { weekday: 'long', day: 'numeric', month: 'long' });
@@ -6097,6 +6098,74 @@
     renderInstall();
   });
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+  /**
+   * Invitation à installer le jeu, sur l'accueil : sans application installée, un cadre explique comment faire selon l'appareil.
+   * Depuis un navigateur intégré à une autre application (Messenger, Instagram…), l'installation est impossible : on propose de
+   * copier le lien pour l'ouvrir dans Chrome ou Safari. « Plus tard » la repousse de deux jours ; elle s'arrête après cinq reports.
+   */
+  const INSTALL_KEY = 'speleo-install-nudge';
+  const inAppBrowser = () => /FBAN|FBAV|FB_IAB|Instagram|Messenger|Snapchat|TikTok|LinkedInApp|Twitter|MicroMessenger|Line\/|; wv\)/i.test(navigator.userAgent);
+  function installNudgeState() {
+    try {
+      return JSON.parse(localStorage.getItem(INSTALL_KEY)) || { n: 0, until: 0 };
+    } catch {
+      return { n: 0, until: 0 };
+    }
+  }
+  function renderInstallNudge() {
+    const card = $('install-card');
+    const state = installNudgeState();
+    if (!app.me || standalone() || state.n >= 5 || Date.now() < state.until) {
+      card.hidden = true;
+      return;
+    }
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const now = $('btn-install-now');
+    now.hidden = true;
+    if (inAppBrowser()) {
+      $('install-title').textContent = 'Ouvre le jeu dans ton navigateur';
+      $('install-body').textContent = "Tu as ouvert le jeu depuis une autre application : il ne peut pas s'y installer. Copie le lien, ouvre-le dans Chrome ou Safari, puis installe le jeu pour le retrouver en plein écran, d'un seul toucher.";
+      now.textContent = 'Copier le lien du jeu';
+      now.hidden = false;
+      now.onclick = async () => {
+        try {
+          await navigator.clipboard.writeText(location.origin + location.pathname);
+          now.textContent = 'Lien copié ! Colle-le dans ton navigateur.';
+        } catch {
+          now.textContent = location.origin + location.pathname;
+        }
+      };
+    } else if (installPrompt) {
+      $('install-title').textContent = 'Installe le jeu sur ton appareil';
+      $('install-body').textContent = "Un toucher et le jeu rejoint ton écran d'accueil : il s'ouvre en plein écran, comme une application, sans barre d'adresse.";
+      now.textContent = "Installer l'application";
+      now.hidden = false;
+      now.onclick = async () => {
+        installPrompt.prompt();
+        await installPrompt.userChoice.catch(() => {});
+        installPrompt = null;
+        renderInstallNudge();
+      };
+    } else {
+      $('install-title').textContent = 'Installe le jeu sur ton appareil';
+      $('install-body').textContent = ios
+        ? "Sur iPhone, dans Safari : touche le bouton Partager, puis « Sur l'écran d'accueil ». Le jeu s'ouvrira en plein écran, comme une application."
+        : "Dans le menu de ton navigateur, choisis « Installer l'application » ou « Ajouter à l'écran d'accueil » : le jeu s'ouvrira en plein écran, comme une application.";
+    }
+    card.hidden = false;
+  }
+  $('btn-install-later').addEventListener('click', () => {
+    const state = installNudgeState();
+    try {
+      localStorage.setItem(INSTALL_KEY, JSON.stringify({ n: state.n + 1, until: Date.now() + 2 * 86400000 }));
+    } catch {
+      /* sans stockage : le cadre reviendra */
+    }
+    $('install-card').hidden = true;
+  });
+  window.addEventListener('appinstalled', renderInstallNudge);
+  window.addEventListener('beforeinstallprompt', () => setTimeout(renderInstallNudge, 0));
 
   // ---------- Démarrage ----------
   fitCanvas();

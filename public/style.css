@@ -1587,3 +1587,9 @@ button.pf-title:focus-visible { outline: 3px solid var(--ink); outline-offset: 2
 @keyframes reward-flash { from { opacity: 1; } to { opacity: 0; } }
 .feedback-points.pop-big { animation: points-pop-big 0.8s ease-out; text-shadow: 0 0 14px rgba(255, 220, 90, 0.9); }
 @keyframes points-pop-big { 0% { transform: scale(0.3) rotate(-6deg); opacity: 0; } 50% { transform: scale(1.6) rotate(3deg); opacity: 1; } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+/* Invitation à installer le jeu */
+.install { border-left: 6px solid #2f7fd0; }
+.install h2 { color: #7fc0ff; }
+.install .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.install .row .btn { flex: 1 1 10em; }
