@@ -485,9 +485,11 @@ function createApp({
     },
 
     // Musée des pépites et fil de nouvelles de la mine.
-    'GET /api/museum': async (req, res) => {
+    'GET /api/museum': async (req, res, _id, url) => {
       const user = requireUser(req, res);
-      json(res, 200, museum(game, user.id));
+      const all = museum(game, user.id);
+      // ?light=1 : seulement les totaux (pour la pastille de l'onglet « Mine »).
+      json(res, 200, url.searchParams.get('light') ? { total: all.total, todayCount: all.todayCount, day: game.today() } : { ...all, day: game.today() });
     },
 
     'GET /api/feed': async (req, res, _id, url) => {

@@ -92,3 +92,19 @@ test('pépites de duel : décompte à part, musée et profil une fois le duel te
     await app.close();
   }
 });
+
+test('musée : totaux seuls pour la pastille de l\'onglet Mine, avec le jour de jeu', async () => {
+  const app = await startServer();
+  try {
+    const adam = client(app.base);
+    await adam('/api/signup', { username: 'adam', password: 'secret123' });
+    const light = (await adam('/api/museum?light=1')).data;
+    assert.equal(light.total, 0);
+    assert.equal(light.todayCount, 0);
+    assert.match(light.day, /^\d{4}-\d{2}-\d{2}$/);
+    assert.equal(light.entries, undefined);
+    assert.ok(Array.isArray((await adam('/api/museum')).data.entries));
+  } finally {
+    await app.close();
+  }
+});
