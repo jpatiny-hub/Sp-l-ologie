@@ -1533,3 +1533,9 @@ button.pf-title:focus-visible { outline: 3px solid var(--ink); outline-offset: 2
 .msg-mole { width: 40px; height: 27px; image-rendering: pixelated; flex: none; }
 .tuto-pip { position: relative; }
 .tuto-pip::after { content: ''; position: absolute; inset: -9px; }
+
+/* Correction facile : essais refusés à reprendre */
+.tried { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 4px 0 8px; }
+.tried-list { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.tried-chip { font: inherit; font-size: calc(15px * var(--fs)); max-width: 14em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px 8px; color: var(--ink); background: var(--panel-2); border: 0; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.35); cursor: pointer; }
+.tried-chip:hover, .tried-chip:focus-visible { background: #4a3a2c; outline: 2px solid var(--accent); }
