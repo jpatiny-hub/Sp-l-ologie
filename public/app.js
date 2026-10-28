@@ -42,8 +42,9 @@
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
   for (const flag of BETA_FLAGS) settings[flag] = true;
   // Labo sonore : essais d'ambiance réservés au responsable, qui restent hors de la bêta ouverte à tous.
-  const AMBIENT_FLAGS = ['labTaps', 'labRumble', 'labMelody'];
+  const AMBIENT_FLAGS = ['labTaps', 'labRumble'];
   const LAB_FLAGS = [...AMBIENT_FLAGS, 'labTabs', 'labClicks', 'labTimer'];
+  settings.labMusic = '';
   let ambientKey = ''; // dernier état de l'ambiance sonore (voir syncAmbient)
   for (const flag of LAB_FLAGS) settings[flag] = false;
   const home = { moved: false, origin: new Map() }; // état du nouvel accueil (voir layoutHome)
@@ -56,6 +57,7 @@
     // Les anciens réglages de la bêta (tout décoché par défaut) ne valent plus : le nouveau look est la norme.
     if (saved.betaV !== 2) for (const flag of BETA_FLAGS) delete saved[flag];
     Object.assign(settings, saved);
+    if (saved.labMelody && !saved.labMusic) settings.labMusic = 'galerie'; // ancienne case « Mélodie douce »
     settings.betaV = 2;
   } catch {
     /* stockage indisponible : réglages par défaut */
@@ -244,6 +246,7 @@
     for (const name of BETA_FLAGS) settingsForm.elements[name].checked = !!settings[name];
     $('lab-box').hidden = !(app.me && app.me.isAdmin);
     for (const name of LAB_FLAGS) settingsForm.elements[name].checked = !!settings[name];
+    settingsForm.elements.labMusic.value = settings.labMusic || '';
     renderInstall();
     $('settings').showModal();
   });
@@ -258,6 +261,7 @@
     settings.season = settingsForm.elements.season.checked;
     for (const name of BETA_FLAGS) settings[name] = settingsForm.elements[name].checked;
     for (const name of LAB_FLAGS) settings[name] = settingsForm.elements[name].checked;
+    settings.labMusic = settingsForm.elements.labMusic.value || '';
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
     applySettings();
     saveSettings();
@@ -447,11 +451,11 @@
 
   /** Ambiance sonore de l'accueil (labo du responsable) : seulement sur l'accueil, onglet visible, son activé. */
   function syncAmbient() {
-    const on = !!(app.me && app.me.isAdmin && app.view === 'home' && !document.hidden && settings.sound && AMBIENT_FLAGS.some((f) => settings[f]));
-    const key = on ? AMBIENT_FLAGS.map((f) => settings[f]).join() : '';
+    const on = !!(app.me && app.me.isAdmin && app.view === 'home' && !document.hidden && settings.sound && (AMBIENT_FLAGS.some((f) => settings[f]) || settings.labMusic));
+    const key = on ? [...AMBIENT_FLAGS.map((f) => settings[f]), settings.labMusic].join() : '';
     if (key === ambientKey) return;
     ambientKey = key;
-    if (on) Sound.ambient({ taps: settings.labTaps, rumble: settings.labRumble, melody: settings.labMelody });
+    if (on) Sound.ambient({ taps: settings.labTaps, rumble: settings.labRumble, music: settings.labMusic || null });
     else Sound.ambientStop();
   }
   document.addEventListener('visibilitychange', syncAmbient);
