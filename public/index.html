@@ -560,6 +560,10 @@
           <form id="form-answer" class="form answer-form" autocomplete="off">
             <input id="answer-input" name="text" maxlength="80" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Ta réponse…" aria-label="Ta réponse">
             <p class="error" id="answer-error" role="alert"></p>
+            <div class="tried" id="answer-tried" hidden>
+              <span class="muted small">Déjà essayé, touche pour corriger :</span>
+              <span class="tried-list" id="answer-tried-list"></span>
+            </div>
             <button class="link report-link" id="btn-report" type="button" hidden></button>
             <p class="muted small" id="report-status" role="status" hidden></p>
             <div class="confirm" id="answer-confirm" hidden>

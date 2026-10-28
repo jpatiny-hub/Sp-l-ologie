@@ -1860,6 +1860,8 @@
 
   function showPrompt(round, remainingMs) {
     app.tried = new Set();
+    app.triedTexts = [];
+    renderTried();
     $('pane-ready').hidden = true;
     $('pane-prompt').hidden = false;
     updateBanner();
@@ -1952,10 +1954,14 @@
               ? `Hmm, « ${text} » n'est pas dans mes plans de la mine pour ce thème. Essaie une autre piste !`
               : `« ${text} » ne fait pas partie des réponses connues pour ce thème. Essaie autre chose !`;
         app.tried.add(triedKey(text));
+        // Correction facile : on garde la saisie et le curseur à la fin quand on y est presque ; sinon on repart de zéro.
+        app.triedTexts = [text, ...(app.triedTexts || []).filter((t) => triedKey(t) !== triedKey(text))].slice(0, 6);
+        renderTried();
         input.classList.remove('shake');
         void input.offsetWidth;
         input.classList.add('shake');
-        input.select();
+        if (res.hint && (res.hint.kind === 'presque' || res.hint.kind === 'partiel')) input.setSelectionRange(input.value.length, input.value.length);
+        else input.select();
         app.game = res.state;
         offerReport(text);
         Sound.wrong();
@@ -2021,6 +2027,26 @@
     } catch {
       return false;
     }
+  }
+
+  /** Les essais refusés de ce thème, à toucher pour les reprendre dans la zone de saisie et les corriger. */
+  function renderTried() {
+    const list = app.triedTexts || [];
+    $('answer-tried').hidden = !list.length;
+    $('answer-tried-list').replaceChildren(
+      ...list.map((text) => {
+        const chip = el('button', { class: 'tried-chip', type: 'button', title: 'Reprendre cet essai pour le corriger' }, text);
+        chip.addEventListener('click', () => {
+          const input = $('answer-input');
+          clearPending();
+          input.value = text;
+          input.focus();
+          input.setSelectionRange(text.length, text.length);
+          $('answer-error').textContent = '';
+        });
+        return chip;
+      }),
+    );
   }
 
   // Réponses déjà refusées pendant ce thème (retours précis, bêta) : inutile de renvoyer la même.
