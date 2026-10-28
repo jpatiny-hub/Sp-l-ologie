@@ -214,12 +214,39 @@ class DuelService {
     const pending = this.db.prepare("SELECT * FROM duels WHERE status = 'done' AND validated_at IS NULL").all();
     for (const d of pending) {
       if (d.finished_at != null && dayKey(d.finished_at) >= cutoff) continue;
-      this.db.prepare('UPDATE duels SET validated_at = ? WHERE id = ?').run(this.now(), d.id);
-      const today = this.game.today();
-      this.game.badges.awardDuels(d.challenger_id, today);
-      this.game.badges.awardDuels(d.opponent_id, today);
-      [d.challenger_id, d.opponent_id].forEach((id) => this.game.skulls.award(id, today));
+      this.validate(d);
     }
+  }
+
+  validate(d) {
+    this.db.prepare('UPDATE duels SET validated_at = ? WHERE id = ?').run(this.now(), d.id);
+    const today = this.game.today();
+    this.game.badges.awardDuels(d.challenger_id, today);
+    this.game.badges.awardDuels(d.opponent_id, today);
+    [d.challenger_id, d.opponent_id].forEach((id) => this.game.skulls.award(id, today));
+  }
+
+  /** Duels terminés qui attendent la validation de 2 h 30 (pour le responsable du jeu). */
+  awaitingValidation() {
+    return this.db
+      .prepare("SELECT * FROM duels WHERE status = 'done' AND validated_at IS NULL ORDER BY finished_at")
+      .all()
+      .map((d) => ({
+        id: d.id,
+        challenger: this.person(d.challenger_id).username,
+        opponent: this.person(d.opponent_id).username,
+        finishedAt: d.finished_at,
+      }));
+  }
+
+  /** Le responsable valide un duel terminé tout de suite, sans attendre 2 h 30 : mêmes effets que la validation automatique. */
+  validateNow(id) {
+    const d = this.db.prepare('SELECT * FROM duels WHERE id = ?').get(Number(id));
+    if (!d) throw new HttpError(404, 'Duel introuvable.');
+    if (d.status !== 'done') throw new HttpError(409, "Ce duel n'est pas terminé.");
+    if (d.validated_at != null) throw new HttpError(409, 'Ce duel est déjà validé.');
+    this.validate(d);
+    return { ok: true };
   }
 
   /**

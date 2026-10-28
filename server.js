@@ -356,6 +356,18 @@ function createApp({
       json(res, 200, { ok: true });
     },
 
+    // Duels terminés en attente de validation, et validation immédiate à la demande du responsable.
+    'GET /api/admin/duels/pending': async (req, res) => {
+      requireAdmin(req, res);
+      json(res, 200, { duels: game.duels.awaitingValidation() });
+    },
+
+    'POST /api/admin/duels/validate': async (req, res) => {
+      requireAdmin(req, res);
+      const { id } = await readJson(req);
+      json(res, 200, game.duels.validateNow(id));
+    },
+
     // Santé du jeu, pour le responsable : version, base, sauvegardes, erreurs récentes.
     'GET /api/admin/health': async (req, res) => {
       requireAdmin(req, res);

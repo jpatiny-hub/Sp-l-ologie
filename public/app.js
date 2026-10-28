@@ -3797,6 +3797,7 @@
     loadReverse();
     loadMessageReports();
     loadAdminSuggestions();
+    loadPendingDuels();
     loadDashboard();
   }
   $('btn-admin').addEventListener('click', () => openAdmin());
@@ -4207,6 +4208,36 @@
       requestAnimationFrame(loop);
     };
     requestAnimationFrame(loop);
+  }
+
+  // ---------- Duels à valider (responsable du jeu) ----------
+  async function loadPendingDuels() {
+    const card = $('admin-duels');
+    card.hidden = !(app.me && app.me.isAdmin);
+    if (card.hidden) return;
+    try {
+      const { duels } = await api('/api/admin/duels/pending');
+      $('duels-valid-sub').textContent = duels.length ? `${duels.length} en attente de 2 h 30` : 'rien en attente';
+      $('duels-valid-list').replaceChildren(
+        ...duels.map((d) => {
+          const btn = el('button', { class: 'btn small-btn', type: 'button' }, 'Valider maintenant');
+          btn.addEventListener('click', async () => {
+            btn.disabled = true;
+            try {
+              await api('/api/admin/duels/validate', { id: d.id });
+              $('duels-valid-status').textContent = `Duel ${d.challenger} contre ${d.opponent} validé.`;
+              loadPendingDuels();
+            } catch (err) {
+              $('duels-valid-status').textContent = err.message;
+              btn.disabled = false;
+            }
+          });
+          return el('li', { class: 'report pending' }, el('span', { class: 'what' }, el('strong', {}, `${d.challenger} contre ${d.opponent}`)), btn);
+        }),
+      );
+    } catch (err) {
+      $('duels-valid-status').textContent = err.message;
+    }
   }
 
   // ---------- Réponses signalées (responsable du jeu) ----------
