@@ -3822,10 +3822,91 @@
   });
 
   // ---------- Contre maître (responsable du jeu) ----------
+  // Administration en trois onglets : contenu (thèmes, réponses), joueurs (suivi, duels, messages) et jeu (santé, annonces).
+  // Une pastille sur l'onglet totalise ce qui attend le responsable.
+  const ADMIN_TAB_OF = { reports: 'contenu', suggestions: 'contenu', duels: 'joueurs', msgreports: 'joueurs', suspicions: 'joueurs' };
+  app.adminCounts = {};
+  function setAdminCount(key, n) {
+    app.adminCounts[key] = n;
+    for (const tab of ['contenu', 'joueurs', 'jeu']) {
+      const total = Object.entries(app.adminCounts).reduce((sum, [k, v]) => sum + (ADMIN_TAB_OF[k] === tab ? v : 0), 0);
+      const dot = $(`atab-count-${tab}`);
+      dot.hidden = !total;
+      dot.textContent = total;
+    }
+  }
+  function setAdminTab(tab) {
+    app.adminTab = tab;
+    $('view-admin').dataset.active = tab;
+    $('admin-tabs').querySelectorAll('button').forEach((b) => {
+      const active = b.dataset.atabGo === tab;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-selected', String(active));
+    });
+  }
+  $('admin-tabs').addEventListener('click', (event) => {
+    const b = event.target.closest('button[data-atab-go]');
+    if (b) setAdminTab(b.dataset.atabGo);
+  });
+
+  // ---------- Suspicions (responsable du jeu) ----------
+  async function loadSuspicions(days = app.suspDays || 14) {
+    const card = $('admin-suspicions');
+    card.hidden = !(app.me && app.me.isAdmin);
+    if (card.hidden) return;
+    app.suspDays = days;
+    $('susp-tabs').querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', Number(t.dataset.susp) === days));
+    try {
+      const { players } = await api(`/api/admin/suspicions?days=${days}`);
+      const marked = players.filter((p) => p.level !== 'rien');
+      setAdminCount('suspicions', marked.length);
+      $('susp-sub').textContent = marked.length ? `${plural(marked.length, 'joueur à regarder', 'joueurs à regarder')}` : 'rien à signaler';
+      $('susp-status').textContent = players.length ? '' : `Aucune réponse enregistrée sur ${days} jours.`;
+      const tagText = { forte: 'Plusieurs signaux', 'a-observer': 'À observer' };
+      $('susp-list').replaceChildren(
+        ...players.map((p) => {
+          const counts = [
+            p.pastes ? `${p.pastes} collé${p.pastes > 1 ? 's' : ''}` : null,
+            p.copies ? `${p.copies} copie${p.copies > 1 ? 's' : ''} tentée${p.copies > 1 ? 's' : ''}` : null,
+            p.fastRare ? `${p.fastRare} rapide${p.fastRare > 1 ? 's' : ''}` : null,
+            p.away ? `${p.away} page${p.away > 1 ? 's' : ''} quittée${p.away > 1 ? 's' : ''}` : null,
+          ].filter(Boolean);
+          const head = el(
+            'span',
+            { class: 'what' },
+            el('strong', {}, p.username, p.level !== 'rien' ? el('span', { class: `susp-tag ${p.level}` }, tagText[p.level]) : null),
+            el('span', { class: 'muted' }, `${plural(p.rounds, 'thème', 'thèmes')} sur ${days} jours${counts.length ? ` · ${counts.join(' · ')}` : ''}`),
+          );
+          const item = el('li', { class: `report susp ${p.level === 'rien' ? 'handled' : 'pending'}` }, head);
+          if (p.flagged.length) {
+            item.append(
+              el(
+                'details',
+                { class: 'fold-inner' },
+                el('summary', {}, 'Voir les thèmes concernés'),
+                ...p.flagged.map((f) =>
+                  el('p', { class: 'muted susp-why' }, `${formatDay(f.day, { day: 'numeric', month: 'short' })} · ${f.mode === 'daily' ? 'forage du jour' : f.mode === 'duel' ? 'duel' : 'infini'} · « ${f.theme} »${f.answer ? ` → ${f.answer}` : ''} : ${f.why.join(', ')}`),
+                ),
+              ),
+            );
+          }
+          return item;
+        }),
+      );
+    } catch (err) {
+      $('susp-status').textContent = err.message;
+    }
+  }
+  $('susp-tabs').addEventListener('click', (event) => {
+    const t = event.target.closest('.tab');
+    if (t) loadSuspicions(Number(t.dataset.susp));
+  });
+
   async function openAdmin() {
     if (!app.me || !app.me.isAdmin) return;
     stopTimer();
     show('admin');
+    setAdminTab(app.adminTab || 'contenu');
     initFolds('view-admin');
     loadHealth();
     loadAdminAnnouncements();
@@ -3837,6 +3918,7 @@
     loadMessageReports();
     loadAdminSuggestions();
     loadPendingDuels();
+    loadSuspicions();
     loadDashboard();
   }
   $('btn-admin').addEventListener('click', () => openAdmin());
@@ -4256,6 +4338,7 @@
     if (card.hidden) return;
     try {
       const { duels } = await api('/api/admin/duels/pending');
+      setAdminCount('duels', duels.length);
       $('duels-valid-sub').textContent = duels.length ? `${duels.length} en attente de 2 h 30` : 'rien en attente';
       $('duels-valid-list').replaceChildren(
         ...duels.map((d) => {
@@ -4299,6 +4382,7 @@
     const tab = app.reportTab || 'pending';
     const shown = app.reports.filter((r) => (r.status === 'pending') === (tab === 'pending'));
     $('count-pending').textContent = `(${app.reports.filter((r) => r.status === 'pending').length})`;
+    setAdminCount('reports', app.reports.filter((r) => r.status === 'pending').length);
     $('count-done').textContent = `(${app.reports.filter((r) => r.status !== 'pending').length})`;
     document.querySelectorAll('#report-tabs .tab').forEach((t) => t.classList.toggle('active', t.dataset.reports === tab));
     $('btn-copy-reports').hidden = tab !== 'pending';
@@ -4837,6 +4921,7 @@
     if (card.hidden) return;
     try {
       const { reports } = await api('/api/admin/message-reports');
+      setAdminCount('msgreports', reports.length);
       $('msg-reports-status').textContent = reports.length ? '' : 'Aucun message signalé.';
       $('msg-reports-list').replaceChildren(
         ...reports.map((r) => {
@@ -5066,6 +5151,7 @@
     const all = app.suggestions || [];
     const shown = all.filter((s) => !s.handled === (tab === 'pending'));
     $('count-sug-pending').textContent = `(${all.filter((s) => !s.handled).length})`;
+    setAdminCount('suggestions', all.filter((s) => !s.handled).length);
     $('count-sug-done').textContent = `(${all.filter((s) => s.handled).length})`;
     document.querySelectorAll('#suggestion-tabs .tab').forEach((t) => t.classList.toggle('active', t.dataset.suggestions === tab));
     $('btn-copy-suggestions').hidden = tab !== 'pending';
@@ -6311,7 +6397,7 @@
   }
   decorateSettings();
 
-  const FOLD_ICONS = { defis: 'trophee', profil: 'casque', cranes: 'crane', badges: 'medaille', atelier: 'pioche', carnet: 'journal', bilan: 'horloge', stats: 'cible', proposer: 'livre', 'mes-signalements': 'drapeau', sante: 'lampe', annonces: 'enveloppe', suggestions: 'livre', signalements: 'drapeau', 'duels-valider': 'trophee', invitation: 'fanion', refusees: 'cible', essai: 'oeil', 'messages-signales': 'bouclier', inverse: 'miroir', tableau: 'trophee' };
+  const FOLD_ICONS = { defis: 'trophee', profil: 'casque', cranes: 'crane', badges: 'medaille', atelier: 'pioche', carnet: 'journal', bilan: 'horloge', stats: 'cible', proposer: 'livre', 'mes-signalements': 'drapeau', sante: 'lampe', annonces: 'enveloppe', suggestions: 'livre', signalements: 'drapeau', 'duels-valider': 'trophee', suspicions: 'oeil', invitation: 'fanion', refusees: 'cible', essai: 'oeil', 'messages-signales': 'bouclier', inverse: 'miroir', tableau: 'trophee' };
   /** Une petite icône pixel art devant le titre de chaque section repliable. */
   function decorateFolds() {
     document.querySelectorAll('details.fold[data-fold] > summary').forEach((summary) => {

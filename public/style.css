@@ -1409,6 +1409,16 @@ kbd { padding: 0 6px; border: 2px solid var(--line); background: var(--well); fo
 
 .pf-tabs { display: flex; gap: 6px; padding: 8px 4px; margin: 4px; }
 .pf-tabs .tab { flex: 1; padding: 10px 4px; }
+#admin-tabs { padding: 0; margin: 8px 0; }
+#view-admin [data-atab] { display: none; }
+#view-admin[data-active='contenu'] [data-atab='contenu'],
+#view-admin[data-active='joueurs'] [data-atab='joueurs'],
+#view-admin[data-active='jeu'] [data-atab='jeu'] { display: block; }
+.susp { display: flex; flex-direction: column; gap: 4px; }
+.susp-tag { display: inline-block; padding: 0 6px; font-size: calc(14px * var(--fs)); color: #fff; background: #6b6b6b; margin-left: 6px; }
+.susp-tag.forte { background: #e2553f; }
+.susp-tag.a-observer { background: #d98c1a; }
+.susp-why { margin: 2px 0 0 12px; font-size: calc(14px * var(--fs)); }
 
 :root[data-beta-profil] #view-profile [data-ptab] { display: none; }
 :root[data-beta-profil] #view-profile[data-active='apercu'] [data-ptab='apercu'],
