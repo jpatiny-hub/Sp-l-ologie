@@ -934,6 +934,20 @@
     rows.forEach((r, dy) => [...r].forEach((b, dx) => b === '1' && ctx.fillRect(x + dx, y + dy, 1, 1)));
   }
 
+  /** Nombre en gros chiffres pixel (×scale) avec une ombre portée, centré sur x : « +12 ». */
+  function drawScore(ctx, text, cx, y, color, scale) {
+    const glyphs = [...text].map((ch) => (ch === '+' ? ['000', '010', '111', '010', '000'] : DIGITS[ch])).filter(Boolean);
+    const w = glyphs.length * 4 * scale - scale;
+    let x = Math.round(cx - w / 2);
+    for (const rows of glyphs) {
+      for (const [dx0, dy0, col] of [[scale, scale, '#000'], [0, 0, color]]) {
+        ctx.fillStyle = col;
+        rows.forEach((r, dy) => [...r].forEach((b, dx) => b === '1' && ctx.fillRect(x + dx * scale + dx0, y + dy * scale + dy0, scale, scale)));
+      }
+      x += 4 * scale;
+    }
+  }
+
   // ===== Style HD-2D (essai réservé au responsable) : relief, lumière de lampe, bloom, poussière =====
   const HDK = 4;
   let hd = false;
@@ -1323,6 +1337,7 @@
       this.onOverview = null;
       this.camY = 0;
       this.particles = [];
+      this.floaters = [];
       this.mode = 'follow';
       this.tourDir = 1;
       this.tourPause = 0;
@@ -1453,6 +1468,11 @@
 
     /** layers : [{ points, tier }] dans l'ordre des thèmes. */
     setLayers(layers, animate) {
+      // Galeries 16-bit : le score de la nouvelle réponse s'envole au-dessus de la foreuse pendant qu'elle s'enfonce.
+      const added = layers[layers.length - 1];
+      if (caves && animate && layers.length > this.layers.length && added && added.points > 0) {
+        this.floaters.push({ text: `+${added.points}`, color: TIER_COLORS[added.tier] || '#fff', t0: null });
+      }
       this.layers = layers.slice();
       this.target = Math.min(MAX_POINTS, layers.reduce((s, l) => s + (l.points || 0), 0));
       this.mode = 'follow';
@@ -1686,6 +1706,21 @@
       }
     }
 
+    /** Scores qui s'envolent depuis la foreuse (2 s), en coordonnées écran. */
+    drawFloaters(ctx, time, cam) {
+      if (!this.floaters.length) return;
+      const start = this.tipY() - cam - 36;
+      this.floaters = this.floaters.filter((f) => {
+        if (f.t0 === null) f.t0 = time;
+        const p = (time - f.t0) / 2;
+        if (p >= 1) return false;
+        ctx.globalAlpha = p < 0.7 ? 1 : (1 - p) / 0.3;
+        drawScore(ctx, f.text, W / 2, Math.round(Math.min(start, this.h * 0.55) - p * 46), f.color, 2);
+        ctx.globalAlpha = 1;
+        return true;
+      });
+    }
+
     /** Halloween : des fantômes translucides survolent l'écran pendant que la foreuse creuse. */
     drawGhosts(ctx, time) {
       if (season !== 'halloween' || !this.drilling) return;
@@ -1804,7 +1839,8 @@
       let stagger = 0;
       this.layers.forEach((layer, i) => {
         cumulative += layer.points || 0;
-        if (cumulative > this.depth + 0.01) return;
+        // Galeries 16-bit : aucun repère dans le puits, la foreuse s'enfonce simplement (le score s'envole, voir drawFloaters).
+        if (caves || cumulative > this.depth + 0.01) return;
         const y = SKY + Math.round(Math.min(cumulative, MAX_POINTS) * PPP);
         stagger = y - previousY < 7 ? stagger + 1 : 0;
         previousY = y;
@@ -1854,6 +1890,7 @@
         }
       }
       ctx.restore();
+      this.drawFloaters(ctx, time, cam);
       if (caveFront) {
         global.Caves.drawFront(ctx, caveFront, cam, this.h, time);
         global.Caves.drawAir(ctx, { W, SKY, PPP }, cam, this.h, time, reducedMotion(), hd);
