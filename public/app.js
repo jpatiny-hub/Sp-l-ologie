@@ -2285,7 +2285,7 @@
     const target = event.target;
     const typing = !!target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName);
     const confirmOpen = !$('view-game').hidden && !$('answer-confirm').hidden;
-    const key = event.key.toLowerCase();
+    const key = (event.key || '').toLowerCase();
     if (confirmOpen) {
       const yes = $('btn-confirm-yes');
       const no = $('btn-confirm-no');
@@ -4672,7 +4672,7 @@
     if (event.altKey || event.ctrlKey || event.metaKey) return;
     const tag = event.target && event.target.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-    const press = { a: 'decide-accept', r: 'decide-refuse', s: 'decide-later' }[event.key.toLowerCase()];
+    const press = { a: 'decide-accept', r: 'decide-refuse', s: 'decide-later' }[(event.key || '').toLowerCase()];
     if (press && $(press)) {
       event.preventDefault();
       $(press).click();
