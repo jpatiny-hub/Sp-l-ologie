@@ -1,0 +1,9 @@
+titre: Un écrivain enterré au Père-Lachaise
+# Périmètre : écrivains, poètes et dramaturges inhumés au cimetière du Père-Lachaise (Paris). Retirés de l'ancienne liste : tous les non-écrivains (musiciens, peintres, scientifiques, acteurs, politiques, etc.).
+# Écartés (pas au Père-Lachaise) : Hugo (Panthéon), Voltaire (Panthéon), Baudelaire, Beckett, Duras (Montparnasse), Verlaine (Batignolles), Gautier (Montmartre).
+# Sources : consultation en ligne impossible (Wikipédia inaccessible depuis cet environnement) ; la liste précédente s'appuyait sur en.wikipedia « List of burials at Père Lachaise Cemetery » ; ajouts de mémoire. À faire valider : Rodenbach, Börne, Delavigne, Barbusse, Vallès, Béranger.
+1: Oscar Wilde = Wilde; Molière; Honoré de Balzac = Balzac; Marcel Proust = Proust; Jean de La Fontaine = La Fontaine; Colette
+2: Guillaume Apollinaire = Apollinaire; Alfred de Musset = Musset; Georges Perec = Perec; Paul Éluard = Éluard; Beaumarchais = Pierre-Augustin Caron de Beaumarchais; Alphonse Daudet = Daudet; Gertrude Stein; Gérard de Nerval = Nerval
+3: Jules Michelet = Michelet; Jules Vallès = Vallès; Alice B. Toklas; Richard Wright; Charles Nodier = Nodier; Pierre-Jean de Béranger = Béranger; Eugène Scribe = Scribe; Henri Barbusse = Barbusse
+4: Casimir Delavigne = Delavigne; Anna de Noailles = Noailles; Henri de Régnier = Régnier; Miguel Ángel Asturias = Asturias; Georges Rodenbach = Rodenbach
+5: Ludwig Börne = Börne

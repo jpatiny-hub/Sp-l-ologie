@@ -1,0 +1,9 @@
+titre: Un zoo ou parc animalier de Belgique
+actif: non
+# Actif: non. Moins de 20 réponses sûres et vérifiées (les pages Wikipédia de listes de zoos belges n'ont pas pu être consultées). Les musées sont abandonnés. Pour activer : compléter avec une liste de référence (p. ex. Wikipédia FR « Parc zoologique » en Belgique, ou la liste de la Royal Zoological Society / Beaps) puis retirer cette ligne.
+# Périmètre : zoos, parcs animaliers, parcs à gibier et aquariums-parcs ouverts au public en Belgique.
+# Sources : touring.be « Les 9 plus beaux parcs animaliers en Belgique » (consultée : Zoo d'Anvers, Planckendael, Pairi Daiza, Han, Forestia, Monde Sauvage, Bellewaerde, Zwin, Sea Life Blankenberge) ; le reste vient de connaissances générales, à valider (Olmen, parcs à gibier de La Roche et Saint-Hubert).
+1: Pairi Daiza = Paradisio; Zoo d'Anvers = Zoo Antwerpen = Zoo d'Anvers
+2: Planckendael = Zoo Planckendael; Domaine des grottes de Han = Parc animalier de Han = Parc de Han = Han-sur-Lesse; Forestia; Monde Sauvage d'Aywaille = Le Monde Sauvage = Monde sauvage = Monde Sauvage; Bellewaerde
+3: Zwin Natuur Park = Zwin = Zwin Nature Park; Sea Life Blankenberge = Sea Life = Aquarium Sea Life Blankenberge
+4: Zoo Olmen = Dierenpark Olmen = Olmense Zoo; Parc à gibier de La Roche-en-Ardenne = Parc à gibier de La Roche; Parc à gibier de Saint-Hubert

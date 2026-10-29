@@ -1,0 +1,10 @@
+titre: Un livre de référence classé par ordre alphabétique
+actif: non
+# Périmètre voulu : ouvrages de référence dont les entrées sont rangées de A à Z (dictionnaires, encyclopédies, annuaires, index, glossaires...).
+# Laissé INACTIF : la liste dépasse 20 réponses mais reste ouverte (il existe des dictionnaires, lexiques ou répertoires de tout sujet et de toute langue ; « livre de référence » est flou). Même en listant les genres, de bonnes réponses légitimes (par ex. un dictionnaire précis) seraient refusées. À n'activer que si Jonas accepte ce risque.
+# Sources : consultation en ligne impossible (Wikipédia inaccessible depuis cet environnement) ; liste de genres et de titres connus de mémoire.
+1: Dictionnaire; Encyclopédie; Annuaire; Index; Glossaire; Lexique; Répertoire; Petit Larousse = Larousse; Petit Robert = Robert; Pages jaunes = Pages d'Or
+2: Pages blanches; Bottin = Bottin mondain; Vocabulaire; Dictionnaire des synonymes; Abécédaire; Thésaurus = Thesaurus; Dictionnaire encyclopédique; Dictionnaire de rimes = Rimaire; Dictionnaire bilingue
+3: Nomenclature; Dictionnaire étymologique; Dictionnaire des noms propres; Who's Who; Quid; Dictionnaire historique; Dictionnaire biographique
+4: Concordance; Gazetteer = Dictionnaire géographique; Onomasticon; Dictionnaire de l'Académie française = Dictionnaire de l'Académie
+5: Glossarium; Vocabularium; Index librorum prohibitorum = Index des livres interdits

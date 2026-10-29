@@ -1,0 +1,9 @@
+titre: Un personnage des X-Men
+# Périmètre : personnages de la franchise X-Men (comics, dessins animés, films) : membres, alliés et adversaires récurrents. Retirés de l'ancienne liste : tous les personnages Marvel étrangers aux X-Men (Spider-Man, Thanos, Loki, etc.) ainsi que Deadpool.
+# Limite : la frontière « personnage des X-Men » reste floue pour des alliés ou ennemis occasionnels ; une bonne réponse hors sélection sera refusée.
+# Sources : consultation en ligne impossible (Wikipédia inaccessible depuis cet environnement) ; liste de mémoire, reprise de l'ancienne liste (en.wikipedia Lists of Marvel Comics characters) pour les personnages X-Men, avec ajouts classiques. Niveaux 4-5 à faire valider.
+1: Wolverine = Serval; Professeur Xavier = Professeur X = Charles Xavier; Magneto = Magnéto; Cyclope = Cyclops; Tornade = Storm; Jean Grey = Phénix = Phoenix; Malicia = Rogue; Diablo = Nightcrawler
+2: Mystique; Dents-de-sabre = Sabretooth; Gambit; Colossus; Beast = Le Fauve; Iceman = Bobby Drake; Angel = Archange = Archangel; Kitty Pryde = Shadowcat; Jubilee; Apocalypse; Juggernaut; Emma Frost; Psylocke
+3: Cable; Bishop; Havok; Polaris; Mister Sinistre = Mister Sinister; Sentinelles; Quicksilver = Vif-Argent; Banshee; Dazzler; Forge; Longshot; Sunfire; Domino; Sebastian Shaw; Mojo; Pyro; Blob; Avalanche; Toad = Crapaud; Lockheed; X-23 = Laura Kinney; Cannonball; Sunspot; Magik; Wolfsbane; Moira MacTaggert; Stryker = William Stryker; Callisto
+4: Sauron; Thunderbird; Strong Guy; Multiple Man; Darwin; Deathstrike = Lady Deathstrike; Nimrod; Stryfe; Omega Red; Bastion; Mastermind; Marrow; Rictor; Shatterstar; Boom-Boom; Siryn; Warpath; Legion; Cecilia Reyes; Black Tom Cassidy
+5: Armor; Cypher; Rachel Summers

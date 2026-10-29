@@ -1,0 +1,8 @@
+titre: Une pièce d'Eugène Ionesco
+# Périmètre : pièces de théâtre (y compris courtes) d'Eugène Ionesco. Choix de ce dramaturge parce que Molière, Corneille/Racine et Shakespeare ont déjà leur thème. Remplace l'ancienne liste « théâtre contemporain / one-man-show » (non bornée) : Le Prénom, Art, Le Père, etc. retirés.
+# Sources : consultation en ligne impossible (Wikipédia inaccessible depuis cet environnement) ; liste établie de mémoire d'après le répertoire connu de Ionesco, sans les titres incertains. Les pièces courtes (niveau 5) sont à faire valider.
+1: La Cantatrice chauve = The Bald Soprano; Rhinocéros = Rhinoceros; Les Chaises = The Chairs; La Leçon = The Lesson
+2: Le Roi se meurt = Exit the King; Tueur sans gages = The Killer; Victimes du devoir; Jacques ou la Soumission; Amédée ou Comment s'en débarrasser = Amédée
+3: Le Piéton de l'air; Macbett; Jeux de massacre; La Soif et la Faim; Le Nouveau Locataire; L'Avenir est dans les œufs; Le Maître
+4: Délire à deux; Ce formidable bordel; L'Homme aux valises; Voyage chez les morts; Le Tableau; La Jeune Fille à marier; Scène à quatre
+5: Le Salon de l'automobile; Le Rhume onirique; Les Salutations; La Lacune; Pour préparer un œuf dur

@@ -1,9 +1,0 @@
-titre: Un parc animalier ou un musée belge
-actif: non
-# Actif: non. Deux listes très larges mélangées : la Belgique compte plus de 700 musées reconnus et une trentaine de parcs animaliers ; impossible de les borner. Pour activer : séparer en deux thèmes plus étroits, par exemple « Un parc animalier belge » (liste courte) et « Un musée de Bruxelles » ou « Un musée de la Fédération Wallonie-Bruxelles ».
-# Périmètre ici : parcs animaliers/zoos principaux et musées les plus connus. Pas d'exhaustivité.
-# Sources : touring.be « Les 9 plus beaux parcs animaliers en Belgique », Wikipédia FR « Liste de musées en Belgique », sites officiels. Niveaux 4-5 à valider par Jonas.
-1: Pairi Daiza; Zoo d'Anvers = Zoo Antwerpen = Zoo d'Anvers; Planckendael; Musées royaux des Beaux-Arts de Belgique = Musées royaux des Beaux-Arts; Musée Magritte; Atomium; Musée Hergé; Musée des instruments de musique = MIM
-2: Domaine des grottes de Han = Grottes de Han = Parc animalier de Han = Han-sur-Lesse; Forestia; Le Monde Sauvage d'Aywaille = Monde Sauvage = Monde sauvage; Bellewaerde; Aquarium Sea Life Blankenberge = Sea Life; Zwin Natuur Park = Zwin; AfricaMuseum = Musée royal de l'Afrique centrale = Musée de Tervuren; Muséum des sciences naturelles = Muséum de Bruxelles = Musée des dinosaures; Musée Plantin-Moretus; Rubenshuis = Maison de Rubens; Mundaneum; Mu.ZEE = Musée d'art à la mer; Musée des Beaux-Arts de Gand = MSK Gand = MSK; SMAK; BELvue; Autoworld; Train World; Musée de la Bande dessinée = Centre belge de la Bande dessinée
-3: Musée royal de l'Armée = Musée de l'Armée; Musée Horta; Musée Félicien Rops; Musée de la Photographie de Charleroi; Musée de la Vie wallonne; Musée Grand Curtius = Grand Curtius; Musée des Beaux-Arts de Liège = La Boverie; BPS22; MAC's = Grand-Hornu; Musée du Cinquantenaire; Fondation Folon; Musée Fin-de-Siècle; Musée de la Dentelle
-# Écartés : tout ce que je n'ai pas retrouvé dans au moins deux sources.
