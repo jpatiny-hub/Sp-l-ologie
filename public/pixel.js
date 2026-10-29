@@ -905,12 +905,77 @@
     rows.forEach((r, dy) => [...r].forEach((b, dx) => b === '1' && ctx.fillRect(x + dx, y + dy, 1, 1)));
   }
 
+  // ===== Style HD-2D (essai réservé au responsable) : relief, lumière de lampe, bloom, poussière =====
+  const HDK = 4;
+  let hd = false;
+  const lerp3 = (a, b, t) => a + (b - a) * t;
+  function setHd(on) {
+    hd = !!on;
+  }
+  const smooth = (a, b, x) => {
+    const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
+    return t * t * (3 - 2 * t);
+  };
+
+  /** Copie du monde avec un relief éclairé par le haut à gauche et des creux assombris (calculé une fois). */
+  function bakeRelief(src) {
+    const w = src.width;
+    const h = src.height;
+    const out = document.createElement('canvas');
+    out.width = w;
+    out.height = h;
+    const ctx = out.getContext('2d');
+    ctx.drawImage(src, 0, 0);
+    const img = ctx.getImageData(0, SKY, w, h - SKY);
+    const d = img.data;
+    const hh = h - SKY;
+    const lum = new Float32Array(w * hh);
+    for (let i = 0, j = 0; j < lum.length; i += 4, j++) lum[j] = d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11;
+    const L = (x, y) => lum[Math.max(0, Math.min(hh - 1, y)) * w + Math.max(0, Math.min(w - 1, x))];
+    for (let y = 0; y < hh; y++) {
+      for (let x = 0; x < w; x++) {
+        const bump = Math.max(-34, Math.min(34, (L(x - 1, y - 1) - L(x + 1, y + 1)) * 0.7));
+        const avg = (L(x - 1, y) + L(x + 1, y) + L(x, y - 1) + L(x, y + 1)) / 4;
+        const cavity = Math.min(0, L(x, y) - avg) * 0.7;
+        const i = (y * w + x) * 4;
+        d[i] = Math.max(0, Math.min(255, d[i] + bump + cavity));
+        d[i + 1] = Math.max(0, Math.min(255, d[i + 1] + bump + cavity));
+        d[i + 2] = Math.max(0, Math.min(255, d[i + 2] + bump + cavity));
+      }
+    }
+    ctx.putImageData(img, 0, SKY);
+    return out;
+  }
+
+  let moteSprite = null;
+  function mote() {
+    if (moteSprite) return moteSprite;
+    const c = document.createElement('canvas');
+    c.width = c.height = 32;
+    const x = c.getContext('2d');
+    const g = x.createRadialGradient(16, 16, 0, 16, 16, 16);
+    g.addColorStop(0, 'rgba(255,236,200,1)');
+    g.addColorStop(0.3, 'rgba(255,220,160,0.35)');
+    g.addColorStop(1, 'rgba(255,220,160,0)');
+    x.fillStyle = g;
+    x.fillRect(0, 0, 32, 32);
+    moteSprite = c;
+    return c;
+  }
+
   class DrillScene {
     constructor(canvas) {
-      this.canvas = canvas;
-      this.ctx = canvas.getContext('2d');
-      canvas.width = W;
-      canvas.height = H;
+      // Le jeu est dessiné dans un canevas hors écran à 1 pixel de jeu = 1 pixel ; `present` le recopie à l'écran
+      // (tel quel, ou en haute définition avec lumière et profondeur dans l'essai HD-2D).
+      this.display = canvas;
+      this.dctx = canvas.getContext('2d');
+      this.canvas = document.createElement('canvas');
+      this.ctx = this.canvas.getContext('2d');
+      this.canvas.width = W;
+      this.canvas.height = H;
+      this.worldHd = null;
+      this.smallA = null;
+      this.smallB = null;
       this.h = H;
       this.world = buildWorld();
       this.layers = [];
@@ -938,9 +1003,110 @@
       requestAnimationFrame(this.frame);
     }
 
+
+    /** Le monde dessiné une fois ; en mode HD-2D, sa version avec relief. */
+    worldSrc() {
+      if (!hd) return this.world;
+      if (!this.worldHd) this.worldHd = bakeRelief(this.world);
+      return this.worldHd;
+    }
+
+    /** Recopie l'image du jeu à l'écran (voir le constructeur). */
+    present(time) {
+      const k = hd ? HDK : 1;
+      const w = W * k;
+      const h = this.h * k;
+      const d = this.display;
+      if (d.width !== w || d.height !== h) {
+        d.width = w;
+        d.height = h;
+      }
+      const ctx = this.dctx;
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(this.canvas, 0, 0, w, h);
+      if (!hd) return;
+
+      const cam = Math.round(this.camY);
+      const overview = this.mode === 'overview';
+      // Ambiance selon la profondeur : jour en surface, puis galerie sombre qui vire au rouge près du noyau.
+      const dp = this.depth;
+      const dark = smooth(0, 26, dp);
+      let amb = [lerp3(255, 120, dark), lerp3(255, 132, dark), lerp3(255, 168, dark)];
+      if (dp > 200) amb = [lerp3(amb[0], 170, smooth(200, 330, dp)), lerp3(amb[1], 96, smooth(200, 330, dp)), lerp3(amb[2], 84, smooth(200, 330, dp))];
+      if (dp > 420) amb = [lerp3(amb[0], 205, smooth(420, 520, dp)), lerp3(amb[1], 140, smooth(420, 520, dp)), lerp3(amb[2], 70, smooth(420, 520, dp))];
+      const surfY = (SKY - cam) * k;
+      const g = ctx.createLinearGradient(0, surfY - 6 * k, 0, surfY + 34 * k);
+      g.addColorStop(0, 'rgb(255,255,255)');
+      g.addColorStop(1, `rgb(${amb[0] | 0},${amb[1] | 0},${amb[2] | 0})`);
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+
+      if (!overview) {
+        // Lampe de la foreuse : cône de lumière chaude autour de la fraise.
+        const lx = (W / 2) * k;
+        const ly = (this.tipY() - cam - 6) * k;
+        const flick = 0.36 + Math.sin(time * 9.3) * 0.015 + Math.sin(time * 23) * 0.01;
+        const lg = ctx.createRadialGradient(lx, ly, 2 * k, lx, ly, 56 * k);
+        lg.addColorStop(0, `rgba(255,205,130,${flick + 0.1})`);
+        lg.addColorStop(0.45, `rgba(255,170,90,${flick * 0.5})`);
+        lg.addColorStop(1, 'rgba(255,150,70,0)');
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = lg;
+        ctx.fillRect(0, 0, w, h);
+      }
+
+      // Lueur (bloom) : une copie réduite et floue des zones claires, ajoutée par-dessus.
+      const sw = Math.max(8, w >> 4);
+      const sh = Math.max(8, h >> 4);
+      if (!this.smallA || this.smallA.width !== sw || this.smallA.height !== sh) {
+        this.smallA = document.createElement('canvas');
+        this.smallB = document.createElement('canvas');
+        this.smallA.width = this.smallB.width = sw;
+        this.smallA.height = this.smallB.height = sh;
+      }
+      const a = this.smallA.getContext('2d');
+      const b = this.smallB.getContext('2d');
+      a.imageSmoothingEnabled = true;
+      a.globalCompositeOperation = 'source-over';
+      a.drawImage(d, 0, 0, sw, sh);
+      b.globalCompositeOperation = 'source-over';
+      b.drawImage(this.smallA, 0, 0);
+      b.globalCompositeOperation = 'multiply'; // élève au carré : seules les zones claires restent
+      b.drawImage(this.smallA, 0, 0);
+      b.drawImage(this.smallA, 0, 0);
+      ctx.imageSmoothingEnabled = true;
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.5;
+      ctx.drawImage(this.smallB, 0, 0, w, h);
+      ctx.globalAlpha = 1;
+
+      // Poussière en suspension.
+      const m = mote();
+      for (let i = 0; i < 22; i++) {
+        const sp = 0.6 + hash(i, 1, 880) * 1.4;
+        const x = ((hash(i, 2, 880) * W + time * sp * 2 + Math.sin(time * 0.7 + i) * 3) % W) * k;
+        const y = ((hash(i, 3, 880) * this.h - time * sp * 1.2) % this.h + this.h) % this.h * k;
+        const r = (1.2 + hash(i, 4, 880) * 2.2) * k;
+        ctx.globalAlpha = 0.25 + hash(i, 5, 880) * 0.45;
+        ctx.drawImage(m, x - r, y - r, r * 2, r * 2);
+      }
+      ctx.globalAlpha = 1;
+
+      // Vignette.
+      const vg = ctx.createRadialGradient(w / 2, h * 0.5, h * 0.3, w / 2, h * 0.5, h * 0.78);
+      vg.addColorStop(0, 'rgba(0,0,0,0)');
+      vg.addColorStop(1, 'rgba(0,0,0,0.5)');
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = vg;
+      ctx.fillRect(0, 0, w, h);
+    }
+
     /** Reconstruit le décor (changement de saison). */
     rebuild() {
       this.world = buildWorld();
+      this.worldHd = null;
     }
 
     /** layers : [{ points, tier }] dans l'ordre des thèmes. */
@@ -1039,6 +1205,7 @@
       this.last = t;
       this.update(dt);
       this.draw(t / 1000);
+      this.present(t / 1000);
       requestAnimationFrame(this.frame);
     }
 
@@ -1111,7 +1278,7 @@
       const sy = this.h / srcH;
       const Y = (y) => (y - srcY) * sy;
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(this.world, 0, srcY, W, srcH, 0, 0, W, this.h);
+      ctx.drawImage(this.worldSrc(), 0, srcY, W, srcH, 0, 0, W, this.h);
 
       const tip = this.tipY();
       for (let zi = 0; zi < ZONES.length; zi++) {
@@ -1194,7 +1361,7 @@
       const ctx = this.ctx;
       const cam = Math.round(this.camY);
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(this.world, 0, cam, W, this.h, 0, 0, W, this.h);
+      ctx.drawImage(this.worldSrc(), 0, cam, W, this.h, 0, 0, W, this.h);
       ctx.save();
       ctx.translate(0, -cam);
       this.drawAvatarSurface(ctx, time);
@@ -1295,6 +1462,6 @@
   }
 
   global.Pixel = {
-    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, formatRemaining, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, setSeason, setSkullMode, drawDrill, WIDTH: W, HEIGHT: H,
+    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, formatRemaining, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, setSeason, setSkullMode, setHd, drawDrill, WIDTH: W, HEIGHT: H,
   };
 })(window);
