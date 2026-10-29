@@ -1269,8 +1269,8 @@
     canvas.width = 24;
     canvas.height = 16;
     ctx.clearRect(0, 0, 24, 16);
+    if (mole16On()) return Mole16.tool(canvas, id);
     ACTIVITIES[id].draw(ctx);
-    if (mole16On()) Mole16.scaleTool(canvas);
   }
 
   /** Heure (0 à 23) à Bruxelles. */
