@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>Foreuse de base — aperçu</title>
+<style>
+body{margin:0;padding:24px;background:#120d0a;color:#f3e9d2;font-family:system-ui,sans-serif}
+h1{font-size:20px;margin:0 0 4px}p{color:#b8a68a;margin:0 0 18px}
+.ligne{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap}
+.carte{background:#2b211b;border-radius:8px;padding:12px;text-align:center;font-size:13px;color:#b8a68a}
+.carte canvas{display:block;margin:0 auto 8px}
+</style></head><body>
+<h1>Foreuse de base (jaune et cubique)</h1>
+<p>Première foreuse du jeu. À retravailler plus tard — voir README.md.</p>
+<div class="ligne" id="l"></div>
+<script src="foreuse-de-base.js"></script>
+<script>
+const F = FOREUSE_DE_BASE, av = F.avatarExemple();
+const items = [
+  ['16-bit ×1', F.dessiner16(av, 1), 4], ['16-bit ×2,4', F.dessiner16(av, 2.4), 2], ['16-bit ×2,4 sans pilote', F.dessiner16(null, 2.4), 2],
+  ['minimaliste ×1', F.dessinerMinimal(1), 4], ['minimaliste ×2,4', F.dessinerMinimal(2.4), 2],
+];
+for (const [nom, sprite, zoom] of items) {
+  const d = document.createElement('div'); d.className = 'carte';
+  d.appendChild(F.versCanevas(sprite, zoom)); d.append(nom); document.getElementById('l').appendChild(d);
+}
+document.title = 'ready';
+</script></body></html>
