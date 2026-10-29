@@ -364,9 +364,22 @@
   function canvas(av, { scale = 3, view = 'full' } = {}) {
     const [sx, sy, sw, sh] = VIEWS[view] || VIEWS.full;
     const c = document.createElement('canvas');
+    c.className = `avatar avatar-${view}`;
+    if (global.Pixel && global.Pixel.isHd && global.Pixel.isHd()) {
+      // Essai HD-2D : sprite redessiné en haute définition (voir Pixel.hdUpgrade), au double de définition pour les écrans nets.
+      const up = global.Pixel.hdUpgrade(sprite(av));
+      c.width = sw * scale * 2;
+      c.height = sh * scale * 2;
+      c.style.width = `${sw * scale}px`;
+      c.style.height = `${sh * scale}px`;
+      const hctx = c.getContext('2d');
+      hctx.imageSmoothingEnabled = true;
+      hctx.imageSmoothingQuality = 'high';
+      hctx.drawImage(up.canvas, (sx + up.pad) * 4, (sy + up.pad) * 4, sw * 4, sh * 4, 0, 0, c.width, c.height);
+      return c;
+    }
     c.width = sw * scale;
     c.height = sh * scale;
-    c.className = `avatar avatar-${view}`;
     const ctx = c.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(sprite(av), sx, sy, sw, sh, 0, 0, sw * scale, sh * scale);

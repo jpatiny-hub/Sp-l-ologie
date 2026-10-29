@@ -1030,6 +1030,15 @@
       ctx.fillStyle = MOLE_COLORS[ch];
       ctx.fillRect(x + OX, y, 1, 1);
     }));
+    if (Pixel.isHd()) {
+      // Essai HD-2D : la taupe redessinée en haute définition (volume, reflets, contour net).
+      const up = Pixel.hdUpgrade(canvas);
+      canvas.width = 96;
+      canvas.height = 64;
+      const hctx = canvas.getContext('2d');
+      hctx.imageSmoothingEnabled = true;
+      hctx.drawImage(up.canvas, up.pad * 4, up.pad * 4, 96, 64, 0, 0, 96, 64);
+    }
   }
 
   /**

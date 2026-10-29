@@ -1686,3 +1686,5 @@ html[data-hd][data-hd][data-hd] .stage-frame::before { top: 0; -webkit-mask-imag
 html[data-hd][data-hd][data-hd] .stage-frame::after { bottom: 0; -webkit-mask-image: linear-gradient(transparent, #000); mask-image: linear-gradient(transparent, #000); }
 html[data-hd][data-hd][data-hd] .hud { z-index: 2; }
 html[data-hd][data-hd][data-hd] .hud span { background: linear-gradient(180deg, rgba(18, 28, 66, 0.88), rgba(8, 12, 34, 0.88)); border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 4px; font-size: calc(18px * var(--fs)); }
+html[data-hd][data-hd][data-hd] canvas.avatar, html[data-hd][data-hd][data-hd] .game-mole canvas, html[data-hd][data-hd][data-hd] .pf-mole canvas,
+html[data-hd][data-hd][data-hd] .msg-mole, html[data-hd][data-hd][data-hd] .tuto-mole { image-rendering: auto; }
