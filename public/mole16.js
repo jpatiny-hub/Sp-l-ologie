@@ -2,9 +2,10 @@
 
 /*
  * La taupe mineuse en 16 bits : 48 × 32 pixels (le double de l'ancienne), contour net, trois tons par matière, reflets.
- *   Mole16.draw(canvas, mood, gaze)  → dessine la taupe ; `gaze` = { x, y } entre -1 et 1 (le regard suit le doigt)
+ *   Mole16.draw(canvas, mood, gaze, prop) → dessine la taupe ; `gaze` = { x, y } entre -1 et 1 (le regard suit le doigt)
  *   Mole16.tool(canvas, id)          → dessine l'outil de la taupe (pioche, lanterne, plan, café, diamant, wagonnet, dynamite, carnet, sandwich)
- * Humeurs : idle, look, blink, sleep, happy, sad, stars.
+ * Humeurs : idle, look, blink, sleep, happy, sad, stars, cheer, worry, think, confused, dizzy, meh, shh, surprised.
+ * Accessoires (4e argument de draw) : question, loupe, confetti, dizzy, shh, idee.
  */
 (function (global) {
   const W = 48;
@@ -73,31 +74,57 @@
     // Yeux : deux petits points brillants (centres en x = 15 et 33).
     for (const cx of [15, 33]) {
       const side = cx < 24 ? -1 : 1;
+      const dot = (dx, dy, tall) => {
+        const ex = cx - 1 + dx;
+        const ey = 15 + dy;
+        rect(ex, ey, ex + 1, ey + (tall || 3), 'k');
+        put(ex, ey, 'w');
+      };
       if (mood === 'blink' || mood === 'sleep') rect(cx - 1, 17, cx + 1, 17, 'k');
-      else if (mood === 'happy') { put(cx - 1, 17, 'k'); put(cx, 16, 'k'); put(cx + 1, 17, 'k'); }
+      else if (mood === 'happy' || mood === 'cheer' || mood === 'shh') { put(cx - 1, 17, 'k'); put(cx, 16, 'k'); put(cx + 1, 17, 'k'); }
       else if (mood === 'stars') {
         for (const [dx, dy] of [[0, -2], [-1, -1], [0, -1], [1, -1], [-2, 0], [-1, 0], [1, 0], [2, 0], [-1, 1], [0, 1], [1, 1], [0, 2]]) put(cx + dx, 16 + dy, 's');
         put(cx, 16, 'G');
-      } else {
-        const ex = cx - 1 + gx;
-        const ey = 15 + gy;
-        rect(ex, ey, ex + 1, ey + 3, 'k');
-        put(ex, ey, 'w');
-        if (mood === 'sad') { put(cx + side * 2, 13 - side * 0, 'k'); put(cx + side * 1, 13 + 0, 'k'); put(cx, 12, 'k'); put(cx - side, 12, 'k'); }
-        if (mood === 'look') { put(ex + 1, ey + 3, 'w'); }
-      }
+      } else if (mood === 'dizzy') {
+        for (const [dx, dy] of [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]]) put(cx + dx, 16 + dy, 'k');
+      } else if (mood === 'meh') {
+        rect(cx - 1, 16, cx + 1, 17, 'k'); rect(cx - 1, 16, cx + 1, 16, 'M');
+      } else if (mood === 'think') {
+        dot(1 + gx, -1, 2);
+      } else if (mood === 'worry' || mood === 'surprised') {
+        dot(0, -1, 4);
+        put(cx + 1, 18, 'w');
+      } else dot(gx, gy);
+      // Sourcils.
+      if (mood === 'sad' || mood === 'worry') { put(cx + side * 2, 13, 'k'); put(cx + side, 13, 'k'); put(cx, 12, 'k'); put(cx - side, 12, 'k'); }
+      if (mood === 'confused') { if (side < 0) { put(cx - 1, 13, 'k'); put(cx, 13, 'k'); put(cx + 1, 14, 'k'); } else { put(cx - 1, 11, 'k'); put(cx, 11, 'k'); put(cx + 1, 11, 'k'); } }
+      if (mood === 'think' && side > 0) { put(cx - 1, 12, 'k'); put(cx, 12, 'k'); put(cx + 1, 12, 'k'); }
+      if (mood === 'surprised') { rect(cx - 1, 12, cx + 1, 12, 'k'); }
     }
-    if (mood === 'sad') {
-      put(13, 19, 'b'); put(13, 20, 'b'); put(13, 21, 'b'); // larme
-    }
+    if (mood === 'sad') { put(13, 19, 'b'); put(13, 20, 'b'); put(13, 21, 'b'); } // larme
+    if (mood === 'worry') { put(40, 10, 'b'); put(40, 11, 'b'); put(39, 12, 'b'); put(40, 12, 'b'); put(41, 12, 'b'); put(40, 13, 'b'); } // goutte de sueur
 
     // Bouche.
     if (mood === 'happy' || mood === 'stars') {
-      rect(22, 22, 26, 22, 'k'); rect(23, 23, 25, 23, 't'); put(22, 22, 'k'); put(26, 22, 'k');
+      rect(22, 22, 26, 22, 'k'); rect(23, 23, 25, 23, 't');
+    } else if (mood === 'cheer') {
+      rect(21, 22, 27, 22, 'k'); rect(22, 23, 26, 24, 'k'); rect(23, 24, 25, 24, 't'); rect(23, 23, 25, 23, 'w');
     } else if (mood === 'sad') {
       for (const [x, y] of [[22, 23], [23, 22], [24, 22], [25, 22], [26, 23]]) put(x, y, 'k');
     } else if (mood === 'sleep') {
       rect(23, 22, 25, 22, 'k'); put(24, 23, 'k');
+    } else if (mood === 'worry' || mood === 'dizzy') {
+      for (const [x, y] of [[22, 23], [23, 22], [24, 23], [25, 22], [26, 23]]) put(x, y, 'k');
+    } else if (mood === 'surprised') {
+      rect(23, 22, 25, 23, 'k'); put(24, 22, 'n');
+    } else if (mood === 'meh') {
+      rect(22, 22, 26, 22, 'k');
+    } else if (mood === 'confused') {
+      for (const [x, y] of [[22, 23], [23, 22], [24, 23], [25, 22], [26, 22]]) put(x, y, 'k');
+    } else if (mood === 'think') {
+      rect(24, 22, 26, 22, 'k');
+    } else if (mood === 'shh') {
+      // cachée par le doigt
     } else {
       for (const [x, y] of [[22, 22], [23, 23], [24, 22], [25, 23], [26, 22]]) put(x, y, 'k');
     }
@@ -113,16 +140,26 @@
     return out;
   }
 
-  function draw(canvas, mood, gaze) {
+  function paint(ctx, grid, pal) {
+    grid.forEach((row, y) => row.forEach((ch, x) => {
+      if (!ch) return;
+      ctx.fillStyle = pal[ch];
+      ctx.fillRect(x, y, 1, 1);
+    }));
+  }
+
+  /** `prop` : un accessoire posé par-dessus la taupe (voir PROPS) ; sert aux situations de jeu. */
+  function draw(canvas, mood, gaze, prop) {
     canvas.width = W;
     canvas.height = H;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, W, H);
-    sprite(mood || 'idle', gaze).forEach((row, y) => row.forEach((ch, x) => {
-      if (!ch) return;
-      ctx.fillStyle = PAL[ch];
-      ctx.fillRect(x, y, 1, 1);
-    }));
+    paint(ctx, sprite(mood || 'idle', gaze), PAL);
+    if (prop && PROPS[prop]) {
+      const k = canvasKit();
+      PROPS[prop](k);
+      paint(ctx, k.outline(), TOOL_PAL);
+    }
   }
 
   // Palette des outils (à part de celle de la taupe).
@@ -139,6 +176,8 @@
     t: '#e0b46a', T: '#b98530', // pain
     p: '#f4a9a8', P: '#d77f86', // mains
     k: '#2a2a33', // noir doux
+    L: '#c28a58', M: '#92603a', D: '#5d3a1e', // fourrure
+    b: '#7fd0f7', q: '#9a6bd6', // bleu, violet
   };
 
   /** Grille 48 × 32 avec ses outils de dessin (ellipse ombrée, rectangle, ligne, contour). */
@@ -250,6 +289,44 @@
     sieste() {},
   };
 
+  // Accessoires de situation, posés par-dessus la taupe (mêmes mains en (14, 27) et (34, 27)).
+  const raisedArm = (k, x) => { k.ell(x, 19, 2.3, 5, 'LMD'); k.ell(x, 13.5, 2, 2, 'ppP'); };
+  const PROPS = {
+    // Point d'interrogation doré au-dessus de la tête : réponse refusée.
+    question(k) {
+      const glyph = ['.YYY.', 'Y...Y', '....Y', '...Y.', '..Y..', '..Y..', '.....', '..Y..'];
+      glyph.forEach((row, dy) => [...row].forEach((ch, dx) => { if (ch !== '.') { k.put(40 + dx, 1 + dy, 'Y'); k.put(41 + dx, 1 + dy, 'Y'); } }));
+      k.rect(41, 3, 42, 4, 'Y');
+    },
+    // Loupe tenue de la patte droite : « tu voulais dire ça ? ».
+    loupe(k) {
+      k.line(36, 28, 40, 23, 'N'); k.line(37, 28, 41, 23, 'n');
+      k.ell(41, 19, 4.6, 4.6, 'ddd'); k.ell(41, 19, 3.2, 3.2, 'ccB');
+      k.put(39, 17, 'w'); k.put(40, 17, 'w'); k.put(39, 18, 'w');
+      hand(k, 35, 28);
+    },
+    // Bras levés et confettis : belle réponse.
+    confetti(k) {
+      raisedArm(k, 6); raisedArm(k, 42);
+      const bits = [[2, 3, 'r'], [9, 1, 'B'], [12, 6, 'Y'], [5, 8, 'g'], [35, 6, 'r'], [38, 1, 'B'], [45, 3, 'Y'], [41, 8, 'g'], [28, 0, 'r'], [18, 0, 'Y']];
+      for (const [x, y, ch] of bits) { k.put(x, y, ch); k.put(x + 1, y, ch); k.put(x, y + 1, ch); }
+    },
+    // Petites étoiles qui tournent autour du casque : chrono écoulé.
+    dizzy(k) {
+      for (const [x, y] of [[9, 4], [24, 0], [39, 4]]) { k.put(x, y, 'Y'); k.put(x - 1, y, 'y'); k.put(x + 1, y, 'y'); k.put(x, y - 1, 'y'); k.put(x, y + 1, 'y'); }
+    },
+    // Doigt sur la bouche : chut, le résultat reste secret.
+    shh(k) {
+      k.ell(24, 25.5, 2.4, 1.8, 'LMD');
+      k.rect(23, 21, 25, 24, 'M'); k.rect(23, 21, 23, 24, 'L'); k.rect(24, 21, 24, 22, 'p');
+    },
+    // Ampoule au-dessus de la tête : une idée.
+    idee(k) {
+      k.ell(40, 5, 3.4, 3.4, 'yYZ'); k.rect(39, 9, 41, 10, 'd'); k.put(39, 4, 'w'); k.put(40, 4, 'w');
+      for (const [x, y] of [[44, 2], [45, 5], [35, 1]]) k.put(x, y, 'Y');
+    },
+  };
+
   /** Dessine l'outil `id` de la taupe dans le canevas (48 × 32), mêmes dimensions que la taupe. */
   function tool(canvas, id) {
     canvas.width = W;
@@ -267,5 +344,5 @@
     }));
   }
 
-  global.Mole16 = { draw, tool, WIDTH: W, HEIGHT: H };
+  global.Mole16 = { draw, tool, PROP_IDS: Object.keys(PROPS), WIDTH: W, HEIGHT: H };
 })(window);

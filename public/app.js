@@ -999,8 +999,8 @@
     '................',
   ];
   const OX = 4; // la taupe occupe les colonnes 4 à 19 d'un canevas de 24 × 16 ; les outils dépassent de chaque côté
-  function drawMascot(canvas, mood, gaze) {
-    if (mole16On()) return Mole16.draw(canvas, mood, gaze);
+  function drawMascot(canvas, mood, gaze, prop) {
+    if (mole16On()) return Mole16.draw(canvas, mood, gaze, prop);
     canvas.width = 24;
     canvas.height = 16;
     const rows = MOLE.map((r) => r.split(''));
@@ -1061,10 +1061,16 @@
     high: ["Quel filon ! C'est du rare !", 'Waouh, je suis taupe-là !', 'Tu as du flair, mineur !', 'Du rubis, ni plus ni moins !'],
     pepite: ["C'est taupissime !!!", "UNE PÉPITE ! Je n'en reviens pas !", 'Tu es au taupe, mineur !', "Du pur diamant… enfin, de l'or !", 'Je vais en faire des taupes-ries de joie !'],
     skip: ['On passe ? Ça arrive, même aux meilleurs mineurs.', 'Pas grave, un autre thème nous attend !'],
+    hurry: ['Plus que 5 secondes !', 'Vite, vite, vite !', 'Le chrono file, mineur !'],
     timeout: ['Le chrono a eu raison de nous… la prochaine fois !', 'Trop tard ! Même les taupes ont des journées sans.'],
     duel: ["Réponse enregistrée ! Suspense jusqu'au résultat…", 'Bien joué ! Le contremaître garde le secret.', 'Chut… personne ne sait rien avant demain !'],
   };
   const MOLE_MOODS = { start: 'look', wrong: 'sad', confirm: 'look', low: 'idle', mid: 'happy', high: 'happy', pepite: 'stars', skip: 'sad', timeout: 'sad', duel: 'happy' };
+  // Taupe 16 bits : humeur et accessoire propres à chaque situation (la réaction ne dépend jamais de la rareté en duel).
+  const MOLE16_LOOKS = {
+    start: ['look'], wrong: ['confused', 'question'], confirm: ['think', 'loupe'], low: ['idle'], mid: ['happy'], high: ['cheer', 'confetti'],
+    pepite: ['stars', 'confetti'], skip: ['meh'], timeout: ['dizzy', 'dizzy'], duel: ['shh', 'shh'], hurry: ['worry'],
+  };
   const moleLast = {};
   /** Fait parler la taupe dans la zone `where` (« prompt » ou « feedback ») ; coupée par le réglage « Mascotte en forage ». */
   function moleSay(where, event) {
@@ -1080,10 +1086,12 @@
     if (lines.length > 1 && text === moleLast[event]) text = lines[(lines.indexOf(text) + 1) % lines.length];
     moleLast[event] = text;
     box.hidden = false;
-    drawMascot(box.querySelector('canvas'), MOLE_MOODS[event] || 'idle');
+    const look = mole16On() && MOLE16_LOOKS[event];
+    drawMascot(box.querySelector('canvas'), look ? look[0] : MOLE_MOODS[event] || 'idle', null, look ? look[1] : null);
     box.querySelector('.bubble').textContent = text;
     box.dataset.mood = MOLE_MOODS[event] || 'idle';
     box.dataset.event = event;
+    delete box.dataset.typing;
     box.dataset.where = where;
   }
 
@@ -2140,7 +2148,15 @@
   const inField = (event) => !!(event.target && event.target.closest && event.target.closest('input, textarea'));
   $('answer-input').addEventListener('paste', () => (signals.p += 1));
   $('answer-input').addEventListener('drop', () => (signals.p += 1));
-  $('answer-input').addEventListener('input', () => (signals.e += 1));
+  $('answer-input').addEventListener('input', () => {
+    signals.e += 1;
+    // Taupe 16 bits : pendant que tu écris, elle regarde vers le bas, vers ta réponse.
+    const box = $('mole-prompt');
+    if (mole16On() && !box.hidden && box.dataset.event === 'start' && !box.dataset.typing) {
+      box.dataset.typing = '1';
+      drawMascot(box.querySelector('canvas'), 'look', { x: 0, y: 1 });
+    }
+  });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       if (roundOn()) signals.away = Date.now();
@@ -2200,6 +2216,7 @@
       const second = Math.ceil(left / 1000);
       if (second > 0 && second !== lastSecond) {
         // Labo (responsable) : un tic par seconde, de la couleur du chrono choisi ; sinon le tic habituel des cinq dernières secondes.
+        if (second === 5 && mole16On()) moleSay('prompt', 'hurry');
         if (labOn('labTimer')) Sound.chrono(skin, second, second <= 5);
         else if (second <= 5) Sound.tick(second <= 3);
       }
