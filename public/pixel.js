@@ -121,6 +121,8 @@
   let caves = false;
   let caveAnim = [];
   let caveShaft = null;
+  let caveBack = null;
+  let caveFront = null;
   function setCaves(on) {
     caves = !!on && !!global.Caves;
   }
@@ -301,6 +303,8 @@
     bubbles.length = 0;
     caveAnim = [];
     caveShaft = null;
+    caveBack = null;
+    caveFront = null;
     for (let y = 0; y < WORLD_H; y++) {
       for (let x = 0; x < W; x++) {
         if (y < SKY) set(x, y, skyColor(x, y));
@@ -420,6 +424,10 @@
       const built = global.Caves.build({ W, SKY, PPP, WORLD_H, set });
       caveAnim = built.anim;
       caveShaft = built.shaftOpen;
+      for (let i = 0; i < built.alpha.length; i++) img.data[i * 4 + 3] = built.alpha[i];
+      const dims = { W, SKY, PPP, WORLD_H };
+      caveBack = global.Caves.backdrop(dims);
+      caveFront = global.Caves.foreground(dims);
     } else decorate(set);
     if (season === 'halloween') haunt(set);
     ctx.putImageData(img, 0, 0);
@@ -1357,9 +1365,10 @@
       // Ambiance selon la profondeur : jour en surface, puis galerie sombre qui vire au rouge près du noyau.
       const dp = this.depth;
       const dark = smooth(0, 26, dp);
-      let amb = [lerp3(255, 120, dark), lerp3(255, 132, dark), lerp3(255, 168, dark)];
-      if (dp > 200) amb = [lerp3(amb[0], 170, smooth(200, 330, dp)), lerp3(amb[1], 96, smooth(200, 330, dp)), lerp3(amb[2], 84, smooth(200, 330, dp))];
-      if (dp > 420) amb = [lerp3(amb[0], 205, smooth(420, 520, dp)), lerp3(amb[1], 140, smooth(420, 520, dp)), lerp3(amb[2], 70, smooth(420, 520, dp))];
+      // Galeries 16-bit : les grottes ont leur propre lumière colorée, l'ambiance reste donc légère et neutre.
+      let amb = caves ? [lerp3(255, 196, dark), lerp3(255, 196, dark), lerp3(255, 210, dark)] : [lerp3(255, 120, dark), lerp3(255, 132, dark), lerp3(255, 168, dark)];
+      if (!caves && dp > 200) amb = [lerp3(amb[0], 170, smooth(200, 330, dp)), lerp3(amb[1], 96, smooth(200, 330, dp)), lerp3(amb[2], 84, smooth(200, 330, dp))];
+      if (!caves && dp > 420) amb = [lerp3(amb[0], 205, smooth(420, 520, dp)), lerp3(amb[1], 140, smooth(420, 520, dp)), lerp3(amb[2], 70, smooth(420, 520, dp))];
       const surfY = (SKY - cam) * k;
       const g = ctx.createLinearGradient(0, surfY - 6 * k, 0, surfY + 34 * k);
       g.addColorStop(0, 'rgb(255,255,255)');
@@ -1611,6 +1620,10 @@
       const sy = this.h / srcH;
       const Y = (y) => (y - srcY) * sy;
       ctx.imageSmoothingEnabled = false;
+      if (caves) {
+        ctx.fillStyle = '#07060c';
+        ctx.fillRect(0, 0, W, this.h);
+      }
       ctx.drawImage(this.worldSrc(), 0, srcY, W, srcH, 0, 0, W, this.h);
 
       const tip = this.tipY();
@@ -1725,6 +1738,7 @@
       const ctx = this.ctx;
       const cam = Math.round(this.camY);
       ctx.imageSmoothingEnabled = false;
+      if (caveBack) global.Caves.drawBack(ctx, caveBack, cam, this.h, { SKY, PPP });
       ctx.drawImage(this.worldSrc(), 0, cam, W, this.h, 0, 0, W, this.h);
       ctx.save();
       ctx.translate(0, -cam);
@@ -1836,6 +1850,10 @@
         }
       }
       ctx.restore();
+      if (caveFront) {
+        global.Caves.drawFront(ctx, caveFront, cam, this.h, time);
+        global.Caves.drawAir(ctx, { W, SKY, PPP }, cam, this.h, time, reducedMotion(), hd);
+      }
       this.drawGhosts(ctx, time);
 
       // Ambiance chaude dans les profondeurs.

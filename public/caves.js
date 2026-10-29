@@ -39,6 +39,10 @@
     obsidian: { o: '#000000', l: '#6a5a8a', m: '#241c34', d: '#0c0a12', t: '#c8b8ff' },
     topaz: { o: '#1c1004', l: '#ffe28e', m: '#f0a830', d: '#a0601a', t: '#fffbec' },
   };
+  GEMS.ice = { o: '#06121c', l: '#dcf6ff', m: '#8ed0f0', d: '#3a7ab0', t: '#ffffff' };
+  // Couleur de l'air (brume, lueurs, arrière-plan) et gemme des grands cristaux du premier plan, par palier.
+  const AIR = ['#3a2412', '#6a4420', '#2a5a8a', '#5a3e1a', '#5a2ca0', '#12705a', '#1a4cb8', '#a02c12', '#1e6a60', '#5a24a0'];
+  const FG_GEM = [null, null, 'ice', 'topaz', 'amethyst', 'emerald', 'sapphire', 'ruby', 'topaz', 'rainbow'];
   const RAINBOW = [GEMS.ruby, GEMS.topaz, GEMS.emerald, GEMS.sapphire, GEMS.amethyst, GEMS.rose];
 
   const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
@@ -127,12 +131,19 @@
     }).join(''));
   }
 
-  function build({ W, SKY, PPP, WORLD_H, set }) {
+  function build({ W, SKY, PPP, WORLD_H, set: put }) {
     const H = WORLD_H;
     const at = (d) => SKY + d;
     const open = new Uint8Array(W * H); // 1 = vide (grotte)
     const isOpen = (x, y) => x >= 0 && x < W && y >= 0 && y < H && open[y * W + x] === 1;
     const anim = [];
+    // Pixels de décor (posés après la roche) : ils restent opaques ; le reste du vide laisse voir l'arrière-plan lointain.
+    const deco = new Uint8Array(W * WORLD_H);
+    let decoOn = false;
+    const set = (x, y, color) => {
+      if (decoOn && x >= 0 && x < W && y >= 0 && y < WORLD_H) deco[y * W + x] = 1;
+      put(x, y, color);
+    };
 
     // ---------- Creusement des grottes ----------
     function carve(cx, cd, rx, ry, rough = 0.3) {
@@ -164,39 +175,30 @@
 
     // Ossuaire : catacombes à niches et salle funéraire.
     for (let row = 0; row < 2; row++) for (let i = 0; i < 6; i++) carveArch(6 + i * 10, 20 + row * 13, 7, 9);
-    carve(126, 38, 22, 8, 0.3);
-    // Grotte aux fossiles : grande salle avec un lac, petite salle à droite.
-    carve(38, 86, 32, 14, 0.35);
-    carve(128, 76, 22, 9, 0.35);
+    carve(126, 36, 24, 11, 0.3);
+    // Plus on descend, plus les salles sont grandes : la foreuse traverse de vastes cavernes ouvertes sur les lointains.
+    // Grotte aux fossiles : salle basse avec un lac.
+    carve(80, 86, 74, 17, 0.3);
+    carve(40, 100, 30, 4, 0.2);
     // Galeries oubliées : deux galeries de mine étayées qui rejoignent le puits.
-    carveRect(4, 140, 72, 151);
-    carveRect(88, 121, 156, 132);
-    // Caverne d'améthyste : géode géante et deux salles de quartz rose.
-    carve(38, 218, 28, 24, 0.25);
-    carve(128, 196, 22, 11, 0.3);
-    carve(124, 256, 20, 10, 0.3);
-    // Jardin d'émeraudes : haute salle à cascade, salle aux émeraudes, salle aux champignons.
-    carve(42, 372, 32, 44, 0.3);
-    carve(126, 320, 26, 15, 0.3);
-    carve(124, 424, 24, 17, 0.3);
+    carveRect(4, 138, 72, 152);
+    carveRect(88, 118, 156, 133);
+    // Caverne d'améthyste : géode géante.
+    carve(80, 220, 72, 50, 0.25);
+    // Jardin d'émeraudes : très haute salle avec cascade et étang.
+    carve(80, 370, 72, 76, 0.25);
+    carve(42, 434, 28, 5, 0.2);
     // Lac de saphir : mer souterraine traversée par le puits.
-    carve(80, 548, 74, 30, 0.25);
-    carve(30, 616, 20, 10, 0.3);
-    carve(130, 612, 20, 12, 0.3);
-    // Forge des rubis : cascade de lave, salle d'obsidienne.
-    carve(40, 724, 30, 30, 0.3);
-    carve(126, 792, 28, 24, 0.3);
-    carve(122, 690, 16, 9, 0.3);
+    carve(80, 550, 74, 72, 0.25);
+    // Forge des rubis : cathédrale de basalte, lac de lave.
+    carve(80, 752, 72, 90, 0.25);
+    carve(38, 826, 26, 5, 0.2);
     // Temple englouti : grande salle hypostyle au sol plat.
-    carve(80, 950, 74, 44, 0.15);
-    fill(0, 984, W - 1, 1000);
+    carve(80, 950, 74, 72, 0.12);
+    fill(0, 1010, W - 1, 1030);
     // Cœur prismatique : immense vide étoilé.
     carve(80, 1124, 74, 66, 0.25);
     fill(0, 1188, W - 1, 1228 - 1);
-    // Cuvettes des lacs (eau, eau verte, lave).
-    carve(38, 98, 26, 4, 0.2);
-    carve(42, 414, 24, 5, 0.2);
-    carve(40, 752, 22, 5, 0.2);
 
     // ---------- Stalactites et stalagmites (font partie de la roche) ----------
     const tierAtD = (x, d) => {
@@ -288,6 +290,7 @@
     }
 
     // ---------- Outils de décor ----------
+    decoOn = true;
     function sprite(rows, x0, y0, pal, outline) {
       const on = (dx, dy) => dy >= 0 && dy < rows.length && dx >= 0 && dx < rows[dy].length && rows[dy][dx] !== '.';
       if (outline) {
@@ -349,6 +352,13 @@
       }
     }
     const glow = (x, y, r, color, a = 0.35, speed = 2) => anim.push({ type: 'glow', x, y, r, color, a, speed, ph: hash(x, y, 600) * 6 });
+    /** Lanterne suspendue à une chaîne depuis le plafond de la salle (cherché au-dessus de la profondeur d). */
+    function hangLantern(x, d, len, metal = '#3a3a44') {
+      const top = ceilAbove(x, d);
+      for (let k = 0; k < len; k++) set(x, top + k, k % 2 ? metal : '#1a1a20');
+      sprite(LANTERN, x - 1, top + len, { o: metal, y: '#ffd36b' }, '#0a0a0c');
+      anim.push({ type: 'glow', x, y: top + len + 3, r: 16, color: '255,200,100', a: 0.34, speed: 9, ph: x, flicker: true });
+    }
 
     // ---------- Racines ----------
     [8, 23, 41, 57, 104, 118, 133, 150].forEach((x, i) => {
@@ -383,13 +393,15 @@
     fossil(BONE, 100, 54);
 
     // ---------- Grotte aux fossiles : lac, gouttes, ammonites, poisson ----------
-    const lakeD = 95;
-    pool(8, 70, lakeD, ['#0e2a40', '#123a58', '#1a4e72'], '#7ac0e8');
-    anim.push({ type: 'tw', x: 30, y: at(lakeD), color: '#d8f2ff' }, { type: 'tw', x: 48, y: at(lakeD), color: '#d8f2ff' });
-    [22, 36, 52].forEach((x) => anim.push({ type: 'drip', x, y0: ceilAbove(x, 80) + 1, y1: at(lakeD), ph: hash(x, 0, 610) * 3 }));
-    fossil(FISH, 116, 72);
-    fossil(TRILOBITE, 142, 74 - 2);
-    [[8, 66], [62, 64], [144, 94], [104, 96], [6, 104], [120, 64]].forEach(([x, d]) => fossil(AMMONITE, x, d, { l: '#e8dcc0', m: '#c4b494', d: '#94866a' }));
+    const lakeD = 98;
+    pool(8, 74, lakeD, ['#0e2a40', '#123a58', '#1a4e72'], '#7ac0e8');
+    anim.push({ type: 'tw', x: 30, y: at(lakeD), color: '#d8f2ff' }, { type: 'tw', x: 52, y: at(lakeD), color: '#d8f2ff' });
+    [22, 36, 52].forEach((x) => anim.push({ type: 'drip', x, y0: ceilAbove(x, 86) + 1, y1: at(lakeD), ph: hash(x, 0, 610) * 3 }));
+    fossil(FISH, 118, floorBelow(124, 86) - 12);
+    fossil(TRILOBITE, 142, 62);
+    [[8, 64], [62, 62], [104, 106], [6, 106], [122, 62], [150, 104]].forEach(([x, d]) => fossil(AMMONITE, x, d, { l: '#e8dcc0', m: '#c4b494', d: '#94866a' }));
+    hangLantern(30, 86, 4);
+    hangLantern(128, 86, 3);
 
     // ---------- Galeries oubliées : iguanodon de Bernissart, étais, rails, berline, lanternes ----------
     const bone = '#d9cfb8';
@@ -425,28 +437,28 @@
         if (x % 3 === 0) set(x, bottom - 1, '#5a3a20');
       }
     };
-    mine(4, 70, at(140), at(151));
-    mine(90, 156, at(121), at(132));
-    sprite(CART, 124, at(127), { b: '#3a3a44', o: '#e9c046', g: '#6b6f78', G: '#4e525a', w: '#1b1b1f' }, '#000000');
-    sprite(PICKAXE, 40, at(146), { h: '#a8b0bc', b: '#8a5a2b' }, '#000000');
-    [[23, at(142)], [108, at(123)], [147, at(123)]].forEach(([x, y]) => {
+    mine(4, 70, at(138), at(152));
+    mine(90, 156, at(118), at(133));
+    sprite(CART, 124, at(128), { b: '#3a3a44', o: '#e9c046', g: '#6b6f78', G: '#4e525a', w: '#1b1b1f' }, '#000000');
+    sprite(PICKAXE, 40, at(147), { h: '#a8b0bc', b: '#8a5a2b' }, '#000000');
+    [[23, at(140)], [108, at(120)], [147, at(120)]].forEach(([x, y]) => {
       sprite(LANTERN, x - 1, y, { o: '#2a2a30', y: '#ffd36b' }, null);
       anim.push({ type: 'glow', x, y: y + 3, r: 12, color: '255,200,100', a: 0.32, speed: 9, ph: x, flicker: true });
     });
-    sprite(COBWEB, 4, at(140) + 2, { '#': '#6e6e7a' }, null);
-    sprite(COBWEB.map((r) => [...r].reverse().join('')), 151, at(121) + 2, { '#': '#6e6e7a' }, null);
+    sprite(COBWEB, 4, at(138) + 2, { '#': '#6e6e7a' }, null);
+    sprite(COBWEB.map((r) => [...r].reverse().join('')), 151, at(118) + 2, { '#': '#6e6e7a' }, null);
 
-    // ---------- Caverne d'améthyste ----------
-    for (let x = 14; x <= 62; x += 7) {
-      const fy = floorBelow(x, 218);
-      if (fy - at(218) < 30) cluster(x, fy, -1, GEMS.amethyst, x % 2 ? 1 : 1.3, 10);
-      const cy = ceilAbove(x + 3, 218);
-      if (at(218) - cy < 30 && hash(x, 1, 711) < 0.75) cluster(x + 3, cy, 1, GEMS.amethyst, 0.8, 20);
+    // ---------- Caverne d'améthyste : géode géante tapissée de cristaux ----------
+    for (let x = 12; x <= 148; x += 7) {
+      if (Math.abs(x - 80) < 13) continue;
+      const pal = x > 100 && x < 130 ? GEMS.rose : GEMS.amethyst;
+      cluster(x, floorBelow(x, 220), -1, pal, hash(x, 0, 710) < 0.5 ? 1 : 1.4, 10);
+      if (hash(x, 1, 711) < 0.8) cluster(x + 3, ceilAbove(x + 3, 220), 1, pal, hash(x, 2, 712) < 0.5 ? 0.8 : 1.2, 20);
     }
-    [[116, 196], [136, 196], [114, 256], [132, 256]].forEach(([x, d], i) => cluster(x, floorBelow(x, d), -1, GEMS.rose, i % 2 ? 1 : 0.8, 30));
-    glow(38, at(220), 26, '190,120,255', 0.16, 1.2);
+    glow(40, at(240), 34, '190,120,255', 0.14, 1.2);
+    glow(124, at(230), 28, '255,140,200', 0.1, 1.5);
     // Petites géodes fermées dans la roche.
-    [[108, 172], [148, 232], [10, 262], [98, 270]].forEach(([gx, d]) => {
+    [[8, 172], [152, 176], [6, 274], [150, 272]].forEach(([gx, d]) => {
       const gy = at(d);
       for (let y = -4; y <= 4; y++) {
         for (let x = -5; x <= 5; x++) {
@@ -461,65 +473,65 @@
     });
 
     // ---------- Jardin d'émeraudes : cascade, champignons lumineux, lianes, lucioles ----------
-    const pondD = 410;
-    pool(14, 70, pondD, ['#06281e', '#0a3a2c', '#10503c'], '#7ef0c8');
-    const fallTop = ceilAbove(30, 360);
+    const pondD = 432;
+    pool(10, 76, pondD, ['#06281e', '#0a3a2c', '#10503c'], '#7ef0c8');
+    const fallTop = ceilAbove(30, 330);
     anim.push({ type: 'fall', x: 29, w: 4, y0: fallTop, y1: at(pondD), colors: ['#7ef0d8', '#3fc0b0', '#bff8ee', '#2a9a90'], speed: 40 });
-    glow(31, at(pondD), 10, '120,255,220', 0.3, 3);
-    [[13, 1], [16, 0], [68, 0], [72, 1], [112, 1], [118, 0], [128, 0], [136, 1]].forEach(([x, small]) => {
-      const fy = floorBelow(x, x < 100 ? 380 : 424);
-      if (x < 100 && fy >= at(pondD)) return;
+    glow(31, at(pondD), 12, '120,255,220', 0.3, 3);
+    [[100, 1], [104, 0], [112, 1], [120, 0], [126, 1], [134, 0], [140, 1], [8, 1]].forEach(([x, small]) => {
+      const fy = floorBelow(x, 380);
+      if (fy >= at(pondD) && x < 80) return;
       const pal = { c: x % 3 ? '#3fe0c0' : '#c070ff', s: '#e8fff8', t: '#cfe0c8' };
       sprite(small ? MUSH_S : MUSH, x - 2, fy - (small ? 2 : 4), pal, '#03100c');
-      glow(x, fy - 3, small ? 6 : 9, x % 3 ? '80,255,210' : '200,120,255', 0.35, 1.5);
+      glow(x, fy - 3, small ? 6 : 10, x % 3 ? '80,255,210' : '200,120,255', 0.35, 1.5);
     });
-    [[20, 372], [38, 372], [56, 372], [112, 424], [134, 424], [122, 320]].forEach(([x, d], i) => {
-      const top = ceilAbove(x, d);
-      const len = 8 + Math.floor(hash(x, d, 720) * 14);
+    [12, 20, 40, 52, 62, 98, 108, 118, 132, 144].forEach((x, i) => {
+      const top = ceilAbove(x, 370);
+      const len = 10 + Math.floor(hash(x, 7, 720) * 22);
       let px = x;
       for (let k = 0; k < len && isOpen(px, top + k); k++) {
         if (hash(x, k, 721) < 0.25) px += hash(x, k, 722) < 0.5 ? -1 : 1;
         set(px, top + k, k % 4 === 3 ? '#4fc884' : '#2a8a58');
+        if (k % 6 === 2) set(px + (k % 12 ? 1 : -1), top + k, '#4fc884');
       }
       set(px, top + len, '#c8ffe0');
       glow(px, top + len, 5, '150,255,200', 0.4, 2 + i * 0.3);
     });
-    [[118, 320], [134, 320], [126, 320]].forEach(([x, d], i) => cluster(x, floorBelow(x, d), -1, GEMS.emerald, i === 2 ? 1.2 : 0.9, 40));
-    anim.push({ type: 'fly', x: 42, y: at(360), rx: 26, ry: 30, n: 7, color: '#d8ff6a' }, { type: 'fly', x: 124, y: at(420), rx: 18, ry: 10, n: 4, color: '#d8ff6a' });
+    [[110, 0.9], [124, 1.3], [138, 1]].forEach(([x, k]) => cluster(x, ceilAbove(x, 370), 1, GEMS.emerald, k, 40));
+    anim.push({ type: 'fly', x: 50, y: at(380), rx: 34, ry: 40, n: 8, color: '#d8ff6a' }, { type: 'fly', x: 120, y: at(400), rx: 22, ry: 30, n: 6, color: '#d8ff6a' });
 
     // ---------- Lac de saphir : mer souterraine, cristaux bleus, méduses ----------
-    const seaD = 556;
+    const seaD = 578;
     pool(0, W - 1, seaD, ['#040c24', '#081838', '#0c2450', '#143268'], '#9ad0ff');
-    for (let x = 14; x < W - 10; x += 9) {
-      const cy = ceilAbove(x, 540);
-      if (at(540) - cy < 34 && Math.abs(x - 80) > 12) cluster(x, cy, 1, GEMS.sapphire, hash(x, 2, 730) < 0.5 ? 1 : 0.7, 50);
+    for (let x = 10; x < W - 6; x += 8) {
+      if (Math.abs(x - 80) < 12) continue;
+      cluster(x, ceilAbove(x, 550), 1, GEMS.sapphire, hash(x, 2, 730) < 0.5 ? 1.3 : 0.8, 50);
     }
-    [[30, 616], [130, 612]].forEach(([x, d]) => cluster(x, floorBelow(x, d), -1, GEMS.sapphire, 1.1, 60));
-    for (let i = 0; i < 8; i++) anim.push({ type: 'tw', x: 10 + Math.floor(hash(i, 3, 731) * 140), y: at(seaD), color: '#ffffff' });
-    [[30, 566], [110, 570], [56, 574], [136, 562]].forEach(([x, d], i) => anim.push({ type: 'jelly', x, y: at(d), ph: i * 1.7, pal: i % 2 ? { p: '#ff8ad8', w: '#ffe0f4' } : { p: '#6ae8ff', w: '#e0fbff' } }));
+    // Îlots de cristal qui émergent de l'eau.
+    [[28, 1.4], [128, 1.6]].forEach(([x, k]) => cluster(x, at(seaD) + 2, -1, GEMS.sapphire, k, 60));
+    for (let i = 0; i < 10; i++) anim.push({ type: 'tw', x: 10 + Math.floor(hash(i, 3, 731) * 140), y: at(seaD), color: '#ffffff' });
+    [[30, 590], [110, 596], [56, 604], [136, 588], [86, 612]].forEach(([x, d], i) => anim.push({ type: 'jelly', x, y: at(d), ph: i * 1.7, pal: i % 2 ? { p: '#ff8ad8', w: '#ffe0f4' } : { p: '#6ae8ff', w: '#e0fbff' } }));
+    glow(80, at(seaD + 20), 50, '80,150,255', 0.12, 0.7);
 
     // ---------- Forge des rubis : cascade de lave, rubis, obsidienne, braises ----------
-    const lavaD = 748;
-    pool(12, 70, lavaD, ['#ffd25a', '#f7a23b', '#e8742a', '#c4481f'], '#fff1a8');
-    const lavaTop = ceilAbove(52, 712);
-    anim.push({ type: 'fall', x: 51, w: 4, y0: lavaTop, y1: at(lavaD), colors: ['#ffd25a', '#f7a23b', '#e8742a', '#fff1a8'], speed: 18 });
-    glow(53, at(lavaD), 22, '255,120,40', 0.28, 2);
-    anim.push({ type: 'ember', x: 40, y: at(lavaD), w: 28 });
-    for (let x = 16; x <= 64; x += 8) {
-      const cy = ceilAbove(x, 712);
-      if (at(712) - cy < 34 && Math.abs(x - 52) > 4) cluster(x, cy, 1, GEMS.ruby, 0.8, 70);
+    const lavaD = 822;
+    pool(8, 72, lavaD, ['#ffd25a', '#f7a23b', '#e8742a', '#c4481f'], '#fff1a8');
+    const lavaTop = ceilAbove(48, 720);
+    anim.push({ type: 'fall', x: 47, w: 5, y0: lavaTop, y1: at(lavaD), colors: ['#ffd25a', '#f7a23b', '#e8742a', '#fff1a8'], speed: 18 });
+    glow(49, at(lavaD), 30, '255,120,40', 0.3, 2);
+    glow(49, at(760), 20, '255,120,40', 0.12, 2.5);
+    anim.push({ type: 'ember', x: 40, y: at(lavaD), w: 34 }, { type: 'ember', x: 60, y: at(lavaD), w: 20 });
+    for (let x = 12; x <= 148; x += 8) {
+      if (Math.abs(x - 80) < 12 || Math.abs(x - 48) < 5) continue;
+      cluster(x, ceilAbove(x, 752), 1, GEMS.ruby, hash(x, 3, 732) < 0.5 ? 1 : 1.4, 70);
     }
-    for (let x = 106; x <= 148; x += 7) {
-      const fy = floorBelow(x, 792);
-      cluster(x, fy, -1, x % 2 ? GEMS.obsidian : GEMS.ruby, x % 2 ? 1.3 : 1, 80);
-    }
-    cluster(122, floorBelow(122, 690), -1, GEMS.ruby, 1, 90);
+    for (let x = 98; x <= 150; x += 7) cluster(x, floorBelow(x, 752), -1, x % 2 ? GEMS.obsidian : GEMS.ruby, x % 2 ? 1.5 : 1.1, 80);
 
     // ---------- Temple englouti : colonnes, idole, glyphes, braseros, trésor ----------
-    const templeFloor = at(983);
+    const templeFloor = at(1009);
     for (let x = 0; x < W; x++) set(x, templeFloor + 1, (x >> 3) % 2 ? '#b09c62' : '#8c7a48');
     const column = (cx, broken) => {
-      const top = broken ? templeFloor - broken : ceilAbove(cx, 960);
+      const top = broken ? templeFloor - broken : ceilAbove(cx, 950);
       for (let y = top; y <= templeFloor; y++) {
         ['#5a4a2a', '#b09c62', '#d8c48a', '#b09c62', '#8c7a48', '#5a4a2a', '#3a3018'].forEach((col, k) => set(cx - 3 + k, y, col));
         if ((y - top) % 5 === 0) set(cx, y, '#8c7a48');
@@ -534,18 +546,19 @@
       }
       if (broken) for (let k = -3; k <= 3; k++) for (let j = 0; j < Math.floor(hash(cx, k, 740) * 3); j++) set(cx + k, top - j, '#d8c48a');
     };
-    column(16, 0);
-    column(40, 22);
+    column(18, 0);
+    column(42, 34);
     column(124, 0);
-    column(148, 30);
+    column(146, 48);
+    [30, 134].forEach((x) => hangLantern(x, 950, 10, '#e9c046'));
     sprite(shaded(IDOL), 97, templeFloor - 14, { l: '#d8c48a', m: '#a8945a', d: '#6a5a32', e: '#2a1a08' }, '#1a1408');
     glow(101, templeFloor - 10, 4, '80,255,230', 0.6, 1.3);
     glow(108, templeFloor - 10, 4, '80,255,230', 0.6, 1.3);
     anim.push({ type: 'eyes', pts: [[100, templeFloor - 11], [101, templeFloor - 11], [107, templeFloor - 11], [108, templeFloor - 11], [100, templeFloor - 10], [101, templeFloor - 10], [107, templeFloor - 10], [108, templeFloor - 10]] });
     sprite(COINS, 52, templeFloor - 3, { y: '#e9c046', Y: '#fff1a8' }, '#3a2a08');
     anim.push({ type: 'tw', x: 55, y: templeFloor - 3, color: '#ffffff' });
-    GLYPHS.forEach((g, i) => anim.push({ type: 'glyph', rows: g, x: 50 + (i % 3) * 6, y: at(930) + Math.floor(i / 3) * 6, ph: i * 0.9 }));
-    GLYPHS.slice().reverse().forEach((g, i) => anim.push({ type: 'glyph', rows: g, x: 130 + (i % 2) * 6, y: at(926) + Math.floor(i / 2) * 6, ph: i * 1.1 + 3 }));
+    GLYPHS.forEach((g, i) => anim.push({ type: 'glyph', rows: g, x: 50 + (i % 3) * 6, y: at(950) + Math.floor(i / 3) * 6, ph: i * 0.9 }));
+    GLYPHS.slice().reverse().forEach((g, i) => anim.push({ type: 'glyph', rows: g, x: 130 + (i % 2) * 6, y: at(946) + Math.floor(i / 2) * 6, ph: i * 1.1 + 3 }));
     [[28, templeFloor], [136, templeFloor]].forEach(([x, y]) => {
       sprite(['ooooo', '.ooo.', '..o..', '.ooo.'], x - 2, y - 3, { o: '#3a3018' }, null);
       anim.push({ type: 'flame', x, y: y - 4 });
@@ -570,7 +583,34 @@
     // Puits : là où il traverse une grotte, on voit la foreuse pendre au bout de son câble.
     const shaftOpen = new Uint8Array(H);
     for (let y = 0; y < H; y++) shaftOpen[y] = isOpen(76, y) && isOpen(80, y) && isOpen(84, y) ? 1 : 0;
-    return { anim, shaftOpen };
+    // Transparence du fond des grottes : ombre opaque au bord de la roche, puis de plus en plus transparent vers le centre.
+    const dist = new Uint8Array(W * H).fill(255);
+    for (let i = 0; i < W * H; i++) if (!open[i]) dist[i] = 0;
+    for (let pass = 0; pass < 2; pass++) {
+      const order = pass ? -1 : 1;
+      for (let y = pass ? H - 1 : 0; pass ? y >= 0 : y < H; y += order) {
+        for (let x = pass ? W - 1 : 0; pass ? x >= 0 : x < W; x += order) {
+          const i = y * W + x;
+          if (!dist[i]) continue;
+          const px = x - order;
+          const py = y - order;
+          let best = dist[i];
+          if (px >= 0 && px < W) best = Math.min(best, dist[i - order] + 1);
+          if (py >= 0 && py < H) best = Math.min(best, dist[i - order * W] + 1);
+          dist[i] = best;
+        }
+      }
+    }
+    const alpha = new Uint8Array(W * H).fill(255);
+    const fade = [255, 255, 235, 170, 105, 50];
+    for (let y = SKY + 1; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const i = y * W + x;
+        if (open[i] && !deco[i]) alpha[i] = fade[Math.min(fade.length - 1, dist[i])] || 0;
+        if (open[i] && !deco[i] && dist[i] >= fade.length) alpha[i] = 0;
+      }
+    }
+    return { anim, shaftOpen, alpha };
   }
 
   function drawPattern(ctx, rows, x0, y0, pal) {
@@ -717,5 +757,226 @@
     });
   }
 
-  global.Caves = { TIERS, tierIndex, build, drawAnim };
+  // ---------- Profondeur : arrière-plan lointain, premier plan et atmosphère ----------
+  const P_BACK = 0.55; // l'arrière-plan défile plus lentement que la roche…
+  const P_FRONT = 1.35; // … et le premier plan plus vite : effet de profondeur
+  const VIEW = 200;
+  const rgbOf = (hex) => {
+    const n = parseInt(hex.slice(1), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  };
+  const AIR_RGB = AIR.map(rgbOf);
+  const css = (c, f = 1, a = 1) => `rgba(${Math.min(255, c[0] * f) | 0},${Math.min(255, c[1] * f) | 0},${Math.min(255, c[2] * f) | 0},${a})`;
+
+  /** Couleur de l'air à une profondeur d (pixels sous la surface), fondue d'un palier à l'autre. */
+  function airAt(d, PPP) {
+    let t = 0;
+    for (let i = 0; i < TIERS.length; i++) if (d >= TIERS[i].from * PPP) t = i;
+    const c = AIR_RGB[t];
+    if (t + 1 >= TIERS.length) return c;
+    const next = TIERS[t + 1].from * PPP;
+    const k = Math.max(0, Math.min(1, (d - (next - 30)) / 30));
+    const n = AIR_RGB[t + 1];
+    return [c[0] + (n[0] - c[0]) * k, c[1] + (n[1] - c[1]) * k, c[2] + (n[2] - c[2]) * k];
+  }
+
+  /**
+   * Arrière-plan lointain (peint une fois, en gris) : brume, piliers et stalactites en silhouette, lointains éclats.
+   * Il est teinté à l'affichage par la couleur de l'air à chaque hauteur de l'écran (voir drawBack).
+   */
+  function backdrop({ W, WORLD_H }) {
+    const BH = Math.ceil((WORLD_H - VIEW) * P_BACK + VIEW) + 4;
+    const canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = BH;
+    const ctx = canvas.getContext('2d');
+    const img = ctx.createImageData(W, BH);
+    const steps = [0.16, 0.28, 0.42, 0.6, 0.82, 1.08];
+    for (let r = 0; r < BH; r++) {
+      for (let x = 0; x < W; x++) {
+        let f = 0.3 + 0.45 * vnoise(x, r, 900, 38) + 0.25 * vnoise(x, r, 901, 11);
+        f *= 0.75 + 0.25 * (1 - Math.abs(x - W / 2) / (W / 2));
+        const far = vnoise(x, r * 0.07, 910, 8);
+        const near = vnoise(x, r * 0.045, 920, 13);
+        let glint = null;
+        if (near > 0.66) {
+          f = vnoise(x - 1, r * 0.045, 920, 13) <= 0.66 ? 0.9 : 0.12;
+        } else if (far > 0.6) {
+          f *= vnoise(x - 1, r * 0.07, 910, 8) <= 0.6 ? 0.75 : 0.45;
+        } else if (hash(x, r, 930) > 0.996) glint = true;
+        const lv = level(Math.min(1, f / 1.08), steps.length, x, r);
+        const k = glint ? 1 : steps[lv] / 1.2;
+        const i = (r * W + x) * 4;
+        img.data[i] = img.data[i + 1] = img.data[i + 2] = Math.round(255 * k);
+        img.data[i + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    return canvas;
+  }
+
+  /** Premier plan (peint une fois) : gros rochers sombres sur les bords, cristaux géants, os ou étais selon le palier. */
+  function foreground({ W, SKY, PPP, WORLD_H }) {
+    const FH = Math.ceil((WORLD_H - VIEW) * P_FRONT + VIEW) + 4;
+    const canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = FH;
+    const ctx = canvas.getContext('2d');
+    const img = ctx.createImageData(W, FH);
+    const put = (x, y, hex) => {
+      if (x < 0 || x >= W || y < 0 || y >= FH) return;
+      const c = rgbOf(hex);
+      const i = (y * W + x) * 4;
+      img.data[i] = c[0];
+      img.data[i + 1] = c[1];
+      img.data[i + 2] = c[2];
+      img.data[i + 3] = 255;
+    };
+    const glows = [];
+    const toHex = (c, f) => '#' + c.map((v) => Math.max(0, Math.min(255, Math.round(v * f))).toString(16).padStart(2, '0')).join('');
+    const sprite = (rows, x0, y0, pal, outline) => {
+      const on = (dx, dy) => dy >= 0 && dy < rows.length && dx >= 0 && dx < rows[dy].length && rows[dy][dx] !== '.';
+      if (outline) {
+        const w = Math.max(...rows.map((row) => row.length));
+        for (let dy = -1; dy <= rows.length; dy++) for (let dx = -1; dx <= w; dx++) if (!on(dx, dy) && (on(dx - 1, dy) || on(dx + 1, dy) || on(dx, dy - 1) || on(dx, dy + 1))) put(x0 + dx, y0 + dy, outline);
+      }
+      rows.forEach((row, dy) => [...row].forEach((ch, dx) => ch !== '.' && pal[ch] && put(x0 + dx, y0 + dy, pal[ch])));
+    };
+    /** Grand cristal (2 pixels par pixel de motif) pour le premier plan. */
+    const bigCrystal = (x, y, h, pal, lean) => {
+      for (let k = 0; k < h; k++) {
+        const half = Math.min(3, 1 + Math.floor(k / 2));
+        const cx = x + Math.round((h - k) * lean);
+        for (let i = -half; i <= half; i++) {
+          const col = k === 0 ? pal.t : i < -1 ? pal.l : i < 0 ? (k < 5 ? pal.t : pal.l) : i === 0 ? pal.m : pal.d;
+          put(cx + i, y - h + k, col);
+        }
+        put(cx - half - 1, y - h + k, pal.o);
+        put(cx + half + 1, y - h + k, pal.o);
+      }
+      put(x + Math.round(h * lean), y - h - 1, pal.o);
+    };
+    let r = 140;
+    let n = 0;
+    while (r < FH - 40) {
+      const d = (r - VIEW / 2) / P_FRONT + VIEW / 2 - SKY;
+      let t = 0;
+      for (let i = 0; i < TIERS.length; i++) if (d >= TIERS[i].from * PPP) t = i;
+      const air = AIR_RGB[t];
+      const left = hash(n, 1, 950) < 0.5;
+      const rx = 12 + Math.floor(hash(n, 2, 950) * 12);
+      const ry = 22 + Math.floor(hash(n, 3, 950) * 26);
+      const cx = left ? -6 : W + 5;
+      const rim = toHex(air, 2.2);
+      // Rocher en silhouette, bordé de lumière du côté du puits.
+      for (let y = r - ry; y <= r + ry; y++) {
+        for (let x = cx - rx; x <= cx + rx; x++) {
+          const q = Math.hypot((x - cx) / rx, (y - r) / ry);
+          if (q > 1 + (vnoise(x, y, 960 + n, 5) - 0.5) * 0.5) continue;
+          const inner = left ? x + 1 : x - 1;
+          const edge = Math.hypot((inner - cx) / rx, (y - r) / ry) > 1 + (vnoise(inner, y, 960 + n, 5) - 0.5) * 0.5;
+          put(x, y, edge ? rim : toHex(air, 0.08 + 0.12 * (level(vnoise(x, y, 970, 4), 3, x, y) / 2)));
+        }
+      }
+      const edgeX = left ? cx + rx - 2 : cx - rx + 2;
+      const gem = FG_GEM[t];
+      if (gem) {
+        const pal = gem === 'rainbow' ? RAINBOW[n % RAINBOW.length] : GEMS[gem];
+        const top = r - Math.round(ry * 0.45);
+        const lean = left ? 0.18 : -0.18;
+        bigCrystal(edgeX - (left ? 6 : -6), top + 6, 10 + Math.floor(hash(n, 4, 950) * 6), pal, lean);
+        bigCrystal(edgeX, top + 4, 16 + Math.floor(hash(n, 5, 950) * 10), pal, lean * 1.6);
+        glows.push({ x: edgeX, y: top - 6, r: 26, color: rgbOf(pal.m), ph: n });
+      } else if (t === 1) {
+        sprite(shaded(SKULL).map((row) => row.replace(/./g, (ch) => ch + ch)), left ? 2 : W - 16, r - ry + 6, { l: '#e8dcc0', m: '#b8a888', d: '#7a6a50', k: '#0a0604' }, '#0a0604');
+      }
+      if (t === 3) {
+        // Étai de bois et lanterne.
+        for (let y = r - ry - 30; y <= r + ry; y++) for (let k = 0; k < 4; k++) put(edgeX + (left ? -k - 2 : k + 2), y, ['#a06d3a', '#8a5a2b', '#6b4627', '#4a2f1a'][k]);
+        sprite(['.o.', 'ooo', 'oyo', 'oyo', 'ooo'], edgeX + (left ? 2 : -4), r - ry - 6, { o: '#1a1a20', y: '#ffd36b' }, null);
+        glows.push({ x: edgeX + (left ? 3 : -3), y: r - ry - 3, r: 22, color: [255, 190, 90], ph: n, flicker: true });
+      }
+      r += 85 + Math.floor(hash(n, 6, 950) * 60);
+      n++;
+    }
+    ctx.putImageData(img, 0, 0);
+    return { canvas, glows };
+  }
+
+  /** Arrière-plan, à dessiner avant la roche (coordonnées écran). */
+  function drawBack(ctx, back, cam, h, { SKY, PPP }) {
+    ctx.drawImage(back, 0, Math.round(cam * P_BACK), back.width, h, 0, 0, back.width, h);
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    for (let y = 0; y <= h; y += 10) g.addColorStop(y / h, css(airAt(Math.max(0, cam + y - SKY), PPP), 1.2));
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, back.width, h);
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  /** Premier plan et ses lueurs, à dessiner par-dessus la scène (coordonnées écran). */
+  function drawFront(ctx, front, cam, h, time) {
+    const y0 = Math.round(cam * P_FRONT);
+    ctx.drawImage(front.canvas, 0, y0, front.canvas.width, h, 0, 0, front.canvas.width, h);
+    ctx.globalCompositeOperation = 'lighter';
+    for (const g of front.glows) {
+      const y = g.y - y0;
+      if (y < -g.r || y > h + g.r) continue;
+      const a = g.flicker ? 0.3 + Math.sin(time * 9 + g.ph) * 0.04 + Math.sin(time * 23 + g.ph) * 0.03 : 0.26 + Math.sin(time * 1.3 + g.ph) * 0.06;
+      const grad = ctx.createRadialGradient(g.x, y, 0, g.x, y, g.r);
+      grad.addColorStop(0, css(g.color, 1, a));
+      grad.addColorStop(1, css(g.color, 1, 0));
+      ctx.fillStyle = grad;
+      ctx.fillRect(g.x - g.r, y - g.r, g.r * 2, g.r * 2);
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  /** Atmosphère (coordonnées écran) : lueur de l'air du palier, rayons de lumière, poussières lumineuses et vignette. */
+  function drawAir(ctx, { W, SKY, PPP }, cam, h, time, calm, hd) {
+    const d = cam + h / 2 - SKY;
+    const show = Math.max(0, Math.min(1, (d - 10) / 60));
+    if (!show) return;
+    const air = airAt(Math.max(0, d), PPP);
+    const t = calm ? 0 : time;
+    ctx.globalCompositeOperation = 'lighter';
+    const top = ctx.createRadialGradient(W / 2, -h * 0.1, 0, W / 2, -h * 0.1, h * 0.95);
+    top.addColorStop(0, css(air, 1.6, 0.22 * show));
+    top.addColorStop(1, css(air, 1.6, 0));
+    ctx.fillStyle = top;
+    ctx.fillRect(0, 0, W, h);
+    // Rayons obliques venus d'en haut.
+    for (let k = 0; k < 3; k++) {
+      const x = 22 + k * 46 + Math.sin(t * 0.2 + k) * 6;
+      ctx.fillStyle = css(air, 2.2, (0.035 + Math.sin(t * 0.7 + k * 2) * 0.015) * show);
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x + 10, 0);
+      ctx.lineTo(x + 34, h);
+      ctx.lineTo(x + 14, h);
+      ctx.closePath();
+      ctx.fill();
+    }
+    // Poussières lumineuses (bokeh).
+    for (let i = 0; i < 14; i++) {
+      const sp = 0.4 + hash(i, 1, 980) * 0.8;
+      const x = ((hash(i, 2, 980) * W + t * sp * 3 + Math.sin(t * 0.5 + i) * 4) % W + W) % W;
+      const y = ((hash(i, 3, 980) * h - t * sp * 4 - cam * (0.2 + sp * 0.3)) % h + h) % h;
+      const r = 0.8 + hash(i, 4, 980) * 2.6;
+      ctx.fillStyle = css(air, 2.6, (0.12 + hash(i, 5, 980) * 0.22) * show);
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    if (!hd) {
+      const vg = ctx.createRadialGradient(W / 2, h / 2, h * 0.32, W / 2, h / 2, h * 0.75);
+      vg.addColorStop(0, 'rgba(0,0,0,0)');
+      vg.addColorStop(1, `rgba(0,0,0,${0.45 * show})`);
+      ctx.fillStyle = vg;
+      ctx.fillRect(0, 0, W, h);
+    }
+  }
+
+  global.Caves = { TIERS, tierIndex, build, drawAnim, backdrop, foreground, drawBack, drawFront, drawAir };
 })(window);
