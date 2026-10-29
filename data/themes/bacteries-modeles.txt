@@ -1,4 +1,5 @@
-titre: Une bactérie utilisée comme organisme modèle ou outil courant de laboratoire
+titre: Une bactérie de laboratoire courante
+# Ancien titre, qui précise le périmètre exact : Une bactérie utilisée comme organisme modèle ou outil courant de laboratoire
 # Liste généreuse : bactéries (pas d'archées) servant de modèle de recherche, d'hôte d'expression ou de test standard.
 1: Escherichia coli = E. coli = Colibacille = E. coli K-12 = E. coli BL21 = E. coli DH5alpha = Bacille du côlon
 2: Bacillus subtilis = B. subtilis = Bacille du foin; Salmonella Typhimurium = Salmonella enterica Typhimurium = Salmonella typhimurium = Salmonelle = Salmonella; Pseudomonas aeruginosa = Bacille pyocyanique = Pyocyanique; Staphylococcus aureus = Staphylocoque doré = S. aureus; Agrobacterium tumefaciens = Agrobactérie = Agrobacterium = Rhizobium radiobacter; Streptococcus pneumoniae = Pneumocoque; Vibrio fischeri = Aliivibrio fischeri; Caulobacter crescentus = Caulobacter = Caulobacter vibrioides

@@ -1,4 +1,5 @@
-titre: Une marque automobile japonaise ou sud-coréenne (actuelle ou disparue)
+titre: Une marque auto japonaise ou coréenne
+# Ancien titre, qui précise le périmètre exact : Une marque automobile japonaise ou sud-coréenne (actuelle ou disparue)
 # Marques de voitures (et de véhicules utilitaires issus de ces groupes) du Japon et de Corée du Sud.
 1: Toyota; Honda; Nissan; Mazda; Hyundai; Kia; Suzuki; Mitsubishi; Subaru; Lexus
 2: Daihatsu; Isuzu; Infiniti; Datsun; Genesis; SsangYong = KG Mobility = KGM; Daewoo; Acura

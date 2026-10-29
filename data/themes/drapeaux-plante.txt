@@ -1,4 +1,5 @@
-titre: Un pays ou territoire dont le drapeau comporte une plante, ou le nom de cette plante
+titre: Un drapeau avec une plante
+# Ancien titre, qui précise le périmètre exact : Un pays ou territoire dont le drapeau comporte une plante, ou le nom de cette plante
 # Pays (armoiries comprises) et plantes représentées : érable (Canada), cèdre (Liban), olivier (Érythrée, Chypre), palmier (Haïti, République dominicaine, Salvador), laurier, acajou (Belize), muscade (Grenade), pipal (Sri Lanka), nopal (Mexique), arbre à pain (Bolivie), quinquina (Pérou), canne à sucre (Fidji), pin (Norfolk)
 1: Canada; Liban
 2: Haïti; Mexique; Chypre; Érythrée; Belize; Grenade; Guatemala; Sri Lanka; Bolivie; Pérou; Fidji; République dominicaine = Dominicaine; Salvador; Érable = Feuille d'érable; Cèdre; Olivier = Rameau d'olivier = Branche d'olivier

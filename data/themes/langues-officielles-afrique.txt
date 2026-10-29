@@ -1,4 +1,5 @@
-titre: Une langue officielle (au niveau national) d'au moins un État d'Afrique
+titre: Une langue officielle en Afrique
+# Ancien titre, qui précise le périmètre exact : Une langue officielle (au niveau national) d'au moins un État d'Afrique
 # D'après les constitutions : français, anglais, arabe, portugais, espagnol ; langues africaines officielles (swahili, amharique, afrikaans, zoulou, kirundi, kinyarwanda, sesotho, sango, chichewa…) ; les 16 langues officielles du Zimbabwe. Les simples langues nationales (wolof, lingala, haoussa…) ne comptent pas.
 1: Français; Anglais; Arabe; Portugais
 2: Swahili = Kiswahili; Espagnol = Castillan; Afrikaans; Zoulou = isiZulu; Xhosa = isiXhosa

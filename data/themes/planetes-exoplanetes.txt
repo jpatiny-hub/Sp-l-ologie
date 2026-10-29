@@ -1,4 +1,5 @@
-titre: Une planète, planète naine ou exoplanète connue du public, désignée par son nom propre ou son nom de catalogue
+titre: Une planète ou exoplanète connue
+# Ancien titre, qui précise le périmètre exact : Une planète, planète naine ou exoplanète connue du public, désignée par son nom propre ou son nom de catalogue
 # Périmètre : 8 planètes du système solaire ; 5 planètes naines reconnues par l'UAI (Pluton, Cérès, Éris, Hauméa, Makémaké) + quelques candidates (Sedna, Quaoar, Gonggong, Orcus) ;
 # exoplanètes ayant un nom officiel UAI (NameExoWorlds 2015, 2019, 2022 : liste vérifiée sur fr.wikipedia « NameExoWorlds » et « Liste des noms d'étoiles et de planètes officiellement reconnus par l'UAI ») ;
 # exoplanètes très médiatisées sous leur désignation de catalogue (Proxima b, TRAPPIST-1 b à h, Kepler-452 b, etc.).

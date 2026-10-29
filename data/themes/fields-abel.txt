@@ -1,4 +1,5 @@
-titre: Un lauréat ou une lauréate de la médaille Fields (1936-2026) ou du prix Abel (2003-2026)
+titre: Un lauréat de la médaille Fields ou du prix Abel
+# Ancien titre, qui précise le périmètre exact : Un lauréat ou une lauréate de la médaille Fields (1936-2026) ou du prix Abel (2003-2026)
 # Andrew Wiles (plaque d'argent spéciale de l'IMU en 1998, prix Abel 2016) est accepté.
 # Vérifié (Wikidata + en.wikipedia) : Fields 2026 (Yu Deng, John Pardon, Jacob Tsimerman, Hong Wang) et Abel 2026 (Gerd Faltings, déjà médaillé Fields 1986).
 1: Grigori Perelman = Grigory Perelman = Perelman; Cédric Villani = Villani; Terence Tao = Terry Tao = Tao; Alexander Grothendieck = Alexandre Grothendieck = Grothendieck; John Nash = Nash; Andrew Wiles = Wiles; Laurent Schwartz = Schwartz; Jean-Pierre Serre = Serre; Maryam Mirzakhani = Mirzakhani; Pierre Deligne = Deligne

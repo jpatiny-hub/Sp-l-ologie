@@ -1,4 +1,5 @@
-titre: Une province de Belgique ou des Pays-Bas, ou son chef-lieu (ancienne province de Brabant et Bruxelles compris)
+titre: Une province de Belgique ou des Pays-Bas
+# Ancien titre, qui précise le périmètre exact : Une province de Belgique ou des Pays-Bas, ou son chef-lieu (ancienne province de Brabant et Bruxelles compris)
 1: Anvers = Antwerpen; Liège = Luik; Namur = Namen; Hainaut = Henegouwen; Luxembourg = Luxemburg; Limbourg = Limburg; Flandre-Occidentale = West-Vlaanderen; Flandre-Orientale = Oost-Vlaanderen; Brabant wallon = Waals-Brabant; Brabant flamand = Vlaams-Brabant; Gand = Gent; Bruges = Brugge; Mons = Bergen; Hasselt; Louvain = Leuven; Wavre = Waver; Arlon = Aarlen
 2: Utrecht; Groningue = Groningen; Hollande-Septentrionale = Noord-Holland; Hollande-Méridionale = Zuid-Holland; Zélande = Zeeland; Brabant-Septentrional = Noord-Brabant; Frise = Friesland = Fryslân; Gueldre = Gelderland; La Haye = Den Haag = 's-Gravenhage; Maastricht; Arnhem; Haarlem
 3: Drenthe; Overijssel; Flevoland; Bois-le-Duc = 's-Hertogenbosch = Den Bosch; Middelbourg = Middelburg; Zwolle; Leeuwarden; Assen; Lelystad

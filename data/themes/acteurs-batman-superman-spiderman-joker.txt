@@ -1,4 +1,5 @@
-titre: Un acteur ayant incarné Batman, Superman, Spider-Man ou le Joker au cinéma en prises de vues réelles (jusqu'en 2026)
+titre: Un acteur de Batman, Superman, Spider-Man ou du Joker
+# Ancien titre, qui précise le périmètre exact : Un acteur ayant incarné Batman, Superman, Spider-Man ou le Joker au cinéma en prises de vues réelles (jusqu'en 2026)
 # Vérifié le 2026-10-21 sur en.wikipedia (Batman/Superman/Spider-Man in film, Joker) : aucun nouvel interprète en 2026 ; ajout de Shinji Tōdō (Spider-Man, film Toei de 1978).
 # Batman : Wilson (1943), Lowery (1949), West, Keaton, Kilmer, Clooney, Bale, Affleck, Pattinson. Superman : Alyn, Reeves, Reeve, Routh, Cavill, Corenswet, Cage (caméo dans The Flash, 2023).
 # Spider-Man : Maguire, Garfield, Holland, Hammond (téléfilms de 1977-1981 sortis en salles hors des États-Unis). Joker : Romero, Nicholson, Ledger, Leto, Phoenix, Keoghan.

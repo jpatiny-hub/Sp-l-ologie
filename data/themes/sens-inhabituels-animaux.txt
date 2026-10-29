@@ -1,4 +1,5 @@
-titre: Un sens ou une capacité sensorielle que possèdent certains animaux mais qui n'existe pas chez l'être humain
+titre: Un sens animal que l'humain n'a pas
+# Ancien titre, qui précise le périmètre exact : Un sens ou une capacité sensorielle que possèdent certains animaux mais qui n'existe pas chez l'être humain
 # Perceptions absentes de l'espèce humaine (électroréception, magnétoréception, écholocation, etc.), propres à un ou plusieurs groupes animaux. Exclus : les cinq sens classiques tels que l'humain les possède (même s'ils sont plus aiguisés chez l'animal : odorat du chien, vue de l'aigle).
 1: Écholocation = Écholocalisation = Sonar; Électroréception = Sens électrique = Électrolocalisation; Magnétoréception = Sens magnétique = Magnétoception; Vision infrarouge = Détection infrarouge = Vision thermique
 2: Vision ultraviolette = Perception des ultraviolets = Vision des UV; Ultrasons = Perception des ultrasons = Audition des ultrasons; Ligne latérale; Organe de Jacobson = Organe voméronasal; Vision polarisée = Perception de la lumière polarisée; Infrasons = Perception des infrasons

@@ -1,4 +1,5 @@
-titre: Un lauréat ou une lauréate de l'Oscar de la meilleure réalisation (cérémonies 1929-2026)
+titre: Un lauréat de l'Oscar de la meilleure réalisation
+# Ancien titre, qui précise le périmètre exact : Un lauréat ou une lauréate de l'Oscar de la meilleure réalisation (cérémonies 1929-2026)
 # Vérifié le 2026-10-21 sur en.wikipedia (liste des lauréats), à jour jusqu'à la 98e cérémonie (mars 2026, films de 2025).
 1: Steven Spielberg = Spielberg; Martin Scorsese = Scorsese; James Cameron = Cameron; Clint Eastwood = Eastwood; Francis Ford Coppola = Coppola; Christopher Nolan = Nolan; Peter Jackson; Michel Hazanavicius = Hazanavicius
 2: Woody Allen; Roman Polanski = Polanski; Alfonso Cuarón = Cuarón; Alejandro González Iñárritu = Iñárritu = Alejandro G. Iñárritu; Guillermo del Toro = Del Toro; Bong Joon-ho; Ang Lee; Kathryn Bigelow = Bigelow; Danny Boyle = Boyle; Joel et Ethan Coen = Frères Coen = Coen = Joel Coen = Ethan Coen; Ron Howard; Robert Zemeckis = Zemeckis; Mel Gibson = Gibson; Kevin Costner = Costner; Oliver Stone; Sam Mendes = Mendes; Damien Chazelle = Chazelle; Miloš Forman = Milos Forman = Forman; Billy Wilder = Wilder; John Ford; Frank Capra = Capra; David Lean = Lean; Bernardo Bertolucci = Bertolucci; Jane Campion = Campion; Chloé Zhao; Paul Thomas Anderson; Elia Kazan = Kazan; William Wyler = Wyler; Steven Soderbergh = Soderbergh

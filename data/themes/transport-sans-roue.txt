@@ -1,4 +1,5 @@
-titre: Quelque chose qui sert à porter ou déplacer une chose d'un point A à un point B, sans roue
+titre: Un moyen de transporter quelque chose sans roue
+# Ancien titre, qui précise le périmètre exact : Quelque chose qui sert à porter ou déplacer une chose d'un point A à un point B, sans roue
 # Contenants, porteurs, canalisations, animaux de bât, embarcations, engins volants, etc. Tout ce qui porte ou fait voyager quelque chose sans roue.
 1: Sac à dos = Sac; Sac à main; Valise sans roue; Panier; Cabas = Sac de courses; Bateau; Avion; Hélicoptère; Cheval; Âne; Chameau; Canoë; Kayak; Radeau; Luge; Traîneau; Ski; Téléphérique; Ascenseur; Fusée; Montgolfière = Ballon; Drone
 2: Poche; Glacière; Gourde; Bouteille; Thermos; Jerrican = Bidon; Seau; Caisse; Cageot; Hotte; Besace; Baluchon; Filet; Porte-bébé; Écharpe de portage; Civière = Brancard; Palanquin; Litière; Hamac; Pirogue; Gondole; Péniche; Voilier; Paquebot; Ferry; Tuyau = Canalisation; Oléoduc = Pipeline; Gazoduc; Câble; Fil électrique; Rivière; Fleuve; Canal; Vent; Pigeon voyageur; Tapis volant; Parachute; Planeur

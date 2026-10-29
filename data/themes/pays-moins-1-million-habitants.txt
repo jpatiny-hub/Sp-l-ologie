@@ -1,4 +1,5 @@
-titre: Un pays de moins d'un million d'habitants (États souverains)
+titre: Un pays de moins d'un million d'habitants
+# Ancien titre, qui précise le périmètre exact : Un pays de moins d'un million d'habitants (États souverains)
 # Estimations de population autour de 2025 (ONU et sources nationales). Chypre compte environ 0,98 million d'habitants dans la partie contrôlée par le gouvernement.
 1: Luxembourg; Malte; Islande; Monaco; Liechtenstein; Saint-Marin = San Marino; Vatican = Cité du Vatican; Andorre; Maldives; Chypre
 2: Monténégro; Bahamas; Barbade; Belize; Brunei; Fidji; Guyana; Bhoutan; Suriname; Cap-Vert = Cabo Verde; Comores; Seychelles; Îles Salomon = Salomon; Vanuatu; Samoa; Tonga; Kiribati; Palau = Palaos; Nauru; Tuvalu

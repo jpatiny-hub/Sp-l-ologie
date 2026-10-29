@@ -1,4 +1,5 @@
-titre: Un nom français qui ne s'emploie qu'au pluriel ou presque exclusivement au pluriel
+titre: Un nom qui s'emploie surtout au pluriel
+# Ancien titre, qui précise le périmètre exact : Un nom français qui ne s'emploie qu'au pluriel ou presque exclusivement au pluriel
 # Noms communs (ou noms propres de fêtes/divisions du calendrier) dont l'usage courant est pluriel ; on répond à la forme plurielle. Les noms qui ont un singulier d'usage courant au même sens (cheveux, vêtements…) sont exclus.
 1: Ciseaux; Lunettes; Vacances; Gens; Frais; Funérailles; Fiançailles; Mœurs = Moeurs
 2: Ténèbres; Obsèques; Vivres; Environs; Alentours; Archives; Noces; Retrouvailles; Condoléances; Représailles; Décombres; Gravats; Ossements; Entrailles; Victuailles; Arrhes; Pourparlers; Dépens; Honoraires; Armoiries; Catacombes; Latrines; Annales; Épousailles; Confins; Parages; Abords; Antipodes; Thermes; Pleurs

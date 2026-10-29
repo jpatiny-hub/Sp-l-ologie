@@ -1,4 +1,5 @@
-titre: Un jeu de société lauréat du Spiel des Jahres ou du Kennerspiel des Jahres (jusqu'en 2026)
+titre: Un lauréat du Spiel des Jahres
+# Ancien titre, qui précise le périmètre exact : Un jeu de société lauréat du Spiel des Jahres ou du Kennerspiel des Jahres (jusqu'en 2026)
 # Vérifié le 2026-10-21 sur en.wikipedia (Spiel des Jahres, tableaux « All winners ») : exhaustif jusqu'en 2026 (SdJ : JinxO/Dito! ; Kennerspiel : Rebirth).
 # Spiel des Jahres 1979-2026 et Kennerspiel des Jahres 2011-2026 (lauréats uniquement, pas les nominés, le Kinderspiel ni les prix spéciaux). Vérifié le 21/10/2026 sur Wikipédia (en : Spiel des Jahres, tableaux « All winners » ; de) : les 47 lauréats 1979-2025 et les 15 Kennerspiel 2011-2025 étaient déjà présents ; ajout de l'édition 2026 (Dito! / JinxO et Rebirth).
 1: Catan = Les Colons de Catane = Colons de Catane = Die Siedler von Catan = The Settlers of Catan; Carcassonne; Les Aventuriers du Rail = Aventuriers du rail = Ticket to Ride = Zug um Zug; Dixit; Rummikub; Azul; 7 Wonders = Seven Wonders; Codenames = Nom de code = Noms de code; Wingspan = Flügelschlag; Scotland Yard
