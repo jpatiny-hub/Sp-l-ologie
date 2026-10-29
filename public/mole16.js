@@ -11,16 +11,16 @@
   const H = 32;
   const PAL = {
     o: '#150e0b', // contour
-    L: '#b98354', M: '#8a5a32', D: '#5d3a1e', // fourrure
+    L: '#c28a58', M: '#92603a', D: '#5d3a1e', // fourrure
     e: '#f1dfb4', E: '#d3b784', // ventre
     y: '#ffe36b', Y: '#f2c230', Z: '#b8860b', // casque
     g: '#9fe8ff', G: '#fffbe0', // lampe
-    p: '#f4a9a8', P: '#d77f86', // museau, oreilles
-    n: '#43222f', // truffe
+    p: '#f7b3b6', P: '#d9808a', // museau, pattes
+    n: '#4a2535', // truffe
     w: '#ffffff', k: '#150e0b', // yeux
     c: '#f6ecd0', // griffes, moustaches
     t: '#e0606e', // langue
-    r: '#f08a8a', // joues
+    r: '#ff8f9a', // joues
     s: '#ffd23f', // étoiles
     b: '#7fd0f7', // larme
   };
@@ -28,7 +28,7 @@
   /** Dessine les formes dans une grille de lettres, puis ajoute le contour. */
   function sprite(mood, gaze) {
     const g = Array.from({ length: H }, () => Array(W).fill(null));
-    const put = (x, y, ch) => { if (x >= 0 && x < W && y >= 0 && y < H) g[y][x] = ch; };
+    const put = (x, y, ch) => { x = Math.round(x); y = Math.round(y); if (x >= 0 && x < W && y >= 0 && y < H) g[y][x] = ch; };
     // Ellipse ombrée : lumière venant d'en haut à gauche ; `keep` limite les lignes dessinées.
     const ell = (cx, cy, rx, ry, tones, keep) => {
       for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++) {
@@ -38,95 +38,68 @@
           const ny = (y + 0.5 - cy) / ry;
           if (nx * nx + ny * ny > 1) continue;
           const t = -0.6 * nx - 0.8 * ny;
-          put(x, y, t > 0.4 ? tones[0] : t > -0.35 ? tones[1] : tones[2]);
+          put(x, y, tones.length === 1 ? tones : t > 0.4 ? tones[0] : t > -0.35 ? tones[1] : tones[2]);
         }
       }
     };
     const rect = (x0, y0, x1, y1, ch) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) put(x, y, ch); };
-    const gx = Math.round((gaze && gaze.x) || 0);
-    const gy = Math.round((gaze && gaze.y) || 0);
+    const gx = Math.max(-1, Math.min(1, Math.round((gaze && gaze.x) || 0)));
+    const gy = Math.round((gaze && gaze.y) || 0) > 0 ? 1 : 0;
 
-    // Pieds et griffes.
-    ell(17, 29, 4.5, 2.2, 'LMD');
-    ell(31, 29, 4.5, 2.2, 'LMD');
-    for (const x of [14, 16, 18]) put(x, 31, 'c');
-    for (const x of [29, 31, 33]) put(x, 31, 'c');
-    // Corps, ventre, bras.
-    ell(24, 22, 11.5, 9, 'LMD');
-    ell(24, 24, 6.5, 6, 'eeE');
-    ell(11.5, 22, 3.2, 5.5, 'LMD');
-    ell(36.5, 22, 3.2, 5.5, 'LMD');
-    ell(11.5, 27, 2.6, 2.2, 'ppP');
-    ell(36.5, 27, 2.6, 2.2, 'ppP');
-    for (const x of [10, 12]) put(x, 29, 'c');
-    for (const x of [35, 37]) put(x, 29, 'c');
-    // Oreilles, tête.
-    ell(14, 13, 2.6, 2.6, 'ppP');
-    ell(34, 13, 2.6, 2.6, 'ppP');
-    ell(24, 16, 11, 8, 'LMD');
-    // Casque : dôme, nervure, bord et lampe.
-    ell(24, 8, 9.5, 7, 'yYZ', (y) => y <= 9);
-    rect(23, 2, 25, 8, 'Y');
-    put(23, 2, 'y'); put(23, 3, 'y');
-    rect(24, 3, 24, 8, 'Z');
-    rect(12, 9, 36, 10, 'Y');
-    rect(13, 9, 35, 9, 'y');
-    rect(12, 11, 36, 11, 'Z');
-    put(12, 9, null); put(36, 9, null); put(12, 11, null); put(36, 11, null);
-    ell(24, 6.4, 3.2, 2.4, 'GgG');
-    put(23, 5, 'G'); put(24, 5, 'G');
+    // Pieds, corps, ventre, petites pattes.
+    ell(17, 30, 3.6, 1.8, 'LMD');
+    ell(31, 30, 3.6, 1.8, 'LMD');
+    ell(24, 26, 7.5, 5, 'LMD');
+    ell(24, 27, 4, 3, 'eeE');
+    ell(14, 25, 2.4, 2.8, 'LMD');
+    ell(34, 25, 2.4, 2.8, 'LMD');
+    ell(14, 27, 1.7, 1.4, 'ppP');
+    ell(34, 27, 1.7, 1.4, 'ppP');
+    // Grosse tête ronde, casque de petite taille posé dessus.
+    ell(24, 16, 16, 10, 'LMD');
+    ell(24, 6.5, 9, 5.5, 'yYZ', (y) => y <= 7);
+    rect(14, 8, 34, 9, 'Y'); rect(15, 8, 33, 8, 'y'); rect(14, 10, 34, 10, 'Z');
+    put(14, 8, null); put(34, 8, null); put(14, 10, null); put(34, 10, null);
+    rect(23, 2, 25, 7, 'Y'); rect(24, 3, 24, 7, 'Z');
+    ell(24, 4.6, 3, 2.2, 'GgG');
+    put(23, 4, 'G');
+    // Museau crème, truffe, grandes joues.
+    ell(24, 20.5, 6, 3.8, 'eeE');
+    ell(12.5, 20, 3, 1.8, 'r');
+    ell(35.5, 20, 3, 1.8, 'r');
+    ell(24, 19, 2.2, 1.4, 'n');
+    put(23, 18, 'w');
 
-    // Museau, truffe, moustaches.
-    ell(24, 19.5, 4.6, 3.4, 'ppP');
-    ell(24, 17.8, 2.4, 1.5, 'nnn');
-    put(23, 17, 'w'); put(22, 17, 'P');
-    for (const [x, y] of [[13, 18], [14, 18], [15, 19], [12, 20], [14, 20], [15, 21]]) put(x, y, 'c');
-    for (const [x, y] of [[34, 18], [33, 18], [32, 19], [35, 20], [33, 20], [32, 21]]) put(x, y, 'c');
-    put(15, 19, 'c'); put(32, 19, 'c');
-    // Joues.
-    for (const x of [15, 16]) put(x, 20, 'r');
-    for (const x of [31, 32]) put(x, 20, 'r');
-
-    // Yeux (centres en x = 19 et 29, y = 15).
-    const eyeOpen = (cx) => {
-      ell(cx, 15.5, 2.3, 2.9, 'www');
-      const px = cx - 1 + gx;
-      const py = 14 + (gy > 0 ? 1 : 0);
-      rect(px, py, px + 1, py + 2, 'k');
-      put(px, py, 'w'); // reflet
-    };
-    const closed = (cx) => { rect(cx - 2, 16, cx + 2, 16, 'k'); put(cx - 2, 15, 'k'); put(cx + 2, 15, 'k'); };
-    const arc = (cx) => { rect(cx - 1, 14, cx + 1, 14, 'k'); put(cx - 2, 15, 'k'); put(cx + 2, 15, 'k'); put(cx - 2, 16, 'k'); put(cx + 2, 16, 'k'); };
-    const star = (cx) => {
-      ell(cx, 15.5, 3, 3.3, 'www');
-      for (const [dx, dy] of [[0, -2], [-1, -1], [0, -1], [1, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [2, 0], [-1, 1], [0, 1], [1, 1], [0, 2]]) put(cx + dx, 15 + dy, dx === 0 && dy === 0 ? 'G' : 's');
-    };
-    for (const cx of [19, 29]) {
-      if (mood === 'blink' || mood === 'sleep') closed(cx);
-      else if (mood === 'happy') arc(cx);
-      else if (mood === 'stars') star(cx);
-      else eyeOpen(cx);
+    // Yeux : deux petits points brillants (centres en x = 15 et 33).
+    for (const cx of [15, 33]) {
+      const side = cx < 24 ? -1 : 1;
+      if (mood === 'blink' || mood === 'sleep') rect(cx - 1, 17, cx + 1, 17, 'k');
+      else if (mood === 'happy') { put(cx - 1, 17, 'k'); put(cx, 16, 'k'); put(cx + 1, 17, 'k'); }
+      else if (mood === 'stars') {
+        for (const [dx, dy] of [[0, -2], [-1, -1], [0, -1], [1, -1], [-2, 0], [-1, 0], [1, 0], [2, 0], [-1, 1], [0, 1], [1, 1], [0, 2]]) put(cx + dx, 16 + dy, 's');
+        put(cx, 16, 'G');
+      } else {
+        const ex = cx - 1 + gx;
+        const ey = 15 + gy;
+        rect(ex, ey, ex + 1, ey + 3, 'k');
+        put(ex, ey, 'w');
+        if (mood === 'sad') { put(cx + side * 2, 13 - side * 0, 'k'); put(cx + side * 1, 13 + 0, 'k'); put(cx, 12, 'k'); put(cx - side, 12, 'k'); }
+        if (mood === 'look') { put(ex + 1, ey + 3, 'w'); }
+      }
     }
     if (mood === 'sad') {
-      for (const [x, y] of [[16, 12], [17, 12], [18, 13], [19, 13], [20, 14], [32, 12], [31, 12], [30, 13], [29, 13], [28, 14]]) put(x, y, 'k');
-      rect(16, 15, 22, 15, 'M'); rect(26, 15, 32, 15, 'M'); // paupières tombantes
-      put(16, 17, 'b'); put(16, 18, 'b'); put(16, 19, 'b');
+      put(13, 19, 'b'); put(13, 20, 'b'); put(13, 21, 'b'); // larme
     }
 
     // Bouche.
     if (mood === 'happy' || mood === 'stars') {
-      ell(24, 22.5, 3.6, 2.4, 'kkk', (y) => y >= 22);
-      rect(22, 24, 26, 24, 't');
-      rect(21, 22, 27, 22, 'k');
-      rect(23, 22, 25, 22, 'w');
+      rect(22, 22, 26, 22, 'k'); rect(23, 23, 25, 23, 't'); put(22, 22, 'k'); put(26, 22, 'k');
     } else if (mood === 'sad') {
       for (const [x, y] of [[22, 23], [23, 22], [24, 22], [25, 22], [26, 23]]) put(x, y, 'k');
     } else if (mood === 'sleep') {
-      rect(23, 22, 25, 22, 'k');
-      put(24, 23, 'k'); put(25, 23, 'k');
+      rect(23, 22, 25, 22, 'k'); put(24, 23, 'k');
     } else {
-      for (const [x, y] of [[21, 22], [22, 23], [23, 23], [24, 23], [25, 23], [26, 23], [27, 22]]) put(x, y, 'k');
-      put(23, 24, 'w'); put(24, 24, 'w'); // petite dent
+      for (const [x, y] of [[22, 22], [23, 23], [24, 22], [25, 23], [26, 22]]) put(x, y, 'k');
     }
 
     // Contour : toute case vide au contact d'une case remplie.
