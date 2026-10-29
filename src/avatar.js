@@ -6,7 +6,8 @@
  */
 
 const OPTIONS = {
-  espece: [['humain', 'Humain'], ['nain', 'Nain ou naine'], ['robot', 'Robot à vapeur'], ['taupe', 'Taupe ou taupinette'], ['citrouille', 'Citrouille hantée'], ['squelette', 'Squelette fossile'], ['fantome', 'Fantôme de la mine'], ['golem', 'Golem de cristal']],
+  espece: [['humain', 'Humain'], ['nain', 'Nain ou naine'], ['robot', 'Robot à vapeur'], ['taupe', 'Taupe ou taupinette'], ['citrouille', 'Citrouille hantée'], ['squelette', 'Squelette fossile'], ['fantome', 'Fantôme de la mine'], ['golem', 'Golem de cristal'],
+    ['champignon', 'Champignon lumineux'], ['ver-luisant', 'Ver luisant géant'], ['diablotin', 'Diablotin des profondeurs'], ['grenouille', 'Grenouille des cascades']],
   forme: [['m', 'Masculine'], ['f', 'Féminine']],
   peau: [['clair', 'Teint clair'], ['mat', 'Teint mat'], ['brun', 'Teint brun'], ['fonce', 'Teint foncé']],
   cheveux: [['court', 'Courts'], ['long', 'Longs'], ['chignon', 'Chignon'], ['crete', 'Crête'], ['afro', 'Afro'], ['tresses', 'Tresses'], ['chauve', 'Chauve'], ['queue', 'Queue de cheval'], ['carre', 'Carré']],
@@ -14,6 +15,9 @@ const OPTIONS = {
   yeux: [['points', 'Discrets'], ['grands', 'Grands'], ['lunettes', 'Lunettes'], ['heureux', 'Rieurs'], ['monocle', 'Monocle'], ['cache-oeil', 'Cache-œil'], ['etoiles', 'Yeux étoilés'], ['soleil', 'Lunettes de soleil'], ['rondes', 'Lunettes rondes'], ['aviateur', "Lunettes d'aviateur"]],
   barbe: [['aucune', 'Aucune'], ['barbe', 'Barbe'], ['moustache', 'Moustache'], ['bouc', 'Bouc'], ['guidon', 'Moustache en guidon'], ['favoris', 'Favoris'], ['sage', 'Longue barbe de sage'], ['tressee', 'Barbe tressée'], ['nattes', 'Barbe à deux nattes'], ['fourchue', 'Barbe fourchue']],
   trait: [['aucun', 'Aucun'], ['taches', 'Taches de rousseur'], ['joues', 'Joues rosées'], ['cicatrice', 'Cicatrice'], ['guerre', 'Peinture de guerre']],
+  iris: [['defaut', 'Naturelle'], ['bleu', 'Bleus'], ['vert', 'Verts'], ['noisette', 'Noisette'], ['gris', 'Gris'], ['violet', 'Violets'], ['dore', 'Dorés'], ['vairons', 'Vairons']],
+  aura: [['aucune', 'Aucune'], ['dore', 'Lueur dorée'], ['feu', 'Braises'], ['givre', 'Givre'], ['etoiles', 'Étoiles'], ['ombre', 'Brume sombre']],
+  dos: [['aucun', 'Rien'], ['sac-a-dos', 'Sac de mineur'], ['cape-rouge', 'Cape rouge'], ['ailes-fee', 'Ailes de fée'], ['ailes-chauve-souris', 'Ailes de chauve-souris'], ['ailes-dragon', 'Ailes de dragon']],
   bouche: [['normal', 'Discrète'], ['sourire', 'Grand sourire'], ['serieux', 'Sérieuse'], ['ouvert', 'Bouche ouverte'], ['langue', 'Tire la langue'], ['rouge', 'Rouge à lèvres'], ['dent-or', 'Dent en or']],
   compagnon: [['aucun', 'Aucun'], ['canari', 'Canari de mine'], ['lucioles', 'Lucioles'], ['chauve-souris', 'Chauve-souris']],
   piercing: [['aucun', 'Aucun'], ['nez', 'Au nez'], ['sourcil', 'Au sourcil'], ['levre', 'À la lèvre'], ['oreille', 'Aux oreilles'], ['multiples', 'Plusieurs']],
@@ -41,7 +45,7 @@ const OPTIONS = {
 };
 
 const LABELS = {
-  espece: 'Type de personnage', bouche: 'Bouche', compagnon: 'Compagnon', piercing: 'Piercings', tatouage: 'Tatouages', accessoire: 'Accessoire', forme: 'Silhouette', peau: 'Teint', cheveux: 'Cheveux', couleur: 'Couleur', yeux: 'Yeux', barbe: 'Barbe', trait: 'Traits du visage',
+  espece: 'Type de personnage', iris: 'Couleur des yeux', aura: 'Aura', dos: 'Dans le dos', bouche: 'Bouche', compagnon: 'Compagnon', piercing: 'Piercings', tatouage: 'Tatouages', accessoire: 'Accessoire', forme: 'Silhouette', peau: 'Teint', cheveux: 'Cheveux', couleur: 'Couleur', yeux: 'Yeux', barbe: 'Barbe', trait: 'Traits du visage',
   chapeau: 'Couvre-chef', tenue: 'Tenue', objet: 'Objet en main', lieu: 'Pendant le forage',
 };
 const SLOTS = Object.keys(OPTIONS);
@@ -87,6 +91,17 @@ const LOCKS = {
   'espece:squelette': ['darwin-day', 'halloween'],
   'espece:golem': ['profondeur-650'],
   'compagnon:chauve-souris': ['halloween'],
+  'espece:champignon': ['serie-7'],
+  'espece:ver-luisant': ['sainte-barbe'],
+  'espece:diablotin': ['cranes-25'],
+  'espece:grenouille': ['jour-terre'],
+  'dos:ailes-chauve-souris': ['halloween'],
+  'dos:ailes-dragon': ['profondeur-700'],
+  'aura:dore': ['podium-semaine', 'podium-mois'],
+  'aura:feu': ['sainte-barbe'],
+  'aura:givre': ['noel'],
+  'aura:etoiles': ['public-10'],
+  'aura:ombre': ['toussaint'],
   'chapeau:bonnet-noel': ['noel'],
   'chapeau:mitre': ['saint-nicolas'],
   'accessoire:coeur': ['saint-valentin'],
@@ -109,6 +124,9 @@ function defaultAvatar(userId) {
     yeux: pick('yeux', 5, ['points', 'grands', 'lunettes', 'heureux']),
     barbe: forme === 'm' ? pick('barbe', 6, ['aucune', 'barbe', 'moustache', 'bouc']) : 'aucune',
     trait: 'aucun',
+    iris: 'defaut',
+    aura: 'aucune',
+    dos: 'aucun',
     bouche: 'normal',
     compagnon: 'aucun',
     piercing: 'aucun',
@@ -150,6 +168,10 @@ const BETA = new Set([
   'tenue:armure', 'tenue:pirate', 'tenue:cuisinier', 'tenue:blouse',
   'objet:epee', 'objet:bouclier', 'objet:marteau',
   'espece:nain', 'espece:robot', 'espece:taupe', 'espece:citrouille', 'espece:squelette', 'espece:fantome', 'espece:golem',
+  'espece:champignon', 'espece:ver-luisant', 'espece:diablotin', 'espece:grenouille',
+  'iris:bleu', 'iris:vert', 'iris:noisette', 'iris:gris', 'iris:violet', 'iris:dore', 'iris:vairons',
+  'aura:dore', 'aura:feu', 'aura:givre', 'aura:etoiles', 'aura:ombre',
+  'dos:sac-a-dos', 'dos:cape-rouge', 'dos:ailes-fee', 'dos:ailes-chauve-souris', 'dos:ailes-dragon',
   'bouche:sourire', 'bouche:serieux', 'bouche:ouvert', 'bouche:langue', 'bouche:rouge', 'bouche:dent-or',
   'compagnon:canari', 'compagnon:lucioles', 'compagnon:chauve-souris',
   'chapeau:bonnet-noel', 'chapeau:mitre', 'accessoire:coeur', 'accessoire:noeud-arc-en-ciel',
@@ -184,7 +206,7 @@ function catalog(badges, beta = true) {
 }
 
 // Champs arrivés après coup : une page restée ouverte avant leur arrivée ne les envoie pas.
-const OPTIONAL = { trait: 'aucun', bouche: 'normal', compagnon: 'aucun', piercing: 'aucun', tatouage: 'aucun', accessoire: 'aucun', espece: 'humain' };
+const OPTIONAL = { trait: 'aucun', iris: 'defaut', aura: 'aucune', dos: 'aucun', bouche: 'normal', compagnon: 'aucun', piercing: 'aucun', tatouage: 'aucun', accessoire: 'aucun', espece: 'humain' };
 
 /** Vérifie qu'un avatar ne contient que des éléments connus et débloqués. Renvoie l'avatar nettoyé, ou null. */
 function validate(candidate, userId, badges, beta = true) {

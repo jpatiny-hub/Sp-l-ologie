@@ -2930,15 +2930,19 @@
     peau: { clair: '#f1c9a5', mat: '#d9a066', brun: '#9c6a43', fonce: '#6b4328' },
     couleur: { brun: '#4a2f1a', noir: '#1b1410', blond: '#e8c547', roux: '#c4562a', gris: '#b8b8c0', rose: '#e86aa8', bleu: '#4a86e8' },
   };
-  const AVATAR_ORDER = ['espece', 'forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage', 'accessoire', 'chapeau', 'tenue', 'objet', 'compagnon', 'lieu'];
+  const AVATAR_ORDER = ['espece', 'forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'accessoire', 'aura', 'dos', 'chapeau', 'tenue', 'objet', 'compagnon', 'lieu'];
   // Selon le type de personnage : catégories sans effet (masquées) et noms/couleurs adaptés.
   const SPECIES_UI = {
-    robot: { hide: ['forme', 'cheveux', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'tenue'], labels: { peau: 'Carrosserie', couleur: 'Lentilles' }, swatch: { peau: 'robot', couleur: 'lentilles' } },
-    taupe: { hide: ['cheveux', 'couleur', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage'], labels: { peau: 'Pelage' }, swatch: { peau: 'taupe' } },
-    citrouille: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage'], labels: { peau: 'Citrouille' }, swatch: { peau: 'citrouille' } },
-    squelette: { hide: ['cheveux', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage'], labels: { peau: 'Os', couleur: 'Lueur des orbites' }, swatch: { peau: 'squelette', couleur: 'lentilles' } },
-    fantome: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'tenue'], labels: { peau: 'Drap' }, swatch: { peau: 'fantome' } },
-    golem: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'tenue'], labels: { peau: 'Cristaux' }, swatch: { peau: 'golem' } },
+    robot: { hide: ['forme', 'cheveux', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'tenue', 'iris'], labels: { peau: 'Carrosserie', couleur: 'Lentilles' }, swatch: { peau: 'robot', couleur: 'lentilles' } },
+    taupe: { hide: ['cheveux', 'couleur', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage', 'iris'], labels: { peau: 'Pelage' }, swatch: { peau: 'taupe' } },
+    citrouille: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'iris'], labels: { peau: 'Citrouille' }, swatch: { peau: 'citrouille' } },
+    squelette: { hide: ['cheveux', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage', 'iris'], labels: { peau: 'Os', couleur: 'Lueur des orbites' }, swatch: { peau: 'squelette', couleur: 'lentilles' } },
+    fantome: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'tenue', 'iris'], labels: { peau: 'Drap' }, swatch: { peau: 'fantome' } },
+    champignon: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'chapeau'], labels: { peau: 'Chapeau du champignon' }, swatch: { peau: 'champignon' } },
+    'ver-luisant': { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'tenue'], labels: { peau: 'Corps' }, swatch: { peau: 'ver-luisant' } },
+    diablotin: { hide: ['forme', 'trait', 'yeux', 'iris', 'bouche'], labels: { peau: 'Peau' }, swatch: { peau: 'diablotin' } },
+    grenouille: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'iris', 'bouche', 'piercing', 'tatouage'], labels: { peau: 'Peau' }, swatch: { peau: 'grenouille' } },
+    golem: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'tenue', 'iris'], labels: { peau: 'Cristaux' }, swatch: { peau: 'golem' } },
   };
   const speciesOf = (draft) => SPECIES_UI[draft.espece] || {};
 
@@ -2992,14 +2996,14 @@
     // Vestiaire (bêta) : des vignettes à toucher, rangées en quatre onglets, au lieu de dix lignes de flèches.
     function wardrobe() {
       const GROUPS = [
-        ['Type', ['espece']],
+        ['Type', ['espece', 'aura']],
         ['Tête', ['cheveux', 'couleur', 'chapeau']],
-        ['Visage', ['peau', 'yeux', 'bouche', 'barbe', 'trait', 'piercing']],
-        ['Corps', ['forme', 'tenue', 'accessoire', 'tatouage']],
+        ['Visage', ['peau', 'yeux', 'iris', 'bouche', 'barbe', 'trait', 'piercing']],
+        ['Corps', ['forme', 'tenue', 'accessoire', 'dos', 'tatouage']],
         ['Outil', ['objet', 'compagnon', 'lieu']],
       ];
-      const FULL = new Set(['espece', 'forme', 'tenue', 'objet', 'tatouage']);
-      const THUMBS = new Set(['espece', 'forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage', 'accessoire', 'chapeau', 'tenue', 'objet', 'compagnon']);
+      const FULL = new Set(['espece', 'aura', 'dos', 'forme', 'tenue', 'objet', 'tatouage']);
+      const THUMBS = new Set(['espece', 'aura', 'dos', 'iris', 'forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage', 'accessoire', 'chapeau', 'tenue', 'objet', 'compagnon']);
       let current = 0;
       const tabs = el('div', { class: 'wr-tabs', role: 'tablist' });
       const panel = el('div', { class: 'wr-panel' });

@@ -2,7 +2,7 @@
 
 /*
  * Avatar du joueur en pixel art : grille de 16 x 28 pixels, dessinée à partir de quelques choix (voir src/avatar.js).
- * Types de personnage : humain, nain (humain trapu), robot à vapeur, taupe, citrouille, squelette, fantôme, golem de cristal.
+ * Types de personnage : humain, nain (humain trapu), robot à vapeur, taupe, citrouille, squelette, fantôme, golem de cristal, champignon, ver luisant, diablotin, grenouille.
  *   Avatar.canvas(av, { scale, view })  → <canvas> (view : 'full', 'bust' ou 'head')
  *   Avatar.sprite(av)                   → canevas 16 x 28 à l'échelle 1 (pour la scène de forage)
  */
@@ -29,6 +29,11 @@
   const BONE = { clair: '#e8e4d4', mat: '#d8c8a0', brun: '#b8a070', fonce: '#7a7a8c' };
   const GHOST = { clair: '#e8f0ff', mat: '#bfe8ff', brun: '#d8c0ff', fonce: '#9a9ab8' };
   const CRYSTAL = { clair: '#7fe0ff', mat: '#ff7ac0', brun: '#b078ff', fonce: '#7dff9a' };
+  const CAP = { clair: '#d8362d', mat: '#b8843a', brun: '#6a5ad8', fonce: '#3ad8a0' };
+  const WORM = { clair: '#c8e86a', mat: '#ffb84a', brun: '#c880ff', fonce: '#6ae8ff' };
+  const IMP = { clair: '#d8362d', mat: '#8a4ad8', brun: '#3a9a4a', fonce: '#3a4a8a' };
+  const FROG = { clair: '#5ad86a', mat: '#e8a030', brun: '#4a86e8', fonce: '#3a8a5a' };
+  const IRIS = { bleu: '#2a6fdb', vert: '#3a9a4a', noisette: '#9a6a2a', gris: '#7a8a9a', violet: '#8a4ad8', dore: '#e8a820' };
   const GLOW = { clair: '#fff59a', mat: '#ffe84a', brun: '#ff9ae8', fonce: '#8affc8' };
 
   const painter = (c) => (x, y, w, h, col) => {
@@ -188,14 +193,16 @@
 
   function paintEyes(P, o, oy) {
     const eyes = o.yeux || 'points';
+    const iris = o.iris || 'defaut';
+    const ic = iris === 'vairons' ? [IRIS.bleu, IRIS.vert] : [IRIS[iris], IRIS[iris]];
     if (eyes === 'points') {
-      P(6, oy + 3, 1, 1, K);
-      P(9, oy + 3, 1, 1, K);
+      P(6, oy + 3, 1, 1, ic[0] || K);
+      P(9, oy + 3, 1, 1, ic[1] || K);
     } else if (eyes === 'grands') {
       P(5, oy + 3, 2, 2, '#fff');
       P(9, oy + 3, 2, 2, '#fff');
-      P(6, oy + 4, 1, 1, '#2a6fdb');
-      P(9, oy + 4, 1, 1, '#2a6fdb');
+      P(6, oy + 4, 1, 1, ic[0] || '#2a6fdb');
+      P(9, oy + 4, 1, 1, ic[1] || '#2a6fdb');
     } else if (eyes === 'lunettes') {
       P(5, oy + 3, 3, 2, K);
       P(8, oy + 3, 3, 2, K);
@@ -860,26 +867,234 @@
     paintItem(P, o, oy);
   }
 
-  function paint(c, o) {
-    const species = o.espece || 'humain';
-    if (species === 'nain') {
-      // Même dessin que l'humain, mais les jambes raccourcies de quatre pixels : le nain est trapu.
-      const t = document.createElement('canvas');
-      t.width = W;
-      t.height = H;
-      paintHuman(painter(t.getContext('2d')), o);
-      c.drawImage(t, 0, 0, W, OY + 16, 0, 4, W, OY + 16);
-      c.drawImage(t, 0, OY + 18, W, 4, 0, OY + 18, W, 4);
-      return;
+  /** Champignon lumineux : grand chapeau (teint = couleur du chapeau) sur un pied crème ; le chapeau remplace les couvre-chefs. */
+  function paintMushroom(P, o) {
+    const oy = OY;
+    const c = CAP[o.peau] || CAP.clair;
+    const cream = '#f3e9d2';
+    paintBody(P, o, cream, null);
+    P(5, oy + 1, 6, 6, cream);
+    P(4, oy + 2, 8, 4, cream);
+    P(7, oy + 7, 2, 1, cream);
+    P(4, oy - 3, 8, 1, c);
+    P(3, oy - 2, 10, 1, c);
+    P(2, oy - 1, 12, 2, c);
+    P(3, oy + 1, 10, 1, shade(c, 0.65));
+    for (const [x, y] of [[5, -2], [9, -2], [7, -1], [3, -1], [12, -1]]) P(x, oy + y, 1, 1, '#fff');
+    P(6, oy + 3, 1, 1, K);
+    P(9, oy + 3, 1, 1, K);
+    P(7, oy + 5, 2, 1, '#c25a4a');
+    for (const [x, y] of [[1, 1], [14, 2], [0, 4], [15, 0]]) P(x, oy + y, 1, 1, shade(c, 1.4));
+    paintNeck(P, o, oy);
+    paintCompanion(P, o, oy);
+    paintItem(P, o, oy);
+  }
+
+  /** Ver luisant géant : corps annelé (teint = couleur), antennes et queue qui brillent. Sans tenue. */
+  function paintWorm(P, o) {
+    const oy = OY;
+    const c = WORM[o.peau] || WORM.clair;
+    const dk = shade(c, 0.65);
+    const glow = shade(c, 1.5);
+    const widths = [8, 8, 6, 6];
+    widths.forEach((w, i) => {
+      const y = oy + 7 + i * 3;
+      P(8 - w / 2, y, w, 3, c);
+      P(8 - w / 2, y + 2, w, 1, dk);
+    });
+    P(2, oy + 9, 2, 2, c);
+    P(12, oy + 9, 2, 2, c);
+    P(6, oy + 19, 4, 2, glow);
+    P(7, oy + 21, 2, 1, glow);
+    P(5, oy, 6, 1, c);
+    P(4, oy + 1, 8, 5, c);
+    P(5, oy + 6, 6, 1, c);
+    P(5, oy - 2, 1, 2, dk);
+    P(10, oy - 2, 1, 2, dk);
+    P(5, oy - 3, 1, 1, glow);
+    P(10, oy - 3, 1, 1, glow);
+    P(5, oy + 2, 2, 2, '#fff');
+    P(9, oy + 2, 2, 2, '#fff');
+    P(6, oy + 3, 1, 1, K);
+    P(9, oy + 3, 1, 1, K);
+    P(6, oy + 5, 4, 1, dk);
+    paintNeck(P, o, oy);
+    paintHat(P, o, oy);
+    paintCompanion(P, o, oy);
+    paintItem(P, o, oy);
+  }
+
+  /** Diablotin des profondeurs : peau rouge, cornes, oreilles pointues, queue en pique, crocs. */
+  function paintImp(P, o) {
+    const oy = OY;
+    const c = IMP[o.peau] || IMP.clair;
+    const hair = HAIR[o.couleur] || HAIR.noir;
+    paintBody(P, o, c, null);
+    P(1, oy + 15, 1, 4, c);
+    P(2, oy + 18, 1, 1, c);
+    P(0, oy + 19, 2, 2, '#ffd84a');
+    P(5, oy, 6, 7, c);
+    P(4, oy + 1, 8, 5, c);
+    P(7, oy + 7, 2, 1, c);
+    P(3, oy + 2, 1, 2, c);
+    P(12, oy + 2, 1, 2, c);
+    P(4, oy - 2, 1, 3, '#f3e9d2');
+    P(11, oy - 2, 1, 3, '#f3e9d2');
+    P(3, oy - 3, 1, 1, '#f3e9d2');
+    P(12, oy - 3, 1, 1, '#f3e9d2');
+    P(5, oy + 3, 2, 1, '#ffd84a');
+    P(9, oy + 3, 2, 1, '#ffd84a');
+    P(6, oy + 3, 1, 1, K);
+    P(9, oy + 3, 1, 1, K);
+    P(5, oy + 2, 2, 1, shade(c, 0.5));
+    P(9, oy + 2, 2, 1, shade(c, 0.5));
+    P(6, oy + 5, 4, 1, K);
+    P(6, oy + 5, 1, 1, '#fff');
+    P(9, oy + 5, 1, 1, '#fff');
+    if ((o.cheveux || 'court') !== 'chauve') paintHair(P, { ...o, cheveux: 'court' }, oy, hair);
+    paintBeard(P, o, oy, hair);
+    paintPiercing(P, o, oy);
+    paintTattoo(P, o, oy);
+    paintNeck(P, o, oy);
+    paintBow(P, o, oy);
+    paintHat(P, o, oy);
+    paintCompanion(P, o, oy);
+    paintItem(P, o, oy);
+  }
+
+  /** Mineur-grenouille des cascades : peau verte (ou orange, bleue), gros yeux sur les côtés, grande bouche. */
+  function paintFrog(P, o) {
+    const oy = OY;
+    const c = FROG[o.peau] || FROG.clair;
+    paintBody(P, o, c, null);
+    P(4, oy + 1, 8, 6, c);
+    P(5, oy, 6, 1, c);
+    P(7, oy + 7, 2, 1, c);
+    for (const x of [3, 10]) {
+      P(x, oy + 1, 3, 1, c);
+      P(x, oy + 2, 3, 2, '#fff');
     }
-    const P = painter(c);
+    P(4, oy + 2, 1, 2, K);
+    P(11, oy + 2, 1, 2, K);
+    P(7, oy + 3, 1, 1, shade(c, 0.6));
+    P(8, oy + 3, 1, 1, shade(c, 0.6));
+    P(5, oy + 5, 6, 1, shade(c, 0.5));
+    P(6, oy + 6, 4, 1, '#e8f0a0');
+    for (const x of [2, 12]) P(x, oy + 14, 2, 1, c);
+    paintNeck(P, o, oy);
+    paintBow(P, o, oy);
+    paintHat(P, o, oy);
+    paintCompanion(P, o, oy);
+    paintItem(P, o, oy);
+  }
+
+  // Ellipse pleine tracée ligne à ligne (pour les auras).
+  function ellipse(P, cx, cy, rx, ry, col) {
+    for (let y = Math.ceil(cy - ry); y <= Math.floor(cy + ry); y++) {
+      if (y < 0 || y >= H) continue;
+      const half = Math.round(rx * Math.sqrt(Math.max(0, 1 - ((y - cy) / ry) ** 2)));
+      if (half > 0) P(cx - half, y, half * 2, 1, col);
+    }
+  }
+
+  /** Lueur autour du personnage : dessinée avant tout le reste. */
+  function paintAura(P, o) {
+    const a = o.aura || 'aucune';
+    if (a === 'aucune') return;
+    const oy = OY;
+    const tint = { dore: '255,216,74', feu: '255,120,40', givre: '140,210,255', etoiles: '200,170,255', ombre: '90,40,140' }[a];
+    ellipse(P, 8, oy + 9, 8, 13, `rgba(${tint},0.24)`);
+    ellipse(P, 8, oy + 9, 6, 11, `rgba(${tint},0.3)`);
+    const dots = (list, col) => list.forEach(([x, y]) => P(x, oy + y, 1, 1, col));
+    if (a === 'feu') {
+      dots([[3, 18], [12, 16], [5, 21], [11, 20]], '#ffb43a');
+      dots([[2, 14], [13, 12]], '#ff5a2a');
+    } else if (a === 'givre') {
+      dots([[1, 4], [14, 8], [2, 16], [13, 18], [8, -3]], '#e8f6ff');
+      dots([[0, 11], [15, 14]], '#9fd8ff');
+    } else if (a === 'etoiles') {
+      dots([[0, 2], [15, 5], [1, 13], [14, 17], [8, -3]], '#fff2a0');
+      dots([[15, 1], [0, 8]], '#c8aaff');
+    } else if (a === 'ombre') {
+      dots([[2, 19], [4, 21], [11, 20], [13, 18]], 'rgba(60,20,100,0.7)');
+      dots([[1, 15], [14, 15]], 'rgba(60,20,100,0.4)');
+    }
+  }
+
+  /** Ce qui se trouve derrière le corps : ailes, cape, sac. */
+  function paintBack(P, o) {
+    const d = o.dos || 'aucun';
+    if (d === 'aucun') return;
+    const oy = OY;
+    const both = (fn) => {
+      fn((x, y, w, h, col) => P(x, oy + y, w, h, col));
+      fn((x, y, w, h, col) => P(15 - x - w + 1, oy + y, w, h, col));
+    };
+    if (d === 'cape-rouge') {
+      P(3, oy + 7, 10, 12, '#c8362d');
+      P(3, oy + 18, 10, 1, '#8a1d17');
+    } else if (d === 'sac-a-dos') {
+      P(12, oy + 6, 3, 7, '#8b5a2b');
+      P(12, oy + 6, 3, 1, '#6a4220');
+      P(12, oy + 3, 1, 4, '#8b5a2b');
+      P(11, oy + 2, 3, 1, '#a9b0b8');
+      P(1, oy + 8, 2, 3, '#6a7a8c');
+    } else if (d === 'ailes-fee') {
+      both((Q) => {
+        Q(0, 2, 3, 4, 'rgba(210,245,255,0.9)');
+        Q(1, 6, 3, 4, 'rgba(190,230,255,0.85)');
+        Q(0, 3, 1, 2, '#fff');
+      });
+    } else if (d === 'ailes-chauve-souris') {
+      both((Q) => {
+        Q(0, 3, 4, 1, '#6a4a8a');
+        Q(0, 4, 3, 4, '#6a4a8a');
+        Q(0, 8, 1, 1, '#6a4a8a');
+        Q(2, 8, 1, 1, '#6a4a8a');
+        Q(1, 5, 1, 3, '#8a6aaa');
+      });
+    } else if (d === 'ailes-dragon') {
+      both((Q) => {
+        [[3, 7], [2, 5], [1, 3], [0, 1]].forEach(([x, y]) => Q(x, y, 1, 1, '#6a1d17'));
+        Q(0, 2, 1, 7, '#c8362d');
+        Q(1, 4, 1, 7, '#c8362d');
+        Q(2, 6, 1, 6, '#8a1d17');
+      });
+    }
+  }
+
+  function paintSpecies(P, o, species) {
     if (species === 'robot') paintRobot(P, o);
     else if (species === 'taupe') paintMole(P, o);
     else if (species === 'citrouille') paintGourd(P, o);
     else if (species === 'squelette') paintSkeleton(P, o);
     else if (species === 'fantome') paintGhost(P, o);
     else if (species === 'golem') paintGolem(P, o);
+    else if (species === 'champignon') paintMushroom(P, o);
+    else if (species === 'ver-luisant') paintWorm(P, o);
+    else if (species === 'diablotin') paintImp(P, o);
+    else if (species === 'grenouille') paintFrog(P, o);
     else paintHuman(P, o);
+  }
+
+  function paint(c, o) {
+    const species = o.espece || 'humain';
+    const draw = (P) => {
+      paintAura(P, o);
+      paintBack(P, o);
+      paintSpecies(P, o, species);
+    };
+    if (species === 'nain') {
+      // Même dessin que l'humain, mais les jambes raccourcies de quatre pixels : le nain est trapu.
+      const t = document.createElement('canvas');
+      t.width = W;
+      t.height = H;
+      draw(painter(t.getContext('2d')));
+      c.drawImage(t, 0, 0, W, OY + 16, 0, 4, W, OY + 16);
+      c.drawImage(t, 0, OY + 18, W, 4, 0, OY + 18, W, 4);
+      return;
+    }
+    draw(painter(c));
   }
 
   const cache = new Map();
@@ -926,5 +1141,5 @@
     return c;
   }
 
-  global.Avatar = { canvas, sprite, W, H, OY, SWATCHES: { robot: METAL, taupe: FUR, citrouille: GOURD, squelette: BONE, fantome: GHOST, golem: CRYSTAL, lentilles: LENS } };
+  global.Avatar = { canvas, sprite, W, H, OY, SWATCHES: { robot: METAL, taupe: FUR, citrouille: GOURD, squelette: BONE, fantome: GHOST, golem: CRYSTAL, champignon: CAP, 'ver-luisant': WORM, diablotin: IMP, grenouille: FROG, lentilles: LENS } };
 })(window);

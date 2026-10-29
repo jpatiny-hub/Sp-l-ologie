@@ -34,10 +34,10 @@ test('avatar : nouveaux éléments libres acceptés, armes et armures de duel ve
   assert.equal(Avatar.validate(old, 5, []).espece, 'humain');
   // Chaque option du catalogue est dessinable : pas d'identifiant sans dessin côté navigateur.
   const draw = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'public', 'avatar.js'), 'utf8');
-  for (const slot of ['espece', 'cheveux', 'yeux', 'barbe', 'piercing', 'tatouage', 'accessoire', 'chapeau', 'tenue', 'objet']) {
+  for (const slot of ['espece', 'cheveux', 'yeux', 'aura', 'dos', 'bouche', 'compagnon', 'barbe', 'piercing', 'tatouage', 'accessoire', 'chapeau', 'tenue', 'objet']) {
     for (const [id] of Avatar.OPTIONS[slot]) {
-      if (['aucun', 'aucune', 'points', 'court', 'humain', 'mineur', 'chauve', 'pull', 'poil'].includes(id)) continue;
-      assert.ok(draw.includes(`'${id}'`), `${slot}:${id} n'a pas de dessin`);
+      if (['aucun', 'aucune', 'points', 'court', 'humain', 'mineur', 'chauve', 'pull', 'poil', 'defaut', 'aucune', 'normal'].includes(id)) continue;
+      assert.ok(draw.includes(`'${id}'`) || draw.includes(`${id}:`), `${slot}:${id} n'a pas de dessin`);
     }
   }
 });
@@ -52,4 +52,15 @@ test('avatar : jack-o-lantern et autres éléments de jours spéciaux demandent 
   assert.ok(Avatar.validate({ ...base, espece: 'fantome' }, 5, [badge('toussaint', 1)]));
   assert.ok(Avatar.validate({ ...base, espece: 'golem' }, 5, [badge('profondeur-650', 1)]));
   assert.equal(Avatar.validate({ ...base, compagnon: 'chauve-souris' }, 5, []), null);
+});
+
+test('avatar : nouveaux personnages et auras débloqués par les bons badges', () => {
+  const base = Avatar.defaultAvatar(5);
+  const badge = (id) => ({ id, name: id, description: 'd', count: 1 });
+  const cases = [['espece', 'champignon', 'serie-7'], ['espece', 'ver-luisant', 'sainte-barbe'], ['espece', 'diablotin', 'cranes-25'], ['espece', 'grenouille', 'jour-terre'], ['dos', 'ailes-dragon', 'profondeur-700'], ['aura', 'givre', 'noel']];
+  for (const [slot, id, need] of cases) {
+    assert.equal(Avatar.validate({ ...base, [slot]: id }, 5, []), null, `${slot}:${id} verrouillé`);
+    assert.ok(Avatar.validate({ ...base, [slot]: id }, 5, [badge(need)]), `${slot}:${id} avec ${need}`);
+  }
+  assert.ok(Avatar.validate({ ...base, iris: 'vairons', dos: 'ailes-fee' }, 5, []), 'yeux vairons et ailes de fée libres');
 });
