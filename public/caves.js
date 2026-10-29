@@ -907,7 +907,7 @@
   function drawBack(ctx, back, cam, h, { SKY, PPP }) {
     ctx.drawImage(back, 0, Math.round(cam * P_BACK), back.width, h, 0, 0, back.width, h);
     const g = ctx.createLinearGradient(0, 0, 0, h);
-    for (let y = 0; y <= h; y += 10) g.addColorStop(y / h, css(airAt(Math.max(0, cam + y - SKY), PPP), 1.2));
+    for (let y = 0; y <= h; y += 10) g.addColorStop(y / h, css(airAt(Math.max(0, cam + y - SKY), PPP), 1.55));
     ctx.globalCompositeOperation = 'multiply';
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, back.width, h);
@@ -941,7 +941,7 @@
     const t = calm ? 0 : time;
     ctx.globalCompositeOperation = 'lighter';
     const top = ctx.createRadialGradient(W / 2, -h * 0.1, 0, W / 2, -h * 0.1, h * 0.95);
-    top.addColorStop(0, css(air, 1.6, 0.22 * show));
+    top.addColorStop(0, css(air, 1.8, 0.32 * show));
     top.addColorStop(1, css(air, 1.6, 0));
     ctx.fillStyle = top;
     ctx.fillRect(0, 0, W, h);
@@ -957,13 +957,24 @@
       ctx.closePath();
       ctx.fill();
     }
+    // Brume mystique : nappes lumineuses qui dérivent lentement.
+    for (let k = 0; k < 3; k++) {
+      const mx = ((hash(k, 1, 990) * W + t * (2 + k)) % (W + 80)) - 40;
+      const my = ((hash(k, 2, 990) * h - cam * (0.3 + k * 0.15)) % h + h) % h;
+      const mist = ctx.createRadialGradient(mx, my, 0, mx, my, 46);
+      mist.addColorStop(0, css(air, 2.4, (0.09 + Math.sin(t * 0.4 + k * 2) * 0.03) * show));
+      mist.addColorStop(1, css(air, 2.4, 0));
+      ctx.fillStyle = mist;
+      ctx.fillRect(mx - 46, my - 46, 92, 92);
+    }
     // Poussières lumineuses (bokeh).
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < 22; i++) {
       const sp = 0.4 + hash(i, 1, 980) * 0.8;
       const x = ((hash(i, 2, 980) * W + t * sp * 3 + Math.sin(t * 0.5 + i) * 4) % W + W) % W;
       const y = ((hash(i, 3, 980) * h - t * sp * 4 - cam * (0.2 + sp * 0.3)) % h + h) % h;
       const r = 0.8 + hash(i, 4, 980) * 2.6;
-      ctx.fillStyle = css(air, 2.6, (0.12 + hash(i, 5, 980) * 0.22) * show);
+      const twinkle = 0.75 + 0.25 * Math.sin(time * (1 + hash(i, 6, 980) * 2) + i);
+      ctx.fillStyle = css(air, 3, (0.16 + hash(i, 5, 980) * 0.26) * twinkle * show);
       ctx.beginPath();
       ctx.arc(x, y, r, 0, Math.PI * 2);
       ctx.fill();
@@ -972,7 +983,7 @@
     if (!hd) {
       const vg = ctx.createRadialGradient(W / 2, h / 2, h * 0.32, W / 2, h / 2, h * 0.75);
       vg.addColorStop(0, 'rgba(0,0,0,0)');
-      vg.addColorStop(1, `rgba(0,0,0,${0.45 * show})`);
+      vg.addColorStop(1, `rgba(0,0,0,${0.3 * show})`);
       ctx.fillStyle = vg;
       ctx.fillRect(0, 0, W, h);
     }

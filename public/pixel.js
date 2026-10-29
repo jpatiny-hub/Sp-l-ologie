@@ -1366,7 +1366,7 @@
       const dp = this.depth;
       const dark = smooth(0, 26, dp);
       // Galeries 16-bit : les grottes ont leur propre lumière colorée, l'ambiance reste donc légère et neutre.
-      let amb = caves ? [lerp3(255, 196, dark), lerp3(255, 196, dark), lerp3(255, 210, dark)] : [lerp3(255, 120, dark), lerp3(255, 132, dark), lerp3(255, 168, dark)];
+      let amb = caves ? [lerp3(255, 228, dark), lerp3(255, 228, dark), lerp3(255, 240, dark)] : [lerp3(255, 120, dark), lerp3(255, 132, dark), lerp3(255, 168, dark)];
       if (!caves && dp > 200) amb = [lerp3(amb[0], 170, smooth(200, 330, dp)), lerp3(amb[1], 96, smooth(200, 330, dp)), lerp3(amb[2], 84, smooth(200, 330, dp))];
       if (!caves && dp > 420) amb = [lerp3(amb[0], 205, smooth(420, 520, dp)), lerp3(amb[1], 140, smooth(420, 520, dp)), lerp3(amb[2], 70, smooth(420, 520, dp))];
       const surfY = (SKY - cam) * k;
@@ -1388,8 +1388,9 @@
         // Lampe de la foreuse : cône de lumière chaude autour de la fraise.
         const lx = (W / 2) * k;
         const ly = (this.tipY() - cam - 6) * k;
-        const flick = 0.36 + Math.sin(time * 9.3) * 0.015 + Math.sin(time * 23) * 0.01;
-        const lg = ctx.createRadialGradient(lx, ly, 2 * k, lx, ly, 56 * k);
+        // Dans les galeries 16-bit, la lampe reste discrète : ce sont les grottes qui éclairent la scène.
+        const flick = (caves ? 0.12 : 0.36) + Math.sin(time * 9.3) * 0.015 + Math.sin(time * 23) * 0.01;
+        const lg = ctx.createRadialGradient(lx, ly, 2 * k, lx, ly, (caves ? 34 : 56) * k);
         lg.addColorStop(0, `rgba(255,205,130,${flick + 0.1})`);
         lg.addColorStop(0.45, `rgba(255,170,90,${flick * 0.5})`);
         lg.addColorStop(1, 'rgba(255,150,70,0)');
@@ -1419,7 +1420,7 @@
       b.drawImage(this.smallA, 0, 0);
       ctx.imageSmoothingEnabled = true;
       ctx.globalCompositeOperation = 'lighter';
-      ctx.globalAlpha = 0.5;
+      ctx.globalAlpha = caves ? 0.32 : 0.5;
       ctx.drawImage(this.smallB, 0, 0, w, h);
       ctx.globalAlpha = 1;
 
@@ -1807,10 +1808,13 @@
         const y = SKY + Math.round(Math.min(cumulative, MAX_POINTS) * PPP);
         stagger = y - previousY < 7 ? stagger + 1 : 0;
         previousY = y;
-        ctx.fillStyle = '#c99a5b';
-        ctx.fillRect(SHAFT_X - 2, y - 1, SHAFT_W + 4, 2);
-        ctx.fillStyle = '#7a5530';
-        ctx.fillRect(SHAFT_X - 2, y + 1, SHAFT_W + 4, 1);
+        if (!caves) {
+          // Galeries 16-bit : pas de planche en travers du puits (seuls la couleur de la rareté et le numéro restent).
+          ctx.fillStyle = '#c99a5b';
+          ctx.fillRect(SHAFT_X - 2, y - 1, SHAFT_W + 4, 2);
+          ctx.fillStyle = '#7a5530';
+          ctx.fillRect(SHAFT_X - 2, y + 1, SHAFT_W + 4, 1);
+        }
         const fx = SHAFT_X - 10 - stagger * 7;
         ctx.fillStyle = '#000';
         ctx.fillRect(fx - 1, y - 4, 7, 7);
