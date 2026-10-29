@@ -41,3 +41,15 @@ test('avatar : nouveaux éléments libres acceptés, armes et armures de duel ve
     }
   }
 });
+
+test('avatar : jack-o-lantern et autres éléments de jours spéciaux demandent le bon badge', () => {
+  const base = Avatar.defaultAvatar(5);
+  const pumpkin = { ...base, espece: 'citrouille' };
+  const badge = (id, count) => ({ id, name: id, description: 'd', count });
+  assert.equal(Avatar.validate(pumpkin, 5, [badge('halloween', 0)]), null);
+  assert.ok(Avatar.validate(pumpkin, 5, [badge('halloween', 1)]));
+  assert.equal(Avatar.validate({ ...base, espece: 'fantome' }, 5, [badge('halloween', 1)]), null, 'le fantôme vient de la Toussaint');
+  assert.ok(Avatar.validate({ ...base, espece: 'fantome' }, 5, [badge('toussaint', 1)]));
+  assert.ok(Avatar.validate({ ...base, espece: 'golem' }, 5, [badge('profondeur-650', 1)]));
+  assert.equal(Avatar.validate({ ...base, compagnon: 'chauve-souris' }, 5, []), null);
+});

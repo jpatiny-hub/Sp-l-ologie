@@ -2,7 +2,7 @@
 
 /*
  * Avatar du joueur en pixel art : grille de 16 x 28 pixels, dessinée à partir de quelques choix (voir src/avatar.js).
- * Cinq types de personnage : humain, nain (humain trapu), robot à vapeur, taupe, citrouille.
+ * Types de personnage : humain, nain (humain trapu), robot à vapeur, taupe, citrouille, squelette, fantôme, golem de cristal.
  *   Avatar.canvas(av, { scale, view })  → <canvas> (view : 'full', 'bust' ou 'head')
  *   Avatar.sprite(av)                   → canevas 16 x 28 à l'échelle 1 (pour la scène de forage)
  */
@@ -26,6 +26,9 @@
   const METAL = { clair: '#c9a23a', mat: '#c8703a', brun: '#9a7048', fonce: '#6a7480' };
   const FUR = { clair: '#8a7a6a', mat: '#6a5648', brun: '#4a3a30', fonce: '#2e2a2e' };
   const GOURD = { clair: '#7dff3a', mat: '#ff8a1a', brun: '#b05ad8', fonce: '#e8eef0' };
+  const BONE = { clair: '#e8e4d4', mat: '#d8c8a0', brun: '#b8a070', fonce: '#7a7a8c' };
+  const GHOST = { clair: '#e8f0ff', mat: '#bfe8ff', brun: '#d8c0ff', fonce: '#9a9ab8' };
+  const CRYSTAL = { clair: '#7fe0ff', mat: '#ff7ac0', brun: '#b078ff', fonce: '#7dff9a' };
   const GLOW = { clair: '#fff59a', mat: '#ffe84a', brun: '#ff9ae8', fonce: '#8affc8' };
 
   const painter = (c) => (x, y, w, h, col) => {
@@ -45,7 +48,7 @@
       P(3, oy + 17, 10, 1, '#a77f12');
     }
     // Jambes.
-    const legs = (o.espece === 'robot' ? shade(METAL[o.peau] || METAL.clair, 0.6) : null) || { smoking: '#222', scaphandre: '#6b7a8c', cape: '#3a4a6b', armure: '#8a8f98', pirate: '#5a3a1a', cuisinier: '#4a4a52', 'mineur-nain': '#5a4a3a', 'armure-naine': '#5a4a3a', 'gilet-vapeur': '#4a3a2a', poil: fur }[outfit] || '#3a4a6b';
+    const legs = (o.espece === 'robot' ? shade(METAL[o.peau] || METAL.clair, 0.6) : null) || { smoking: '#222', scaphandre: '#6b7a8c', cape: '#3a4a6b', armure: '#8a8f98', pirate: '#5a3a1a', cuisinier: '#4a4a52', 'mineur-nain': '#5a4a3a', 'armure-naine': '#5a4a3a', 'gilet-vapeur': '#4a3a2a', golem: '#46425a', poil: fur }[outfit] || '#3a4a6b';
     if (robe) {
       const hem = outfit === 'robe' ? '#b02a6a' : '#e8466a';
       P(5, oy + 15, 2, 5, skin);
@@ -59,7 +62,7 @@
       P(8, oy + 21, 3, 1, K);
     }
     // Torse et bras.
-    const top = (o.espece === 'robot' ? METAL[o.peau] || METAL.clair : null) || { mineur: '#d9772b', salopette: '#d9772b', robe: '#e86aa8', 'robe-fleurs': '#f3e1c8', smoking: '#222', pull: '#4a86e8', scaphandre: '#8aa0b8', cape: '#4a86e8', armure: '#aeb6c2', pirate: '#f3f3f3', cuisinier: '#ffffff', blouse: '#f3f3f3', chasuble: '#ff8c1a', 'mineur-nain': '#7a4a24', 'armure-naine': '#9a7a3a', 'gilet-vapeur': '#5a2a1a', poil: fur }[outfit] || '#d9772b';
+    const top = (o.espece === 'robot' ? METAL[o.peau] || METAL.clair : null) || { mineur: '#d9772b', salopette: '#d9772b', robe: '#e86aa8', 'robe-fleurs': '#f3e1c8', smoking: '#222', pull: '#4a86e8', scaphandre: '#8aa0b8', cape: '#4a86e8', armure: '#aeb6c2', pirate: '#f3f3f3', cuisinier: '#ffffff', blouse: '#f3f3f3', chasuble: '#ff8c1a', 'mineur-nain': '#7a4a24', 'armure-naine': '#9a7a3a', 'gilet-vapeur': '#5a2a1a', golem: '#5a5668', poil: fur }[outfit] || '#d9772b';
     if (fem) {
       P(5, oy + 7, 6, 4, top);
       if (robe) {
@@ -150,6 +153,16 @@
       P(6, oy + 11, 1, 1, '#d9a21a');
       P(9, oy + 11, 1, 1, '#d9a21a');
       P(9, oy + 12, 3, 1, '#d9a21a');
+    }
+    if (outfit === 'golem') {
+      const cr = CRYSTAL[o.peau] || CRYSTAL.clair;
+      P(1, oy + 6, 3, 2, '#6a6678');
+      P(12, oy + 6, 3, 2, '#6a6678');
+      P(1, oy + 5, 1, 1, cr);
+      P(14, oy + 5, 1, 1, cr);
+      P(7, oy + 9, 2, 3, cr);
+      P(7, oy + 9, 1, 1, shade(cr, 1.4));
+      P(4, oy + 13, 8, 1, '#46425a');
     }
     if (o.espece === 'robot') {
       const m = METAL[o.peau] || METAL.clair;
@@ -420,6 +433,16 @@
       P(5, oy - 4, 6, 3, '#2a2a30');
       P(3, oy - 1, 10, 1, '#2a2a30');
       P(5, oy - 2, 6, 1, '#7a1d17');
+    } else if (hat === 'bonnet-noel') {
+      P(4, oy - 3, 8, 3, '#c8362d');
+      P(4, oy - 1, 8, 1, '#fff');
+      P(10, oy - 4, 1, 1, '#c8362d');
+      P(11, oy - 5, 2, 2, '#fff');
+    } else if (hat === 'mitre') {
+      P(5, oy - 4, 6, 4, '#c8362d');
+      P(6, oy - 6, 4, 2, '#c8362d');
+      P(7, oy - 4, 2, 3, '#f2c230');
+      P(4, oy - 1, 8, 1, '#f2c230');
     } else if (hat === 'casquette') {
       P(4, oy - 2, 8, 3, '#3a6ab8');
       P(7, oy - 3, 2, 1, '#27498a');
@@ -506,6 +529,52 @@
 
   const LENS = { brun: '#ff9a3c', noir: '#e8466a', blond: '#ffe84a', roux: '#ff5a2a', gris: '#cfd6e0', rose: '#ff7ac0', bleu: '#5ac8ff' };
 
+  function paintMouth(P, o, oy) {
+    const m = o.bouche || 'normal';
+    const lip = '#c25a4a';
+    if (m === 'sourire') {
+      P(6, oy + 5, 1, 1, lip);
+      P(7, oy + 6, 2, 1, lip);
+      P(9, oy + 5, 1, 1, lip);
+    } else if (m === 'serieux') {
+      P(6, oy + 5, 4, 1, '#7a3a30');
+    } else if (m === 'ouvert') {
+      P(7, oy + 5, 2, 2, '#5a1a1a');
+      P(7, oy + 5, 2, 1, '#fff');
+    } else if (m === 'langue') {
+      P(7, oy + 5, 2, 1, lip);
+      P(8, oy + 6, 1, 1, '#f06a8a');
+    } else if (m === 'rouge') {
+      P(6, oy + 5, 4, 1, '#d8305a');
+    } else if (m === 'dent-or') {
+      P(7, oy + 5, 1, 1, lip);
+      P(8, oy + 5, 1, 1, '#ffd84a');
+    } else P(7, oy + 5, 2, 1, lip);
+  }
+
+  /** Compagnon posé sur l'épaule ou qui volette autour de la tête. */
+  function paintCompanion(P, o, oy) {
+    const c = o.compagnon || 'aucun';
+    if (c === 'canari') {
+      P(1, oy + 5, 3, 2, '#ffd84a');
+      P(1, oy + 4, 2, 1, '#ffd84a');
+      P(1, oy + 4, 1, 1, K);
+      P(0, oy + 4, 1, 1, '#ff9a3c');
+      P(2, oy + 7, 1, 1, '#ff9a3c');
+    } else if (c === 'lucioles') {
+      for (const [x, y] of [[1, 1], [13, 3], [2, -2], [14, -1]]) {
+        P(x, oy + y, 1, 1, '#e8ff6a');
+        P(x, oy + y + 1, 1, 1, 'rgba(232,255,106,0.4)');
+      }
+    } else if (c === 'chauve-souris') {
+      P(1, oy - 1, 2, 2, '#3a2a4a');
+      P(0, oy - 2, 1, 2, '#2a1a3a');
+      P(3, oy - 2, 1, 2, '#2a1a3a');
+      P(1, oy - 2, 1, 1, '#3a2a4a');
+      P(2, oy - 1, 1, 1, '#ff4a4a');
+    }
+  }
+
   function paintTattoo(P, o, oy) {
     const t = o.tatouage || 'aucun';
     if (t === 'ancre') {
@@ -554,6 +623,11 @@
       P(7, oy + 7, 2, 1, '#d9a21a');
       P(7, oy + 8, 2, 2, '#ffd84a');
       P(7, oy + 8, 1, 1, '#fff6b0');
+    } else if (a === 'coeur') {
+      P(5, oy + 9, 1, 1, '#e8466a');
+      P(7, oy + 9, 1, 1, '#e8466a');
+      P(5, oy + 10, 3, 1, '#e8466a');
+      P(6, oy + 11, 1, 1, '#e8466a');
     } else if (a === 'perles') {
       P(5, oy + 7, 6, 1, '#f3f3f3');
       P(6, oy + 8, 4, 1, '#f3f3f3');
@@ -561,6 +635,14 @@
   }
 
   function paintBow(P, o, oy) {
+    if (o.accessoire === 'noeud-arc-en-ciel') {
+      ['#e8466a', '#f2c230', '#4a86e8'].forEach((col, i) => {
+        P(10, oy - 2 + i, 1, 1, col);
+        P(12, oy - 2 + i, 1, 1, col);
+      });
+      P(11, oy - 1, 1, 1, '#fff');
+      return;
+    }
     if (o.accessoire !== 'noeud-rose') return;
     P(10, oy - 2, 1, 3, '#f06aa8');
     P(12, oy - 2, 1, 3, '#f06aa8');
@@ -578,7 +660,7 @@
     P(4, oy + 1, 8, 5, skin);
     P(7, oy + 7, 2, 1, skin);
     paintEyes(P, o, oy);
-    P(7, oy + 5, 2, 1, '#c25a4a');
+    paintMouth(P, o, oy);
     if (o.forme === 'f') {
       P(5, oy + 5, 1, 1, '#e8908a');
       P(10, oy + 5, 1, 1, '#e8908a');
@@ -592,6 +674,7 @@
     paintNeck(P, o, oy);
     paintBow(P, o, oy);
     paintHat(P, o, oy);
+    paintCompanion(P, o, oy);
     paintItem(P, o, oy);
   }
 
@@ -629,6 +712,7 @@
     paintNeck(P, o, oy);
     paintBow(P, o, oy);
     paintHat(P, o, oy);
+    paintCompanion(P, o, oy);
     paintItem(P, o, oy);
   }
 
@@ -658,6 +742,7 @@
     paintNeck(P, o, oy);
     paintBow(P, o, oy);
     paintHat(P, o, oy);
+    paintCompanion(P, o, oy);
     paintItem(P, o, oy);
   }
 
@@ -699,6 +784,79 @@
     }
     paintNeck(P, o, oy);
     paintHat(P, o, oy);
+    paintCompanion(P, o, oy);
+    paintItem(P, o, oy);
+  }
+
+  /** Squelette fossile : crâne et mains d'os (teint = ton de l'os), lueur dans les orbites (couleur). */
+  function paintSkeleton(P, o) {
+    const oy = OY;
+    const bone = BONE[o.peau] || BONE.clair;
+    const dk = shade(bone, 0.6);
+    paintBody(P, o, bone, null);
+    P(5, oy, 6, 6, bone);
+    P(4, oy + 1, 8, 4, bone);
+    P(5, oy + 6, 6, 1, bone);
+    P(7, oy + 7, 2, 1, bone);
+    P(5, oy + 2, 2, 2, K);
+    P(9, oy + 2, 2, 2, K);
+    P(5, oy + 3, 1, 1, LENS[o.couleur] || LENS.blond);
+    P(10, oy + 3, 1, 1, LENS[o.couleur] || LENS.blond);
+    P(7, oy + 4, 2, 1, K);
+    for (const x of [5, 7, 9]) P(x, oy + 6, 1, 1, dk);
+    if (['lunettes', 'monocle', 'soleil', 'rondes', 'aviateur', 'cache-oeil'].includes(o.yeux)) paintEyes(P, o, oy);
+    paintNeck(P, o, oy);
+    paintBow(P, o, oy);
+    paintHat(P, o, oy);
+    paintCompanion(P, o, oy);
+    paintItem(P, o, oy);
+  }
+
+  /** Fantôme : drap qui flotte (teint = teinte du drap), orbites vides. Pas de jambes ni de tenue. */
+  function paintGhost(P, o) {
+    const oy = OY;
+    const g = GHOST[o.peau] || GHOST.clair;
+    const dk = shade(g, 0.8);
+    P(5, oy, 6, 1, g);
+    P(4, oy + 1, 8, 18, g);
+    P(2, oy + 8, 2, 3, g);
+    P(12, oy + 8, 2, 3, g);
+    P(4, oy + 1, 1, 18, dk);
+    P(11, oy + 1, 1, 18, dk);
+    for (const x of [4, 6, 8, 10]) P(x, oy + 19, 2, 1, g);
+    P(5, oy + 3, 2, 3, K);
+    P(9, oy + 3, 2, 3, K);
+    P(7, oy + 7, 2, 2, K);
+    paintNeck(P, o, oy);
+    paintBow(P, o, oy);
+    paintHat(P, o, oy);
+    paintCompanion(P, o, oy);
+    paintItem(P, o, oy);
+  }
+
+  /** Golem de cristal : pierre sombre et cristaux lumineux (teint = couleur des cristaux). */
+  function paintGolem(P, o) {
+    const oy = OY;
+    const cr = CRYSTAL[o.peau] || CRYSTAL.clair;
+    const st = '#5a5668';
+    paintBody(P, { ...o, tenue: 'golem' }, '#6a6678', null);
+    P(5, oy, 6, 6, st);
+    P(4, oy + 1, 8, 4, st);
+    P(5, oy + 6, 6, 1, '#46425a');
+    P(7, oy + 7, 2, 1, st);
+    P(5, oy + 1, 6, 1, '#6a6678');
+    P(5, oy + 3, 2, 1, cr);
+    P(9, oy + 3, 2, 1, cr);
+    P(6, oy + 5, 4, 1, K);
+    if ((o.chapeau || 'aucun') === 'aucun') {
+      P(6, oy - 3, 1, 3, cr);
+      P(8, oy - 4, 1, 4, cr);
+      P(8, oy - 4, 1, 1, shade(cr, 1.4));
+      P(10, oy - 2, 1, 2, cr);
+    }
+    paintNeck(P, o, oy);
+    paintHat(P, o, oy);
+    paintCompanion(P, o, oy);
     paintItem(P, o, oy);
   }
 
@@ -718,6 +876,9 @@
     if (species === 'robot') paintRobot(P, o);
     else if (species === 'taupe') paintMole(P, o);
     else if (species === 'citrouille') paintGourd(P, o);
+    else if (species === 'squelette') paintSkeleton(P, o);
+    else if (species === 'fantome') paintGhost(P, o);
+    else if (species === 'golem') paintGolem(P, o);
     else paintHuman(P, o);
   }
 
@@ -765,5 +926,5 @@
     return c;
   }
 
-  global.Avatar = { canvas, sprite, W, H, OY, SWATCHES: { robot: METAL, taupe: FUR, citrouille: GOURD, lentilles: LENS } };
+  global.Avatar = { canvas, sprite, W, H, OY, SWATCHES: { robot: METAL, taupe: FUR, citrouille: GOURD, squelette: BONE, fantome: GHOST, golem: CRYSTAL, lentilles: LENS } };
 })(window);
