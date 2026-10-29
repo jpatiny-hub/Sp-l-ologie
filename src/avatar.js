@@ -6,33 +6,40 @@
  */
 
 const OPTIONS = {
+  espece: [['humain', 'Humain'], ['nain', 'Nain ou naine'], ['robot', 'Robot à vapeur'], ['taupe', 'Taupe ou taupinette'], ['citrouille', 'Citrouille hantée']],
   forme: [['m', 'Masculine'], ['f', 'Féminine']],
   peau: [['clair', 'Teint clair'], ['mat', 'Teint mat'], ['brun', 'Teint brun'], ['fonce', 'Teint foncé']],
-  cheveux: [['court', 'Courts'], ['long', 'Longs'], ['chignon', 'Chignon'], ['crete', 'Crête'], ['afro', 'Afro'], ['tresses', 'Tresses'], ['chauve', 'Chauve']],
+  cheveux: [['court', 'Courts'], ['long', 'Longs'], ['chignon', 'Chignon'], ['crete', 'Crête'], ['afro', 'Afro'], ['tresses', 'Tresses'], ['chauve', 'Chauve'], ['queue', 'Queue de cheval'], ['carre', 'Carré']],
   couleur: [['brun', 'Brun'], ['noir', 'Noir'], ['blond', 'Blond'], ['roux', 'Roux'], ['gris', 'Gris'], ['rose', 'Rose'], ['bleu', 'Bleu']],
-  yeux: [['points', 'Discrets'], ['grands', 'Grands'], ['lunettes', 'Lunettes'], ['heureux', 'Rieurs'], ['monocle', 'Monocle'], ['cache-oeil', 'Cache-œil'], ['etoiles', 'Yeux étoilés']],
-  barbe: [['aucune', 'Aucune'], ['barbe', 'Barbe'], ['moustache', 'Moustache'], ['bouc', 'Bouc'], ['guidon', 'Moustache en guidon'], ['favoris', 'Favoris'], ['sage', 'Longue barbe de sage']],
+  yeux: [['points', 'Discrets'], ['grands', 'Grands'], ['lunettes', 'Lunettes'], ['heureux', 'Rieurs'], ['monocle', 'Monocle'], ['cache-oeil', 'Cache-œil'], ['etoiles', 'Yeux étoilés'], ['soleil', 'Lunettes de soleil'], ['rondes', 'Lunettes rondes'], ['aviateur', "Lunettes d'aviateur"]],
+  barbe: [['aucune', 'Aucune'], ['barbe', 'Barbe'], ['moustache', 'Moustache'], ['bouc', 'Bouc'], ['guidon', 'Moustache en guidon'], ['favoris', 'Favoris'], ['sage', 'Longue barbe de sage'], ['tressee', 'Barbe tressée'], ['nattes', 'Barbe à deux nattes'], ['fourchue', 'Barbe fourchue']],
   trait: [['aucun', 'Aucun'], ['taches', 'Taches de rousseur'], ['joues', 'Joues rosées'], ['cicatrice', 'Cicatrice'], ['guerre', 'Peinture de guerre']],
+  piercing: [['aucun', 'Aucun'], ['nez', 'Au nez'], ['sourcil', 'Au sourcil'], ['levre', 'À la lèvre'], ['oreille', 'Aux oreilles'], ['multiples', 'Plusieurs']],
+  tatouage: [['aucun', 'Aucun'], ['ancre', 'Ancre'], ['tribal', 'Bracelets tribaux'], ['serpent', 'Serpent'], ['larme', 'Larme'], ['maori', 'Motif sur la joue']],
+  accessoire: [['aucun', 'Aucun'], ['noeud-papillon', 'Nœud papillon'], ['noeud-rose', 'Nœud rose'], ['foulard', 'Foulard'], ['medaille', 'Médaille'], ['perles', 'Collier de perles']],
   chapeau: [
     ['aucun', 'Aucun'], ['casque', 'Casque de mineur'], ['haut', 'Haut-de-forme'], ['diademe', 'Diadème'], ['bonnet', 'Bonnet'],
     ['casque-blanc', 'Casque de chef de chantier'], ['casque-or', 'Casque doré'], ['couronne', 'Couronne'],
     ['viking', 'Casque viking'], ['heaume', 'Heaume de chevalier'], ['toque', 'Toque de chef'], ['bandana', 'Bandana de pirate'],
+    ['casque-nain', 'Casque de nain'], ['chapeau-metal', 'Chapeau de métal'], ['melon', 'Chapeau melon'], ['casquette', 'Casquette'],
   ],
   tenue: [
     ['mineur', 'Tenue de mineur'], ['salopette', 'Salopette'], ['robe', 'Robe rose'], ['smoking', 'Smoking'], ['pull', 'Pull bleu'],
     ['scaphandre', 'Combinaison de forage'], ['cape', 'Cape dorée'],
     ['armure', 'Armure de chevalier'], ['pirate', 'Marinière de pirate'], ['cuisinier', 'Veste de cuisinier'], ['blouse', 'Blouse de laboratoire'],
+    ['chasuble', 'Chasuble orange fluo'], ['robe-fleurs', 'Robe à fleurs'], ['mineur-nain', 'Tenue de mineur nain'], ['armure-naine', 'Armure naine'], ['gilet-vapeur', 'Gilet à vapeur'], ['poil', 'Juste le poil'],
   ],
   objet: [
     ['aucun', 'Rien'], ['pioche', 'Pioche'], ['lanterne', 'Lanterne'], ['fleur', 'Fleur'], ['canne', 'Canne'], ['ballon', 'Ballon'],
     ['fanion', 'Fanion de chantier'], ['dynamite', 'Bâton de dynamite'], ['diamant', 'Diamant'], ['torche', 'Torche'],
     ['epee', 'Épée'], ['bouclier', 'Bouclier'], ['marteau', 'Marteau de forgeron'],
+    ['hache', 'Hache'], ['hache-double', 'Hache à deux tranchants'], ['pipe', 'Pipe'], ['chope', 'Chope de bière'],
   ],
   lieu: [['hublot', 'Au hublot de la foreuse'], ['surface', 'À la surface'], ['aucun', 'Nulle part']],
 };
 
 const LABELS = {
-  forme: 'Silhouette', peau: 'Teint', cheveux: 'Cheveux', couleur: 'Couleur', yeux: 'Yeux', barbe: 'Barbe', trait: 'Traits du visage',
+  espece: 'Type de personnage', piercing: 'Piercings', tatouage: 'Tatouages', accessoire: 'Accessoire', forme: 'Silhouette', peau: 'Teint', cheveux: 'Cheveux', couleur: 'Couleur', yeux: 'Yeux', barbe: 'Barbe', trait: 'Traits du visage',
   chapeau: 'Couvre-chef', tenue: 'Tenue', objet: 'Objet en main', lieu: 'Pendant le forage',
 };
 const SLOTS = Object.keys(OPTIONS);
@@ -68,6 +75,10 @@ const LOCKS = {
   'yeux:etoiles': ['public-10'],
   'barbe:guidon': ['serie-7'],
   'barbe:sage': ['serie-30'],
+  'objet:hache': ['attaquant-1'],
+  'objet:hache-double': ['attaquant-15'],
+  'tenue:armure-naine': ['defenseur-15'],
+  'chapeau:casque-nain': ['defenseur-5'],
 };
 
 function defaultAvatar(userId) {
@@ -78,6 +89,7 @@ function defaultAvatar(userId) {
   };
   const forme = pick('forme', 1);
   return {
+    espece: 'humain',
     forme,
     peau: pick('peau', 2),
     cheveux: pick('cheveux', 3, ['court', 'long', 'chignon', 'crete', 'afro', 'tresses', 'chauve']),
@@ -85,6 +97,9 @@ function defaultAvatar(userId) {
     yeux: pick('yeux', 5, ['points', 'grands', 'lunettes', 'heureux']),
     barbe: forme === 'm' ? pick('barbe', 6, ['aucune', 'barbe', 'moustache', 'bouc']) : 'aucune',
     trait: 'aucun',
+    piercing: 'aucun',
+    tatouage: 'aucun',
+    accessoire: 'aucun',
     chapeau: 'casque',
     tenue: 'mineur',
     objet: 'pioche',
@@ -109,6 +124,7 @@ function normalize(raw, userId) {
     const ids = OPTIONS[slot].map((o) => o[0]);
     out[slot] = typeof saved[slot] === 'string' && ids.includes(saved[slot]) ? saved[slot] : base[slot];
   }
+  if (out.tenue === 'poil' && out.espece !== 'taupe') out.tenue = base.tenue;
   return out;
 }
 
@@ -119,6 +135,15 @@ const BETA = new Set([
   'chapeau:viking', 'chapeau:heaume', 'chapeau:toque', 'chapeau:bandana',
   'tenue:armure', 'tenue:pirate', 'tenue:cuisinier', 'tenue:blouse',
   'objet:epee', 'objet:bouclier', 'objet:marteau',
+  'espece:nain', 'espece:robot', 'espece:taupe', 'espece:citrouille',
+  'cheveux:queue', 'cheveux:carre', 'yeux:soleil', 'yeux:rondes', 'yeux:aviateur',
+  'barbe:tressee', 'barbe:nattes', 'barbe:fourchue',
+  'piercing:nez', 'piercing:sourcil', 'piercing:levre', 'piercing:oreille', 'piercing:multiples',
+  'tatouage:ancre', 'tatouage:tribal', 'tatouage:serpent', 'tatouage:larme', 'tatouage:maori',
+  'accessoire:noeud-papillon', 'accessoire:noeud-rose', 'accessoire:foulard', 'accessoire:medaille', 'accessoire:perles',
+  'chapeau:casque-nain', 'chapeau:chapeau-metal', 'chapeau:melon', 'chapeau:casquette',
+  'tenue:chasuble', 'tenue:robe-fleurs', 'tenue:mineur-nain', 'tenue:armure-naine', 'tenue:gilet-vapeur', 'tenue:poil',
+  'objet:hache', 'objet:hache-double', 'objet:pipe', 'objet:chope',
 ]);
 
 /** Catalogue pour l'éditeur : éléments débloqués ou non (selon la liste des badges du joueur, avec leur nom). */
@@ -141,18 +166,22 @@ function catalog(badges, beta = true) {
   return out;
 }
 
+// Champs arrivés après coup : une page restée ouverte avant leur arrivée ne les envoie pas.
+const OPTIONAL = { trait: 'aucun', piercing: 'aucun', tatouage: 'aucun', accessoire: 'aucun', espece: 'humain' };
+
 /** Vérifie qu'un avatar ne contient que des éléments connus et débloqués. Renvoie l'avatar nettoyé, ou null. */
 function validate(candidate, userId, badges, beta = true) {
   if (!candidate || typeof candidate !== 'object') return null;
   const cat = catalog(badges, beta);
   const out = {};
   for (const slot of SLOTS) {
-    // Une application restée ouverte avant l'arrivée des traits du visage n'envoie pas ce champ : on garde « aucun ».
-    const want = slot === 'trait' && candidate[slot] === undefined ? 'aucun' : candidate[slot];
+    const want = OPTIONAL[slot] && candidate[slot] === undefined ? OPTIONAL[slot] : candidate[slot];
     const opt = cat[slot].options.find((o) => o.id === want);
     if (!opt || !opt.unlocked) return null;
     out[slot] = opt.id;
   }
+  // « Juste le poil » est réservé aux taupes.
+  if (out.tenue === 'poil' && out.espece !== 'taupe') return null;
   return out;
 }
 

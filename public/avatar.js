@@ -2,6 +2,7 @@
 
 /*
  * Avatar du joueur en pixel art : grille de 16 x 28 pixels, dessinée à partir de quelques choix (voir src/avatar.js).
+ * Cinq types de personnage : humain, nain (humain trapu), robot à vapeur, taupe, citrouille.
  *   Avatar.canvas(av, { scale, view })  → <canvas> (view : 'full', 'bust' ou 'head')
  *   Avatar.sprite(av)                   → canevas 16 x 28 à l'échelle 1 (pour la scène de forage)
  */
@@ -15,29 +16,42 @@
   // Zones recadrées : [x, y, largeur, hauteur] dans la grille.
   const VIEWS = { full: [0, 0, W, H], bust: [0, 0, W, OY + 13], head: [3, 0, 10, OY + 8] };
 
-  function paint(c, o) {
-    const P = (x, y, w, h, col) => {
-      c.fillStyle = col;
-      c.fillRect(x, y, w, h);
-    };
-    const skin = SKIN[o.peau] || SKIN.clair;
-    const hair = HAIR[o.couleur] || HAIR.brun;
+  // Teinte plus sombre (f < 1) ou plus claire (f > 1) d'une couleur #rrggbb.
+  function shade(hex, f) {
+    const n = parseInt(hex.slice(1), 16);
+    const ch = (v) => Math.max(0, Math.min(255, Math.round(v * f)));
+    return `#${[(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => ch(v).toString(16).padStart(2, '0')).join('')}`;
+  }
+  // Carrosserie du robot (selon le « teint »), pelage de la taupe, citrouille : [clair, mat, brun, foncé].
+  const METAL = { clair: '#c9a23a', mat: '#c8703a', brun: '#9a7048', fonce: '#6a7480' };
+  const FUR = { clair: '#8a7a6a', mat: '#6a5648', brun: '#4a3a30', fonce: '#2e2a2e' };
+  const GOURD = { clair: '#7dff3a', mat: '#ff8a1a', brun: '#b05ad8', fonce: '#e8eef0' };
+  const GLOW = { clair: '#fff59a', mat: '#ffe84a', brun: '#ff9ae8', fonce: '#8affc8' };
+
+  const painter = (c) => (x, y, w, h, col) => {
+    c.fillStyle = col;
+    c.fillRect(x, y, w, h);
+  };
+
+  /** Jambes, torse, bras et mains. `skin` colore les mains et les jambes nues ; `fur` met la tenue « poil » à cette couleur. */
+  function paintBody(P, o, skin, fur) {
     const fem = o.forme === 'f';
     const oy = OY;
     const outfit = o.tenue || 'mineur';
-
+    const robe = outfit === 'robe' || outfit === 'robe-fleurs';
     // Cape dorée : derrière le corps.
     if (outfit === 'cape') {
       P(3, oy + 7, 10, 11, '#c8941c');
       P(3, oy + 17, 10, 1, '#a77f12');
     }
     // Jambes.
-    const legs = { smoking: '#222', scaphandre: '#6b7a8c', cape: '#3a4a6b', armure: '#8a8f98', pirate: '#5a3a1a', cuisinier: '#4a4a52' }[outfit] || '#3a4a6b';
-    if (outfit === 'robe') {
+    const legs = (o.espece === 'robot' ? shade(METAL[o.peau] || METAL.clair, 0.6) : null) || { smoking: '#222', scaphandre: '#6b7a8c', cape: '#3a4a6b', armure: '#8a8f98', pirate: '#5a3a1a', cuisinier: '#4a4a52', 'mineur-nain': '#5a4a3a', 'armure-naine': '#5a4a3a', 'gilet-vapeur': '#4a3a2a', poil: fur }[outfit] || '#3a4a6b';
+    if (robe) {
+      const hem = outfit === 'robe' ? '#b02a6a' : '#e8466a';
       P(5, oy + 15, 2, 5, skin);
       P(9, oy + 15, 2, 5, skin);
-      P(5, oy + 20, 2, 1, '#b02a6a');
-      P(9, oy + 20, 2, 1, '#b02a6a');
+      P(5, oy + 20, 2, 1, hem);
+      P(9, oy + 20, 2, 1, hem);
     } else {
       P(5, oy + 14, 3, 7, legs);
       P(8, oy + 14, 3, 7, legs);
@@ -45,10 +59,10 @@
       P(8, oy + 21, 3, 1, K);
     }
     // Torse et bras.
-    const top = { mineur: '#d9772b', salopette: '#d9772b', robe: '#e86aa8', smoking: '#222', pull: '#4a86e8', scaphandre: '#8aa0b8', cape: '#4a86e8', armure: '#aeb6c2', pirate: '#f3f3f3', cuisinier: '#ffffff', blouse: '#f3f3f3' }[outfit] || '#d9772b';
+    const top = (o.espece === 'robot' ? METAL[o.peau] || METAL.clair : null) || { mineur: '#d9772b', salopette: '#d9772b', robe: '#e86aa8', 'robe-fleurs': '#f3e1c8', smoking: '#222', pull: '#4a86e8', scaphandre: '#8aa0b8', cape: '#4a86e8', armure: '#aeb6c2', pirate: '#f3f3f3', cuisinier: '#ffffff', blouse: '#f3f3f3', chasuble: '#ff8c1a', 'mineur-nain': '#7a4a24', 'armure-naine': '#9a7a3a', 'gilet-vapeur': '#5a2a1a', poil: fur }[outfit] || '#d9772b';
     if (fem) {
       P(5, oy + 7, 6, 4, top);
-      if (outfit === 'robe') {
+      if (robe) {
         P(4, oy + 11, 8, 3, top);
         P(3, oy + 14, 10, 1, top);
       } else P(5, oy + 11, 6, 3, top);
@@ -100,14 +114,66 @@
       P(9, oy + 10, 2, 2, '#d6dae2');
       P(10, oy + 10, 1, 1, '#2a6fdb');
     }
+    if (outfit === 'robe-fleurs') {
+      [[5, 8], [9, 9], [6, 11], [10, 12], [4, 13], [7, 14], [9, 14]].forEach(([x, y], i) => P(x, oy + y, 1, 1, ['#e8466a', '#f2c230', '#6aa8e8'][i % 3]));
+    }
+    if (outfit === 'chasuble') {
+      P(2, oy + 7, 2, 6, '#5a6270');
+      P(12, oy + 7, 2, 6, '#5a6270');
+      P(5, oy + 7, 1, 6, '#e8eaee');
+      P(10, oy + 7, 1, 6, '#e8eaee');
+      P(4, oy + 11, 8, 1, '#e8eaee');
+    }
+    if (outfit === 'mineur-nain') {
+      P(5, oy + 7, 1, 5, '#3a2a14');
+      P(10, oy + 7, 1, 5, '#3a2a14');
+      P(4, oy + 12, 8, 1, '#3a2a14');
+      P(7, oy + 12, 2, 1, '#f2c230');
+      P(2, oy + 7, 2, 4, '#e8dcc0');
+      P(12, oy + 7, 2, 4, '#e8dcc0');
+    }
+    if (outfit === 'armure-naine') {
+      P(1, oy + 6, 3, 2, '#c8a04a');
+      P(12, oy + 6, 3, 2, '#c8a04a');
+      P(7, oy + 9, 2, 2, '#f2c230');
+      P(4, oy + 7, 8, 1, '#c8a04a');
+      P(4, oy + 13, 8, 1, '#5a3a1a');
+      P(5, oy + 11, 1, 1, '#d9dde4');
+      P(10, oy + 11, 1, 1, '#d9dde4');
+    }
+    if (outfit === 'gilet-vapeur') {
+      P(7, oy + 7, 2, 6, '#f3e9d2');
+      P(2, oy + 7, 2, 6, '#f3e9d2');
+      P(12, oy + 7, 2, 6, '#f3e9d2');
+      P(6, oy + 9, 1, 1, '#d9a21a');
+      P(9, oy + 9, 1, 1, '#d9a21a');
+      P(6, oy + 11, 1, 1, '#d9a21a');
+      P(9, oy + 11, 1, 1, '#d9a21a');
+      P(9, oy + 12, 3, 1, '#d9a21a');
+    }
+    if (o.espece === 'robot') {
+      const m = METAL[o.peau] || METAL.clair;
+      const d = shade(m, 0.6);
+      P(4, oy + 7, 8, 1, shade(m, 1.25));
+      P(6, oy + 9, 4, 3, d);
+      P(7, oy + 10, 1, 1, '#ffd84a');
+      P(9, oy + 10, 1, 1, '#7fcf5a');
+      P(7, oy + 11, 2, 1, '#ff6a3d');
+      P(4, oy + 13, 8, 1, d);
+      P(2, oy + 10, 2, 1, d);
+      P(12, oy + 10, 2, 1, d);
+      P(4, oy + 8, 1, 1, d);
+      P(11, oy + 8, 1, 1, d);
+    }
     // Mains.
     P(2, oy + 13, 2, 1, skin);
     P(12, oy + 13, 2, 1, skin);
-    // Tête.
-    P(5, oy, 6, 7, skin);
-    P(4, oy + 1, 8, 5, skin);
-    P(7, oy + 7, 2, 1, skin);
-    // Yeux.
+    if (fur) {
+      for (const x of [2, 12]) P(x, oy + 14, 2, 1, '#e8e0d0');
+    }
+  }
+
+  function paintEyes(P, o, oy) {
     const eyes = o.yeux || 'points';
     if (eyes === 'points') {
       P(6, oy + 3, 1, 1, K);
@@ -127,8 +193,7 @@
       P(9, oy + 4, 2, 1, K);
       P(6, oy + 3, 1, 1, K);
       P(9, oy + 3, 1, 1, K);
-    }
-    else if (eyes === 'monocle') {
+    } else if (eyes === 'monocle') {
       P(6, oy + 3, 1, 1, K);
       P(9, oy + 3, 1, 1, K);
       P(5, oy + 2, 3, 1, '#f2c230');
@@ -140,6 +205,26 @@
       P(4, oy + 2, 8, 1, K);
       P(5, oy + 3, 3, 2, K);
       P(9, oy + 3, 1, 1, K);
+    } else if (eyes === 'soleil') {
+      P(5, oy + 3, 3, 2, '#111');
+      P(8, oy + 3, 3, 2, '#111');
+      P(7, oy + 3, 1, 1, '#111');
+      P(4, oy + 3, 1, 1, K);
+      P(11, oy + 3, 1, 1, K);
+      P(5, oy + 3, 1, 1, '#5a6a8a');
+      P(8, oy + 3, 1, 1, '#5a6a8a');
+    } else if (eyes === 'rondes') {
+      for (const x of [5, 8]) {
+        P(x, oy + 2, 3, 3, '#8a5a1a');
+        P(x + 1, oy + 3, 1, 1, '#cfeeff');
+      }
+      P(7, oy + 3, 1, 1, '#8a5a1a');
+    } else if (eyes === 'aviateur') {
+      P(4, oy + 3, 8, 1, '#3a2a14');
+      for (const x of [5, 8]) {
+        P(x, oy + 2, 3, 3, '#b8863a');
+        P(x + 1, oy + 3, 1, 1, '#7fe0ff');
+      }
     } else if (eyes === 'etoiles') {
       for (const x of [6, 9]) {
         P(x, oy + 2, 1, 3, '#ffd84a');
@@ -147,12 +232,9 @@
         P(x, oy + 3, 1, 1, '#fff');
       }
     }
-    P(7, oy + 5, 2, 1, '#c25a4a');
-    if (fem) {
-      P(5, oy + 5, 1, 1, '#e8908a');
-      P(10, oy + 5, 1, 1, '#e8908a');
-    }
-    // Cheveux.
+  }
+
+  function paintHair(P, o, oy, hair) {
     const h = o.cheveux || 'court';
     if (h === 'court') {
       P(4, oy - 1, 8, 2, hair);
@@ -180,8 +262,20 @@
       P(12, oy, 1, 10, hair);
       P(3, oy + 10, 1, 1, '#e8c547');
       P(12, oy + 10, 1, 1, '#e8c547');
+    } else if (h === 'queue') {
+      P(4, oy - 1, 8, 2, hair);
+      P(4, oy + 1, 1, 2, hair);
+      P(11, oy + 1, 1, 2, hair);
+      P(12, oy, 2, 1, hair);
+      P(13, oy + 1, 1, 5, hair);
+    } else if (h === 'carre') {
+      P(4, oy - 1, 8, 2, hair);
+      P(3, oy, 2, 5, hair);
+      P(11, oy, 2, 5, hair);
     }
-    // Barbe.
+  }
+
+  function paintBeard(P, o, oy, hair) {
     const b = o.barbe || 'aucune';
     if (b === 'barbe') {
       P(5, oy + 5, 6, 3, hair);
@@ -204,8 +298,33 @@
       P(6, oy + 8, 4, 3, hair);
       P(7, oy + 11, 2, 2, hair);
       P(7, oy + 5, 2, 1, '#c25a4a');
+    } else if (b === 'tressee') {
+      P(5, oy + 5, 6, 3, hair);
+      P(7, oy + 5, 2, 1, '#c25a4a');
+      for (let i = 0; i < 5; i++) {
+        P(7 + (i % 2), oy + 8 + i, 1, 1, hair);
+        P(8 - (i % 2), oy + 8 + i, 1, 1, shade(hair, 0.7));
+      }
+      P(7, oy + 13, 2, 1, '#c8362d');
+    } else if (b === 'nattes') {
+      P(5, oy + 5, 6, 3, hair);
+      P(7, oy + 5, 2, 1, '#c25a4a');
+      for (const x of [5, 9]) {
+        for (let i = 0; i < 4; i++) {
+          P(x + (i % 2), oy + 8 + i, 1, 1, hair);
+          P(x + 1 - (i % 2), oy + 8 + i, 1, 1, shade(hair, 0.7));
+        }
+        P(x, oy + 12, 2, 1, '#f2c230');
+      }
+    } else if (b === 'fourchue') {
+      P(5, oy + 5, 6, 3, hair);
+      P(5, oy + 8, 2, 3, hair);
+      P(9, oy + 8, 2, 3, hair);
+      P(7, oy + 5, 2, 1, '#c25a4a');
     }
-    // Traits du visage.
+  }
+
+  function paintTrait(P, o, oy) {
     const tr = o.trait || 'aucun';
     if (tr === 'taches') {
       for (const [x, y] of [[5, 4], [7, 4], [8, 4], [10, 4], [6, 5], [9, 5]]) P(x, oy + y, 1, 1, '#b8693c');
@@ -222,7 +341,9 @@
       P(5, oy + 5, 2, 1, '#f3f3f3');
       P(9, oy + 5, 2, 1, '#f3f3f3');
     }
-    // Couvre-chef.
+  }
+
+  function paintHat(P, o, oy) {
     const hat = o.chapeau || 'aucun';
     if (hat === 'casque') {
       P(4, oy - 2, 8, 3, '#f2c230');
@@ -282,8 +403,31 @@
       P(7, oy - 4, 2, 1, '#f2c230');
       P(11, oy - 4, 1, 1, '#f2c230');
       P(7, oy - 2, 2, 1, '#c8362d');
+    } else if (hat === 'casque-nain') {
+      P(4, oy - 2, 8, 3, '#8a8f98');
+      P(3, oy, 10, 1, '#6b7078');
+      P(7, oy - 3, 2, 1, '#c9ccd3');
+      P(7, oy + 1, 2, 3, '#6b7078');
+      P(5, oy - 1, 1, 1, '#f2c230');
+      P(10, oy - 1, 1, 1, '#f2c230');
+    } else if (hat === 'chapeau-metal') {
+      P(7, oy - 5, 2, 1, '#d8dde4');
+      P(6, oy - 4, 4, 1, '#b8b8c0');
+      P(5, oy - 3, 6, 1, '#9a9aa6');
+      P(4, oy - 2, 8, 1, '#8a8a96');
+      P(3, oy - 1, 10, 1, '#6b6b76');
+    } else if (hat === 'melon') {
+      P(5, oy - 4, 6, 3, '#2a2a30');
+      P(3, oy - 1, 10, 1, '#2a2a30');
+      P(5, oy - 2, 6, 1, '#7a1d17');
+    } else if (hat === 'casquette') {
+      P(4, oy - 2, 8, 3, '#3a6ab8');
+      P(7, oy - 3, 2, 1, '#27498a');
+      P(7, oy, 6, 1, '#27498a');
     }
-    // Objet en main.
+  }
+
+  function paintItem(P, o, oy) {
     const it = o.objet || 'aucun';
     if (it === 'pioche') {
       P(14, oy + 5, 1, 9, '#8b5a2b');
@@ -339,7 +483,242 @@
       P(14, oy + 9, 1, 6, '#8b5a2b');
       P(13, oy + 6, 3, 3, '#ff9a3c');
       P(14, oy + 5, 1, 2, '#ffd84a');
+    } else if (it === 'hache') {
+      P(14, oy + 4, 1, 10, '#8b5a2b');
+      P(12, oy + 3, 2, 4, '#a9b0b8');
+      P(13, oy + 4, 1, 2, '#d8dde4');
+    } else if (it === 'hache-double') {
+      P(14, oy + 4, 1, 10, '#8b5a2b');
+      P(12, oy + 3, 2, 4, '#a9b0b8');
+      P(15, oy + 3, 1, 4, '#a9b0b8');
+      P(13, oy + 4, 1, 2, '#d8dde4');
+    } else if (it === 'pipe') {
+      P(9, oy + 5, 3, 1, '#6b4a2a');
+      P(12, oy + 4, 1, 2, '#3a2a14');
+      P(12, oy + 2, 1, 1, '#d8dde4');
+      P(13, oy + 1, 1, 1, '#b8b8c0');
+    } else if (it === 'chope') {
+      P(13, oy + 11, 3, 4, '#f2c230');
+      P(13, oy + 10, 3, 1, '#fff');
+      P(12, oy + 12, 1, 2, '#d9a21a');
     }
+  }
+
+  const LENS = { brun: '#ff9a3c', noir: '#e8466a', blond: '#ffe84a', roux: '#ff5a2a', gris: '#cfd6e0', rose: '#ff7ac0', bleu: '#5ac8ff' };
+
+  function paintTattoo(P, o, oy) {
+    const t = o.tatouage || 'aucun';
+    if (t === 'ancre') {
+      P(13, oy + 9, 1, 3, '#2a4a9a');
+      P(12, oy + 10, 2, 1, '#2a4a9a');
+      P(12, oy + 12, 3, 1, '#2a4a9a');
+    } else if (t === 'tribal') {
+      for (const y of [9, 12]) {
+        P(2, oy + y, 2, 1, '#2a2a3a');
+        P(12, oy + y, 2, 1, '#2a2a3a');
+      }
+    } else if (t === 'serpent') {
+      [[2, 9], [3, 10], [2, 11], [3, 12]].forEach(([x, y]) => P(x, oy + y, 1, 1, '#3a9a4a'));
+    } else if (t === 'larme') {
+      P(10, oy + 4, 1, 2, '#2a6fdb');
+    } else if (t === 'maori') {
+      P(10, oy + 4, 2, 1, '#2a4a9a');
+      P(11, oy + 5, 1, 1, '#2a4a9a');
+      P(10, oy + 2, 1, 1, '#2a4a9a');
+    }
+  }
+
+  function paintPiercing(P, o, oy) {
+    const p = o.piercing || 'aucun';
+    const gold = '#ffe68a';
+    const steel = '#e8ecf0';
+    if (p === 'nez' || p === 'multiples') P(9, oy + 4, 1, 1, gold);
+    if (p === 'sourcil' || p === 'multiples') P(10, oy + 2, 1, 1, steel);
+    if (p === 'levre') P(8, oy + 6, 1, 1, steel);
+    if (p === 'oreille' || p === 'multiples') {
+      P(3, oy + 4, 1, 1, gold);
+      P(12, oy + 4, 1, 1, gold);
+    }
+  }
+
+  function paintNeck(P, o, oy) {
+    const a = o.accessoire || 'aucun';
+    if (a === 'noeud-papillon') {
+      P(6, oy + 7, 1, 2, '#c8362d');
+      P(9, oy + 7, 1, 2, '#c8362d');
+      P(7, oy + 7, 2, 2, '#8a1d17');
+    } else if (a === 'foulard') {
+      P(5, oy + 7, 6, 1, '#c8362d');
+      P(10, oy + 8, 1, 2, '#c8362d');
+    } else if (a === 'medaille') {
+      P(7, oy + 7, 2, 1, '#d9a21a');
+      P(7, oy + 8, 2, 2, '#ffd84a');
+      P(7, oy + 8, 1, 1, '#fff6b0');
+    } else if (a === 'perles') {
+      P(5, oy + 7, 6, 1, '#f3f3f3');
+      P(6, oy + 8, 4, 1, '#f3f3f3');
+    }
+  }
+
+  function paintBow(P, o, oy) {
+    if (o.accessoire !== 'noeud-rose') return;
+    P(10, oy - 2, 1, 3, '#f06aa8');
+    P(12, oy - 2, 1, 3, '#f06aa8');
+    P(11, oy - 1, 1, 1, '#b8387a');
+  }
+
+  /** Humain ou nain : même dessin, le nain étant raccourci ensuite (voir paint). */
+  function paintHuman(P, o) {
+    const oy = OY;
+    const skin = SKIN[o.peau] || SKIN.clair;
+    const hair = HAIR[o.couleur] || HAIR.brun;
+    paintBody(P, o, skin, null);
+    // Tête.
+    P(5, oy, 6, 7, skin);
+    P(4, oy + 1, 8, 5, skin);
+    P(7, oy + 7, 2, 1, skin);
+    paintEyes(P, o, oy);
+    P(7, oy + 5, 2, 1, '#c25a4a');
+    if (o.forme === 'f') {
+      P(5, oy + 5, 1, 1, '#e8908a');
+      P(10, oy + 5, 1, 1, '#e8908a');
+    }
+    if (o.espece === 'nain') P(7, oy + 4, 2, 1, '#d9786a');
+    paintHair(P, o, oy, hair);
+    paintBeard(P, o, oy, hair);
+    paintTrait(P, o, oy);
+    paintTattoo(P, o, oy);
+    paintPiercing(P, o, oy);
+    paintNeck(P, o, oy);
+    paintBow(P, o, oy);
+    paintHat(P, o, oy);
+    paintItem(P, o, oy);
+  }
+
+  /** Robot à vapeur : carrosserie (teint), lentilles (couleur), cheminée fumante. */
+  function paintRobot(P, o) {
+    const oy = OY;
+    const m = METAL[o.peau] || METAL.clair;
+    const d = shade(m, 0.6);
+    const l = shade(m, 1.25);
+    const lens = LENS[o.couleur] || LENS.brun;
+    paintBody(P, { ...o, tenue: 'robot' }, d, null);
+    P(4, oy, 8, 7, m);
+    P(4, oy, 8, 1, l);
+    P(4, oy + 6, 8, 1, d);
+    P(4, oy, 1, 1, d);
+    P(11, oy, 1, 1, d);
+    P(4, oy + 1, 8, 4, '#2a2a30');
+    P(5, oy + 2, 2, 2, lens);
+    P(9, oy + 2, 2, 2, lens);
+    P(5, oy + 2, 1, 1, '#fff');
+    P(9, oy + 2, 1, 1, '#fff');
+    P(6, oy + 5, 4, 1, d);
+    P(7, oy + 5, 1, 1, l);
+    P(9, oy + 5, 1, 1, l);
+    // Cheminée sur le côté et son panache de fumée.
+    P(2, oy + 1, 2, 4, d);
+    P(2, oy + 1, 2, 1, l);
+    P(3, oy - 1, 1, 1, '#e8ecf0');
+    P(2, oy - 3, 2, 1, '#c8ccd4');
+    P(3, oy - 5, 1, 1, '#aab0ba');
+    if ((o.chapeau || 'aucun') === 'aucun') {
+      P(7, oy - 2, 2, 2, d);
+      P(7, oy - 4, 2, 2, '#e8466a');
+    }
+    paintNeck(P, o, oy);
+    paintBow(P, o, oy);
+    paintHat(P, o, oy);
+    paintItem(P, o, oy);
+  }
+
+  /** Taupe ou taupinette : pelage selon le teint, tenue au choix (ou juste le poil). */
+  function paintMole(P, o) {
+    const oy = OY;
+    const fur = FUR[o.peau] || FUR.clair;
+    paintBody(P, o, fur, fur);
+    P(5, oy, 6, 1, fur);
+    P(4, oy + 1, 8, 6, fur);
+    P(7, oy + 7, 2, 1, fur);
+    P(4, oy, 1, 1, shade(fur, 0.7));
+    P(11, oy, 1, 1, shade(fur, 0.7));
+    P(6, oy + 4, 4, 3, shade(fur, 1.3));
+    P(7, oy + 4, 2, 2, '#f0a0b0');
+    P(5, oy + 3, 1, 1, K);
+    P(10, oy + 3, 1, 1, K);
+    P(2, oy + 5, 2, 1, '#d8ccbc');
+    P(12, oy + 5, 2, 1, '#d8ccbc');
+    if (o.forme === 'f') {
+      P(4, oy + 2, 1, 1, K);
+      P(11, oy + 2, 1, 1, K);
+      P(5, oy + 5, 1, 1, '#e8908a');
+      P(10, oy + 5, 1, 1, '#e8908a');
+    }
+    if (['lunettes', 'monocle', 'soleil', 'rondes', 'aviateur', 'cache-oeil'].includes(o.yeux)) paintEyes(P, o, oy);
+    paintNeck(P, o, oy);
+    paintBow(P, o, oy);
+    paintHat(P, o, oy);
+    paintItem(P, o, oy);
+  }
+
+  /** Jack-o'-lantern : tête de citrouille fumante (couleur selon le teint), visage taillé et lumineux. */
+  function paintGourd(P, o) {
+    const oy = OY;
+    const c = GOURD[o.peau] || GOURD.clair;
+    const glow = GLOW[o.peau] || GLOW.clair;
+    const dk = shade(c, 0.65);
+    paintBody(P, o, dk, null);
+    P(3, oy + 1, 10, 6, c);
+    P(4, oy, 8, 1, c);
+    P(4, oy + 7, 8, 1, c);
+    P(3, oy + 1, 1, 6, dk);
+    P(12, oy + 1, 1, 6, dk);
+    P(7, oy, 2, 1, dk);
+    P(5, oy + 1, 1, 2, shade(c, 1.2));
+    // Yeux en colère, nez et bouche taillés ; la lueur vient de l'intérieur.
+    P(5, oy + 2, 2, 1, K);
+    P(5, oy + 3, 3, 1, K);
+    P(9, oy + 2, 2, 1, K);
+    P(8, oy + 3, 3, 1, K);
+    P(6, oy + 3, 1, 1, glow);
+    P(9, oy + 3, 1, 1, glow);
+    P(7, oy + 4, 2, 1, K);
+    P(5, oy + 5, 6, 1, K);
+    P(6, oy + 6, 1, 1, K);
+    P(9, oy + 6, 1, 1, K);
+    P(7, oy + 5, 1, 1, c);
+    P(9, oy + 5, 1, 1, c);
+    P(7, oy + 6, 2, 1, glow);
+    // Fumée qui s'échappe du dessus.
+    P(11, oy - 3, 1, 1, shade(c, 1.15));
+    P(12, oy - 4, 2, 1, shade(c, 1.3));
+    P(11, oy - 5, 1, 1, shade(c, 1.45));
+    if ((o.chapeau || 'aucun') === 'aucun') {
+      P(7, oy - 2, 2, 2, '#4a3a1a');
+      P(9, oy - 2, 2, 1, '#3a8a3a');
+    }
+    paintNeck(P, o, oy);
+    paintHat(P, o, oy);
+    paintItem(P, o, oy);
+  }
+
+  function paint(c, o) {
+    const species = o.espece || 'humain';
+    if (species === 'nain') {
+      // Même dessin que l'humain, mais les jambes raccourcies de quatre pixels : le nain est trapu.
+      const t = document.createElement('canvas');
+      t.width = W;
+      t.height = H;
+      paintHuman(painter(t.getContext('2d')), o);
+      c.drawImage(t, 0, 0, W, OY + 16, 0, 4, W, OY + 16);
+      c.drawImage(t, 0, OY + 18, W, 4, 0, OY + 18, W, 4);
+      return;
+    }
+    const P = painter(c);
+    if (species === 'robot') paintRobot(P, o);
+    else if (species === 'taupe') paintMole(P, o);
+    else if (species === 'citrouille') paintGourd(P, o);
+    else paintHuman(P, o);
   }
 
   const cache = new Map();
@@ -386,5 +765,5 @@
     return c;
   }
 
-  global.Avatar = { canvas, sprite, W, H, OY };
+  global.Avatar = { canvas, sprite, W, H, OY, SWATCHES: { robot: METAL, taupe: FUR, citrouille: GOURD, lentilles: LENS } };
 })(window);

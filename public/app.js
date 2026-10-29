@@ -2930,51 +2930,73 @@
     peau: { clair: '#f1c9a5', mat: '#d9a066', brun: '#9c6a43', fonce: '#6b4328' },
     couleur: { brun: '#4a2f1a', noir: '#1b1410', blond: '#e8c547', roux: '#c4562a', gris: '#b8b8c0', rose: '#e86aa8', bleu: '#4a86e8' },
   };
-  const AVATAR_ORDER = ['forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'chapeau', 'tenue', 'objet', 'lieu'];
+  const AVATAR_ORDER = ['espece', 'forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'piercing', 'tatouage', 'accessoire', 'chapeau', 'tenue', 'objet', 'lieu'];
+  // Selon le type de personnage : catégories sans effet (masquées) et noms/couleurs adaptés.
+  const SPECIES_UI = {
+    robot: { hide: ['forme', 'cheveux', 'barbe', 'yeux', 'trait', 'piercing', 'tatouage', 'tenue'], labels: { peau: 'Carrosserie', couleur: 'Lentilles' }, swatch: { peau: 'robot', couleur: 'lentilles' } },
+    taupe: { hide: ['cheveux', 'couleur', 'barbe', 'trait', 'piercing', 'tatouage'], labels: { peau: 'Pelage' }, swatch: { peau: 'taupe' } },
+    citrouille: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'piercing', 'tatouage'], labels: { peau: 'Citrouille' }, swatch: { peau: 'citrouille' } },
+  };
+  const speciesOf = (draft) => SPECIES_UI[draft.espece] || {};
 
   function renderAvatarEditor(profile) {
     const catalog = profile.avatarCatalog;
     const inCatalog = (slot) => !!catalog[slot] && catalog[slot].options.length > 1; // « traits » n'existe que pour le responsable (bêta)
     const draft = { ...profile.avatar };
+    const shown = (slot) => inCatalog(slot) && !(speciesOf(draft).hide || []).includes(slot);
+    // « Juste le poil » n'existe que pour la taupe ; on en sort dès qu'on change de type.
+    const optionsOf = (slot) => catalog[slot].options.filter((o) => slot !== 'tenue' || o.id !== 'poil' || draft.espece === 'taupe');
+    const labelOf = (slot) => (speciesOf(draft).labels || {})[slot] || catalog[slot].label;
+    const swatchOf = (slot, id) => {
+      const key = (speciesOf(draft).swatch || {})[slot];
+      return key ? (window.Avatar.SWATCHES[key] || {})[id] : (SWATCH[slot] || {})[id];
+    };
+    const onChoice = (slot, id) => {
+      draft[slot] = id;
+      if (slot === 'espece' && draft.tenue === 'poil' && id !== 'taupe') draft.tenue = 'mineur';
+    };
     const preview = () => {
       $('prof-avatar').replaceChildren(avatarEl(draft, 'full', 6));
       if (betaOn('betaProfil')) $('pf-portrait').replaceChildren(avatarEl(draft, 'full', 6));
     };
     $('prof-name').textContent = app.me.user.username;
-    const rows = AVATAR_ORDER.filter(inCatalog).map((slot) => {
+    const buildRows = () => AVATAR_ORDER.filter(shown).map((slot) => {
       const cat = catalog[slot];
+      const options = optionsOf(slot);
       const label = el('span', { class: 'val' });
       const swatch = el('span', { class: 'swatch' });
       const refresh = () => {
-        const opt = cat.options.find((o) => o.id === draft[slot]) || cat.options[0];
+        const opt = options.find((o) => o.id === draft[slot]) || options[0];
         label.textContent = `${opt.unlocked ? '' : '🔒 '}${opt.label}`;
         label.classList.toggle('locked', !opt.unlocked);
-        if (SWATCH[slot]) swatch.style.background = SWATCH[slot][opt.id] || 'transparent';
+        swatch.style.background = swatchOf(slot, opt.id) || 'transparent';
       };
       const step = (dir) => {
-        const i = cat.options.findIndex((o) => o.id === draft[slot]);
-        draft[slot] = cat.options[(i + dir + cat.options.length) % cat.options.length].id;
-        refresh();
+        const i = options.findIndex((o) => o.id === draft[slot]);
+        onChoice(slot, options[(i + dir + options.length) % options.length].id);
         preview();
         commit();
+        if (slot === 'espece') $('avatar-options').replaceChildren(...buildRows());
+        else refresh();
       };
       const prev = el('button', { class: 'arr', type: 'button', 'aria-label': `${cat.label} précédent` }, '◀');
       const next = el('button', { class: 'arr', type: 'button', 'aria-label': `${cat.label} suivant` }, '▶');
       prev.addEventListener('click', () => step(-1));
       next.addEventListener('click', () => step(1));
       refresh();
-      return el('div', { class: 'opt' }, el('span', { class: 'lab' }, cat.label), prev, el('span', { class: 'val-wrap' }, SWATCH[slot] ? swatch : null, label), next);
+      return el('div', { class: 'opt' }, el('span', { class: 'lab' }, labelOf(slot)), prev, el('span', { class: 'val-wrap' }, swatchOf(slot, draft[slot]) ? swatch : null, label), next);
     });
     // Vestiaire (bêta) : des vignettes à toucher, rangées en quatre onglets, au lieu de dix lignes de flèches.
     function wardrobe() {
       const GROUPS = [
+        ['Type', ['espece']],
         ['Tête', ['cheveux', 'couleur', 'chapeau']],
-        ['Visage', ['peau', 'yeux', 'barbe', 'trait']],
-        ['Corps', ['forme', 'tenue']],
+        ['Visage', ['peau', 'yeux', 'barbe', 'trait', 'piercing']],
+        ['Corps', ['forme', 'tenue', 'accessoire', 'tatouage']],
         ['Outil', ['objet', 'lieu']],
       ];
-      const FULL = new Set(['forme', 'tenue', 'objet']);
-      const THUMBS = new Set(['forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'chapeau', 'tenue', 'objet']);
+      const FULL = new Set(['espece', 'forme', 'tenue', 'objet', 'tatouage']);
+      const THUMBS = new Set(['espece', 'forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'piercing', 'tatouage', 'accessoire', 'chapeau', 'tenue', 'objet']);
       let current = 0;
       const tabs = el('div', { class: 'wr-tabs', role: 'tablist' });
       const panel = el('div', { class: 'wr-panel' });
@@ -2987,30 +3009,30 @@
           }),
         );
         panel.replaceChildren(
-          ...GROUPS[current][1].filter(inCatalog).map((slot) => {
-            const cat = catalog[slot];
+          ...(GROUPS[current][1].some(shown) ? GROUPS[current][1].filter(shown) : []).map((slot) => {
             const grid = el('div', { class: `wr-grid${THUMBS.has(slot) ? '' : ' text'}` });
-            cat.options.forEach((opt) => {
+            optionsOf(slot).forEach((opt) => {
               const selected = draft[slot] === opt.id;
               const content = THUMBS.has(slot) ? avatarEl({ ...draft, [slot]: opt.id }, FULL.has(slot) ? 'full' : 'bust', 2) : null;
               const b = el('button', { class: `wr-opt${selected ? ' sel' : ''}${opt.unlocked ? '' : ' locked'}`, type: 'button', title: opt.unlocked ? opt.label : opt.hint || opt.label, 'aria-pressed': String(selected) }, content, el('span', { class: 'wr-lab' }, `${opt.unlocked ? '' : '🔒 '}${opt.label}`));
               b.addEventListener('click', () => {
-                draft[slot] = opt.id;
+                onChoice(slot, opt.id);
                 preview();
                 commit();
                 render();
               });
               grid.append(b);
             });
-            return el('div', { class: 'wr-slot' }, el('h4', {}, cat.label), grid);
+            return el('div', { class: 'wr-slot' }, el('h4', {}, labelOf(slot)), grid);
           }),
         );
+        if (!panel.children.length) panel.append(el('p', { class: 'muted small' }, 'Rien à régler ici pour ce type de personnage.'));
       };
       const random = el('button', { class: 'btn ghost', type: 'button' }, 'Au hasard');
       random.addEventListener('click', () => {
         for (const slot of AVATAR_ORDER.filter(inCatalog)) {
-          const free = catalog[slot].options.filter((o) => o.unlocked);
-          draft[slot] = free[Math.floor(Math.random() * free.length)].id;
+          const free = optionsOf(slot).filter((o) => o.unlocked);
+          onChoice(slot, free[Math.floor(Math.random() * free.length)].id);
         }
         preview();
         commit();
@@ -3020,7 +3042,7 @@
       return el('div', { class: 'wardrobe' }, tabs, panel, random);
     }
 
-    $('avatar-options').replaceChildren(...(betaOn('betaProfil') ? [wardrobe()] : rows));
+    $('avatar-options').replaceChildren(...(betaOn('betaProfil') ? [wardrobe()] : buildRows()));
     preview();
     let timer = null;
     function commit() {
