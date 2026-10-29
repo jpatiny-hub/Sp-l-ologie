@@ -1689,12 +1689,25 @@ html[data-hd][data-hd][data-hd] .hud span { background: linear-gradient(180deg, 
 html[data-hd][data-hd][data-hd] canvas.avatar, html[data-hd][data-hd][data-hd] .game-mole canvas, html[data-hd][data-hd][data-hd] .pf-mole canvas,
 html[data-hd][data-hd][data-hd] .msg-mole, html[data-hd][data-hd][data-hd] .tuto-mole { image-rendering: auto; }
 
-/* ===== Essai « galerie vivante » (réservé au responsable) : décor animé derrière des panneaux de pierre sombre translucides ===== */
+/* ===== Essai « galerie vivante » (réservé au responsable) : décor animé visible entre des panneaux de pierre sombre compacts, comme la maquette D ===== */
 #galerie-bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; image-rendering: pixelated; pointer-events: none; }
 html[data-galerie] { background: #0d0a0a; }
 html[data-galerie] body { background: transparent; }
+html[data-galerie] .layout { padding: 0 10px 72px; gap: 8px; }
+html[data-galerie] .panel-area, html[data-galerie] .view { gap: 12px; }
+html[data-galerie] .topbar { padding: 8px 12px; }
+html[data-galerie] .logo { font-size: calc(11px * var(--fs)); color: #ffe7b0; text-shadow: 2px 2px 0 #000, 0 0 12px rgba(255, 170, 60, 0.6); }
 html[data-galerie] .card, html[data-galerie] dialog.card {
-  background: rgba(24, 22, 28, 0.6); -webkit-backdrop-filter: blur(1.5px); backdrop-filter: blur(1.5px);
-  border: 3px solid rgba(10, 9, 12, 0.92); box-shadow: inset 0 0 0 2px rgba(150, 140, 160, 0.5), 0 6px 14px rgba(0, 0, 0, 0.4);
+  background: rgba(24, 22, 28, 0.5) !important; -webkit-backdrop-filter: blur(1.5px); backdrop-filter: blur(1.5px);
+  border: 3px solid rgba(10, 9, 12, 0.9) !important; margin: 3px; padding: 9px 12px;
+  box-shadow: inset 0 0 0 2px rgba(150, 140, 160, 0.5), 0 6px 14px rgba(0, 0, 0, 0.4);
 }
-html[data-galerie] .bottom-nav { background: rgba(14, 13, 17, 0.92); border-top: 3px solid rgba(150, 140, 160, 0.6); }
+html[data-galerie] .card h2 { font-size: calc(10px * var(--fs)); line-height: 1.5; margin: 0 0 6px; color: #ffd98a; text-shadow: 2px 2px 0 #000; }
+html[data-galerie] .card p { margin: 0 0 6px; font-size: calc(19px * var(--fs)); line-height: 1.15; }
+html[data-galerie] .beta-greet { font-size: calc(11px * var(--fs)); margin: 0 0 4px; text-shadow: 2px 2px 0 #000; }
+html[data-galerie] .beta-sub { font-size: calc(19px * var(--fs)); margin: 2px 0 6px; }
+html[data-galerie] .beta-mascot { width: 84px; height: 56px; }
+html[data-galerie] .beta-mascot canvas { width: 84px; height: 56px; }
+html[data-galerie] .hero-row { margin-bottom: 4px; }
+html[data-galerie] .btn { padding: 9px 8px; font-size: calc(10px * var(--fs)); box-shadow: inset 3px 3px 0 rgba(255, 230, 168, 0.8), inset -3px -3px 0 rgba(120, 70, 10, 0.7), 0 0 14px rgba(255, 170, 50, 0.35); }
+html[data-galerie] .bottom-nav { background: rgba(14, 13, 17, 0.9); border-top: 3px solid rgba(150, 140, 160, 0.6); }
