@@ -1,0 +1,10 @@
+titre: Un instrument de musique traditionnel du monde
+actif: non
+# Non bornable proprement : « traditionnel » est subjectif et il existe des milliers d'instruments locaux ; la frontière avec les instruments classiques d'orchestre (déjà couverts par instruments-*.txt) est floue.
+# Pour réactiver : fixer une région ou un pays, par ex. « Un instrument traditionnel d'Afrique », « d'Asie » ou « d'Amérique latine » ; ou une famille, par ex. « Un instrument à cordes pincées traditionnel ».
+# Sélection par notoriété (Wikipédia, listes d'instruments par origine) ; aucune source n'a pu être recoupée complètement, à valider.
+1: Cornemuse; Didgeridoo; Sitar; Djembé; Balalaïka; Flûte de Pan; Ukulélé; Koto; Accordéon; Harpe celtique; Mandoline
+2: Bodhrán; Tin whistle = Flûte irlandaise; Uilleann pipes = Cornemuse irlandaise; Shamisen; Shakuhachi; Erhu; Pipa; Guzheng; Tabla; Sarod; Santour = Santoor; Oud = Ud; Darbouka = Derbouka; Kora; Balafon; Mbira = Sanza = Piano à pouces; Charango; Quena; Zampoña; Cajón; Bouzouki; Cithare; Lyre; Bandonéon = Bandoneón; Guimbarde; Steel pan = Steel drum; Zurna; Duduk; Tar; Saz = Baglama
+3: Gamelan; Sheng; Dizi; Guqin; Morin khuur = Vièle à tête de cheval; Igil; Kanun = Qanun; Ney; Rebab; Sarangi; Veena = Vina; Harmonium indien; Dhol; Pakhawaj; Biwa; Taiko; Kantele; Nyckelharpa; Hardanger = Violon Hardanger; Cimbalom; Tárogató; Gusle; Gadulka; Kaval; Tambura; Lur; Sistre; Berimbau; Cuatro; Tiple; Bombo légüero; Gaïta; Hurdy-gurdy = Vielle à roue; Veuze; Zhaleika; Kobza; Bandura; Tsymbaly; Kokle; Gusli
+4: Ektara; Dotar; Dombra; Komuz; Rubab; Tanbur; Cümbüş; Sarinda; Santur; Shruti box; Gopichand; Khol; Mridangam; Ghatam; Kanjira; Nadaswaram; Shehnai; Algoza; Pungi; Mizmar; Rababa; Bendir; Sistrum; Ngoni = N'goni; Xalam; Ngombi; Likembe; Adungu; Embilta; Valiha; Cuíca; Agogô; Zabumba; Pífano
+5: Gudok; Jouhikko; Talharpa; Lirone; Crwth; Pibgorn; Hornpipe; Xun; Bianzhong; Kudyapi; Kulintang; Sasando; Sape; Angklung; Kendang; Rindik; Saung

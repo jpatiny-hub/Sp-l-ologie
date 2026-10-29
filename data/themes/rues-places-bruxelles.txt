@@ -1,0 +1,9 @@
+titre: Une rue ou une place célèbre de Bruxelles
+actif: non
+# Actif: non. « Célèbre » est subjectif et Bruxelles compte plus de 3 000 rues et places : pas de liste fermée possible. Pour activer : resserrer, par exemple « Une place de Bruxelles-Ville » ou « Une rue piétonne du Pentagone », avec une liste de référence (Wikipédia « Liste des rues de Bruxelles-Ville »).
+# Périmètre ici : sélection de places et grandes artères les plus connues, surtout du Pentagone et de l'axe Louise-Flagey.
+# Sources : sites touristiques (visit.brussels et guides recoupés lors de la recherche) et connaissances générales ; la page Wikipédia des rues n'a pas pu être consultée : tout est à valider par Jonas.
+1: Grand-Place = Grote Markt; Rue Neuve = Nieuwstraat; Avenue Louise = Louizalaan; Place Royale = Koningsplein; Rue des Bouchers = Beenhouwersstraat; Place du Sablon = Sablon = Place du Grand Sablon; Boulevard Anspach; Place de Brouckère = De Brouckère
+2: Place Poelaert; Place Flagey; Place de la Monnaie; Place des Martyrs; Place Sainte-Catherine; Place Saint-Géry; Place du Jeu de Balle; Rue Royale; Rue de la Loi; Rue Haute; Rue Blaes; Rue Antoine Dansaert = Rue Dansaert; Mont des Arts; Place de la Bourse; Place Rogier; Place Schuman = Rond-Point Schuman; Place Stéphanie; Place Jourdan; Avenue de Tervueren; Boulevard Adolphe Max; Place de la Chapelle; Parvis de Saint-Gilles = Parvis de Saint-Gilles; Place Fernand Cocq; Place du Petit Sablon = Petit Sablon; Rue de l'Étuve = Rue de l'Etuve
+3: Place du Luxembourg; Place Sainte-Croix; Place Eugène Flagey; Place Madou; Place Surlet de Chokier; Place de la Liberté; Place des Palais; Rue Belliard; Chaussée de Wavre; Chaussée d'Ixelles; Rue du Marché aux Herbes = Rue du Marché-aux-Herbes; Place Louise; Avenue de la Toison d'Or; Place Jean Jacobs; Rue Marché-aux-Fromages
+# Écartés : toute rue que je n'ai pas pu rattacher à une source.

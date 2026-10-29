@@ -1,0 +1,9 @@
+titre: Une ville où le Tour de France a pris son Grand Départ
+# Périmètre : villes (ou lieux) de départ de la 1re étape/du prologue du Tour de France masculin, éditions 1903 à 2026 (2027 Édimbourg annoncé mais pas encore couru : non compris).
+# Sources : liste des Grands Départs (Wikipédia en, miroir Kiwix 2023 et 2025), jetpunk « starting locations of le Tour de France », 24matins (1954 Amsterdam, 2026 Barcelone).
+# Banlieues parisiennes anciennes (Montgeron, Noisy-le-Grand, Neuilly, Argenteuil, Le Vésinet, Saint-Cloud, Boulogne-Billancourt) incluses ; 1924 « Luna Park » = Paris.
+# Écarté/douteux : 2005 Fromentine (La Barre-de-Monts) accepté, « Challans » donné par une source, mis en variante ; 2011 Passage du Gois (Les Herbiers = présentation des équipes seulement) ; 1988 La Baule (Pontchâteau = 1re étape).
+1: Paris; Bruxelles = Brussels; Amsterdam; Londres = London; Lille; Nice; Monaco; Liège; Rotterdam; Barcelone = Barcelona; Copenhague = Copenhagen; Utrecht; Strasbourg; Luxembourg = Luxembourg-Ville; Charleroi; Brest; Florence = Firenze; Dublin
+2: Rouen; Metz; Reims; Nantes; Mulhouse; Nancy; Rennes; Cologne = Köln; Angers; Roubaix; Limoges; Le Havre; Dunkerque = Dunkirk; Lyon; Bilbao; Francfort = Frankfurt; Bâle = Basel; Berlin-Ouest = West Berlin = Berlin; Düsseldorf; Porto-Vecchio; Leeds; Mont-Saint-Michel = Le Mont-Saint-Michel; Futuroscope = Chasseneuil-du-Poitou; Le Puy du Fou = Puy du Fou = Les Épesses; Saint-Sébastien = San Sebastián = Donostia; 's-Hertogenbosch = Bois-le-Duc = Den Bosch; Scheveningen = La Haye; Leyde = Leiden
+3: Montgeron; Neuilly-sur-Seine = Neuilly; Boulogne-Billancourt; Saint-Cloud; Argenteuil; Le Vésinet; Évian-les-Bains = Évian; Vittel; Saint-Jean-de-Monts; Fleurance; Fontenay-sous-Bois; Montreuil; Plumelec; La Baule; Saint-Brieuc; Noirmoutier-en-l'Île = Noirmoutier; Fromentine = La Barre-de-Monts = Challans
+4: Noisy-le-Grand; Passage du Gois = Le Passage du Gois

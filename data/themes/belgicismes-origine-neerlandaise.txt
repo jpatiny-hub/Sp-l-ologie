@@ -1,0 +1,9 @@
+titre: Un mot belge venu du néerlandais
+actif: non
+# Désactivé : il n'existe aucune liste fermée et officielle des belgicismes d'origine néerlandaise ou flamande ; l'étymologie est souvent discutée (ket, zinneke, drache, kot) et des dizaines de mots régionaux (bruxellois, wallon, picard) s'y ajouteraient. De bonnes réponses seraient refusées.
+# Pour resserrer : « Un mot du français de Belgique emprunté au néerlandais, cité dans le Wiktionnaire fr (catégorie « flandricismes »)» avec la liste copiée telle quelle, ou limiter à un domaine (« un nom de pâtisserie ou de plat belge d'origine néerlandaise »).
+# Périmètre retenu : mots et locutions du français de Belgique dont l'origine néerlandaise ou flamande est indiquée par au moins une source. Hors belgicismes sans lien avec le néerlandais (septante, nonante, savoir pour pouvoir, etc.) : voir belgicismes.
+# Sources : Wikipédia fr « Belgicisme » (liste des emprunts au néerlandais et calques) ; Wikipédia en « Belgicism (French) » (kot, bourgmestre) ; Goosse, Académie royale de langue et de littérature françaises (arllfb.be, communication sur les flandricismes : kern, mauclair, bourgmestre, drève, kot, fritkot). Écartés car étymologie non confirmée par deux sources : ket / ketje (origine obscure), mannequin, drôle, willecomme, stoumeling.
+1: Kot = Koter = Kot étudiant; Bourgmestre; Dikkenek; Zinneke; Tof; Fritkot; Drache = Dracher
+2: Drève; Clenche; Crollé = Crolle; Dringuelle; Ring; Couque; Blinquer; Slache; Stoeffer; Spiter = Spitant; Schief; Mandaye; Snul; Zieverèèr = Zieverer; Douf = Doufe; Pei
+3: Kern; Mauclair; En stoemelings = Stoemelings; Au vogelpik = Vogelpik; Klet = Klette; Kette; Tirer son plan; Avoir quelque chose de bon; Ne pas savoir de chemin avec quelqu'un; Tu peux là-contre; Trop is te veel

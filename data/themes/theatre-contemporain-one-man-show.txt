@@ -1,0 +1,8 @@
+titre: Une pièce de théâtre contemporaine ou un one-man-show célèbre
+actif: non
+# Non bornable proprement : « contemporain » et « célèbre » sont subjectifs, et on mélange deux genres (pièces et spectacles d'humoristes) sans limite de pays ni de date.
+# Pour réactiver : scinder et fixer un périmètre, par ex. « Une pièce de théâtre française écrite depuis 1980 » ou « Un one-man-show d'un humoriste francophone ».
+# Peu de sources en ligne exploitables retrouvées pour recouper : sélection prudente de pièces du XXe-XXIe siècle bien connues, à faire valider avant activation. Aucun one-man-show listé faute de titres vérifiés.
+1: Le Prénom; Art = « Art »; Le Père; Le Dîner de cons; En attendant Godot = Waiting for Godot; La Cantatrice chauve; Le Père Noël est une ordure
+2: Le Dieu du carnage = God of Carnage; Les Bonnes; Les Chaises; Rhinocéros; Huis clos; Les Monologues du vagin = The Vagina Monologues
+3: Qui a peur de Virginia Woolf = Who's Afraid of Virginia Woolf; Un tramway nommé Désir = A Streetcar Named Desire; La Mort d'un commis voyageur = Death of a Salesman; Le Fils; La Mère

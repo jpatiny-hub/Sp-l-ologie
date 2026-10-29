@@ -1,0 +1,9 @@
+titre: Un organe, un os ou une glande qu'on peut perdre sans mourir
+# Périmètre : organes entiers, glandes et os qu'une personne peut se faire retirer chirurgicalement (ou perdre) tout en survivant, y compris quand il faut ensuite un traitement de substitution (hormones, insuline, dialyse non requise...). Pour les organes pairs (rein, poumon, œil, ovaire, testicule), l'un des deux suffit.
+# Exclus : parties de membres (doigt, main, jambe), dents, peau, sang, cœur, cerveau entier, foie entier, les deux reins ou les deux poumons ; on ne compte pas les fragments d'organes (lobe, segment) sauf la mention explicite d'un hémisphère cérébral.
+# Sources : distance.physiology.med.ufl.edu « What Organs Can You Live Without? » (appendice, vésicule, rein, poumon, rate, amygdales) ; recoupement avec les articles « 7 organes dont on peut se passer » (Futura-Sciences) et fr.wikipedia des interventions (appendicectomie, splénectomie, cholécystectomie, hystérectomie, thyroïdectomie, laryngectomie, hémisphérectomie...). Les niveaux 4-5 reposent sur des pages Wikipédia d'interventions chirurgicales ; à faire valider.
+1: Appendice; Amygdales = Amygdale palatine = Végétations = Adénoïdes; Rate; Vésicule biliaire = Vésicule; Rein; Utérus; Ovaire; Testicule; Thyroïde; Poumon
+2: Prostate; Estomac; Côlon = Gros intestin; Œil; Sein = Glande mammaire; Vessie; Coccyx; Côte = Côtes; Clavicule; Péroné = Fibula; Rotule = Patella; Thymus; Trompes de Fallope = Trompe de Fallope = Trompes; Col de l'utérus; Larynx; Glande salivaire = Glande parotide = Parotide
+3: Pancréas; Surrénale = Glande surrénale; Parathyroïdes = Parathyroïde; Hypophyse = Glande pituitaire; Épiphyse = Glande pinéale; Omoplate = Scapula; Mâchoire = Mandibule; Langue; Rectum; Ganglions lymphatiques = Ganglion lymphatique; Œsophage
+4: Vertèbre; Duodénum; Glande lacrymale; Cristallin
+5: Sternum; Hémisphère cérébral = Hémisphère du cerveau = Hémisphère

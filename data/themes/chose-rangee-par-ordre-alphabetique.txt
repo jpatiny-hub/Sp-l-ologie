@@ -1,0 +1,6 @@
+titre: Une chose que l'on range par ordre alphabétique
+actif: non
+# Thème non bornable : l'énoncé (« aligne » ou « range par ordre alphabétique ») est ambigu et la liste est ouverte (dictionnaire, annuaire, bibliothèque, fichiers, index, liste d'élèves, contacts, CD, dossiers d'archives, glossaire, encyclopédie, bibliographie, noms de famille...). Presque tout ce qui contient des noms peut être trié.
+# Pour le resserrer : « Un livre de référence classé par ordre alphabétique » (dictionnaire, annuaire, encyclopédie, index, glossaire...) ou « Un objet qu'on trouve classé alphabétiquement en bibliothèque ».
+# Réponses évidentes seulement, à titre d'exemple d'amorce ; ne pas activer en l'état.
+1: Dictionnaire; Annuaire; Encyclopédie; Répertoire = Carnet d'adresses; Index; Glossaire; Bibliothèque; Liste d'élèves = Liste de classe; Contacts; Fichier
