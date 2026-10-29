@@ -87,6 +87,7 @@ function createApp({
   const messages = new MessageService(db, now);
   // Les messages automatiques du Contremaître (délai pour relever un défi) passent par la messagerie.
   game.duels.notify = (to, body) => messages.fromForeman(to, body);
+  game.notify = game.duels.notify;
   // Validation des duels le lendemain à 2 h 30, rappels et forfaits : vérifiés toutes les 5 minutes, même sans visite.
   if (autoValidateDuels) setInterval(() => { try { game.duels.expire(); } catch (err) { console.error('Suivi des duels impossible :', err.message); } }, 5 * 60 * 1000).unref();
   const announcements = new AnnouncementService(db, now);
@@ -353,6 +354,12 @@ function createApp({
         userId: user ? user.id : null,
       });
       json(res, 200, { ok: true });
+    },
+
+    // Signaux discrets sur la façon dont les réponses sont données (collage, page quittée…), pour le responsable.
+    'GET /api/admin/suspicions': async (req, res, _id, url) => {
+      requireAdmin(req, res);
+      json(res, 200, game.signals.report(Number(url.searchParams.get('days')) || 14));
     },
 
     // Duels terminés en attente de validation, et validation immédiate à la demande du responsable.
@@ -659,8 +666,8 @@ function createApp({
 
     'POST /api/game/start': async (req, res) => {
       const user = requireUser(req, res);
-      const { mode, noTimer } = await readJson(req);
-      json(res, 200, game.startGame(user.id, mode, { noTimer: noTimer === true }));
+      const { mode, noTimer, timerSec } = await readJson(req);
+      json(res, 200, game.startGame(user.id, mode, { noTimer: noTimer === true, timerSec: Number.isInteger(timerSec) ? timerSec : null }));
     },
 
     'GET /api/game/:id': async (req, res, id) => {
@@ -676,9 +683,9 @@ function createApp({
 
     'POST /api/game/:id/answer': async (req, res, id) => {
       const user = requireUser(req, res);
-      const { text, accept, reject } = await readJson(req);
+      const { text, accept, reject, sig } = await readJson(req);
       // Retours précis sur les réponses refusées : version bêta, réservée au responsable pour l'instant.
-      json(res, 200, game.answer(id, user.id, text, { accept: typeof accept === 'string' ? accept : null, reject: reject === true, hints: isAdmin(user) }));
+      json(res, 200, game.answer(id, user.id, text, { accept: typeof accept === 'string' ? accept : null, reject: reject === true, hints: isAdmin(user), sig }));
     },
 
     'POST /api/game/:id/skip': async (req, res, id) => {

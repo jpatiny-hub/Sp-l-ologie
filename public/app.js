@@ -38,15 +38,25 @@
 
   // ---------- Paramètres (propres à l'appareil) ----------
   const SETTINGS_KEY = 'speleologie.settings';
-  const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false };
+  const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false, btn: 'normal', onehand: false, contrast: false, calm: false, mole: true };
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
   for (const flag of BETA_FLAGS) settings[flag] = true;
-  // Labo sonore : essais d'ambiance réservés au responsable, qui restent hors de la bêta ouverte à tous.
+  // Ambiance sonore : coups de pioche, grondement, musiques d'accueil, bruits de boutons et chrono sonore, au choix de chaque joueur : coups de pioche, grondement et musique « Galerie » activés au départ, le reste non.
   const AMBIENT_FLAGS = ['labTaps', 'labRumble'];
   const LAB_FLAGS = [...AMBIENT_FLAGS, 'labTabs', 'labClicks', 'labTimer'];
-  settings.labMusic = '';
+  settings.labMusic = 'galerie';
   let ambientKey = ''; // dernier état de l'ambiance sonore (voir syncAmbient)
-  for (const flag of LAB_FLAGS) settings[flag] = false;
+  for (const flag of LAB_FLAGS) settings[flag] = AMBIENT_FLAGS.includes(flag);
+  /**
+   * Versions du jeu que le responsable peut revoir sur son appareil (section « Ancienne version » des réglages).
+   * À chaque nouvelle version majeure ou thématique (Halloween, Noël…), ajouter une ligne : `date` (AAAA-MM-JJ), `label`, `hint` et
+   * les réglages d'interface (`flags`) qui la reproduisent.
+   */
+  const ALL_BETA = (value) => Object.fromEntries(BETA_FLAGS.map((f) => [f, value]));
+  const VERSIONS = [
+    { id: 'actuelle', date: null, label: 'Version actuelle', hint: 'Tout le nouveau look, comme les joueurs.', flags: ALL_BETA(true) },
+    { id: '2026-10-27', date: '2026-10-27', label: 'Version du 27 octobre 2026', hint: "Avant le nouveau look : ancien accueil, ancien profil, sans barre du bas ni mascotte à l'accueil.", flags: ALL_BETA(false) },
+  ];
   const home = { moved: false, origin: new Map() }; // état du nouvel accueil (voir layoutHome)
   const prof = { moved: false, tab: 'apercu', timelineAll: false, locked: { body: false, bit: false, timer: false } }; // état du nouveau profil (voir layoutProfile)
   try {
@@ -76,12 +86,12 @@
   const isLight = () => settings.lisible || settings.theme === 'clair' || (settings.theme === 'auto' && !!(lightQuery && lightQuery.matches));
   if (lightQuery && lightQuery.addEventListener) lightQuery.addEventListener('change', () => settings.theme === 'auto' && applySettings());
   /** Nouveautés à l'essai : réservées au responsable du jeu, une par une. */
-  const labOn = (name) => !!(app.me && app.me.isAdmin && settings[name]);
+  const labOn = (name) => !!(app.me && settings[name]);
   // Nouveau look : pour tous les joueurs ; le responsable peut en retirer des morceaux dans les réglages pour comparer.
   const betaOn = (name) => !!(app.me && (!app.me.isAdmin || settings[name]));
 
   const isHalloween = () => document.documentElement.dataset.season === 'halloween';
-  const reducedMotion = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const reducedMotion = () => !!(settings.calm || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches));
   let hauntTimer = null;
 
   /** Décor de saison (Halloween…) : interface et scène de forage, sauf en lecture facile et en thème clair. */
@@ -112,6 +122,12 @@
     root.classList.toggle('colorblind', settings.colors !== 'normal');
     if (settings.colors === 'normal') delete root.dataset.colors;
     else root.dataset.colors = settings.colors;
+    // Confort : taille des boutons, mode une main, haut contraste, animations réduites.
+    if (settings.btn === 'normal') delete root.dataset.btn;
+    else root.dataset.btn = settings.btn;
+    root.toggleAttribute('data-onehand', !!settings.onehand);
+    root.toggleAttribute('data-contrast', !!settings.contrast);
+    root.toggleAttribute('data-calm', !!settings.calm);
     // Lecture facile : police lisible, espacements larges et fond crème doux (apparence claire).
     if (settings.lisible) root.dataset.lisible = '';
     else delete root.dataset.lisible;
@@ -239,17 +255,46 @@
     settingsForm.elements.volume.value = settings.volume;
     settingsForm.elements.colors.value = settings.colors;
     settingsForm.elements.theme.value = settings.theme;
+    settingsForm.elements.btn.value = settings.btn;
+    settingsForm.elements.onehand.checked = settings.onehand;
+    settingsForm.elements.contrast.checked = settings.contrast;
+    settingsForm.elements.calm.checked = settings.calm;
+    settingsForm.elements.mole.checked = settings.mole !== false;
     settingsForm.elements.lisible.checked = settings.lisible;
     settingsForm.elements.season.checked = settings.season !== false;
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
     $('beta-box').hidden = !(app.me && app.me.isAdmin);
+    renderVersions();
     for (const name of BETA_FLAGS) settingsForm.elements[name].checked = !!settings[name];
-    $('lab-box').hidden = !(app.me && app.me.isAdmin);
+    $('lab-box').hidden = !app.me;
     for (const name of LAB_FLAGS) settingsForm.elements[name].checked = !!settings[name];
     settingsForm.elements.labMusic.value = settings.labMusic || '';
     renderInstall();
     $('settings').showModal();
   });
+  /** Boutons « Version de telle date » : un toucher règle d'un coup toutes les cases de l'interface. */
+  function currentVersion() {
+    return VERSIONS.find((v) => BETA_FLAGS.every((f) => !!settings[f] === !!v.flags[f])) || null;
+  }
+  function renderVersions() {
+    const active = currentVersion();
+    $('version-list').replaceChildren(
+      ...VERSIONS.map((v) => {
+        const on = !!active && active.id === v.id;
+        const button = el('button', { class: `btn${on ? '' : ' secondary'} version-btn`, type: 'button', 'aria-pressed': String(on) }, el('strong', {}, v.label), el('span', {}, v.hint));
+        button.addEventListener('click', () => {
+          Object.assign(settings, v.flags);
+          for (const name of BETA_FLAGS) settingsForm.elements[name].checked = !!settings[name];
+          applySettings();
+          saveSettings();
+          renderVersions();
+        });
+        return button;
+      }),
+      ...(active ? [] : [el('p', { class: 'hint' }, 'Réglage personnalisé (voir le réglage détaillé).')]),
+    );
+  }
+
   settingsForm.addEventListener('input', () => {
     const colors = settings.colors;
     settings.text = settingsForm.elements.text.value || 'normal';
@@ -257,6 +302,11 @@
     settings.volume = Number(settingsForm.elements.volume.value);
     settings.colors = settingsForm.elements.colors.value || 'normal';
     settings.theme = settingsForm.elements.theme.value || 'sombre';
+    settings.btn = settingsForm.elements.btn.value || 'normal';
+    settings.onehand = settingsForm.elements.onehand.checked;
+    settings.contrast = settingsForm.elements.contrast.checked;
+    settings.calm = settingsForm.elements.calm.checked;
+    settings.mole = settingsForm.elements.mole.checked;
     settings.lisible = settingsForm.elements.lisible.checked;
     settings.season = settingsForm.elements.season.checked;
     for (const name of BETA_FLAGS) settings[name] = settingsForm.elements[name].checked;
@@ -266,6 +316,7 @@
     applySettings();
     saveSettings();
     fitCanvas();
+    if (!$('beta-box').hidden) renderVersions();
     if (colors !== settings.colors) refreshColors();
   });
   // Un clic en dehors de la fenêtre la ferme.
@@ -447,11 +498,39 @@
     loadFeed();
     loadMuseumNote();
   }
-  document.addEventListener('visibilitychange', () => refreshMine());
+  document.addEventListener('visibilitychange', () => {
+    refreshMine();
+    syncSoftRefresh();
+  });
+
+  /**
+   * Rafraîchissement doux : tant que l'accueil est affiché et l'onglet visible, une mise à jour discrète par minute
+   * (pastilles, vie de la mine, messages). Le minuteur s'arrête dès qu'on quitte l'accueil ou que l'onglet passe en arrière-plan.
+   */
+  let softTimer = null;
+  function syncSoftRefresh() {
+    const on = !!(app.me && app.view === 'home' && !document.hidden);
+    if (on && !softTimer) {
+      softTimer = setInterval(async () => {
+        if (document.hidden || app.view !== 'home') return syncSoftRefresh();
+        refreshMine(true);
+        renderBetaSocial();
+        try {
+          const { unread } = await api('/api/messages');
+          updateMessageDot(unread);
+        } catch {
+          /* le prochain tour réessaiera */
+        }
+      }, 60000);
+    } else if (!on && softTimer) {
+      clearInterval(softTimer);
+      softTimer = null;
+    }
+  }
 
   /** Ambiance sonore de l'accueil (labo du responsable) : seulement sur l'accueil, onglet visible, son activé. */
   function syncAmbient() {
-    const on = !!(app.me && app.me.isAdmin && app.view === 'home' && !document.hidden && settings.sound && (AMBIENT_FLAGS.some((f) => settings[f]) || settings.labMusic));
+    const on = !!(app.me && app.view === 'home' && !document.hidden && settings.sound && (AMBIENT_FLAGS.some((f) => settings[f]) || settings.labMusic));
     const key = on ? [...AMBIENT_FLAGS.map((f) => settings[f]), settings.labMusic].join() : '';
     if (key === ambientKey) return;
     ambientKey = key;
@@ -461,13 +540,13 @@
   document.addEventListener('visibilitychange', syncAmbient);
 
   /**
-   * Labo sonore (responsable) : petits bruits de bouton. Onglets majeurs (barre du bas) et mineurs (onglets dans un écran),
+   * Ambiance sonore : petits bruits de bouton. Onglets majeurs (barre du bas) et mineurs (onglets dans un écran),
    * puis les boutons du forage et des duels.
    */
   document.addEventListener(
     'click',
     (event) => {
-      if (!app.me || !app.me.isAdmin || !settings.sound || !event.target.closest) return;
+      if (!app.me || !settings.sound || !event.target.closest) return;
       const target = event.target.closest('button, .tab');
       if (!target || target.disabled) return;
       if (settings.labTabs) {
@@ -493,6 +572,7 @@
     $('btn-invite').hidden = !app.me;
     $('drawer-tab').hidden = !(view === 'home' && app.me);
     app.view = view;
+    syncSoftRefresh();
     if (view !== 'museum') {
       setMinePastilles();
       if (view !== 'game') refreshMine();
@@ -844,6 +924,7 @@
 
   function renderHome() {
     renderAnnouncements();
+    renderInstallNudge();
     renderNews();
     const today = app.me.today;
     $('today-date').textContent = formatDay(today.day, { weekday: 'long', day: 'numeric', month: 'long' });
@@ -883,7 +964,7 @@
 
   // ---------- Bêta : mascotte, ambiance, navigation, vie de la mine, textes ----------
   // La taupe mineuse : 16 × 16 pixels, trois humeurs (éveillée, yeux fermés pour le clin d'œil, endormie).
-  const MOLE_COLORS = { o: '#1b1410', b: '#8a5a32', d: '#5d3a1e', p: '#f0a0a0', h: '#f2c230', H: '#a77f12', w: '#ffffff', k: '#1b1410', l: '#fff4b0', c: '#e8d8b0' };
+  const MOLE_COLORS = { z: '#9fe8ff', o: '#1b1410', b: '#8a5a32', d: '#5d3a1e', p: '#f0a0a0', h: '#f2c230', H: '#a77f12', w: '#ffffff', k: '#1b1410', l: '#fff4b0', c: '#e8d8b0' };
   const MOLE = [
     '....oooooooo....',
     '...ohhhhhhhhHo..',
@@ -918,6 +999,22 @@
       for (const x of [6, 7, 8, 9, 10]) set(8, x, 'k');
       set(7, 4, 'p'); set(7, 13, 'p');
     }
+    if (mood === 'sad') {
+      // Sourcils tombants, paupière à moitié baissée, bouche en U renversé et une larme.
+      for (const x of [5, 6, 11, 12]) set(4, x, 'k');
+      for (const x of [5, 6, 11, 12]) set(5, x, 'b');
+      for (const x of [7, 8, 9, 10]) set(8, x, 'b');
+      set(8, 8, 'k'); set(8, 9, 'k'); set(9, 7, 'k'); set(9, 10, 'k');
+      set(7, 4, 'z'); set(8, 4, 'z');
+    }
+    if (mood === 'stars') {
+      // Des étoiles dans les yeux.
+      for (const x of [5, 11]) {
+        for (const [dy, dx, ch] of [[-1, 0, 'h'], [0, -1, 'h'], [0, 0, 'l'], [0, 1, 'h'], [1, 0, 'h'], [-1, 1, 'l'], [1, 1, 'l']]) set(5 + dy + 0, x + dx, ch);
+      }
+      for (const x of [7, 8, 9]) set(7, x, 'p');
+      for (const x of [6, 7, 8, 9, 10]) set(8, x, 'k');
+    }
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, 24, 16);
     rows.forEach((row, y) => row.forEach((ch, x) => {
@@ -926,6 +1023,43 @@
       ctx.fillRect(x + OX, y, 1, 1);
     }));
   }
+
+  /**
+   * La taupe en forage : une bulle et une humeur selon ce qui se passe. Jamais de réaction à la rareté en duel.
+   */
+  const MOLE_LINES = {
+    start: ['Allez, on creuse !', 'Je sens du filon par ici…', 'À toi de jouer, mineur !', 'Mine de rien, ça va être bien !', 'Le casque est vissé, on y va !'],
+    wrong: ['Pas de panique, je ne suis pas au bout de mes galeries !', 'Raté… mais ça ne mine pas le moral !', 'Hmm… creuse une autre piste !', 'Gneiss essai ! Mais pas la bonne roche.', 'Un coup de pioche à côté, ça arrive.'],
+    confirm: ['Tu y es presque, je le sens !', 'Tu voulais dire ça ? Je te laisse juge.'],
+    low: ['Du caillou ordinaire, mais du caillou quand même !', 'Une réponse bien connue… ça rapporte toujours un peu.', 'On a vu plus rare, mais on avance !'],
+    mid: ['Joli filon !', 'Pas mal du tout, ça roche !', 'Du bon minerai, bravo !', 'Là, tu creuses profond !'],
+    high: ["Quel filon ! C'est du rare !", 'Waouh, je suis taupe-là !', 'Tu as du flair, mineur !', 'Du rubis, ni plus ni moins !'],
+    pepite: ["C'est taupissime !!!", "UNE PÉPITE ! Je n'en reviens pas !", 'Tu es au taupe, mineur !', "Du pur diamant… enfin, de l'or !", 'Je vais en faire des taupes-ries de joie !'],
+    skip: ['On passe ? Ça arrive, même aux meilleurs mineurs.', 'Pas grave, un autre thème nous attend !'],
+    timeout: ['Le chrono a eu raison de nous… la prochaine fois !', 'Trop tard ! Même les taupes ont des journées sans.'],
+    duel: ["Réponse enregistrée ! Suspense jusqu'au résultat…", 'Bien joué ! Le contremaître garde le secret.', 'Chut… personne ne sait rien avant demain !'],
+  };
+  const MOLE_MOODS = { start: 'look', wrong: 'sad', confirm: 'look', low: 'idle', mid: 'happy', high: 'happy', pepite: 'stars', skip: 'sad', timeout: 'sad', duel: 'happy' };
+  const moleLast = {};
+  /** Fait parler la taupe dans la zone `where` (« prompt » ou « feedback ») ; coupée par le réglage « Mascotte en forage ». */
+  function moleSay(where, event) {
+    const box = $(`mole-${where}`);
+    if (!box) return;
+    if (settings.mole === false) {
+      box.hidden = true;
+      return;
+    }
+    const lines = MOLE_LINES[event] || [];
+    if (!lines.length) return void (box.hidden = true);
+    let text = lines[Math.floor(Math.random() * lines.length)];
+    if (lines.length > 1 && text === moleLast[event]) text = lines[(lines.indexOf(text) + 1) % lines.length];
+    moleLast[event] = text;
+    box.hidden = false;
+    drawMascot(box.querySelector('canvas'), MOLE_MOODS[event] || 'idle');
+    box.querySelector('.bubble').textContent = text;
+    box.dataset.mood = MOLE_MOODS[event] || 'idle';
+  }
+  const moleEventFor = (tierId) => ({ evident: 'low', courant: 'low', original: 'mid', rare: 'high', pepite: 'pepite', skip: 'skip', timeout: 'timeout' })[tierId] || 'low';
 
   // Outils de la taupe : motifs posés sur le canevas de 24 × 16, au-dessus de la taupe.
   const TOOL_COLORS = { k: '#1b1410', n: '#8a5a2b', S: '#c9ccd3', s: '#7d7d86', y: '#f2c230', Y: '#a77f12', W: '#fff6b0', f: '#ff9a2e', r: '#d9342b', R: '#8f1f19', c: '#9fe8ff', B: '#5ec8f0', w: '#ffffff', e: '#ece4cf', p: '#f3e9d2', P: '#b8a68a', g: '#5fa83a', t: '#c9a36b', h: '#e8d8b0' };
@@ -1080,6 +1214,28 @@
     }
     parent.append(burst);
     setTimeout(() => burst.remove(), 1100);
+  }
+
+  /**
+   * Récompense renforcée : plusieurs vagues d'étoiles, un éclat doré et un gros « pop » des points pour une pépite ;
+   * une vague plus discrète pour une réponse rare. Rien pour les autres (et rien si les animations sont réduites).
+   */
+  function rewardShower(pane, tierId) {
+    if (reducedMotion() || (tierId !== 'pepite' && tierId !== 'rare')) return;
+    const big = tierId === 'pepite';
+    pane.classList.remove('reward-flash');
+    void pane.offsetWidth;
+    pane.classList.add('reward-flash');
+    const waves = big ? 3 : 1;
+    for (let w = 0; w < waves; w++) {
+      setTimeout(() => burstSparks(pane, big ? 'pepite' : 'rare'), w * 260);
+    }
+    if (big) {
+      const points = $('feedback-points');
+      points.classList.remove('pop-big');
+      void points.offsetWidth;
+      points.classList.add('pop-big');
+    }
   }
 
   // ---------- Nouvel accueil (bêta) ----------
@@ -1694,7 +1850,7 @@
   }
   setInterval(() => {
     if (!app.me || $('view-home').hidden || document.hidden) return;
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (reducedMotion()) return;
     const data = app.me.collective;
     if (data && !$('challenge-month').hidden) drawCollective($('collective-canvas'), data, performance.now() / 1000);
     const ch = app.me.streak && app.me.streak.challenge;
@@ -1736,7 +1892,7 @@
       standardText: '30 secondes par thème.',
       aiseText: 'Sans chrono. Ne compte ni pour les badges ni pour les statistiques.',
     });
-    if (choice) startGame('training', { noTimer: choice.mode === 'aise' });
+    if (choice) startGame('training', { noTimer: choice.mode === 'aise', timerSec: { eclair: 15, long: 60 }[choice.mode] || null });
   });
   $('btn-podium').addEventListener('click', () => openPodium(homePodiumPeriod, null));
 
@@ -1862,6 +2018,44 @@
     }
   });
 
+  /**
+   * Intitulé du thème : le texte est du contenu généré (CSS), donc absent de la sélection et du presse-papiers ; les lecteurs d'écran
+   * le lisent grâce à l'étiquette. Ce n'est qu'un frein (une capture d'écran passe toujours), pas une garantie.
+   */
+  function protectText(node, text) {
+    node.textContent = '';
+    node.dataset.t = text;
+    node.classList.add('protected');
+    node.setAttribute('aria-label', text);
+  }
+
+  // Signaux discrets envoyés avec chaque réponse (texte collé, temps passé hors de la page, tentatives de copie) : de simples
+  // indices pour le responsable du jeu, ils ne bloquent ni ne punissent rien.
+  let signals = { p: 0, a: 0, n: 0, c: 0, e: 0, away: 0 };
+  const resetSignals = () => (signals = { p: 0, a: 0, n: 0, c: 0, e: 0, away: 0 });
+  const currentSignals = () => ({ p: signals.p, a: signals.a, n: signals.n, c: signals.c, e: signals.e });
+  const roundOn = () => !$('pane-prompt').hidden;
+  const inField = (event) => !!(event.target && event.target.closest && event.target.closest('input, textarea'));
+  $('answer-input').addEventListener('paste', () => (signals.p += 1));
+  $('answer-input').addEventListener('drop', () => (signals.p += 1));
+  $('answer-input').addEventListener('input', () => (signals.e += 1));
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (roundOn()) signals.away = Date.now();
+    } else if (signals.away) {
+      signals.a += Date.now() - signals.away;
+      signals.n += 1;
+      signals.away = 0;
+    }
+  });
+  for (const type of ['copy', 'cut', 'contextmenu', 'selectstart', 'dragstart']) {
+    $('pane-prompt').addEventListener(type, (event) => {
+      if (inField(event)) return;
+      event.preventDefault();
+      if (type === 'copy' || type === 'contextmenu') signals.c += 1;
+    });
+  }
+
   function showPrompt(round, remainingMs) {
     app.tried = new Set();
     app.triedTexts = [];
@@ -1870,7 +2064,8 @@
     $('pane-prompt').hidden = false;
     updateBanner();
     $('prompt-index').textContent = `Thème ${round.slot + 1} sur ${ROUNDS}`;
-    $('prompt-title').textContent = round.title;
+    protectText($('prompt-title'), round.title);
+    resetSignals();
     const jokerReady = !!(app.game.joker && app.game.joker.available);
     $('btn-skip').textContent = jokerReady ? 'Galerie de secours' : 'Passer';
     $('joker-note').hidden = !jokerReady;
@@ -1878,6 +2073,7 @@
     $('answer-error').textContent = '';
     clearPending();
     hideReport();
+    moleSay('prompt', 'start');
     const input = $('answer-input');
     input.value = '';
     input.focus();
@@ -1895,7 +2091,7 @@
     const deadline = performance.now() + remainingMs;
     const canvas = $('timer-canvas');
     const skin = (app.skin && app.skin.timer) || 'batterie';
-    const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const calm = reducedMotion();
     let lastSecond = null;
     const tick = () => {
       const left = deadline - performance.now();
@@ -1937,7 +2133,7 @@
     app.busy = true;
     const input = $('answer-input');
     try {
-      const res = await api(`/api/game/${app.game.id}/answer`, { text, ...extra });
+      const res = await api(`/api/game/${app.game.id}/answer`, { text, ...extra, sig: currentSignals() });
       if (res.result === 'confirm') {
         app.game = res.state;
         app.pending = { text, suggestion: res.suggestion };
@@ -1946,6 +2142,7 @@
         $('answer-actions').hidden = true;
         hideReport();
         $('answer-error').textContent = '';
+        moleSay('prompt', 'confirm');
         Sound.ask();
         if (betaOn('betaKeys')) $('btn-confirm-yes').focus();
       } else if (res.result === 'unknown') {
@@ -1968,6 +2165,7 @@
         else input.select();
         app.game = res.state;
         offerReport(text);
+        moleSay('prompt', 'wrong');
         Sound.wrong();
       } else {
         clearPending();
@@ -2224,6 +2422,8 @@
       points.classList.add('pop');
       burstSparks($('pane-feedback'), round.tier.id);
     }
+    moleSay('feedback', moleEventFor(round.tier.id));
+    rewardShower($('pane-feedback'), round.tier.id);
     Sound.tier(round.tier.id, pepites);
     Sound.buzz(round.tier.id, pepites);
     const answer = $('feedback-answer');
@@ -2257,6 +2457,7 @@
     $('pane-feedback').hidden = false;
     updateBanner();
     $('game-score').textContent = '—';
+    moleSay('feedback', 'duel');
     $('feedback-theme').textContent = round.title;
     $('feedback-points').textContent = round.outcome === 'answer' ? '✓' : '—';
     const tier = $('feedback-tier');
@@ -3170,6 +3371,7 @@
       initFolds();
       finishBetaProfile(profile);
       loadSuggestions();
+      loadMyReports();
       loadBilan(app.bilanMonth || null);
       if (profile.badges.some((b) => b.isNew)) {
         api('/api/profile/seen', {}).catch(() => {});
@@ -3620,10 +3822,91 @@
   });
 
   // ---------- Contre maître (responsable du jeu) ----------
+  // Administration en trois onglets : contenu (thèmes, réponses), joueurs (suivi, duels, messages) et jeu (santé, annonces).
+  // Une pastille sur l'onglet totalise ce qui attend le responsable.
+  const ADMIN_TAB_OF = { reports: 'contenu', suggestions: 'contenu', duels: 'joueurs', msgreports: 'joueurs', suspicions: 'joueurs' };
+  app.adminCounts = {};
+  function setAdminCount(key, n) {
+    app.adminCounts[key] = n;
+    for (const tab of ['contenu', 'joueurs', 'jeu']) {
+      const total = Object.entries(app.adminCounts).reduce((sum, [k, v]) => sum + (ADMIN_TAB_OF[k] === tab ? v : 0), 0);
+      const dot = $(`atab-count-${tab}`);
+      dot.hidden = !total;
+      dot.textContent = total;
+    }
+  }
+  function setAdminTab(tab) {
+    app.adminTab = tab;
+    $('view-admin').dataset.active = tab;
+    $('admin-tabs').querySelectorAll('button').forEach((b) => {
+      const active = b.dataset.atabGo === tab;
+      b.classList.toggle('active', active);
+      b.setAttribute('aria-selected', String(active));
+    });
+  }
+  $('admin-tabs').addEventListener('click', (event) => {
+    const b = event.target.closest('button[data-atab-go]');
+    if (b) setAdminTab(b.dataset.atabGo);
+  });
+
+  // ---------- Suspicions (responsable du jeu) ----------
+  async function loadSuspicions(days = app.suspDays || 14) {
+    const card = $('admin-suspicions');
+    card.hidden = !(app.me && app.me.isAdmin);
+    if (card.hidden) return;
+    app.suspDays = days;
+    $('susp-tabs').querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', Number(t.dataset.susp) === days));
+    try {
+      const { players } = await api(`/api/admin/suspicions?days=${days}`);
+      const marked = players.filter((p) => p.level !== 'rien');
+      setAdminCount('suspicions', marked.length);
+      $('susp-sub').textContent = marked.length ? `${plural(marked.length, 'joueur à regarder', 'joueurs à regarder')}` : 'rien à signaler';
+      $('susp-status').textContent = players.length ? '' : `Aucune réponse enregistrée sur ${days} jours.`;
+      const tagText = { forte: 'Plusieurs signaux', 'a-observer': 'À observer' };
+      $('susp-list').replaceChildren(
+        ...players.map((p) => {
+          const counts = [
+            p.pastes ? `${p.pastes} collé${p.pastes > 1 ? 's' : ''}` : null,
+            p.copies ? `${p.copies} copie${p.copies > 1 ? 's' : ''} tentée${p.copies > 1 ? 's' : ''}` : null,
+            p.fastRare ? `${p.fastRare} rapide${p.fastRare > 1 ? 's' : ''}` : null,
+            p.away ? `${p.away} page${p.away > 1 ? 's' : ''} quittée${p.away > 1 ? 's' : ''}` : null,
+          ].filter(Boolean);
+          const head = el(
+            'span',
+            { class: 'what' },
+            el('strong', {}, p.username, p.level !== 'rien' ? el('span', { class: `susp-tag ${p.level}` }, tagText[p.level]) : null),
+            el('span', { class: 'muted' }, `${plural(p.rounds, 'thème', 'thèmes')} sur ${days} jours${counts.length ? ` · ${counts.join(' · ')}` : ''}`),
+          );
+          const item = el('li', { class: `report susp ${p.level === 'rien' ? 'handled' : 'pending'}` }, head);
+          if (p.flagged.length) {
+            item.append(
+              el(
+                'details',
+                { class: 'fold-inner' },
+                el('summary', {}, 'Voir les thèmes concernés'),
+                ...p.flagged.map((f) =>
+                  el('p', { class: 'muted susp-why' }, `${formatDay(f.day, { day: 'numeric', month: 'short' })} · ${f.mode === 'daily' ? 'forage du jour' : f.mode === 'duel' ? 'duel' : 'infini'} · « ${f.theme} »${f.answer ? ` → ${f.answer}` : ''} : ${f.why.join(', ')}`),
+                ),
+              ),
+            );
+          }
+          return item;
+        }),
+      );
+    } catch (err) {
+      $('susp-status').textContent = err.message;
+    }
+  }
+  $('susp-tabs').addEventListener('click', (event) => {
+    const t = event.target.closest('.tab');
+    if (t) loadSuspicions(Number(t.dataset.susp));
+  });
+
   async function openAdmin() {
     if (!app.me || !app.me.isAdmin) return;
     stopTimer();
     show('admin');
+    setAdminTab(app.adminTab || 'contenu');
     initFolds('view-admin');
     loadHealth();
     loadAdminAnnouncements();
@@ -3635,6 +3918,7 @@
     loadMessageReports();
     loadAdminSuggestions();
     loadPendingDuels();
+    loadSuspicions();
     loadDashboard();
   }
   $('btn-admin').addEventListener('click', () => openAdmin());
@@ -4054,6 +4338,7 @@
     if (card.hidden) return;
     try {
       const { duels } = await api('/api/admin/duels/pending');
+      setAdminCount('duels', duels.length);
       $('duels-valid-sub').textContent = duels.length ? `${duels.length} en attente de 2 h 30` : 'rien en attente';
       $('duels-valid-list').replaceChildren(
         ...duels.map((d) => {
@@ -4097,6 +4382,7 @@
     const tab = app.reportTab || 'pending';
     const shown = app.reports.filter((r) => (r.status === 'pending') === (tab === 'pending'));
     $('count-pending').textContent = `(${app.reports.filter((r) => r.status === 'pending').length})`;
+    setAdminCount('reports', app.reports.filter((r) => r.status === 'pending').length);
     $('count-done').textContent = `(${app.reports.filter((r) => r.status !== 'pending').length})`;
     document.querySelectorAll('#report-tabs .tab').forEach((t) => t.classList.toggle('active', t.dataset.reports === tab));
     $('btn-copy-reports').hidden = tab !== 'pending';
@@ -4635,6 +4921,7 @@
     if (card.hidden) return;
     try {
       const { reports } = await api('/api/admin/message-reports');
+      setAdminCount('msgreports', reports.length);
       $('msg-reports-status').textContent = reports.length ? '' : 'Aucun message signalé.';
       $('msg-reports-list').replaceChildren(
         ...reports.map((r) => {
@@ -4799,8 +5086,8 @@
     }
   }
 
-  $('fold-proposer').addEventListener('toggle', () => {
-    if (!$('fold-proposer').open) return;
+  $('fold-signalements').addEventListener('toggle', () => {
+    if (!$('fold-signalements').open) return;
     loadMyReports();
     if (!$('report-mine-dot').hidden) api('/api/reports/mine/seen', {}).then(() => ($('report-mine-dot').hidden = true)).catch(() => {});
   });
@@ -4823,7 +5110,8 @@
           );
         }),
       );
-      $('report-mine-title').hidden = !reports.length;
+      $('report-mine-empty').hidden = reports.length > 0;
+      $('report-mine-sub').textContent = reports.length ? `${reports.length} signalement${reports.length > 1 ? 's' : ''}, du plus récent au plus ancien` : 'les réponses que tu as signalées et ce qu\'on en a fait';
       $('report-mine-dot').hidden = !unread;
     } catch {
       /* la section reste vide */
@@ -4863,6 +5151,7 @@
     const all = app.suggestions || [];
     const shown = all.filter((s) => !s.handled === (tab === 'pending'));
     $('count-sug-pending').textContent = `(${all.filter((s) => !s.handled).length})`;
+    setAdminCount('suggestions', all.filter((s) => !s.handled).length);
     $('count-sug-done').textContent = `(${all.filter((s) => s.handled).length})`;
     document.querySelectorAll('#suggestion-tabs .tab').forEach((t) => t.classList.toggle('active', t.dataset.suggestions === tab));
     $('btn-copy-suggestions').hidden = tab !== 'pending';
@@ -4913,7 +5202,7 @@
   $('btn-carnet').addEventListener('click', () => openProfile());
   $('report-banner').addEventListener('click', async () => {
     await openProfile();
-    const fold = $('fold-proposer');
+    const fold = $('fold-signalements');
     fold.open = true;
     fold.scrollIntoView({ behavior: 'smooth', block: 'start' });
     if (app.me) app.me.unreadReports = 0;
@@ -5000,10 +5289,10 @@
   $('btn-podium-home').addEventListener('click', () => goHome());
 
   // ---------- Duels ----------
-  const MODE_NAMES = { standard: 'Standard', aise: "À l'aise" };
+  const MODE_NAMES = { standard: 'Standard', aise: "À l'aise", eclair: 'Éclair (15 s)', long: 'Long (60 s)' };
 
   /** Fenêtre flottante : choix du mode (standard ou à l'aise), puis, pour un duel, de l'adversaire. Renvoie { mode, opponent } ou null. */
-  function askMode({ title, sub, standardText, aiseText, opponents = null }) {
+  function askMode({ title, sub, standardText, aiseText, eclairText = '15 secondes par thème : réflexes !', longText = '60 secondes par thème : le temps de chercher.', opponents = null }) {
     return new Promise((resolve) => {
       const dialog = $('mode-dialog');
       const ac = new AbortController();
@@ -5013,6 +5302,8 @@
       $('mode-sub').textContent = sub;
       $('mode-standard-text').textContent = standardText;
       $('mode-aise-text').textContent = aiseText;
+      $('mode-eclair-text').textContent = eclairText;
+      $('mode-long-text').textContent = longText;
       $('mode-step-mode').hidden = false;
       $('mode-step-opponent').hidden = true;
       const finish = (value) => {
@@ -5021,7 +5312,7 @@
       };
       const pick = (mode) => {
         if (!opponents) return finish({ mode });
-        $('mode-title').textContent = `Duel ${mode === 'standard' ? 'standard' : "à l'aise"} : qui défier ?`;
+        $('mode-title').textContent = `Duel ${(MODE_NAMES[mode] || mode).toLowerCase()} : qui défier ?`;
         $('mode-step-mode').hidden = true;
         $('mode-step-opponent').hidden = false;
         $('mode-opponent-sub').textContent = opponents.length ? 'Ton adversaire jouera les mêmes 7 thèmes, quand il voudra.' : "Aucun autre joueur n'est inscrit pour l'instant.";
@@ -5037,6 +5328,8 @@
       };
       on($('mode-standard'), 'click', () => pick('standard'));
       on($('mode-aise'), 'click', () => pick('aise'));
+      on($('mode-eclair'), 'click', () => pick('eclair'));
+      on($('mode-long'), 'click', () => pick('long'));
       on($('mode-cancel'), 'click', () => finish(null));
       on(dialog, 'click', (event) => event.target === dialog && finish(null));
       dialog.addEventListener(
@@ -5275,7 +5568,7 @@
   }
   setInterval(() => {
     if (document.hidden || $('view-duel').hidden || $('duel-wait').hidden || $('duel-foreman').hidden) return;
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (reducedMotion()) return;
     drawForeman($('duel-foreman'), performance.now() / 1000);
   }, 120);
 
@@ -5640,7 +5933,7 @@
       }
     };
     draw(0);
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (reducedMotion()) return;
     recapTimer = setInterval(() => {
       if ($('view-recap').hidden || document.hidden) return;
       draw(performance.now() / 1000);
@@ -6004,6 +6297,118 @@
     renderInstall();
   });
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+  /**
+   * Invitation à installer le jeu, sur l'accueil : sans application installée, un cadre explique comment faire selon l'appareil.
+   * Depuis un navigateur intégré à une autre application (Messenger, Instagram…), l'installation est impossible : on propose de
+   * copier le lien pour l'ouvrir dans Chrome ou Safari. « Plus tard » la repousse de deux jours ; elle s'arrête après cinq reports.
+   */
+  const INSTALL_KEY = 'speleo-install-nudge';
+  const inAppBrowser = () => /FBAN|FBAV|FB_IAB|Instagram|Messenger|Snapchat|TikTok|LinkedInApp|Twitter|MicroMessenger|Line\/|; wv\)/i.test(navigator.userAgent);
+  function installNudgeState() {
+    try {
+      return JSON.parse(localStorage.getItem(INSTALL_KEY)) || { n: 0, until: 0 };
+    } catch {
+      return { n: 0, until: 0 };
+    }
+  }
+  function renderInstallNudge() {
+    const card = $('install-card');
+    const state = installNudgeState();
+    if (!app.me || standalone() || state.n >= 5 || Date.now() < state.until) {
+      card.hidden = true;
+      return;
+    }
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const now = $('btn-install-now');
+    now.hidden = true;
+    if (inAppBrowser()) {
+      $('install-title').textContent = 'Ouvre le jeu dans ton navigateur';
+      $('install-body').textContent = "Tu as ouvert le jeu depuis une autre application : il ne peut pas s'y installer. Copie le lien, ouvre-le dans Chrome ou Safari, puis installe le jeu pour le retrouver en plein écran, d'un seul toucher.";
+      now.textContent = 'Copier le lien du jeu';
+      now.hidden = false;
+      now.onclick = async () => {
+        try {
+          await navigator.clipboard.writeText(location.origin + location.pathname);
+          now.textContent = 'Lien copié ! Colle-le dans ton navigateur.';
+        } catch {
+          now.textContent = location.origin + location.pathname;
+        }
+      };
+    } else if (installPrompt) {
+      $('install-title').textContent = 'Installe le jeu sur ton appareil';
+      $('install-body').textContent = "Un toucher et le jeu rejoint ton écran d'accueil : il s'ouvre en plein écran, comme une application, sans barre d'adresse.";
+      now.textContent = "Installer l'application";
+      now.hidden = false;
+      now.onclick = async () => {
+        installPrompt.prompt();
+        await installPrompt.userChoice.catch(() => {});
+        installPrompt = null;
+        renderInstallNudge();
+      };
+    } else {
+      $('install-title').textContent = 'Installe le jeu sur ton appareil';
+      $('install-body').textContent = ios
+        ? "Sur iPhone, dans Safari : touche le bouton Partager, puis « Sur l'écran d'accueil ». Le jeu s'ouvrira en plein écran, comme une application."
+        : "Dans le menu de ton navigateur, choisis « Installer l'application » ou « Ajouter à l'écran d'accueil » : le jeu s'ouvrira en plein écran, comme une application.";
+    }
+    card.hidden = false;
+  }
+  $('btn-install-later').addEventListener('click', () => {
+    const state = installNudgeState();
+    try {
+      localStorage.setItem(INSTALL_KEY, JSON.stringify({ n: state.n + 1, until: Date.now() + 2 * 86400000 }));
+    } catch {
+      /* sans stockage : le cadre reviendra */
+    }
+    $('install-card').hidden = true;
+  });
+  window.addEventListener('appinstalled', renderInstallNudge);
+  window.addEventListener('beforeinstallprompt', () => setTimeout(renderInstallNudge, 0));
+
+  // ---------- Réglages et sections repliables : icônes et en-têtes plus lisibles ----------
+  const SETTINGS_ICONS = { 'Taille du texte': 'livre', 'Taille des boutons': 'pioche', Confort: 'casque', Lecture: 'journal', Son: 'note', Apparence: 'miroir', Couleurs: 'diamant', 'Ancienne version (contremaître)': 'horloge', Tutoriel: 'taupe', 'Ambiance sonore': 'note', 'Inviter des amis': 'enveloppe', "Installer l'application": 'maison' };
+  /** Chaque groupe de réglages devient une section repliable avec son icône ; seule la première reste ouverte au départ. */
+  function decorateSettings() {
+    document.querySelectorAll('#form-settings > fieldset').forEach((fieldset, index) => {
+      const legend = fieldset.querySelector('legend');
+      if (!legend) return;
+      const icon = el('canvas', { class: 'sec-icon', width: '16', height: '16', 'aria-hidden': 'true' });
+      const title = legend.textContent.trim();
+      Icons.drawIcon(icon, SETTINGS_ICONS[title] || 'lampe');
+      // La légende d'un fieldset s'affiche à cheval sur sa bordure : on la garde pour les lecteurs d'écran et on dessine un vrai en-tête.
+      const head = el('div', { class: 'sec-head', role: 'button', tabindex: '0', 'aria-expanded': String(index === 0) }, icon, el('span', {}, title), el('span', { class: 'pm', 'aria-hidden': 'true' }));
+      legend.classList.add('sr-only');
+      fieldset.prepend(head);
+      fieldset.classList.add('sec');
+      if (index > 0) fieldset.classList.add('closed');
+      const toggle = () => {
+        const closed = fieldset.classList.toggle('closed');
+        head.setAttribute('aria-expanded', String(!closed));
+      };
+      head.addEventListener('click', toggle);
+      head.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          toggle();
+        }
+      });
+    });
+  }
+  decorateSettings();
+
+  const FOLD_ICONS = { defis: 'trophee', profil: 'casque', cranes: 'crane', badges: 'medaille', atelier: 'pioche', carnet: 'journal', bilan: 'horloge', stats: 'cible', proposer: 'livre', 'mes-signalements': 'drapeau', sante: 'lampe', annonces: 'enveloppe', suggestions: 'livre', signalements: 'drapeau', 'duels-valider': 'trophee', suspicions: 'oeil', invitation: 'fanion', refusees: 'cible', essai: 'oeil', 'messages-signales': 'bouclier', inverse: 'miroir', tableau: 'trophee' };
+  /** Une petite icône pixel art devant le titre de chaque section repliable. */
+  function decorateFolds() {
+    document.querySelectorAll('details.fold[data-fold] > summary').forEach((summary) => {
+      const key = summary.parentElement.dataset.fold;
+      if (!FOLD_ICONS[key] || summary.querySelector('.fold-icon')) return;
+      const icon = el('canvas', { class: 'fold-icon', width: '16', height: '16', 'aria-hidden': 'true' });
+      Icons.drawIcon(icon, FOLD_ICONS[key]);
+      summary.prepend(icon);
+    });
+  }
+  decorateFolds();
 
   // ---------- Démarrage ----------
   fitCanvas();

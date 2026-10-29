@@ -71,6 +71,8 @@
     <div id="mode-step-mode">
       <p class="muted" id="mode-sub"></p>
       <button class="btn mode-choice" id="mode-standard" type="button"><strong>Standard</strong><span id="mode-standard-text"></span></button>
+      <button class="btn secondary mode-choice" id="mode-eclair" type="button"><strong>Éclair</strong><span id="mode-eclair-text"></span></button>
+      <button class="btn secondary mode-choice" id="mode-long" type="button"><strong>Long</strong><span id="mode-long-text"></span></button>
       <button class="btn secondary mode-choice" id="mode-aise" type="button"><strong>À l'aise</strong><span id="mode-aise-text"></span></button>
     </div>
     <div id="mode-step-opponent" hidden>
@@ -120,6 +122,25 @@
         </div>
       </fieldset>
       <fieldset>
+        <legend>Taille des boutons</legend>
+        <div class="choices">
+          <label><input type="radio" name="btn" value="normal"> Normale</label>
+          <label><input type="radio" name="btn" value="grand"> Grande</label>
+          <label><input type="radio" name="btn" value="tres-grand"> Très grande</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Confort</legend>
+        <label class="check"><input type="checkbox" name="onehand"> Mode une main</label>
+        <p class="hint">Sur téléphone : en forage, la saisie et les boutons restent en bas de l'écran, à portée du pouce.</p>
+        <label class="check"><input type="checkbox" name="contrast"> Haut contraste</label>
+        <p class="hint">Couleurs plus tranchées et contours nets partout.</p>
+        <label class="check"><input type="checkbox" name="mole"> Mascotte en forage</label>
+        <p class="hint">La taupe t'encourage et réagit à tes réponses, avec une bulle de dialogue.</p>
+        <label class="check"><input type="checkbox" name="calm"> Réduire les animations</label>
+        <p class="hint">Moins de mouvement : étincelles, flammes, secousses et défilements sont supprimés.</p>
+      </fieldset>
+      <fieldset>
         <legend>Lecture</legend>
         <label class="check"><input type="checkbox" name="lisible"> Lecture facile (dyslexie)</label>
         <p class="hint">Police plus lisible, lettres et lignes plus espacées, fond crème doux. Les points et le chrono ne changent pas.</p>
@@ -149,8 +170,11 @@
         <p class="hint">Dans les modes daltoniens, chaque niveau de rareté a aussi son propre symbole : la couleur n'est jamais la seule information.</p>
       </fieldset>
       <fieldset id="beta-box" hidden>
-        <legend>Nouveau look (contremaître)</legend>
-        <p class="hint">Tout est actif pour tous les joueurs. Décoche une case pour revoir l'ancienne version, uniquement sur ton appareil.</p>
+        <legend>Ancienne version (contremaître)</legend>
+        <p class="hint">Revois le jeu tel qu'il était à une date donnée, uniquement sur cet appareil : les autres joueurs ne sont pas touchés.</p>
+        <div class="versions" id="version-list"></div>
+        <details class="version-detail">
+          <summary>Réglage détaillé</summary>
         <label class="check"><input type="checkbox" name="betaKeys"> Clavier : flèches, Entrée, O / N dans les propositions, « ? » pour l'aide</label>
         <label class="check"><input type="checkbox" name="betaHints"> Retours précis quand une réponse est refusée</label>
         <label class="check"><input type="checkbox" name="betaHome"> Nouvel accueil : fiche taupe, forage en haut, podium remonté, barre du bas illustrée</label>
@@ -161,6 +185,7 @@
         <label class="check"><input type="checkbox" name="betaFx"> Étincelles, flamme et ambiance de mine</label>
         <label class="check"><input type="checkbox" name="betaSocial"> La vie de la mine sur l'accueil</label>
         <label class="check"><input type="checkbox" name="betaWarm"> Textes plus chaleureux</label>
+        </details>
       </fieldset>
       <fieldset id="tuto-box">
         <legend>Tutoriel</legend>
@@ -168,8 +193,8 @@
         <button class="btn secondary" id="btn-tuto-again" type="button">Revoir le tutoriel</button>
       </fieldset>
       <fieldset id="lab-box" hidden>
-        <legend>Labo sonore (contremaître)</legend>
-        <p class="hint">Des essais d'ambiance sur l'accueil, jamais montrés aux autres joueurs. Ils suivent le réglage « Bruitages » ci-dessus.</p>
+        <legend>Ambiance sonore</legend>
+        <p class="hint">Pour plonger dans la mine : coups de pioche, grondement, musique d'accueil et petits bruits de boutons. Les coups de pioche, le grondement et la musique « Galerie » sont activés au départ ; tout suit le réglage « Bruitages » ci-dessus.</p>
         <label class="check"><input type="checkbox" name="labTaps"> Coups de pioche dans la roche (avec écho de galerie)</label>
         <label class="check"><input type="checkbox" name="labRumble"> Grondement lointain de la mine</label>
         <p class="hint">Musique d'accueil :</p>
@@ -355,6 +380,14 @@
           <h2>Message du Contre maître</h2>
           <div id="announce-list"></div>
           <button class="btn secondary" id="btn-announce-ok" type="button">Compris !</button>
+        </div>
+        <div class="card install" id="install-card" hidden>
+          <h2 id="install-title">Installe le jeu</h2>
+          <p id="install-body"></p>
+          <div class="row">
+            <button class="btn" id="btn-install-now" type="button" hidden></button>
+            <button class="btn ghost" id="btn-install-later" type="button">Plus tard</button>
+          </div>
         </div>
         <div class="card news" id="news-card" hidden>
           <h2 id="news-title">Nouveautés</h2>
@@ -559,6 +592,7 @@
         </div>
 
         <div class="card" id="pane-prompt" hidden>
+          <div class="game-mole" id="mole-prompt" hidden><canvas width="24" height="16" aria-hidden="true"></canvas><p class="bubble"></p></div>
           <p class="muted" id="prompt-index"></p>
           <h2 class="theme-title" id="prompt-title"></h2>
           <p class="muted small notimer-note" id="notimer-note" hidden>Mode « À l'aise » : pas de chrono, prends ton temps.</p>
@@ -588,6 +622,7 @@
         </div>
 
         <div class="card" id="pane-feedback" hidden>
+          <div class="game-mole" id="mole-feedback" hidden><canvas width="24" height="16" aria-hidden="true"></canvas><p class="bubble"></p></div>
           <p class="muted" id="feedback-theme"></p>
           <p class="feedback-points" id="feedback-points"></p>
           <p class="feedback-tier" id="feedback-tier"></p>
@@ -768,7 +803,7 @@
           <svg class="chart earth-chart" id="chart-earth" viewBox="0 0 320 150" role="img" aria-label="Coupe de la Terre avec ta meilleure profondeur"></svg>
         </details>
         <details class="card fold" data-ptab="carnet" data-fold="proposer" id="fold-proposer">
-          <summary><span class="fold-t"><h2>Proposer un thème <span id="report-mine-dot" class="dot" hidden>●</span></h2><span class="sub">une idée de liste à deviner ? · tes réponses signalées</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <summary><span class="fold-t"><h2>Proposer un thème</h2><span class="sub">une idée de liste à deviner ?</span></span><span class="pm" aria-hidden="true"></span></summary>
           <form id="form-suggest" class="form">
             <label for="suggest-title">Le thème</label>
             <input id="suggest-title" type="text" maxlength="140" placeholder="Par exemple : un instrument à vent" autocomplete="off" required>
@@ -778,7 +813,10 @@
           </form>
           <p class="muted small" id="suggest-status" role="status"></p>
           <ul class="report-list" id="suggest-mine"></ul>
-          <h3 id="report-mine-title" hidden>Mes réponses signalées</h3>
+        </details>
+        <details class="card fold" data-ptab="carnet" data-fold="mes-signalements" id="fold-signalements">
+          <summary><span class="fold-t"><h2>Mes signalements <span id="report-mine-dot" class="dot" hidden>●</span></h2><span class="sub" id="report-mine-sub">les réponses que tu as signalées et ce qu'on en a fait</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <p class="muted small" id="report-mine-empty" hidden>Rien pour l'instant. Quand une réponse te semble juste mais refusée, signale-la pendant le forage : le résultat arrivera ici et dans ta messagerie.</p>
           <ul class="report-list" id="report-mine"></ul>
         </details>
       </div>
@@ -807,23 +845,14 @@
         <button class="btn ghost back-btn" id="btn-admin-home" type="button">◀ Retour à l'accueil</button>
         <div class="card">
           <h2>Contre maître</h2>
-          <p class="muted small">Réservé au responsable du jeu : réponses signalées, thèmes proposés et tableau de bord.</p>
+          <p class="muted small">Réservé au responsable du jeu.</p>
         </div>
-        <details class="card fold" data-fold="sante" id="admin-health" hidden>
-          <summary><span class="fold-t"><h2>Santé du jeu</h2><span class="sub" id="health-sub">sauvegardes, erreurs, version</span></span><span class="pm" aria-hidden="true"></span></summary>
-          <p class="health-state" id="health-state" role="status"></p>
-          <ul class="report-list" id="health-facts"></ul>
-          <h3>Sauvegardes de la base</h3>
-          <ul class="report-list" id="health-backups"></ul>
-          <h3>Erreurs récentes</h3>
-          <ul class="report-list" id="health-errors"></ul>
-          <div class="row">
-            <button class="btn secondary" id="btn-health-backup" type="button">Sauvegarder maintenant</button>
-            <button class="btn secondary" id="btn-health-copy" type="button">Copier le rapport</button>
-            <button class="btn ghost" id="btn-health-clear" type="button">Vider le journal</button>
-          </div>
-        </details>
-        <details class="card fold" data-fold="annonces" id="admin-announcements" hidden>
+        <div class="pf-tabs" id="admin-tabs" role="tablist" aria-label="Sections de l'administration">
+          <button class="tab active" type="button" role="tab" data-atab-go="contenu" aria-selected="true">Contenu <span class="tab-dot" id="atab-count-contenu" hidden></span></button>
+          <button class="tab" type="button" role="tab" data-atab-go="joueurs" aria-selected="false">Joueurs <span class="tab-dot" id="atab-count-joueurs" hidden></span></button>
+          <button class="tab" type="button" role="tab" data-atab-go="jeu" aria-selected="false">Jeu <span class="tab-dot" id="atab-count-jeu" hidden></span></button>
+        </div>
+        <details class="card fold" data-atab="jeu" data-fold="annonces" id="admin-announcements" hidden>
           <summary><span class="fold-t"><h2>Annonces</h2><span class="sub">un message à tous les joueurs</span></span><span class="pm" aria-hidden="true"></span></summary>
           <form id="form-announce" class="form">
             <label for="announce-text">Ton message</label>
@@ -841,17 +870,21 @@
           <p class="muted small" id="announce-status" role="status"></p>
           <ul class="report-list" id="announce-admin-list"></ul>
         </details>
-        <details class="card fold" data-fold="suggestions" id="admin-suggestions" hidden>
-          <summary><span class="fold-t"><h2>Thèmes proposés</h2><span class="sub">réservé au responsable du jeu</span></span><span class="pm" aria-hidden="true"></span></summary>
-          <div class="tabs" role="tablist" id="suggestion-tabs">
-            <button class="tab active" data-suggestions="pending" type="button" role="tab">À traiter <span id="count-sug-pending"></span></button>
-            <button class="tab" data-suggestions="done" type="button" role="tab">Traités <span id="count-sug-done"></span></button>
+        <details class="card fold" data-atab="jeu" data-fold="sante" id="admin-health" hidden>
+          <summary><span class="fold-t"><h2>Santé du jeu</h2><span class="sub" id="health-sub">sauvegardes, erreurs, version</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <p class="health-state" id="health-state" role="status"></p>
+          <ul class="report-list" id="health-facts"></ul>
+          <h3>Sauvegardes de la base</h3>
+          <ul class="report-list" id="health-backups"></ul>
+          <h3>Erreurs récentes</h3>
+          <ul class="report-list" id="health-errors"></ul>
+          <div class="row">
+            <button class="btn secondary" id="btn-health-backup" type="button">Sauvegarder maintenant</button>
+            <button class="btn secondary" id="btn-health-copy" type="button">Copier le rapport</button>
+            <button class="btn ghost" id="btn-health-clear" type="button">Vider le journal</button>
           </div>
-          <button class="btn secondary" id="btn-copy-suggestions" type="button">Copier les propositions à traiter</button>
-          <p class="muted small" id="suggestions-status" role="status"></p>
-          <ul class="report-list" id="suggestion-list"></ul>
         </details>
-        <details class="card fold" data-fold="signalements" id="admin-reports" hidden>
+        <details class="card fold" data-atab="contenu" data-fold="signalements" id="admin-reports" hidden>
           <summary><span class="fold-t"><h2>Réponses signalées</h2><span class="sub">réservé au responsable du jeu</span></span><span class="pm" aria-hidden="true"></span></summary>
           <p class="muted small">Réponses refusées que des joueurs pensent correctes. Transmets la liste pour qu'elles soient vérifiées et ajoutées aux thèmes.</p>
           <div class="tabs" role="tablist" id="report-tabs">
@@ -873,29 +906,24 @@
             <ul class="report-list" id="decisions-result"></ul>
           </details>
         </details>
-        <details class="card fold" data-fold="duels-valider" id="admin-duels" hidden>
-          <summary><span class="fold-t"><h2>Duels à valider</h2><span class="sub" id="duels-valid-sub">terminés, en attente de 2 h 30</span></span><span class="pm" aria-hidden="true"></span></summary>
-          <p class="muted small">La validation rend le résultat visible et attribue les badges, crânes et défis de duel. Elle a lieu seule à 2 h 30 ; « Valider maintenant » la fait tout de suite, après tes signalements.</p>
-          <p class="muted small" id="duels-valid-status" role="status"></p>
-          <ul class="report-list" id="duels-valid-list"></ul>
+        <details class="card fold" data-atab="contenu" data-fold="suggestions" id="admin-suggestions" hidden>
+          <summary><span class="fold-t"><h2>Thèmes proposés</h2><span class="sub">réservé au responsable du jeu</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <div class="tabs" role="tablist" id="suggestion-tabs">
+            <button class="tab active" data-suggestions="pending" type="button" role="tab">À traiter <span id="count-sug-pending"></span></button>
+            <button class="tab" data-suggestions="done" type="button" role="tab">Traités <span id="count-sug-done"></span></button>
+          </div>
+          <button class="btn secondary" id="btn-copy-suggestions" type="button">Copier les propositions à traiter</button>
+          <p class="muted small" id="suggestions-status" role="status"></p>
+          <ul class="report-list" id="suggestion-list"></ul>
         </details>
-        <details class="card fold" data-fold="invitation" id="admin-invite" hidden>
-          <summary><span class="fold-t"><h2>Code d'invitation</h2><span class="sub" id="invite-sub">inscriptions libres</span></span><span class="pm" aria-hidden="true"></span></summary>
-          <p class="muted small">Avec un code, seules les personnes à qui tu le donnes peuvent créer un compte. Les comptes existants ne changent pas. Laisse vide pour rouvrir les inscriptions.</p>
-          <form id="form-invite" class="form">
-            <label>Code <input id="invite-input" maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
-            <button class="btn" type="submit">Enregistrer</button>
-          </form>
-          <p class="muted small" id="invite-status" role="status"></p>
-        </details>
-        <details class="card fold" data-fold="refusees" id="admin-unknown" hidden>
+        <details class="card fold" data-atab="contenu" data-fold="refusees" id="admin-unknown" hidden>
           <summary><span class="fold-t"><h2>Réponses refusées</h2><span class="sub">les saisies les plus fréquentes, pour compléter les thèmes</span></span><span class="pm" aria-hidden="true"></span></summary>
           <p class="muted small">Ce que les joueurs tapent le plus souvent sans être reconnus (forage du jour). Utile pour ajouter des variantes avant même un signalement.</p>
           <button class="btn secondary" id="btn-copy-unknown" type="button">Copier la liste</button>
           <p class="muted small" id="unknown-status" role="status"></p>
           <ul class="report-list" id="unknown-list"></ul>
         </details>
-        <details class="card fold" data-fold="essai" id="admin-probe" hidden>
+        <details class="card fold" data-atab="contenu" data-fold="essai" id="admin-probe" hidden>
           <summary><span class="fold-t"><h2>Tester un thème</h2><span class="sub">voir comment le jeu réagit à une réponse</span></span><span class="pm" aria-hidden="true"></span></summary>
           <p class="muted small">Choisis un thème et tape une ou plusieurs réponses (une par ligne). Rien n'est enregistré, aucun point n'est donné : les points affichés sont ceux qu'une réponse rapporterait aujourd'hui.</p>
           <form id="form-probe" class="form">
@@ -907,19 +935,49 @@
           <p class="muted small" id="probe-status" role="status"></p>
           <ul class="report-list" id="probe-list"></ul>
         </details>
-        <details class="card fold" data-fold="messages-signales" id="admin-msg-reports" hidden>
-          <summary><span class="fold-t"><h2>Messages signalés</h2><span class="sub">messagerie entre joueurs</span></span><span class="pm" aria-hidden="true"></span></summary>
-          <p class="muted small" id="msg-reports-status" role="status"></p>
-          <ul class="report-list" id="msg-reports-list"></ul>
-        </details>
-        <details class="card fold" data-fold="inverse" id="admin-reverse" hidden>
+        <details class="card fold" data-atab="contenu" data-fold="inverse" id="admin-reverse" hidden>
           <summary><span class="fold-t"><h2>Mode inversé</h2><span class="sub">ébauche : retrouver le thème à partir de réponses</span></span><span class="pm" aria-hidden="true"></span></summary>
           <p class="muted small">Le jeu montre les réponses d'un thème une par une, de la plus rare à la plus évidente. Donne des mots-clés pour deviner le thème : chaque proposition ratée révèle l'indice suivant et réduit les points. Rien n'est enregistré dans les forages, les badges ni les podiums.</p>
           <div id="reverse-body"></div>
         </details>
-        <details class="card fold" data-fold="tableau" id="admin-dashboard" hidden>
+        <details class="card fold" data-atab="joueurs" data-fold="suspicions" id="admin-suspicions" hidden>
+          <summary><span class="fold-t"><h2>Suspicions</h2><span class="sub" id="susp-sub">aides extérieures possibles : collage, page quittée, copie</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <p class="muted small">Des indices seulement, jamais des preuves : un appel, une notification ou un très bon dactylo suffisent à en déclencher. Rien n'est bloqué, aucun joueur n'est prévenu.</p>
+          <div class="tabs" role="tablist" id="susp-tabs">
+            <button class="tab" type="button" role="tab" data-susp="7">7 jours</button>
+            <button class="tab active" type="button" role="tab" data-susp="14">14 jours</button>
+            <button class="tab" type="button" role="tab" data-susp="30">30 jours</button>
+          </div>
+          <p class="muted small" id="susp-status" role="status"></p>
+          <ul class="report-list" id="susp-list"></ul>
+          <details class="fold-inner">
+            <summary>Comment lire ces signaux</summary>
+            <p class="muted small">« Collé » : du texte a été collé dans la case de réponse. « Copie » : tentative de copier l'intitulé (bloquée). « Rapide » : réponse rare ou pépite moins de 5 secondes après l'affichage du thème. « Page quittée » : l'application est restée plus de 3 secondes en arrière-plan pendant un thème. Les trois premiers pèsent plus que le dernier. « Plusieurs signaux » : au moins 3 indices forts, ou 1 indice fort avec 4 pages quittées ; « À observer » : un indice fort, ou 4 pages quittées.</p>
+          </details>
+        </details>
+        <details class="card fold" data-atab="joueurs" data-fold="tableau" id="admin-dashboard" hidden>
           <summary><span class="fold-t"><h2>Tableau de bord</h2><span class="sub">réservé au responsable du jeu</span></span><span class="pm" aria-hidden="true"></span></summary>
           <div id="dashboard-body"></div>
+        </details>
+        <details class="card fold" data-atab="joueurs" data-fold="duels-valider" id="admin-duels" hidden>
+          <summary><span class="fold-t"><h2>Duels à valider</h2><span class="sub" id="duels-valid-sub">terminés, en attente de 2 h 30</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <p class="muted small">La validation rend le résultat visible et attribue les badges, crânes et défis de duel. Elle a lieu seule à 2 h 30 ; « Valider maintenant » la fait tout de suite, après tes signalements.</p>
+          <p class="muted small" id="duels-valid-status" role="status"></p>
+          <ul class="report-list" id="duels-valid-list"></ul>
+        </details>
+        <details class="card fold" data-atab="joueurs" data-fold="messages-signales" id="admin-msg-reports" hidden>
+          <summary><span class="fold-t"><h2>Messages signalés</h2><span class="sub">messagerie entre joueurs</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <p class="muted small" id="msg-reports-status" role="status"></p>
+          <ul class="report-list" id="msg-reports-list"></ul>
+        </details>
+        <details class="card fold" data-atab="joueurs" data-fold="invitation" id="admin-invite" hidden>
+          <summary><span class="fold-t"><h2>Code d'invitation</h2><span class="sub" id="invite-sub">inscriptions libres</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <p class="muted small">Avec un code, seules les personnes à qui tu le donnes peuvent créer un compte. Les comptes existants ne changent pas. Laisse vide pour rouvrir les inscriptions.</p>
+          <form id="form-invite" class="form">
+            <label>Code <input id="invite-input" maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+            <button class="btn" type="submit">Enregistrer</button>
+          </form>
+          <p class="muted small" id="invite-status" role="status"></p>
         </details>
       </div>
 

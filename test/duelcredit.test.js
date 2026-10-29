@@ -61,9 +61,11 @@ test("points accordés sur un duel : manche corrigée, résultat révisé, note 
     assert.equal(mine.verdict, 'accepted');
     assert.equal(mine.message, 'Bien vu !');
     assert.match(mine.duel, /Ton duel contre eve a été révisé/);
-    assert.equal((await adam('/api/me')).data.unreadReports, 1, 'retour non lu signalé à l\'accueil');
-    await adam('/api/reports/mine/seen', {});
-    assert.equal((await adam('/api/me')).data.unreadReports, 0);
+    assert.equal((await adam('/api/me')).data.unreadReports, 0, 'le retour arrive dans la messagerie, pas en double sur l\'accueil');
+    const inbox = (await adam('/api/messages')).data;
+    assert.equal(inbox.unread, 1);
+    const note = (await adam(`/api/messages/thread?with=${encodeURIComponent(inbox.conversations[0].username)}`)).data.messages[0].body;
+    assert.match(note, /acceptée\. Bien vu ! \+\d+ points accordés\./);
     const list = (await adam('/api/duels')).data;
     assert.equal(list.results[0].revised, true);
     // Déjà accordé : rien de plus.

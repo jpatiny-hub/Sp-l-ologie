@@ -13,6 +13,8 @@ module.exports = {
   ROUNDS_PER_GAME: 7,
   // Durée pour répondre à un thème (peut être réduite plus tard).
   TIMER_SECONDS: Number(process.env.TIMER_SECONDS) || 30,
+  // Durées proposées en infini et en duel (le forage du jour garde TIMER_SECONDS).
+  TIMER_CHOICES: [15, 30, 60],
   // Marge côté serveur pour absorber la latence réseau.
   TIMER_GRACE_MS: 2500,
   SESSION_DAYS: 90,

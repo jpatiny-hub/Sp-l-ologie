@@ -1,7 +1,7 @@
 'use strict';
 
 const crypto = require('node:crypto');
-const { ROUNDS_PER_GAME, TIMER_SECONDS, TIMER_GRACE_MS } = require('./config');
+const { ROUNDS_PER_GAME, TIMER_SECONDS, TIMER_GRACE_MS, TIMER_CHOICES } = require('./config');
 const { dayKey, addDays, weekStart, monthStart, addMonths, monthEnd } = require('./dates');
 const { transaction } = require('./db');
 const { HttpError } = require('./errors');
@@ -11,6 +11,7 @@ const { loadSpecialDays } = require('./specialdays');
 const config = require('./config');
 const { matchAnswer, toKey, editDistance, nearAnswers } = require('./matching');
 const { labelOf } = require('./titles');
+const { PlaySignals } = require('./suspicion');
 const { scoreAnswer, probabilities, pointsFor, tierFor } = require('./scoring');
 const { BadgeService } = require('./badges');
 const { usernameKey } = require('./auth');
@@ -40,6 +41,7 @@ class GameService {
     this.badges = new BadgeService(db, now);
     this.duels = new DuelService(this);
     this.skulls = new SkullService(db, this);
+    this.signals = new PlaySignals(db, now, themes);
   }
 
   today() {
@@ -123,7 +125,12 @@ class GameService {
     return pool.slice(0, count + extra);
   }
 
-  startGame(userId, mode, { noTimer = false } = {}) {
+  /** Durée du chrono d'une partie, en millisecondes. */
+  timerMsOf(game) {
+    return (game.timer_sec || TIMER_SECONDS) * 1000;
+  }
+
+  startGame(userId, mode, { noTimer = false, timerSec = null } = {}) {
     const day = this.today();
     if (mode === 'daily') {
       const existing = this.dailyGameFor(userId, day);
@@ -133,16 +140,16 @@ class GameService {
     if (mode === 'training') {
       const pool = this.randomThemes(ROUNDS_PER_GAME, 1);
       this.db.prepare("DELETE FROM games WHERE user_id = ? AND mode = 'training'").run(userId);
-      return this.state(this.createGame(userId, 'training', day, pool.slice(0, ROUNDS_PER_GAME), pool[ROUNDS_PER_GAME] || null, { noTimer }), userId);
+      return this.state(this.createGame(userId, 'training', day, pool.slice(0, ROUNDS_PER_GAME), pool[ROUNDS_PER_GAME] || null, { noTimer, timerSec: TIMER_CHOICES.includes(timerSec) ? timerSec : null }), userId);
     }
     throw new HttpError(400, 'Mode de jeu inconnu.');
   }
 
-  createGame(userId, mode, day, themeIds, spare = null, { duelId = null, noTimer = false } = {}) {
+  createGame(userId, mode, day, themeIds, spare = null, { duelId = null, noTimer = false, timerSec = null } = {}) {
     return transaction(this.db, () => {
       const { lastInsertRowid } = this.db
-        .prepare('INSERT INTO games (user_id, mode, day, created_at, spare_theme, duel_id, no_timer) VALUES (?, ?, ?, ?, ?, ?, ?)')
-        .run(userId, mode, day, this.now(), spare, duelId, noTimer ? 1 : 0);
+        .prepare('INSERT INTO games (user_id, mode, day, created_at, spare_theme, duel_id, no_timer, timer_sec) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+        .run(userId, mode, day, this.now(), spare, duelId, noTimer ? 1 : 0, timerSec);
       const gameId = Number(lastInsertRowid);
       const insert = this.db.prepare('INSERT INTO rounds (game_id, slot, theme_id) VALUES (?, ?, ?)');
       themeIds.forEach((id, slot) => insert.run(gameId, slot, id));
@@ -161,7 +168,7 @@ class GameService {
   expireIfNeeded(game, rounds) {
     const current = rounds.find((r) => r.answered_at == null);
     if (game.no_timer) return false;
-    if (current && current.served_at != null && this.now() > current.served_at + this.timerMs + TIMER_GRACE_MS) {
+    if (current && current.served_at != null && this.now() > current.served_at + this.timerMsOf(game) + TIMER_GRACE_MS) {
       this.finishRound(game, current, { outcome: 'timeout', points: 0 });
       return true;
     }
@@ -194,7 +201,7 @@ class GameService {
         .prepare('UPDATE games SET score = score + ?, finished_at = ? WHERE id = ?')
         .run(points, remaining === 0 ? now : null, game.id);
       // Le mode « à l'aise » (sans chrono) ne compte ni pour les badges ni pour les statistiques.
-      if (game.mode === 'training' && !game.no_timer) this.recordTraining(game, round, { outcome, points, answer }, remaining === 0);
+      if (game.mode === 'training' && !game.no_timer && !game.timer_sec) this.recordTraining(game, round, { outcome, points, answer }, remaining === 0);
       return remaining === 0;
     });
     if (answer && outcome === 'answer' && this.skulls.isSkullDay(game.day)) {
@@ -567,13 +574,13 @@ class GameService {
       finished,
       noTimer: !!game.no_timer,
       duel,
-      timerSeconds: TIMER_SECONDS,
+      timerSeconds: game.timer_sec || TIMER_SECONDS,
       // Joker : on peut changer gratuitement un thème par partie ; ensuite, passer coûte le thème.
       joker: { available: !finished && !!this.spareFor(game) && !!current, used: !!game.joker_used },
       rounds: rounds.map((r) => this.roundView(r, game)),
       dayScores: finished && game.mode === 'daily' ? this.dayScores(game.day) : null,
       current: current
-        ? { slot: current.slot, remainingMs: game.no_timer ? null : Math.max(0, current.served_at + this.timerMs - this.now()) }
+        ? { slot: current.slot, remainingMs: game.no_timer ? null : Math.max(0, current.served_at + this.timerMsOf(game) - this.now()) }
         : null,
     };
   }
@@ -611,7 +618,7 @@ class GameService {
    * le jeu propose la réponse reconnue (`confirm`) : le joueur la renvoie dans `accept` pour valider,
    * ou envoie `reject` pour la refuser et tenter autre chose.
    */
-  answer(gameId, userId, text, { accept = null, reject = false, hints = false } = {}) {
+  answer(gameId, userId, text, { accept = null, reject = false, hints = false, sig = null } = {}) {
     const input = typeof text === 'string' ? text.trim().slice(0, 80) : '';
     if (!input) throw new HttpError(400, 'Réponse vide.');
     const { game, round } = this.activeRound(gameId, userId);
@@ -621,11 +628,12 @@ class GameService {
       state: this.state(gameId, userId),
     });
 
-    if (!game.no_timer && this.now() > round.served_at + this.timerMs + TIMER_GRACE_MS) {
+    if (!game.no_timer && this.now() > round.served_at + this.timerMsOf(game) + TIMER_GRACE_MS) {
       this.finishRound(game, round, { outcome: 'timeout', points: 0 });
       return resultFor('timeout');
     }
 
+    this.signals.record(game, round, input, sig);
     const theme = this.themes.get(round.theme_id);
     const match = theme ? matchAnswer(theme, input) : null;
     if (!match || (match.approximate && reject)) {
@@ -1028,15 +1036,36 @@ class GameService {
     return { points, answer: answer.label, previous: previous && { answer: previous.label, points: previous.points }, score: this.db.prepare('SELECT score FROM games WHERE id = ?').get(game.id).score };
   }
 
-  /** Retour du responsable aux joueurs ayant signalé cette saisie : verdict et message (modifiable). */
+  /** Retour du responsable aux joueurs ayant signalé cette saisie : verdict et message (modifiable), aussi envoyé dans leur messagerie. */
   replyToReport(themeId, inputKey, verdict, message) {
     if (verdict !== 'accepted' && verdict !== 'refused') throw new HttpError(400, 'Choisis « acceptée » ou « refusée ».');
     const text = String(message || '').trim().slice(0, 600);
+    const before = this.db.prepare('SELECT user_id, input, verdict, message, credit, points FROM answer_reports WHERE theme_id = ? AND input_key = ?').all(themeId, inputKey);
     const res = this.db
       .prepare('UPDATE answer_reports SET verdict = ?, message = ?, updated_at = ? WHERE theme_id = ? AND input_key = ?')
       .run(verdict, text || null, this.now(), themeId, inputKey);
     if (!res.changes) throw new HttpError(404, 'Signalement introuvable.');
+    for (const r of before) {
+      if (r.verdict === verdict && (r.message || '') === text) continue;
+      this.tellReporter(r.user_id, themeId, r.input, verdict, text, r.credit === 'credited' ? r.points : null);
+    }
     return { ok: true };
+  }
+
+  /** Le Contremaître écrit au joueur le résultat de son signalement (sans effet si la messagerie n'est pas branchée). */
+  tellReporter(userId, themeId, input, verdict, message, points) {
+    if (!this.notify) return;
+    const theme = this.themes.get(themeId);
+    const parts = [`Ton signalement « ${input} »${theme ? ` (${theme.title})` : ''} : ${verdict === 'accepted' ? 'acceptée' : 'refusée'}.`];
+    if (message) parts.push(message);
+    if (verdict === 'accepted' && points) parts.push(`+${points} points accordés.`);
+    try {
+      this.notify(userId, parts.join(' '));
+      // Le retour est déjà dans la messagerie : pas de second rappel sur l'accueil.
+      this.db.prepare('UPDATE answer_reports SET seen_at = updated_at WHERE user_id = ? AND theme_id = ? AND input = ?').run(userId, themeId, input);
+    } catch (err) {
+      console.error('Message du contremaître impossible :', err.message);
+    }
   }
 
   /** Les signalements d'un joueur, avec le retour reçu ; `unread` compte ceux dont le retour n'a pas été vu. */
@@ -1075,10 +1104,13 @@ class GameService {
     const recognised = theme && reports.length && matchAnswer(theme, reports[0].input);
     if (recognised) reports.forEach((r) => this.badges.awardLynx(r.user_id, this.today()));
     if (recognised) {
-      // Les joueurs reçoivent un retour (et un point rouge), sans écraser un retour déjà rédigé.
+      // Les joueurs reçoivent un retour (dans leur messagerie), sans écraser un retour déjà rédigé.
+      const note = 'Réponse ajoutée au thème : merci pour ton signalement !';
+      const waiting = this.db.prepare('SELECT user_id, input FROM answer_reports WHERE theme_id = ? AND input_key = ? AND verdict IS NULL').all(themeId, inputKey);
       this.db
-        .prepare("UPDATE answer_reports SET verdict = 'accepted', message = 'Réponse ajoutée au thème : merci pour ton signalement !', updated_at = ? WHERE theme_id = ? AND input_key = ? AND verdict IS NULL")
-        .run(this.now(), themeId, inputKey);
+        .prepare("UPDATE answer_reports SET verdict = 'accepted', message = ?, updated_at = ? WHERE theme_id = ? AND input_key = ? AND verdict IS NULL")
+        .run(note, this.now(), themeId, inputKey);
+      for (const r of waiting) this.tellReporter(r.user_id, themeId, r.input, 'accepted', note, null);
     }
     this.db
       .prepare('UPDATE answer_reports SET handled_at = ? WHERE theme_id = ? AND input_key = ? AND handled_at IS NULL')
@@ -1157,7 +1189,7 @@ class GameService {
 
   skip(gameId, userId) {
     const { game, round } = this.activeRound(gameId, userId);
-    const expired = !game.no_timer && this.now() >= round.served_at + this.timerMs;
+    const expired = !game.no_timer && this.now() >= round.served_at + this.timerMsOf(game);
     const spare = expired ? null : this.spareFor(game);
     if (spare && this.themes.get(spare)) {
       // Joker : le thème est remplacé (le même thème de remplacement pour tout le monde) et son chrono repart.

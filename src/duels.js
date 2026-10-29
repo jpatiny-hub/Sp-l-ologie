@@ -17,7 +17,10 @@ const Avatar = require('./avatar');
  */
 const DUEL_TTL_MS = 3 * 24 * 3600 * 1000;
 const MAX_OPEN = 5;
-const MODES = ['standard', 'aise'];
+// « éclair » : 15 secondes par thème, « long » : 60 secondes, « à l'aise » : sans chrono.
+const MODES = ['standard', 'aise', 'eclair', 'long'];
+const TIMER_OF = { eclair: 15, long: 60 };
+const MODE_LABEL = { standard: 'standard', aise: "à l'aise", eclair: 'éclair, 15 secondes', long: 'long, 60 secondes' };
 const HOUR = 3600 * 1000;
 
 /** « 3 jours », « 30 heures », « moins d'une heure » : le temps qu'il reste, en toutes lettres. */
@@ -71,7 +74,7 @@ class DuelService {
   announce(d) {
     if (d.notice_at != null) return;
     this.db.prepare('UPDATE duels SET notice_at = ? WHERE id = ?').run(this.now(), d.id);
-    const mode = d.mode === 'aise' ? 'à l\'aise' : 'standard';
+    const mode = MODE_LABEL[d.mode] || 'standard';
     this.tell(
       d.opponent_id,
       `${this.name(d.challenger_id)} te défie en duel (${mode}). Tu as ${leftText(d.expires_at - this.now())} pour jouer ton tour, sinon tu seras forfait.`,
@@ -145,7 +148,7 @@ class DuelService {
     });
     let gameId;
     try {
-      gameId = this.game.createGame(userId, 'duel', this.game.today(), themeIds, null, { duelId, noTimer: mode === 'aise' });
+      gameId = this.game.createGame(userId, 'duel', this.game.today(), themeIds, null, { duelId, noTimer: mode === 'aise', timerSec: TIMER_OF[mode] || null });
     } catch (err) {
       this.db.prepare('DELETE FROM duels WHERE id = ?').run(duelId);
       throw err;
@@ -171,7 +174,7 @@ class DuelService {
     const theirs = this.db.prepare('SELECT finished_at FROM games WHERE id = ?').get(d.challenger_game_id);
     if (!theirs || theirs.finished_at == null) throw new HttpError(409, "Ton adversaire n'a pas encore fini sa partie.");
     const themeIds = this.db.prepare('SELECT theme_id FROM duel_themes WHERE duel_id = ? ORDER BY slot').all(duelId).map((r) => r.theme_id);
-    const gameId = this.game.createGame(userId, 'duel', this.game.today(), themeIds, null, { duelId, noTimer: d.mode === 'aise' });
+    const gameId = this.game.createGame(userId, 'duel', this.game.today(), themeIds, null, { duelId, noTimer: d.mode === 'aise', timerSec: TIMER_OF[d.mode] || null });
     this.db.prepare('UPDATE duels SET opponent_game_id = ? WHERE id = ?').run(gameId, duelId);
     return this.game.state(gameId, userId);
   }
