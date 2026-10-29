@@ -42,6 +42,7 @@
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
   for (const flag of BETA_FLAGS) settings[flag] = true;
   settings.betaHd = false; // essai du style HD-2D : réservé au responsable, désactivé au départ
+  settings.betaMole16 = false; // essai de la taupe en 16 bits (réagit au toucher) : réservé au responsable, désactivé au départ
   // Ambiance sonore : coups de pioche, grondement, musiques d'accueil, bruits de boutons et chrono sonore, au choix de chaque joueur : coups de pioche, grondement et musique « Galerie » activés au départ, le reste non.
   const AMBIENT_FLAGS = ['labTaps', 'labRumble'];
   const LAB_FLAGS = [...AMBIENT_FLAGS, 'labTabs', 'labClicks', 'labTimer'];
@@ -91,6 +92,8 @@
   // Nouveau look : pour tous les joueurs ; le responsable peut en retirer des morceaux dans les réglages pour comparer.
   /** Essai du style HD-2D (lumière, profondeur, nouvelle interface) : uniquement pour le responsable qui l'active. */
   const hdOn = () => !!(app.me && app.me.isAdmin && settings.betaHd);
+  /** Essai de la taupe en 16 bits : uniquement pour le responsable qui l'active. */
+  const mole16On = () => !!(app.me && app.me.isAdmin && settings.betaMole16 && window.Mole16);
   const betaOn = (name) => !!(app.me && (!app.me.isAdmin || settings[name]));
 
   const isHalloween = () => document.documentElement.dataset.season === 'halloween';
@@ -124,6 +127,7 @@
     applySeason();
     root.toggleAttribute('data-hd', hdOn());
     Pixel.setHd(hdOn());
+    root.toggleAttribute('data-mole16', mole16On());
     root.classList.toggle('colorblind', settings.colors !== 'normal');
     if (settings.colors === 'normal') delete root.dataset.colors;
     else root.dataset.colors = settings.colors;
@@ -186,6 +190,7 @@
   scene.setLayers([], false);
   applySettings();
   initFolds('view-home');
+  initMole16();
   $('challenge-card').addEventListener('toggle', () => {
     if ($('challenge-card').open) {
       renderCollective();
@@ -271,6 +276,7 @@
     $('beta-box').hidden = !(app.me && app.me.isAdmin);
     $('hd-box').hidden = $('beta-box').hidden;
     settingsForm.elements.betaHd.checked = !!settings.betaHd;
+    settingsForm.elements.betaMole16.checked = !!settings.betaMole16;
     renderVersions();
     for (const name of BETA_FLAGS) settingsForm.elements[name].checked = !!settings[name];
     $('lab-box').hidden = !app.me;
@@ -318,6 +324,7 @@
     settings.season = settingsForm.elements.season.checked;
     for (const name of BETA_FLAGS) settings[name] = settingsForm.elements[name].checked;
     settings.betaHd = settingsForm.elements.betaHd.checked;
+    settings.betaMole16 = settingsForm.elements.betaMole16.checked;
     for (const name of LAB_FLAGS) settings[name] = settingsForm.elements[name].checked;
     settings.labMusic = settingsForm.elements.labMusic.value || '';
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
@@ -992,7 +999,8 @@
     '................',
   ];
   const OX = 4; // la taupe occupe les colonnes 4 à 19 d'un canevas de 24 × 16 ; les outils dépassent de chaque côté
-  function drawMascot(canvas, mood) {
+  function drawMascot(canvas, mood, gaze) {
+    if (mole16On()) return Mole16.draw(canvas, mood, gaze);
     canvas.width = 24;
     canvas.height = 16;
     const rows = MOLE.map((r) => r.split(''));
@@ -1075,6 +1083,81 @@
     drawMascot(box.querySelector('canvas'), MOLE_MOODS[event] || 'idle');
     box.querySelector('.bubble').textContent = text;
     box.dataset.mood = MOLE_MOODS[event] || 'idle';
+    box.dataset.event = event;
+    box.dataset.where = where;
+  }
+
+  // ---------- Taupe 16 bits (essai) : le regard suit le doigt, un toucher la fait réagir ----------
+  const moleGaze = { x: 0, y: 0 };
+  const POKE_LINES = ['Hihi, ça chatouille !', 'Aïe ! Mon casque !', 'Oui, mineur ?', 'Tu as trouvé mon point faible…', 'On creuse ou on papote ?', 'Pas touche à la lampe !', 'Je ne suis pas un caillou !', 'Encore ? Là, tu me gênes.', 'Toc toc ! C\'est la taupe.'];
+  const POKE_MOODS = ['happy', 'sad', 'look', 'happy', 'look', 'sad', 'happy', 'sad', 'happy'];
+  /** Relance une animation CSS d'une classe sur l'élément (retire, force le calcul, remet). */
+  function replayClass(node, name) {
+    node.classList.remove(name);
+    void node.offsetWidth;
+    node.classList.add(name);
+  }
+  /** Redessine la taupe d'accueil / de profil avec une humeur et un regard donnés. */
+  function moleRedraw(mascot, mood) {
+    const open = mascot.querySelector('.m-open');
+    if (open) drawMascot(open, mood, moleGaze);
+  }
+  function molePoke(mascot) {
+    if (!mole16On()) return;
+    app.molePokes = (app.molePokes || 0) + 1;
+    const sleeping = mascot.dataset.mood === 'sleep';
+    if (!mascot.dataset.base) mascot.dataset.base = mascot.dataset.mood || 'idle';
+    let i = app.molePokes % POKE_LINES.length;
+    let mood = POKE_MOODS[i];
+    let text = POKE_LINES[i];
+    if (sleeping) { mood = 'look'; text = 'Hein ? Quoi ? Je ne dormais pas !'; }
+    else if (app.molePokes % 10 === 0) { mood = 'stars'; text = 'Tu es mon mineur préféré !'; }
+    mascot.dataset.mood = mood === 'happy' || mood === 'stars' ? 'happy' : mood;
+    moleRedraw(mascot, mood);
+    replayClass(mascot, 'poked');
+    Sound.click('valid');
+    let say = mascot.querySelector('.m-say');
+    if (!say) { say = el('span', { class: 'm-say', 'aria-hidden': 'true' }); mascot.append(say); }
+    say.textContent = text;
+    say.hidden = false;
+    clearTimeout(mascot.pokeTimer);
+    mascot.pokeTimer = setTimeout(() => {
+      say.hidden = true;
+      mascot.dataset.mood = mascot.dataset.base;
+      moleRedraw(mascot, mascot.dataset.base);
+    }, 2400);
+  }
+  function initMole16() {
+    let frame = 0;
+    document.addEventListener('pointermove', (e) => {
+      if (!mole16On() || frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        for (const mascot of document.querySelectorAll('.beta-mascot')) {
+          const rect = mascot.getBoundingClientRect();
+          if (!rect.width || mascot.dataset.mood === 'sleep' || mascot.querySelector('.m-say:not([hidden])')) continue;
+          const dx = e.clientX - (rect.left + rect.width / 2);
+          const dy = e.clientY - (rect.top + rect.height / 2);
+          const gx = dx > 50 ? 1 : dx < -50 ? -1 : 0;
+          const gy = dy > 40 ? 1 : 0;
+          if (gx === moleGaze.x && gy === moleGaze.y) return;
+          moleGaze.x = gx;
+          moleGaze.y = gy;
+          for (const m of document.querySelectorAll('.beta-mascot')) if (m.dataset.mood !== 'sleep') moleRedraw(m, m.dataset.base || m.dataset.mood);
+          return;
+        }
+      });
+    });
+    document.addEventListener('click', (e) => {
+      if (!mole16On()) return;
+      const mascot = e.target.closest && e.target.closest('.beta-mascot');
+      if (mascot) return void molePoke(mascot);
+      const box = e.target.closest && e.target.closest('.game-mole');
+      if (box && box.dataset.event) {
+        replayClass(box, 'poked');
+        moleSay(box.dataset.where, box.dataset.event);
+      }
+    });
   }
   const moleEventFor = (tierId) => ({ evident: 'low', courant: 'low', original: 'mid', rare: 'high', pepite: 'pepite', skip: 'skip', timeout: 'timeout' })[tierId] || 'low';
 
@@ -1187,6 +1270,7 @@
     canvas.height = 16;
     ctx.clearRect(0, 0, 24, 16);
     ACTIVITIES[id].draw(ctx);
+    if (mole16On()) Mole16.scaleTool(canvas);
   }
 
   /** Heure (0 à 23) à Bruxelles. */
@@ -1461,10 +1545,11 @@
     const activity = ACTIVITIES[app.mascotActivity];
     if (withMascot) {
       const mood = activity.mood || (hour < 6 ? 'sleep' : 'idle');
-      drawMascot($('mascot-open'), mood);
-      drawMascot($('mascot-blink'), mood === 'look' ? 'look' : 'blink');
+      drawMascot($('mascot-open'), mood, moleGaze);
+      drawMascot($('mascot-blink'), mood === 'look' ? 'look' : 'blink', moleGaze);
       drawActivity($('mascot-tool'), app.mascotActivity);
       mascot.dataset.mood = mood;
+      mascot.dataset.base = mood;
       mascot.dataset.anim = activity.anim || '';
       mascot.title = activity.say;
     }
@@ -3230,10 +3315,11 @@
     const mole = $('pf-mole');
     const [open, blink, tool] = mole.querySelectorAll('canvas');
     const mood = activity.mood || 'idle';
-    drawMascot(open, mood);
-    drawMascot(blink, mood === 'look' ? 'look' : 'blink');
+    drawMascot(open, mood, moleGaze);
+    drawMascot(blink, mood === 'look' ? 'look' : 'blink', moleGaze);
     drawActivity(tool, app.mascotActivity);
     mole.dataset.mood = mood;
+    mole.dataset.base = mood;
     mole.dataset.anim = activity.anim || '';
   }
 
