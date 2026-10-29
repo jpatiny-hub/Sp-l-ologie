@@ -41,6 +41,7 @@
   const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false, btn: 'normal', onehand: false, contrast: false, calm: false, mole: true };
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
   for (const flag of BETA_FLAGS) settings[flag] = true;
+  settings.betaHd = false; // essai du style HD-2D : réservé au responsable, désactivé au départ
   // Ambiance sonore : coups de pioche, grondement, musiques d'accueil, bruits de boutons et chrono sonore, au choix de chaque joueur : coups de pioche, grondement et musique « Galerie » activés au départ, le reste non.
   const AMBIENT_FLAGS = ['labTaps', 'labRumble'];
   const LAB_FLAGS = [...AMBIENT_FLAGS, 'labTabs', 'labClicks', 'labTimer'];
@@ -88,6 +89,8 @@
   /** Nouveautés à l'essai : réservées au responsable du jeu, une par une. */
   const labOn = (name) => !!(app.me && settings[name]);
   // Nouveau look : pour tous les joueurs ; le responsable peut en retirer des morceaux dans les réglages pour comparer.
+  /** Essai du style HD-2D (lumière, profondeur, nouvelle interface) : uniquement pour le responsable qui l'active. */
+  const hdOn = () => !!(app.me && app.me.isAdmin && settings.betaHd);
   const betaOn = (name) => !!(app.me && (!app.me.isAdmin || settings[name]));
 
   const isHalloween = () => document.documentElement.dataset.season === 'halloween';
@@ -119,6 +122,8 @@
     Sound.configure({ enabled: settings.sound, volume: settings.volume / 100 });
     Pixel.setColorblind(settings.colors);
     applySeason();
+    root.toggleAttribute('data-hd', hdOn());
+    Pixel.setHd(hdOn());
     root.classList.toggle('colorblind', settings.colors !== 'normal');
     if (settings.colors === 'normal') delete root.dataset.colors;
     else root.dataset.colors = settings.colors;
@@ -264,6 +269,8 @@
     settingsForm.elements.season.checked = settings.season !== false;
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
     $('beta-box').hidden = !(app.me && app.me.isAdmin);
+    $('hd-box').hidden = $('beta-box').hidden;
+    settingsForm.elements.betaHd.checked = !!settings.betaHd;
     renderVersions();
     for (const name of BETA_FLAGS) settingsForm.elements[name].checked = !!settings[name];
     $('lab-box').hidden = !app.me;
@@ -310,6 +317,7 @@
     settings.lisible = settingsForm.elements.lisible.checked;
     settings.season = settingsForm.elements.season.checked;
     for (const name of BETA_FLAGS) settings[name] = settingsForm.elements[name].checked;
+    settings.betaHd = settingsForm.elements.betaHd.checked;
     for (const name of LAB_FLAGS) settings[name] = settingsForm.elements[name].checked;
     settings.labMusic = settingsForm.elements.labMusic.value || '';
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
