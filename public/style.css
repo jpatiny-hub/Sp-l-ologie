@@ -1711,3 +1711,19 @@ html[data-galerie] .beta-mascot canvas { width: 84px; height: 56px; }
 html[data-galerie] .hero-row { margin-bottom: 4px; }
 html[data-galerie] .btn { padding: 9px 8px; font-size: calc(10px * var(--fs)); box-shadow: inset 3px 3px 0 rgba(255, 230, 168, 0.8), inset -3px -3px 0 rgba(120, 70, 10, 0.7), 0 0 14px rgba(255, 170, 50, 0.35); }
 html[data-galerie] .bottom-nav { background: rgba(14, 13, 17, 0.9); border-top: 3px solid rgba(150, 140, 160, 0.6); }
+
+/* Accueil « Camp de base » : une scène et peu de blocs. Le podium et les défis passent dans la barre du bas ; badges, profil en double et décompte bruyant disparaissent. */
+html:not([data-galerie]) #bottom-nav [data-nav='podium'], html:not([data-galerie]) #bottom-nav [data-nav='defis'] { display: none; }
+html[data-galerie] #bottom-nav [data-nav='messages'] { display: none; }
+html[data-galerie] .podium-card, html[data-galerie] .hero-player, html[data-galerie] .profile-card .home-profile, html[data-galerie] #next-badges,
+html[data-galerie] #btn-carnet, html[data-galerie] #streak-note, html[data-galerie] #today-date { display: none !important; }
+html[data-galerie] #next-reset { font-size: calc(15px * var(--fs)); color: var(--muted); opacity: 0.7; margin: 6px 0 0; }
+html[data-galerie] .profile-card .home-chips { margin: 0; }
+html[data-galerie] .bottom-nav button { padding-left: 0; padding-right: 0; }
+html[data-galerie] .nav-lab { font-size: 7px; }
+html[data-galerie] dialog.drawer .drawer-frame { background: rgba(24, 22, 28, 0.92); }
+html[data-galerie] #defis-sheet-body canvas { max-width: 100%; height: auto !important; }
+html[data-galerie] .profile-card .streak-lantern { width: 40px; height: 40px; image-rendering: pixelated; }
+html[data-galerie] .profile-card .freeze-icon { width: 24px; height: 24px; }
+html[data-galerie] .profile-card .home-chips { gap: 18px; align-items: center; }
+html[data-galerie] #today-status:empty { display: none; }
