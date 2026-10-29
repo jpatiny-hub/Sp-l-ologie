@@ -10,7 +10,7 @@ Détails du jeu : `README.md`. Idées en attente : `IDEES.md`.
 - Les mesures anti-triche ne sont jamais annoncées aux joueurs.
 - Thèmes : ne jamais écraser un fichier existant ; le titre ne cite pas d'exemples de réponses ; garder les formes « Méga » des Pokémon.
 - Résultats de duel cachés jusqu'à la validation ; les réactions de la mascotte en duel restent neutres (elles ne révèlent jamais la rareté).
-- Les essais sonores (labo) restent réservés au responsable ; les nouveautés se testent d'abord chez lui (bêta) avant tout le monde.
+- L'ambiance sonore (coups de pioche, grondement, musiques, bruits de boutons, chrono sonore) est ouverte à tous depuis le 29 octobre ; coups de pioche, grondement et musique « Galerie » sont activés par défaut. Les autres nouveautés se testent d'abord chez le responsable (bêta) avant tout le monde.
 - Évite les minuteries inutiles. Ne notifie pas les joueurs sans demande explicite.
 
 ## Architecture
