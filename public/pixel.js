@@ -947,6 +947,307 @@
     return out;
   }
 
+  /** Lissage « Scale2x » : double la définition en arrondissant les diagonales (voir hdUpgrade). */
+  function epx1(src) {
+    const w = src.width;
+    const h = src.height;
+    const sd = src.getContext('2d').getImageData(0, 0, w, h);
+    const out = document.createElement('canvas');
+    out.width = w * 2;
+    out.height = h * 2;
+    const octx = out.getContext('2d');
+    const od = octx.createImageData(w * 2, h * 2);
+    const S = new Uint32Array(sd.data.buffer);
+    const O = new Uint32Array(od.data.buffer);
+    const px = (x, y) => S[Math.max(0, Math.min(h - 1, y)) * w + Math.max(0, Math.min(w - 1, x))];
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        const P = S[y * w + x];
+        const A = px(x, y - 1);
+        const B = px(x + 1, y);
+        const C = px(x - 1, y);
+        const D = px(x, y + 1);
+        let p1 = P;
+        let p2 = P;
+        let p3 = P;
+        let p4 = P;
+        if (C === A && C !== D && A !== B) p1 = A;
+        if (A === B && A !== C && B !== D) p2 = B;
+        if (D === C && D !== B && C !== A) p3 = C;
+        if (B === D && B !== A && D !== C) p4 = D;
+        const i = y * 2 * w * 2 + x * 2;
+        O[i] = p1;
+        O[i + 1] = p2;
+        O[i + w * 2] = p3;
+        O[i + w * 2 + 1] = p4;
+      }
+    }
+    octx.putImageData(od, 0, 0);
+    return out;
+  }
+
+  function boxBlur(src, w, h, r) {
+    const tmp = new Float32Array(w * h);
+    const out = new Float32Array(w * h);
+    const k = 1 / (2 * r + 1);
+    for (let y = 0; y < h; y++) {
+      const o = y * w;
+      let acc = 0;
+      for (let x = -r; x <= r; x++) acc += src[o + Math.min(w - 1, Math.max(0, x))];
+      for (let x = 0; x < w; x++) {
+        tmp[o + x] = acc * k;
+        acc += src[o + Math.min(w - 1, x + r + 1)] - src[o + Math.max(0, x - r)];
+      }
+    }
+    for (let x = 0; x < w; x++) {
+      let acc = 0;
+      for (let y = -r; y <= r; y++) acc += tmp[Math.min(h - 1, Math.max(0, y)) * w + x];
+      for (let y = 0; y < h; y++) {
+        out[y * w + x] = acc * k;
+        acc += tmp[Math.min(h - 1, y + r + 1) * w + x] - tmp[Math.max(0, y - r) * w + x];
+      }
+    }
+    return out;
+  }
+
+  /**
+   * Redessine un sprite pixel art en haute définition (4 fois plus fin) : diagonales arrondies, volume (lumière venant d'en haut
+   * à gauche, reflets sur les parties claires), contour sombre net. Le résultat contient une marge `pad` (en pixels du sprite).
+   */
+  function hdUpgrade(src) {
+    const P = 1;
+    const w = src.width + 2 * P;
+    const h = src.height + 2 * P;
+    const padded = document.createElement('canvas');
+    padded.width = w;
+    padded.height = h;
+    padded.getContext('2d').drawImage(src, P, P);
+    const big = epx1(epx1(padded));
+    const bw = w * 4;
+    const bh = h * 4;
+    const bctx = big.getContext('2d');
+    const img = bctx.getImageData(0, 0, bw, bh);
+    const d = img.data;
+    const solid = new Float32Array(bw * bh);
+    for (let j = 0; j < solid.length; j++) solid[j] = d[j * 4 + 3] > 127 ? 1 : 0;
+    const hgt = boxBlur(boxBlur(solid, bw, bh, 4), bw, bh, 3);
+    const lx = -0.45;
+    const ly = -0.55;
+    const lz = 0.7;
+    const ll = Math.hypot(lx, ly, lz);
+    const L = [lx / ll, ly / ll, lz / ll];
+    const hv = [L[0], L[1], L[2] + 1];
+    const hl = Math.hypot(hv[0], hv[1], hv[2]);
+    const H = [hv[0] / hl, hv[1] / hl, hv[2] / hl];
+    const at = (x, y) => hgt[Math.max(0, Math.min(bh - 1, y)) * bw + Math.max(0, Math.min(bw - 1, x))];
+    for (let y = 0; y < bh; y++) {
+      for (let x = 0; x < bw; x++) {
+        const j = y * bw + x;
+        const i = j * 4;
+        if (!solid[j]) continue;
+        const nx = -(at(x + 1, y) - at(x - 1, y)) * 6;
+        const ny = -(at(x, y + 1) - at(x, y - 1)) * 6;
+        const nl = Math.hypot(nx, ny, 1);
+        const n = [nx / nl, ny / nl, 1 / nl];
+        const diff = Math.max(0, n[0] * L[0] + n[1] * L[1] + n[2] * L[2]);
+        let f = 0.66 + 0.55 * diff - 0.06 * (y / bh);
+        if (hgt[j] < 0.55) f *= 0.9;
+        f = Math.round(f * 10) / 10;
+        const lum = d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11;
+        const spec = lum > 140 ? Math.pow(Math.max(0, n[0] * H[0] + n[1] * H[1] + n[2] * H[2]), 24) * 55 : 0;
+        d[i] = Math.max(0, Math.min(255, d[i] * f + spec));
+        d[i + 1] = Math.max(0, Math.min(255, d[i + 1] * f + spec));
+        d[i + 2] = Math.max(0, Math.min(255, d[i + 2] * f + spec));
+      }
+    }
+    // Contour sombre autour de la silhouette.
+    const ring = [[-2, 0], [2, 0], [0, -2], [0, 2], [-1, -1], [1, -1], [-1, 1], [1, 1], [-1, 0], [1, 0], [0, -1], [0, 1]];
+    for (let y = 0; y < bh; y++) {
+      for (let x = 0; x < bw; x++) {
+        const j = y * bw + x;
+        if (solid[j]) continue;
+        for (const [dx, dy] of ring) {
+          const xx = x + dx;
+          const yy = y + dy;
+          if (xx >= 0 && yy >= 0 && xx < bw && yy < bh && solid[yy * bw + xx]) {
+            const i = j * 4;
+            d[i] = 10;
+            d[i + 1] = 8;
+            d[i + 2] = 14;
+            d[i + 3] = 235;
+            break;
+          }
+        }
+      }
+    }
+    bctx.putImageData(img, 0, 0);
+    return { canvas: big, pad: P };
+  }
+
+  /** Visage du joueur redessiné une fois pour le hublot (mis en cache par sprite). */
+  const faceCache = new WeakMap();
+  function hdFace(sprite) {
+    let f = faceCache.get(sprite);
+    if (!f) {
+      f = hdUpgrade(sprite);
+      faceCache.set(sprite, f);
+    }
+    return f;
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  /**
+   * Foreuse classique redessinée en haute définition (mode HD-2D) : carrosserie dégradée à rivets, hublot en verre avec le visage du joueur,
+   * jupe d'acier et foret à spirale animé. (x0, bodyTop, tip) en pixels du jeu, k = facteur d'agrandissement.
+   */
+  function drawDrillHd(ctx, k, x0, bodyTop, tip, time, drilling, face) {
+    const X = (v) => (x0 + v) * k;
+    const Y = (v) => (bodyTop + v) * k;
+    const ink = '#15121a';
+    ctx.save();
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 0.9 * k;
+    ctx.strokeStyle = ink;
+
+    // Mât et feu orange clignotant.
+    ctx.fillStyle = '#8d96a6';
+    ctx.fillRect(X(7.4), Y(0.6), 1.2 * k, 2 * k);
+    ctx.strokeRect(X(7.4), Y(0.6), 1.2 * k, 2 * k);
+    const blink = Math.floor(time * 3) % 2 === 0;
+    ctx.fillStyle = blink ? '#ffb347' : '#a8631c';
+    ctx.beginPath();
+    ctx.arc(X(8), Y(0.6), 1.1 * k, 0, 7);
+    ctx.fill();
+    ctx.stroke();
+
+    // Jupe d'acier.
+    let g = ctx.createLinearGradient(0, Y(11), 0, Y(14));
+    g.addColorStop(0, '#c9d0da');
+    g.addColorStop(1, '#6c7480');
+    ctx.fillStyle = g;
+    roundRect(ctx, X(2.6), Y(11), 10.8 * k, 3 * k, 0.8 * k);
+    ctx.fill();
+    ctx.stroke();
+
+    // Carrosserie.
+    g = ctx.createLinearGradient(0, Y(2), 0, Y(12));
+    g.addColorStop(0, '#ffe27a');
+    g.addColorStop(0.35, '#f6bd2a');
+    g.addColorStop(1, '#b97c14');
+    ctx.fillStyle = g;
+    roundRect(ctx, X(0.6), Y(2), 14.8 * k, 9.6 * k, 2.2 * k);
+    ctx.fill();
+    ctx.stroke();
+    // Reflet sur le dessus, bande de sécurité et rivets.
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    roundRect(ctx, X(2), Y(2.6), 12 * k, 1 * k, 0.5 * k);
+    ctx.fill();
+    ctx.save();
+    roundRect(ctx, X(0.6), Y(9.3), 14.8 * k, 2.3 * k, 1 * k);
+    ctx.clip();
+    ctx.fillStyle = '#15121a';
+    ctx.fillRect(X(0.6), Y(9.3), 14.8 * k, 2.3 * k);
+    ctx.fillStyle = '#f2c230';
+    for (let i = -2; i < 9; i++) {
+      ctx.beginPath();
+      ctx.moveTo(X(0.6 + i * 2), Y(11.6));
+      ctx.lineTo(X(0.6 + i * 2 + 1.1), Y(11.6));
+      ctx.lineTo(X(0.6 + i * 2 + 2.3), Y(9.3));
+      ctx.lineTo(X(0.6 + i * 2 + 1.2), Y(9.3));
+      ctx.fill();
+    }
+    ctx.restore();
+    ctx.fillStyle = 'rgba(40,24,6,0.7)';
+    for (const rx of [2, 13.6]) for (const ry of [4, 8]) ctx.fillRect(X(rx), Y(ry), 0.5 * k, 0.5 * k);
+
+    // Hublot : anneau d'acier, verre, visage, reflet.
+    const cx = X(8);
+    const cy = Y(6.2);
+    g = ctx.createLinearGradient(cx - 5 * k, cy - 5 * k, cx + 5 * k, cy + 5 * k);
+    g.addColorStop(0, '#eef2f8');
+    g.addColorStop(1, '#68717e');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 4.4 * k, 0, 7);
+    ctx.fill();
+    ctx.stroke();
+    g = ctx.createLinearGradient(cx, cy - 3.4 * k, cx, cy + 3.4 * k);
+    g.addColorStop(0, '#7fdcff');
+    g.addColorStop(1, '#1d6fa3');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 3.4 * k, 0, 7);
+    ctx.fill();
+    if (face) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, 3.4 * k, 0, 7);
+      ctx.clip();
+      ctx.imageSmoothingEnabled = true;
+      // Zone du visage dans le sprite (colonnes 5 à 10, lignes OY+1 à OY+5), en pixels du sprite redessiné (4 par pixel).
+      const oy = global.Avatar ? global.Avatar.OY : 6;
+      ctx.drawImage(face.canvas, (5 + face.pad) * 4, (oy + 1 + face.pad) * 4, 24, 20, cx - 3.4 * k, cy - 2.9 * k, 6.8 * k, 5.7 * k);
+      ctx.restore();
+    }
+    ctx.fillStyle = 'rgba(255,255,255,0.55)';
+    ctx.beginPath();
+    ctx.ellipse(cx - 1.4 * k, cy - 1.6 * k, 1.3 * k, 0.6 * k, -0.6, 0, 7);
+    ctx.fill();
+    ctx.lineWidth = 0.5 * k;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 3.4 * k, 0, 7);
+    ctx.stroke();
+    ctx.lineWidth = 0.9 * k;
+
+    // Foret conique avec spirale animée.
+    const top = bodyTop + 14;
+    const tl = X(3.2);
+    const tr = X(12.8);
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(tl, top * k);
+    ctx.lineTo(tr, top * k);
+    ctx.lineTo(X(8.5), tip * k);
+    ctx.lineTo(X(7.5), tip * k);
+    ctx.closePath();
+    g = ctx.createLinearGradient(tl, 0, tr, 0);
+    g.addColorStop(0, '#f4f7fb');
+    g.addColorStop(0.5, '#a9b2c0');
+    g.addColorStop(1, '#5b6370');
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.clip();
+    const phase = drilling ? (time * 14) % 2 : 0;
+    ctx.strokeStyle = 'rgba(21,18,26,0.75)';
+    ctx.lineWidth = 0.7 * k;
+    for (let i = -2; i < (tip - top) + 2; i += 2) {
+      const y = (top + i + phase) * k;
+      ctx.beginPath();
+      ctx.moveTo(tl - k, y);
+      ctx.lineTo(tr + k, y + 2.2 * k);
+      ctx.stroke();
+    }
+    ctx.restore();
+    ctx.lineWidth = 0.9 * k;
+    ctx.strokeStyle = ink;
+    ctx.beginPath();
+    ctx.moveTo(tl, top * k);
+    ctx.lineTo(X(7.5), tip * k);
+    ctx.lineTo(X(8.5), tip * k);
+    ctx.lineTo(tr, top * k);
+    ctx.stroke();
+    ctx.restore();
+  }
+
   let moteSprite = null;
   function mote() {
     if (moteSprite) return moteSprite;
@@ -974,6 +1275,8 @@
       this.canvas.width = W;
       this.canvas.height = H;
       this.worldHd = null;
+      this.hdSprites = [];
+      this.sprTmp = null;
       this.smallA = null;
       this.smallB = null;
       this.h = H;
@@ -1026,7 +1329,6 @@
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(this.canvas, 0, 0, w, h);
       if (!hd) return;
-
       const cam = Math.round(this.camY);
       const overview = this.mode === 'overview';
       // Ambiance selon la profondeur : jour en surface, puis galerie sombre qui vire au rouge près du noyau.
@@ -1042,6 +1344,13 @@
       ctx.globalCompositeOperation = 'multiply';
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, w, h);
+
+      // Foreuse et personnages : ajoutés après l'ambiance pour rester lisibles dans la galerie sombre (ils reçoivent la lampe et la lueur).
+      ctx.globalCompositeOperation = 'source-over';
+      for (const sp of this.hdSprites) {
+        if (sp.drill) drawDrillHd(ctx, k, sp.drill.x0, sp.drill.bodyTop, sp.drill.tip, sp.drill.time, sp.drill.drilling, sp.drill.face);
+        else ctx.drawImage(sp.img, Math.round(sp.x * k), Math.round(sp.y * k));
+      }
 
       if (!overview) {
         // Lampe de la foreuse : cône de lumière chaude autour de la fraise.
@@ -1353,7 +1662,35 @@
       ctx.restore();
     }
 
+    /** Sprite haute définition (mode HD-2D) : dessiné par `present`, au-dessus du décor, avant la lumière. */
+    queueSprite(source, x, y) {
+      const up = hdUpgrade(source);
+      this.hdSprites.push({ img: up.canvas, x: x - up.pad, y: y - up.pad });
+    }
+
+    /** Foreuse (et visage au hublot) dessinées à part pour être redessinées en haute définition. */
+    queueDrill(x0, tip, bodyTop, time, cam) {
+      const sk = this.skin || {};
+      if ((!sk.body || sk.body === 'classique') && (!sk.bit || sk.bit === 'standard')) {
+        const av = this.avatar && this.avatar.lieu === 'hublot' && global.Avatar ? hdFace(global.Avatar.sprite(this.avatar)) : null;
+        this.hdSprites.push({ drill: { x0, bodyTop: bodyTop - cam, tip: tip - cam, time, drilling: this.drilling, face: av } });
+        return;
+      }
+      if (!this.sprTmp) {
+        this.sprTmp = document.createElement('canvas');
+        this.sprTmp.width = 48;
+        this.sprTmp.height = 96;
+      }
+      const tctx = this.sprTmp.getContext('2d');
+      tctx.clearRect(0, 0, 48, 96);
+      const tipT = 88;
+      drawDrill(tctx, this.skin, 16, tipT, time, this.drilling);
+      this.drawAvatarHublot(tctx, 16, tipT - (tip - bodyTop));
+      this.queueSprite(this.sprTmp, x0 - 16, tip - cam - tipT);
+    }
+
     draw(time) {
+      this.hdSprites = [];
       if (this.mode === 'overview') {
         this.drawOverview(time);
         return;
@@ -1364,7 +1701,10 @@
       ctx.drawImage(this.worldSrc(), 0, cam, W, this.h, 0, 0, W, this.h);
       ctx.save();
       ctx.translate(0, -cam);
-      this.drawAvatarSurface(ctx, time);
+      if (hd) {
+        const av = this.avatar;
+        if (av && av.lieu === 'surface' && global.Avatar) this.queueSprite(global.Avatar.sprite(av), 34, SKY - 28 + Math.round(Math.sin(time * 2) * 0.5) - cam);
+      } else this.drawAvatarSurface(ctx, time);
 
       // Décor animé : scintillements et bulles de magma.
       const inView = (y) => y >= cam - 4 && y <= cam + this.h + 4;
@@ -1432,8 +1772,11 @@
       const bodyTop = tip - frames[0].length - rows.length;
       ctx.fillStyle = '#26262c';
       ctx.fillRect(W / 2, SKY - 38, 1, Math.max(0, bodyTop - (SKY - 38)));
-      drawDrill(ctx, this.skin, x0, tip, time, this.drilling);
-      this.drawAvatarHublot(ctx, x0, bodyTop);
+      if (hd) this.queueDrill(x0, tip, bodyTop, time, cam);
+      else {
+        drawDrill(ctx, this.skin, x0, tip, time, this.drilling);
+        this.drawAvatarHublot(ctx, x0, bodyTop);
+      }
 
       for (const p of this.particles) {
         ctx.fillStyle = p.color;
@@ -1462,6 +1805,6 @@
   }
 
   global.Pixel = {
-    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, formatRemaining, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, setSeason, setSkullMode, setHd, drawDrill, WIDTH: W, HEIGHT: H,
+    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, formatRemaining, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, setSeason, setSkullMode, setHd, isHd: () => hd, hdUpgrade, drawDrill, WIDTH: W, HEIGHT: H,
   };
 })(window);
