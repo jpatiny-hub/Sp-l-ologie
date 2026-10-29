@@ -113,8 +113,20 @@
 
   function zoneName(points) {
     if (points >= MAX_POINTS) return 'Centre de la Terre';
+    if (caves) return global.Caves.TIERS[global.Caves.tierIndex(points)].name;
     return ZONES[zoneIndex(points)].name;
   }
+
+  // Essai « galeries 16-bit » (réservé au responsable) : grottes mystérieuses à la place de la coupe géologique (voir caves.js).
+  let caves = false;
+  let caveAnim = [];
+  let caveShaft = null;
+  function setCaves(on) {
+    caves = !!on && !!global.Caves;
+  }
+  /** Bandes du puits et des débris : paliers des grottes ou couches géologiques. */
+  const bands = () => (caves ? global.Caves.TIERS : ZONES);
+  const bandIndex = (points) => (caves ? global.Caves.tierIndex(points) : zoneIndex(points));
 
   function hash(x, y, s) {
     let h = Math.imul(x | 0, 374761393) ^ Math.imul(y | 0, 668265263) ^ Math.imul((s | 0) + 1, 2246822519);
@@ -285,9 +297,14 @@
       img.data[i + 3] = 255;
     };
 
+    twinkles.length = 0;
+    bubbles.length = 0;
+    caveAnim = [];
+    caveShaft = null;
     for (let y = 0; y < WORLD_H; y++) {
       for (let x = 0; x < W; x++) {
         if (y < SKY) set(x, y, skyColor(x, y));
+        else if (caves) break;
         else {
           const d = y - SKY;
           set(x, y, groundColor(zoneAtPixel(x, d), x, d));
@@ -399,7 +416,11 @@
       });
     }
 
-    decorate(set);
+    if (caves) {
+      const built = global.Caves.build({ W, SKY, PPP, WORLD_H, set });
+      caveAnim = built.anim;
+      caveShaft = built.shaftOpen;
+    } else decorate(set);
     if (season === 'halloween') haunt(set);
     ctx.putImageData(img, 0, 0);
     return canvas;
@@ -1264,6 +1285,8 @@
     return c;
   }
 
+  const reducedMotion = () => (global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches) || global.document.documentElement.hasAttribute('data-calm');
+
   class DrillScene {
     constructor(canvas) {
       // Le jeu est dessiné dans un canevas hors écran à 1 pixel de jeu = 1 pixel ; `present` le recopie à l'écran
@@ -1522,7 +1545,8 @@
       if (this.drilling) {
         this.depth = Math.min(this.target, this.depth + this.speed * dt);
         this.emitDepth();
-        const colors = ZONES[zoneIndex(this.depth)].colors;
+        const band = bands()[bandIndex(this.depth)];
+        const colors = band.colors || band.rock.slice(1);
         for (let i = 0; i < 3; i++) {
           this.particles.push({
             x: W / 2 + (Math.random() * 10 - 5),
@@ -1590,14 +1614,17 @@
       ctx.drawImage(this.worldSrc(), 0, srcY, W, srcH, 0, 0, W, this.h);
 
       const tip = this.tipY();
-      for (let zi = 0; zi < ZONES.length; zi++) {
-        const top = SKY + ZONES[zi].from * PPP;
-        const bottom = zi + 1 < ZONES.length ? SKY + ZONES[zi + 1].from * PPP : WORLD_H;
+      const zones = bands();
+      for (let zi = 0; zi < zones.length; zi++) {
+        const top = SKY + zones[zi].from * PPP;
+        const bottom = zi + 1 < zones.length ? SKY + zones[zi + 1].from * PPP : WORLD_H;
         const y0 = Math.max(top, SKY + 1);
         const y1 = Math.min(bottom, tip);
         if (y1 <= y0) continue;
-        ctx.fillStyle = ZONES[zi].dark;
-        ctx.fillRect(SHAFT_X, Math.round(Y(y0)), SHAFT_W, Math.max(1, Math.round(Y(y1)) - Math.round(Y(y0))));
+        ctx.fillStyle = zones[zi].dark;
+        if (caveShaft) {
+          for (let y = y0; y < y1; y++) if (!caveShaft[y]) ctx.fillRect(SHAFT_X, Math.round(Y(y)), SHAFT_W, Math.max(1, Math.round(Y(y + 1)) - Math.round(Y(y))));
+        } else ctx.fillRect(SHAFT_X, Math.round(Y(y0)), SHAFT_W, Math.max(1, Math.round(Y(y1)) - Math.round(Y(y0))));
       }
       // Fin de chaque thème : un trait de la couleur de la rareté.
       let cumulative = 0;
@@ -1715,6 +1742,7 @@
         ctx.fillStyle = tw.color;
         ctx.fillRect(tw.x, tw.y, 1, 1);
       });
+      if (caves) global.Caves.drawAnim(ctx, caveAnim, time, cam, this.h, reducedMotion());
       bubbles.forEach((b, i) => {
         if (!inView(b.y)) return;
         const span = Math.ceil(b.r / 2) * 2;
@@ -1727,13 +1755,28 @@
 
       // Puits creusé, coloré selon la roche traversée.
       const tip = Math.round(this.tipY());
-      for (let zi = 0; zi < ZONES.length; zi++) {
-        const top = SKY + ZONES[zi].from * PPP;
-        const bottom = zi + 1 < ZONES.length ? SKY + ZONES[zi + 1].from * PPP : WORLD_H;
+      const zones = bands();
+      for (let zi = 0; zi < zones.length; zi++) {
+        const top = SKY + zones[zi].from * PPP;
+        const bottom = zi + 1 < zones.length ? SKY + zones[zi + 1].from * PPP : WORLD_H;
         const y0 = Math.max(top, SKY + 1);
         const y1 = Math.min(bottom, tip);
         if (y1 <= y0) continue;
-        ctx.fillStyle = ZONES[zi].dark;
+        if (caveShaft) {
+          // Grottes : le puits n'est creusé que dans la roche ; dans le vide d'une grotte, la foreuse pend à son câble.
+          for (let y = Math.max(y0, cam); y < Math.min(y1, cam + this.h); y++) {
+            if (caveShaft[y]) continue;
+            ctx.fillStyle = zones[zi].dark;
+            ctx.fillRect(SHAFT_X, y, SHAFT_W, 1);
+            ctx.fillStyle = 'rgba(0,0,0,0.45)';
+            ctx.fillRect(SHAFT_X, y, 2, 1);
+            ctx.fillRect(SHAFT_X + SHAFT_W - 2, y, 2, 1);
+            ctx.fillStyle = 'rgba(255,255,255,0.12)';
+            if (caveShaft[y - 1] || caveShaft[y + 1]) ctx.fillRect(SHAFT_X, y, SHAFT_W, 1);
+          }
+          continue;
+        }
+        ctx.fillStyle = zones[zi].dark;
         ctx.fillRect(SHAFT_X, y0, SHAFT_W, y1 - y0);
         ctx.fillStyle = 'rgba(0,0,0,0.45)';
         ctx.fillRect(SHAFT_X, y0, 2, y1 - y0);
@@ -1796,7 +1839,7 @@
       this.drawGhosts(ctx, time);
 
       // Ambiance chaude dans les profondeurs.
-      const heat = Math.max(0, Math.min(1, (this.depth - 220) / 380));
+      const heat = caves ? 0 : Math.max(0, Math.min(1, (this.depth - 220) / 380));
       if (heat > 0) {
         ctx.fillStyle = `rgba(255, 90, 20, ${0.08 * heat + Math.sin(time * 3) * 0.02 * heat})`;
         ctx.fillRect(0, 0, W, this.h);
@@ -1805,6 +1848,6 @@
   }
 
   global.Pixel = {
-    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, formatRemaining, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, setSeason, setSkullMode, setHd, isHd: () => hd, hdUpgrade, drawDrill, WIDTH: W, HEIGHT: H,
+    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, formatRemaining, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, setSeason, setSkullMode, setHd, setCaves, isCaves: () => caves, isHd: () => hd, hdUpgrade, drawDrill, WIDTH: W, HEIGHT: H,
   };
 })(window);
