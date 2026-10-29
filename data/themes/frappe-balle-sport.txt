@@ -1,0 +1,9 @@
+titre: Ce avec quoi on frappe la balle dans un sport
+# Importé depuis l'export « Chose qui taper  balle dans un sport  » fourni par Jonas (liste en anglais telle quelle).
+# Niveaux : +100 → 5, +85 → 4, +60 → 3, +30 → 2, +10 → 1. À traduire/compléter en français au fil de l'eau.
+# Indice de l'export pour « Tamburello » : Tamburello players hit the ball with a round, tightly skinned tambourine frame.
+1: Bat; Golf club
+2: Cue; Foot; Hand; Head; Hockey stick; Paddle
+3: Chest; Fist; Hip; Knee; Mallet
+4: Bicycle; Bracciale; Broom; Cue ball; Forearm; Hurley; Pala; Powerchair; Shinty stick; Shoulder; Thigh
+5: Tamburello
