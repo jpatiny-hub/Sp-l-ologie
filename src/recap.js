@@ -79,6 +79,14 @@ function markRecapSeen(db, userId, week) {
 }
 
 /** Bilan d'une période (jour, semaine ou mois) : podium, records, moments forts et statistiques du joueur. */
+/**
+ * Premier du classement, avec sa foreuse 16 bits pour la fête du mois. Tant que les joueurs n'ont pas de foreuse à personnaliser,
+ * `drill` reste nul et la fête prend la foreuse par défaut ; il suffira de le remplir plus tard.
+ */
+function championOf(db, entry) {
+  return entry ? { ...entry, drill: null } : null;
+}
+
 function periodRecap(game, kind, from, userId) {
   const db = game.db;
   const start = periodStart(kind, from);
@@ -122,7 +130,7 @@ function periodRecap(game, kind, from, userId) {
     end,
     daysInPeriod: kind === 'day' ? 1 : kind === 'week' ? 7 : Number(end.slice(8)),
     entries: board.entries.slice(0, 10),
-    champion: board.entries[0] || null,
+    champion: championOf(db, board.entries[0]),
     players: board.entries.length,
     games: games.length,
     totalPoints: games.reduce((n, g) => n + g.score, 0),

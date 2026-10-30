@@ -1718,3 +1718,14 @@ html[data-galerie] dialog.centre .drawer-frame, html[data-galerie] #defis-sheet 
 html[data-galerie] dialog.centre .card, html[data-galerie] #defis-sheet .card { background: none !important; border: 0 !important; box-shadow: none; padding: 0; -webkit-backdrop-filter: none; backdrop-filter: none; }
 html[data-galerie] dialog.centre .card > h2:first-child, html[data-galerie] #defis-sheet .card summary { display: none; }
 html[data-galerie] #defis-sheet-body canvas { max-width: 100%; height: auto !important; }
+
+/* Fêtes de podium 16 bits (refonte) : canevas pleine largeur, titre et noms qui apparaissent au bon moment, Gazette sur plan de mine */
+.recap-canvas.fete16 { width: 100%; max-width: 460px; height: auto; box-shadow: none; }
+.recap-names, #recap-title { transition: opacity .5s; }
+.recap-names.fete-off, #recap-title.fete-off { opacity: 0; }
+.recap-skip { margin: 0 0 10px auto; width: auto; font-size: calc(10px * var(--fs)); padding: 8px 14px; display: block; }
+.gazette.paper16 { position: relative; background: none; border: 0; box-shadow: none; padding: 30px 18px 28px; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.6)); animation: unroll16 1s steps(14) both; }
+.gazette.paper16 > canvas.bg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; image-rendering: pixelated; }
+.gazette.paper16 > .ink { position: relative; z-index: 1; }
+@keyframes unroll16 { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+@media (prefers-reduced-motion: reduce) { .gazette.paper16 { animation: none; } }
