@@ -5,6 +5,9 @@ actif: non
 # Sources : consultation en ligne impossible (Wikipédia inaccessible depuis cet environnement) ; liste de genres et de titres connus de mémoire.
 1: Dictionnaire; Encyclopédie; Annuaire; Index; Glossaire; Lexique; Répertoire; Petit Larousse = Larousse; Petit Robert = Robert; Pages jaunes = Pages d'Or
 2: Pages blanches; Bottin = Bottin mondain; Vocabulaire; Dictionnaire des synonymes; Abécédaire; Thésaurus = Thesaurus; Dictionnaire encyclopédique; Dictionnaire de rimes = Rimaire; Dictionnaire bilingue
-3: Nomenclature; Dictionnaire étymologique; Dictionnaire des noms propres; Who's Who; Quid; Dictionnaire historique; Dictionnaire biographique
+3: Dictionnaire étymologique; Dictionnaire des noms propres; Who's Who; Quid; Dictionnaire historique; Dictionnaire biographique
 4: Concordance; Gazetteer = Dictionnaire géographique; Onomasticon; Dictionnaire de l'Académie française = Dictionnaire de l'Académie
-5: Glossarium; Vocabularium; Index librorum prohibitorum = Index des livres interdits
+# retiré : Nomenclature (n'est pas un livre), Glossarium, Vocabularium (formes latines non attestées en français), Index librorum prohibitorum (liste non alphabétique).
+# Le périmètre reste ouvert : le thème RESTE INACTIF (de bonnes réponses légitimes seraient refusées).
+1: Littré; Grand Robert; Encyclopédie Universalis = Universalis; Encyclopædia Britannica = Britannica; Dictionnaire des antonymes
+2: Dictionnaire analogique; Dictionnaire des proverbes; Dictionnaire des citations; Dictionnaire des prénoms; Dictionnaire des symboles; Vidal; Trésor de la langue française = TLF; Dictionnaire de médecine; Dictionnaire des expressions; Dictionnaire des difficultés; Dictionnaire de droit; Dictionnaire visuel; Dictionnaire de poche; Encyclopédie de Diderot et d'Alembert = Encyclopédie de Diderot

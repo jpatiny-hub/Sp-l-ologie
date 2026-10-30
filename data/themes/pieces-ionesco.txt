@@ -1,8 +1,8 @@
 titre: Une pièce d'Eugène Ionesco
 # Périmètre : pièces de théâtre (y compris courtes) d'Eugène Ionesco. Choix de ce dramaturge parce que Molière, Corneille/Racine et Shakespeare ont déjà leur thème. Remplace l'ancienne liste « théâtre contemporain / one-man-show » (non bornée) : Le Prénom, Art, Le Père, etc. retirés.
-# Sources : consultation en ligne impossible (Wikipédia inaccessible depuis cet environnement) ; liste établie de mémoire d'après le répertoire connu de Ionesco, sans les titres incertains. Les pièces courtes (niveau 5) sont à faire valider.
+# Sources : fr.wikipedia « Eugène Ionesco » (liste chronologique du théâtre, 39 titres), recoupée avec la liste précédente. Niveaux 4-5 = pièces courtes ou rares. Écarté : Contes (1979, textes pour enfants) et Maximilien Kolbe (opéra, 1985), non recoupés comme pièces.
 1: La Cantatrice chauve = The Bald Soprano; Rhinocéros = Rhinoceros; Les Chaises = The Chairs; La Leçon = The Lesson
-2: Le Roi se meurt = Exit the King; Tueur sans gages = The Killer; Victimes du devoir; Jacques ou la Soumission; Amédée ou Comment s'en débarrasser = Amédée
-3: Le Piéton de l'air; Macbett; Jeux de massacre; La Soif et la Faim; Le Nouveau Locataire; L'Avenir est dans les œufs; Le Maître
-4: Délire à deux; Ce formidable bordel; L'Homme aux valises; Voyage chez les morts; Le Tableau; La Jeune Fille à marier; Scène à quatre
-5: Le Salon de l'automobile; Le Rhume onirique; Les Salutations; La Lacune; Pour préparer un œuf dur
+2: Le Roi se meurt = Exit the King; Tueur sans gages = The Killer; Victimes du devoir = Victims of Duty; Jacques ou la Soumission = Jacques; Amédée ou Comment s'en débarrasser = Amédée = Amédée ou comment s'en débarrasser
+3: Le Piéton de l'air = A Stroll in the Air; Macbett; Jeux de massacre = Jeu de massacre; La Soif et la Faim = Hunger and Thirst; Le Nouveau Locataire = The New Tenant; L'Avenir est dans les œufs; Le Maître = The Leader; Délire à deux = Frenzy for Two; Ce formidable bordel = Ce formidable bordel ! = A Hell of a Mess; L'Homme aux valises = Man with Bags
+4: Voyages chez les morts = Voyage chez les morts = Journeys Among the Dead; Le Tableau = The Picture; La Jeune Fille à marier = Maid to Marry; Scène à quatre = Foursome; Les Salutations = Salutations; Le Salon de l'automobile = The Motor Show; Le Rhume onirique = The Oneiric Cold; La Lacune = The Gap; Pour préparer un œuf dur = Pour préparer un oeuf dur; L'Impromptu de l'Alma = Improvisation ou Le Berger et son troupeau; L'Œuf dur = L'Oeuf dur; Apprendre à marcher = Learning to Walk; La Colère = Anger
+5: Le Vicomte; La Nièce-Épouse; Les Connaissez-vous ?; Les Grandes Chaleurs; La Vase; Exercices de conversation et de diction française pour étudiants américains

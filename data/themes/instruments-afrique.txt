@@ -5,4 +5,10 @@ titre: Un instrument de musique d'Afrique
 1: Djembé; Balafon; Kora; Mbira = Sanza = Piano à pouces = Kalimba; Darbouka = Derbouka = Darbuka; Tambour parleur = Talking drum = Tama
 2: N'goni = Ngoni; Xalam = Khalam; Udu; Shekere = Chekeré; Agogô; Bendir; Guembri = Gimbri = Sintir; Hosho; Qraqeb = Krakebs; Rhaita = Ghaita; Sistre = Sistrum; Arghul; Valiha; Dundun = Doundoun = Djoun-djoun
 3: Krar; Masenqo = Massenqo; Begena; Kebero; Marovany; Lokanga bara; Kayamb = Kayamba; Kakaki; Algaita = Algaïta; Batá = Bata; Kalangu; Tbilat; Taarija; Zeze = Zèze; Ilimba; Lesiba; Uhadi; Inanga; Adungu; Litungu; Kissar; Kontigi; Washint; Ennanga; Mbila = Timbila; Likembe
-4: Amakondere; Janzi; Ramkie; Goema; Bobre; Sodina; Taralila; Tadghtita; Zukra; Kalumbu; Malimbe; Matepe; Msondo; Segankuru; Ravanne; Rakatak; Kwitra; Embilta; Ngombi; Umrhubhe
+4: Amakondere; Janzi; Ramkie; Goema; Bobre; Sodina; Taralila; Tadghtita; Zukra; Kalumbu; Matepe; Msondo; Segankuru; Ravanne; Kwitra; Embilta; Ngombi; Umrhubhe
+# retiré : Rakatak et Malimbe (non retrouvés dans une source fiable).
+# Ajouts (sources : en.wikipedia List of African musical instruments, pages dédiées fr/en) : instruments typiques d'Afrique de l'Ouest, de l'Est, centrale, du Maghreb et de Madagascar.
+1: Sabar = Tambour sabar
+2: Gyil = Balafon du Ghana; Ngoma = Tambour ngoma; Bougarabou = Bougarabou; Mizmar; Kabosy = Kabossy; Imzad = Imzhad; Ganga = Tambour ganga; Lotar; Calebasse
+3: Mvet; Embaire; Amadinda; Akadinda; Endingidi = Tube fiddle; Nyatiti; Orutu; Obokano; Seperewa = Seprewa; Atenteben; Dawuro; Kologo; Molo; Akonting = Konting; Njarka = Riti = Ritti; Gankogui = Gangokui; Axatse = Axatsé; Atumpan; Fontomfrom; Dozo n'goni = Donso ngoni = Donso n'goni; Kamélé n'goni = Kamale ngoni; Jejy voatavo = Jejy; Tindé = Tinde; Kudu = Shofar de koudou = Corne de koudou; Bolon
+4: Tehardent = Tehardant; Mbulumbumbu; Atamo; Tsenatsel; Karimba; Jeli n'goni = Jeli ngoni

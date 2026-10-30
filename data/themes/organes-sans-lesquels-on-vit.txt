@@ -7,3 +7,7 @@ titre: Un organe, un os ou une glande qu'on peut perdre sans mourir
 3: Pancréas; Surrénale = Glande surrénale; Parathyroïdes = Parathyroïde; Hypophyse = Glande pituitaire; Épiphyse = Glande pinéale; Omoplate = Scapula; Mâchoire = Mandibule; Langue; Rectum; Ganglions lymphatiques = Ganglion lymphatique; Œsophage
 4: Vertèbre; Duodénum; Glande lacrymale; Cristallin
 5: Sternum; Hémisphère cérébral = Hémisphère du cerveau = Hémisphère
+# Vérifié 30/10/2026 : survie possible après pénectomie, vaginectomie, vulvectomie, omentectomie, résection de l'os hyoïde (Sistrunk) et ablation des vésicules séminales (prostatectomie radicale) - fr.wikipedia des interventions. Rien retiré ; doute : « Duodénum » et « Vertèbre » concernent en pratique des résections partielles.
+3: Pénis; Vésicules séminales = Vésicule séminale; Glande sous-maxillaire = Glande submandibulaire
+4: Vagin; Vulve; Grand épiploon = Épiploon
+5: Os hyoïde = Hyoïde

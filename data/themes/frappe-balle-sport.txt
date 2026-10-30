@@ -1,9 +1,10 @@
 titre: Ce avec quoi on frappe la balle dans un sport
 # Importé depuis l'export « Chose qui taper  balle dans un sport  » fourni par Jonas (liste en anglais telle quelle).
+# Corrigé/ajouté : variantes françaises de toutes les réponses ; ajout des évidences manquantes (raquette, crosse de lacrosse, coude, talon, paume, bâton, battoir, chistera). Sources : connaissance générale des règles (bracciale, tamburello, pala, chistera, hurley, shinty vérifiés de mémoire) ; liste importée de Jonas conservée telle quelle, rien retiré.
 # Niveaux : +100 → 5, +85 → 4, +60 → 3, +30 → 2, +10 → 1. À traduire/compléter en français au fil de l'eau.
 # Indice de l'export pour « Tamburello » : Tamburello players hit the ball with a round, tightly skinned tambourine frame.
-1: Bat; Golf club
-2: Cue; Foot; Hand; Head; Hockey stick; Paddle
-3: Chest; Fist; Hip; Knee; Mallet
-4: Bicycle; Bracciale; Broom; Cue ball; Forearm; Hurley; Pala; Powerchair; Shinty stick; Shoulder; Thigh
-5: Tamburello
+1: Racket = Raquette; Bat = Batte; Golf club = Club de golf = Crosse de golf
+2: Lacrosse stick = Crosse de lacrosse = Crosse; Elbow = Coude; Heel = Talon; Palm = Paume de la main = Paume; Cue = Queue de billard = Queue; Foot = Pied; Hand = Main; Head = Tête; Hockey stick = Crosse de hockey = Stick de hockey; Paddle = Raquette de ping-pong = Pagaie
+3: Stick = Bâton; Battoir; Chest = Poitrine = Torse; Fist = Poing; Hip = Hanche; Knee = Genou; Mallet = Maillet
+4: Chistera = Cesta; Bicycle = Vélo = Bicyclette; Bracciale; Broom = Balai; Cue ball = Bille blanche = Bille de queue; Forearm = Avant-bras; Hurley; Pala; Powerchair = Fauteuil roulant électrique; Shinty stick = Crosse de shinty = Caman; Shoulder = Épaule; Thigh = Cuisse
+5: Tamburello = Tambourin
