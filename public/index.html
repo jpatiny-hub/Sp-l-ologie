@@ -173,6 +173,10 @@
         <legend>Essai : style HD-2D (contremaître)</legend>
         <p class="hint">Lumière de la lampe, relief de la roche, flou de profondeur et interface à fenêtres dorées. Uniquement sur cet appareil : les autres joueurs ne voient rien.</p>
         <label class="check"><input type="checkbox" name="betaHd"> Activer le style HD-2D</label>
+        <p class="hint">Foreuse 16-bit (avec le style HD-2D) ; celles de fête ont un effet animé pendant le forage :</p>
+        <div class="choices vertical" id="lab-drill16">
+          <label><input type="radio" name="labDrill16" value=""> Ma foreuse habituelle</label>
+        </div>
       </fieldset>
       <fieldset id="beta-box" hidden>
         <legend>Ancienne version (contremaître)</legend>
@@ -1032,6 +1036,7 @@
   <script src="ambience.js"></script>
   <script src="sound.js"></script>
   <script src="pixel.js"></script>
+  <script src="drills16.js"></script>
   <script src="icons.js"></script>
   <script src="timers.js"></script>
   <script src="avatar.js"></script>
