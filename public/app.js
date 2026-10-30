@@ -631,6 +631,7 @@
     if ($('play-sheet').open) $('play-sheet').close(); // un duel lancé depuis la feuille « Jouer » ouvre le forage : la feuille se referme
     $('settings-account').hidden = !app.me;
     fitCanvas();
+    if (view === 'home') Galerie.resetWagon(); // la boucle des wagonnets s'arrête quand leur toile est cachée : on la relance à l'accueil
     window.scrollTo(0, 0);
   }
 

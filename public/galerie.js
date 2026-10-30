@@ -130,23 +130,40 @@
         g.fillStyle = '#ffd36a'; g.fillRect(x + 3, cy - 8, 6, 1); g.fillRect(right ? x + 8 : x + 3, cy - 9, 1, 3);
       }
     }
-    // Lueur du minerai.
-    const gl = g.createRadialGradient(cx, cy - 4, 0, cx, cy - 4, 40);
+    const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), w, h); };
+    // Lueur du minerai et de la lanterne.
+    const gl = g.createRadialGradient(cx, cy - 6, 0, cx, cy - 6, 52);
     gl.addColorStop(0, `rgba(255,190,80,${0.5 + 0.12 * Math.sin(t * 3)})`); gl.addColorStop(1, 'rgba(255,190,80,0)');
-    g.fillStyle = gl; g.fillRect(cx - 40, cy - 44, 80, 80);
-    // Minerai qui scintille.
-    const ORE = ['#ffd36a', '#ff9a3c', '#fff2b0'];
-    for (let i = 0; i < 9; i++) {
-      g.fillStyle = ORE[(i + Math.floor(t * 2)) % 3];
-      g.fillRect(cx - 20 + (i * 5) % 40, cy - 12 - (i % 3) * 3 + b, 5, 5);
+    g.fillStyle = gl; g.fillRect(cx - 52, cy - 58, 104, 90);
+    // Pile de minerai : cristaux facettés (clair en haut à gauche, sombre en bas à droite), qui scintillent.
+    const GEM = [[-19, -9, 7, 0], [-12, -14, 8, 1], [-3, -17, 9, 2], [6, -13, 8, 0], [13, -8, 7, 1], [-8, -8, 7, 2], [1, -10, 8, 1], [-16, -4, 7, 1], [9, -5, 7, 2]];
+    const PAL = [['#fff2b0', '#ffd36a', '#c8841c'], ['#ffd9a0', '#ff9a3c', '#a8480e'], ['#ffffff', '#ffe27a', '#d9a02a']];
+    for (const [dx, dy, sz, k] of GEM) {
+      const [hi, mid, lo] = PAL[(k + Math.floor(t * 1.5 + dx)) % 3 < 0 ? 0 : (k + Math.floor(t * 1.5 + dx)) % 3];
+      R(cx + dx, cy + dy + b, sz, sz - 1, mid);
+      R(cx + dx, cy + dy + b, sz - 2, 2, hi);
+      R(cx + dx + sz - 2, cy + dy + 2 + b, 2, sz - 3, lo);
+      R(cx + dx + 1, cy + dy + sz - 2 + b, sz - 2, 1, lo);
     }
-    // Caisse rivetée.
-    g.fillStyle = '#1a1208'; g.fillRect(cx - 26, cy - 6 + b, 52, 24);
-    g.fillStyle = '#7a7e88'; g.fillRect(cx - 24, cy - 4 + b, 48, 20);
-    g.fillStyle = '#a8acb4'; g.fillRect(cx - 24, cy - 4 + b, 48, 3);
-    g.fillStyle = '#5a5e68'; for (let i = 0; i < 4; i++) g.fillRect(cx - 20 + i * 12, cy + 2 + b, 2, 2);
-    // Roues.
-    for (const dx of [-16, 8]) { g.fillStyle = '#111'; g.fillRect(cx + dx, cy + 16, 8, 8); g.fillStyle = moving && Math.floor(t * 20) % 2 ? '#888' : '#555'; g.fillRect(cx + dx + 2, cy + 18, 4, 4); }
+    if (Math.floor(t * 3) % 4 === 0) { R(cx - 4, cy - 19 + b, 1, 5, '#fff'); R(cx - 6, cy - 17 + b, 5, 1, '#fff'); }
+    // Caisse : planches de bois cerclées de fer, avec ombre sous le bord.
+    R(cx - 28, cy - 4 + b, 56, 25, '#150d06');
+    for (let i = 0; i < 4; i++) { R(cx - 26, cy - 2 + i * 5 + b, 52, 4, i % 2 ? '#6a4524' : '#7d5430'); R(cx - 26, cy - 2 + i * 5 + b, 52, 1, '#9a6c3c'); R(cx - 26, cy + 1 + i * 5 + b, 52, 1, '#3e2812'); }
+    for (let i = 0; i < 8; i++) R(cx - 26 + i * 7, cy - 2 + b, 1, 20, '#3e2812'); // joints verticaux des planches
+    R(cx - 29, cy - 5 + b, 58, 4, '#8a8e98'); R(cx - 29, cy - 5 + b, 58, 1, '#c4c8d0'); R(cx - 29, cy - 2 + b, 58, 1, '#4a4e58'); // rebord de fer
+    for (const x of [cx - 18, cx + 16]) { R(x - 2, cy - 4 + b, 4, 22, '#5a5e68'); R(x - 2, cy - 4 + b, 1, 22, '#8a8e98'); R(x, cy + 1 + b, 1, 1, '#c4c8d0'); R(x, cy + 9 + b, 1, 1, '#c4c8d0'); } // bandes de fer + rivets
+    R(cx - 26, cy + 17 + b, 52, 2, '#2a1a0a');
+    // Lanterne accrochée à l'avant, qui se balance un peu.
+    const lx = cx + (dir > 0 ? 30 : -34), sw = Math.round(Math.sin(t * 2.4) * 1.4);
+    R(lx + 2 + sw, cy - 2 + b, 1, 5, '#555');
+    R(lx + sw, cy + 3 + b, 5, 6, '#2a2218'); R(lx + 1 + sw, cy + 4 + b, 3, 4, `rgba(255,${200 + Math.round(30 * Math.sin(t * 7))},90,1)`);
+    // Attelage et roues à rayons.
+    R(cx - 31, cy + 14 + b, 3, 2, '#5a5e68'); R(cx + 28, cy + 14 + b, 3, 2, '#5a5e68');
+    for (const dx of [-17, 9]) {
+      R(cx + dx, cy + 17, 9, 9, '#0e0e12'); R(cx + dx + 1, cy + 18, 7, 7, '#555a64'); R(cx + dx + 3, cy + 20, 3, 3, '#1a1a1e');
+      const sp = moving ? Math.floor(t * 24) % 2 : 0;
+      R(cx + dx + (sp ? 1 : 4), cy + (sp ? 21 : 18), sp ? 7 : 1, sp ? 1 : 7, '#8a8e98'); R(cx + dx + 4, cy + 21, 1, 1, '#ffd36a');
+    }
     // Étincelles sous les roues au départ, derrière le wagonnet.
     if (moving) for (let i = 0; i < 6; i++) { g.fillStyle = i % 2 ? '#ffd36a' : '#ff7a2a'; const d = (i * 7 + t * 90) % 24; g.fillRect(dir > 0 ? cx - 26 - d : cx + 26 + d, cy + 18 + (i % 3), 1, 1); }
   }
