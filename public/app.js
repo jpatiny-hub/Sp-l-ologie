@@ -42,7 +42,7 @@
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
   for (const flag of BETA_FLAGS) settings[flag] = true;
   // Refonte 16-bit : réservée au responsable, désactivée au départ. `betaRefonte` active tout d'un coup ; les autres cases, un morceau à la fois pour comparer.
-  const REFONTE_FLAGS = ['betaRefonte', 'betaCaves', 'betaMole16', 'betaGalerie'];
+  const REFONTE_FLAGS = ['betaRefonte', 'betaCaves', 'betaMole16', 'betaGalerie', 'betaSon16'];
   for (const flag of REFONTE_FLAGS) settings[flag] = false;
   settings.betaDrill16 = ''; // foreuse 16-bit à l'essai (refonte, responsable seulement)
   // Ambiance sonore : coups de pioche, grondement, musiques d'accueil, bruits de boutons et chrono sonore, au choix de chaque joueur : coups de pioche, grondement et musique « Galerie » activés au départ, le reste non.
@@ -100,6 +100,8 @@
   const mole16On = () => !!(refonteOn('betaMole16') && window.Mole16);
   /** Galerie vivante : accueil sans cadre devant les grottes animées. */
   const galerieOn = () => refonteOn('betaGalerie');
+  /** Sons 16-bit : un bruit par minerai, wagonnet, taupe, onglets, foreuses spéciales et célébrations. */
+  const son16On = () => refonteOn('betaSon16');
   const betaOn = (name) => !!(app.me && (!app.me.isAdmin || settings[name]));
 
   const isHalloween = () => document.documentElement.dataset.season === 'halloween';
@@ -178,7 +180,7 @@
     $('hud-depth').textContent = Pixel.formatDepth(points);
     $('hud-zone').textContent = Pixel.zoneName(points);
   };
-  scene.onDrill = (on, zone) => Sound.drill(on, zone);
+  scene.onDrill = (on, zone) => Sound.drill(on, zone, son16On() ? scene.drill16 : null);
   // Fin du forage : une fois dézoomé, on affiche la distance restante jusqu'au centre de la Terre.
   scene.onOverview = (progress) => {
     const box = $('hud-remaining');
@@ -195,7 +197,7 @@
   });
   scene.onZone = (zone) => {
     Sound.layer(zone);
-    Sound.drill(true, zone);
+    Sound.drill(true, zone, son16On() ? scene.drill16 : null);
   };
   scene.setLayers([], false);
   applySettings();
@@ -578,6 +580,10 @@
       if (!app.me || !settings.sound || !event.target.closest) return;
       const target = event.target.closest('button, .tab');
       if (!target || target.disabled) return;
+      if (son16On()) {
+        const nav = target.closest('#bottom-nav button, button[data-centre]');
+        if (nav) return Sound.nav([...nav.parentNode.children].indexOf(nav));
+      }
       if (settings.labTabs) {
         if (target.closest('#bottom-nav')) return Sound.click('tab');
         if (target.matches('.tab, [role="tab"]') || target.closest('.mini-tabs, .pf-tabs, .wr-tabs, #period-tabs')) return Sound.click('subtab');
@@ -1134,7 +1140,8 @@
     mascot.dataset.mood = mood === 'happy' || mood === 'stars' ? 'happy' : mood;
     moleRedraw(mascot, mood);
     replayClass(mascot, 'poked');
-    Sound.click('valid');
+    if (son16On()) Sound.mole(sleeping ? 'wake' : mood);
+    else Sound.click('valid');
     let say = mascot.querySelector('.m-say');
     if (!say) { say = el('span', { class: 'm-say', 'aria-hidden': 'true' }); mascot.append(say); }
     say.textContent = text;
@@ -1615,6 +1622,7 @@
     departing = true;
     const home = $('view-home');
     const slide = home.animate ? home.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateX(60%)', opacity: 0 }], { duration: 520, delay: 180, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' }) : null;
+    if (son16On()) Sound.wagon(1);
     await Galerie.departWagon();
     if (slide) await slide.finished.catch(() => {});
     await startGame('daily');
@@ -2258,6 +2266,8 @@
     app.game = state;
     sceneLayers(state, false);
     if (state.finished) return showResults(state);
+    // Sons 16-bit : le wagonnet part à droite pour le forage du jour (déjà joué au départ depuis l'accueil), à gauche pour un duel ou l'infini.
+    if (son16On() && !departing && !state.rounds.some((r) => r.status === 'done')) Sound.wagon(state.mode === 'daily' ? 1 : -1);
     show('game');
     renderGame();
   }
@@ -2728,7 +2738,8 @@
     }
     moleSay('feedback', moleEventFor(round.tier.id));
     rewardShower($('pane-feedback'), round.tier.id);
-    Sound.tier(round.tier.id, pepites);
+    if (son16On()) Sound.ore(round.tier.id, pepites);
+    else Sound.tier(round.tier.id, pepites);
     Sound.buzz(round.tier.id, pepites);
     const answer = $('feedback-answer');
     const odds = $('feedback-odds');
@@ -6058,7 +6069,8 @@
       const mine = mineIsA ? t.a : t.b;
       if (!skipping) {
         const pepites = (mineIsA ? layers[0] : layers[1]).filter((l) => l.tier === 'pepite').length;
-        Sound.tier(mine.tier, pepites);
+        if (son16On()) Sound.ore(mine.tier, pepites);
+        else Sound.tier(mine.tier, pepites);
       }
       await settled();
       $('duel-total-a').textContent = pts(totals[0]);
@@ -6083,6 +6095,7 @@
       $('duel-banner').textContent += ` Résultat révisé après un signalement accepté (avant : ${was}, ${old}).`;
     }
     $('duel-final').hidden = false;
+    if (son16On()) Sound.duelResult(result.winner == null ? 'draw' : (result.winner === 'a') === mineIsA ? 'win' : 'loss');
     // Revanche en un clic : un nouveau duel contre le même joueur, avec les mêmes règles.
     const rematch = $('btn-duel-rematch');
     rematch.disabled = false;
@@ -6330,6 +6343,7 @@
     $('recap-canvas').setAttribute('aria-label', `${conf.title} sous un feu d'artifice`);
     $('recap-fireworks').hidden = false;
     $('recap-gazette').hidden = true;
+    if (son16On()) Sound.celebrate(data.kind);
     $('recap-names').replaceChildren(
       ...[2, 1, 3].map((place) => {
         const e = data.entries.find((x) => x.rank === place);
@@ -6397,6 +6411,7 @@
   $('btn-recap-next').addEventListener('click', () => {
     $('recap-fireworks').hidden = true;
     $('recap-gazette').hidden = false;
+    if (son16On()) Sound.paper();
     window.scrollTo(0, 0);
   });
 
