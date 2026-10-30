@@ -1890,3 +1890,4 @@ html[data-galerie] .gallery-frame { background: var(--glass); border: 1px solid 
 html[data-galerie] .gallery-post, html[data-galerie] .gallery-beam, html[data-galerie] .gallery-floor { display: none; }
 html[data-galerie] .gallery-body canvas#gallery-icon { width: 100%; max-width: 288px; height: auto; aspect-ratio: 96 / 40; filter: none; }
 html[data-galerie] .gallery-body h2 { color: var(--lamp); font-size: calc(11px * var(--fs)); }
+.recap-names .who-name, .recap-names .score { text-shadow: 1px 1px 0 #000, 0 0 6px #000; }

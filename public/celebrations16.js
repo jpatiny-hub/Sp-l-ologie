@@ -2,13 +2,13 @@
 
 /*
  * Fêtes de podium en 16 bits (refonte, réservée au responsable) : module séparé branché sur l'écran « récap ».
- *   Celebrations16.scene(kind, data, canvas, { onTitle, onNames }) → joue la fête « week » ou « month » ; renvoie une fonction d'arrêt.
+ *   Celebrations16.scene(kind, data, canvas, { onTitle, onNames }) → joue la fête « day », « week » ou « month » ; renvoie une fonction d'arrêt.
  *   Celebrations16.paper(article)  → peint le fond « plan de mine sur papier » de la Gazette (canvas.bg déjà inséré dans l'article).
  *   Celebrations16.SIZE            → taille du canevas par genre.
  * Les temps (en secondes) sont ceux des repères sonores de Sound.celebrate : ne pas les changer sans prévenir le fil des sons.
  */
 (function (global) {
-  const SIZE = { week: [200, 220], month: [200, 240] };
+  const SIZE = { day: [200, 170], week: [200, 220], month: [200, 240] };
   const hash = (n) => Math.abs(Math.sin(n * 12.9898) * 43758.5453) % 1;
   const ease = (k) => 1 - Math.pow(1 - Math.max(0, Math.min(1, k)), 3);
   const clamp01 = (k) => Math.max(0, Math.min(1, k));
@@ -53,6 +53,120 @@
     return c;
   }
   const byRank = (data, rank) => data.entries.find((e) => e.rank === rank) || null;
+
+  /**
+   * Fête du jour, plus modeste : une veillée dans une galerie. Trois lanternes s'allument, les trois premiers arrivent d'un pas tranquille
+   * et montent sur leur caisse, petits feux d'étincelles, la taupe sort de son trou pour applaudir. Durée : 3,4 s.
+   * Repères (Sound.celebrate('day')) : 0,3 / 0,6 / 0,9 lanternes, 0,5 → 1,9 pas, 2,0 sauts, 2,4 étincelles et taupe.
+   */
+  function day(data, x, W, H, hooks) {
+    const top = [byRank(data, 1), byRank(data, 2), byRank(data, 3)];
+    const sp = top.map(spriteOf);
+    const mole = moleSprite('happy', null);
+    const ground = 140;
+    // [rang, centre x, hauteur de la caisse, indice dans top, départ (s)]
+    const steps = [[2, 52, 12, 1, 1.0], [1, 100, 20, 0, 1.5], [3, 148, 7, 2, 0.5]];
+    const lamps = [[34, 0.3], [100, 0.6], [166, 0.9]];
+    const sparks = ['#ffd84a', '#ff6a8a', '#5ee0ff'];
+    let shown = false;
+    return (t) => {
+      // Mur de galerie en roche, étais de bois
+      x.fillStyle = '#16101a';
+      x.fillRect(0, 0, W, H);
+      for (let y = 0; y < ground; y += 4) for (let i = 0; i < W; i += 4) {
+        const n = hash(i * 1.3 + y * 7.1);
+        x.fillStyle = n > 0.8 ? '#241a2c' : n < 0.15 ? '#110b15' : '#1b1422';
+        x.fillRect(i, y, 4, 4);
+      }
+      x.fillStyle = '#5a3a1e';
+      x.fillRect(0, 10, W, 6);
+      x.fillStyle = '#7c5230';
+      x.fillRect(0, 10, W, 2);
+      [14, 186].forEach((px) => { x.fillStyle = '#5a3a1e'; x.fillRect(px - 3, 10, 6, ground - 10); x.fillStyle = '#7c5230'; x.fillRect(px - 3, 10, 2, ground - 10); });
+      // Lanternes qui s'allument une à une
+      lamps.forEach(([lx, at]) => {
+        const on = t > at;
+        const flick = on ? 0.85 + 0.15 * Math.sin(t * 9 + lx) : 0;
+        x.fillStyle = '#3a2c22';
+        x.fillRect(lx, 16, 1, 14);
+        x.fillStyle = on ? '#ffd84a' : '#4a3a20';
+        x.fillRect(lx - 3, 30, 7, 9);
+        x.fillStyle = '#16121c';
+        x.fillRect(lx - 4, 29, 9, 2);
+        x.fillRect(lx - 4, 38, 9, 2);
+        if (on) {
+          x.fillStyle = '#fff2a8';
+          x.fillRect(lx - 1, 32, 3, 4);
+          const g = x.createRadialGradient(lx, 38, 2, lx, 38, 52);
+          g.addColorStop(0, `rgba(255, 216, 74, ${0.28 * flick})`);
+          g.addColorStop(1, 'rgba(255, 216, 74, 0)');
+          x.fillStyle = g;
+          x.fillRect(lx - 52, 0, 104, ground);
+        }
+      });
+      // Sol de planches et rails
+      x.fillStyle = '#2a1a0c';
+      x.fillRect(0, ground, W, H - ground);
+      x.fillStyle = '#3d2814';
+      for (let i = 0; i < W; i += 8) x.fillRect(i, ground + 16, 5, 3);
+      x.fillStyle = '#8f99a8';
+      x.fillRect(0, ground + 14, W, 2);
+      // Étincelles (petits feux), puis confettis
+      if (t > 2.4) {
+        for (let i = 0; i < 3; i++) {
+          const k = ((t - 2.4) * 0.7 + i / 3) % 1;
+          firework(x, 40 + i * 60 + Math.floor(hash(i + Math.floor((t - 2.4) * 0.7 + i / 3) * 3) * 16), 50 + (i % 2) * 14, sparks[i], 0.25 + k * 0.75, 14);
+        }
+        confetti(x, t, W, ground, 16);
+      }
+      // Caisses de minerai
+      steps.forEach(([rank, cx, hgt, , at], i) => {
+        const hh = Math.round(hgt * ease((t - 1.0 - i * 0.2) / 0.5));
+        if (hh <= 0) return;
+        const y0 = ground + 14 - hh;
+        x.fillStyle = '#6a4422';
+        x.fillRect(cx - 14, y0, 28, hh);
+        x.fillStyle = '#9a6a3a';
+        x.fillRect(cx - 14, y0, 28, 2);
+        x.fillStyle = '#432812';
+        for (let yy = y0 + 6; yy < ground + 14; yy += 6) x.fillRect(cx - 14, yy, 28, 1);
+        for (let j = 0; j < 5; j++) {
+          x.fillStyle = rank === 1 ? (j % 2 ? '#ffd84a' : '#c8941c') : rank === 2 ? (j % 2 ? '#d6dbe3' : '#8a8f98') : (j % 2 ? '#e0a060' : '#8a5a2b');
+          x.fillRect(cx - 11 + j * 5, y0 - 3 + (j % 2), 4, 3);
+        }
+      });
+      // Les trois arrivent de la droite, d'un pas tranquille, puis sautent sur leur caisse
+      steps.forEach(([rank, cx, hgt, ti, at]) => {
+        const s = sp[ti];
+        if (!s || t < at) return;
+        const walk = clamp01((t - at) / 0.9);
+        const jump = clamp01((t - 2.0) / 0.35);
+        const standY = ground + 14 - hgt - 30;
+        const floorY = ground + 14 - 29;
+        let px = Math.round(W + 12 + (cx - 9 - W - 12) * ease(walk));
+        let py = floorY - (walk < 1 ? Math.round(Math.abs(Math.sin(t * 9 + rank)) * 2) : 0);
+        if (jump > 0) py = Math.round(floorY + (standY - floorY) * jump - Math.sin(jump * Math.PI) * 10);
+        if (jump >= 1 && t > 2.4) py = standY - Math.round(Math.abs(Math.sin(t * 5 + rank)) * (rank === 1 ? 4 : 2));
+        x.drawImage(s, px, py);
+      });
+      // La taupe sort de son trou et applaudit
+      x.fillStyle = '#0a0608';
+      x.fillRect(4, ground + 12, 40, 6);
+      if (mole && t > 2.4) {
+        const k = ease((t - 2.4) / 0.4);
+        x.save();
+        x.beginPath();
+        x.rect(0, 0, 60, ground + 14);
+        x.clip();
+        x.drawImage(mole, 6, Math.round(ground + 14 - 33 * k - Math.abs(Math.sin(t * 7)) * (k > 0.9 ? 2 : 0)));
+        x.restore();
+      }
+      if (t > 2.4 && !shown) {
+        shown = true;
+        hooks.onNames();
+      }
+    };
+  }
 
   /** Fête de la semaine : wagons, caisses de minerai en podium, dynamite en feu d'artifice, taupe qui applaudit. */
   function week(data, x, W, H, hooks) {
@@ -314,7 +428,7 @@
     x.imageSmoothingEnabled = false;
     const noop = () => {};
     const h = { onTitle: noop, onNames: noop, drill: null, ...hooks };
-    const draw = (kind === 'month' ? month : week)(data, x, W, H, h);
+    const draw = (kind === 'month' ? month : kind === 'day' ? day : week)(data, x, W, H, h);
     if (reduced) {
       draw(99);
       return noop;
