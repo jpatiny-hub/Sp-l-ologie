@@ -1146,6 +1146,7 @@
       this.canvas.width = W;
       this.canvas.height = H;
       this.h = H;
+      this.focus = 0.6; // hauteur de la pointe dans la vue (0 = en haut)
       this.world = buildWorld();
       this.layers = [];
       this.skin = { body: 'classique', bit: 'standard' };
@@ -1274,9 +1275,9 @@
       ctx.fillRect(x0 + 11, bodyTop + 9, 1, 1);
     }
 
-    /** Hauteur visible (en pixels du jeu) : réduite sur petit écran pour garder de gros pixels. */
-    setViewHeight(h) {
-      const next = Math.max(100, Math.min(H, Math.round(h)));
+    /** Hauteur visible (en pixels du jeu) : réduite sur petit écran pour garder de gros pixels ; `max` plus grand en plein écran (forage sans cadre). */
+    setViewHeight(h, max = H) {
+      const next = Math.max(100, Math.min(max, Math.round(h)));
       if (next === this.h) return;
       this.h = next;
       this.canvas.height = next;
@@ -1308,7 +1309,7 @@
     }
 
     cameraTarget() {
-      return Math.max(0, Math.min(WORLD_H - this.h, this.tipY() - this.h * 0.6));
+      return Math.max(0, Math.min(WORLD_H - this.h, this.tipY() - this.h * this.focus));
     }
 
     emitDepth() {

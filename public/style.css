@@ -1737,3 +1737,25 @@ html[data-galerie] #switch { display: block; width: 100%; max-width: 320px; heig
 .voies button:focus-visible { outline: 2px solid var(--lamp, #ffc25a); outline-offset: 2px; }
 html[data-galerie] #play-sheet-body #mode-duel::before, html[data-galerie] #play-sheet-body #mode-training::before { display: none; }
 html[data-galerie] #play-sheet-body #mode-training { border-top: 0; margin-top: 0; padding-top: 0; }
+
+/*
+ * Forage sans cadre (galerie vivante) : la coupe du terrain remplit l'écran derrière l'interface ; la foreuse creuse dans le décor.
+ * Le thème reste en haut, la réponse en bas, rien ne cache la mine au milieu.
+ */
+html[data-frameless] #galerie-bg { display: none; }
+html[data-frameless] .stage { position: fixed; inset: 0; z-index: -1; display: block; }
+html[data-frameless] .stage-frame { width: 100%; height: 100%; box-shadow: none; background: none; padding: 0; }
+html[data-frameless] #scene { width: 100vw !important; height: 100vh !important; }
+html[data-frameless] .stage::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(rgba(6, 4, 10, 0.72), rgba(6, 4, 10, 0) 26%, rgba(6, 4, 10, 0) 70%, rgba(6, 4, 10, 0.78)); }
+html[data-frameless] .hud { top: auto; bottom: 14px; left: 50%; transform: translateX(-50%); flex-direction: row; gap: 8px; }
+html[data-frameless] .hud span { background: rgba(10, 8, 14, 0.6); border-radius: 999px; padding: 4px 10px; }
+html[data-frameless] #view-game { min-height: calc(100dvh - 120px); text-shadow: 0 2px 0 #000, 0 0 10px rgba(0, 0, 0, 0.9); }
+html[data-frameless] #view-game .card { background: none !important; box-shadow: none !important; border: 0 !important; padding: 4px 2px; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html[data-frameless] #view-game .game-head { padding: 0 2px; }
+html[data-frameless] #pane-prompt:not([hidden]), html[data-frameless] #pane-feedback:not([hidden]), html[data-frameless] #pane-ready:not([hidden]) { flex: 1; display: flex; flex-direction: column; gap: 8px; text-align: center; }
+html[data-frameless] #pane-prompt .theme-title { font-size: calc(15px * var(--fs, 1)); line-height: 1.5; text-wrap: balance; margin: 0; }
+html[data-frameless] #form-answer { margin-top: auto; }
+html[data-frameless] #form-answer input { background: rgba(12, 10, 16, 0.74); border-radius: 999px; text-align: center; }
+html[data-frameless] #pane-feedback .feedback-points { font-size: 1.6em; }
+html[data-frameless] #pane-feedback #btn-next, html[data-frameless] #pane-ready #btn-reveal { margin-top: auto; }
+html[data-frameless] #pane-feedback > p:not(.feedback-points):not(.feedback-tier) { background: rgba(12, 10, 16, 0.55); border-radius: 12px; padding: 4px 8px; }

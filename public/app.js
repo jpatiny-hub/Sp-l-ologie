@@ -366,6 +366,17 @@
   // et on réduit plutôt la hauteur visible de la coupe.
   function fitCanvas() {
     const canvas = $('scene');
+    // Forage sans cadre (galerie vivante) : la coupe remplit tout l'écran, derrière l'interface.
+    const frameless = galerieOn() && (app.view === 'game' || app.view === 'results');
+    document.documentElement.toggleAttribute('data-frameless', frameless);
+    scene.focus = frameless ? 0.62 : 0.6;
+    if (frameless) {
+      const scale = window.innerWidth / Pixel.WIDTH;
+      scene.setViewHeight(window.innerHeight / scale, 480);
+      canvas.style.width = '100vw';
+      canvas.style.height = '100vh';
+      return;
+    }
     const wide = window.innerWidth >= 860;
     const maxW = wide ? 520 : Math.min(window.innerWidth - 40, 520);
     const playing = app.game && !app.game.finished && !$('view-game').hidden;
