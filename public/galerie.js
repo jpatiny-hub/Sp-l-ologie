@@ -214,12 +214,14 @@
 
 
   /** Vignette de la galerie de secours : un wagonnet sur son rail, la taupe qui dépasse de la caisse, dans l'arche d'un tunnel éclairé. */
-  function drawRescue(canvas) {
-    const W = 96, H = 40;
-    canvas.width = W;
-    canvas.height = H;
+  function drawRescue(canvas, t = 0, still = true) {
+    const calm = still;
+    const W = 96, H = 40; // coordonnées de la scène ; la toile fait le double pour que la taupe (48 × 32) garde sa finesse
+    canvas.width = W * 2;
+    canvas.height = H * 2;
     const g = canvas.getContext('2d');
     g.imageSmoothingEnabled = false;
+    g.scale(2, 2);
     g.clearRect(0, 0, W, H);
     const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
     // Arche du tunnel : roche en dégradé, deux étais, une lanterne qui éclaire.
@@ -238,20 +240,67 @@
     R(0, 33, W, 2, '#8a8e98'); R(0, 33, W, 1, '#c4c8d0');
     for (let x = 2; x < W; x += 8) R(x, 35, 5, 3, '#4a2f1a');
     R(0, 38, W, 2, '#150d06');
-    // La taupe dépasse de la caisse (dessinée avant l'avant du wagonnet pour que le corps soit caché).
+    // Wagonnet (arrière) puis la taupe assise dedans, puis l'avant de la caisse par-dessus ses jambes.
+    const bob = calm ? 0 : Math.round(Math.sin(t * 3) * 0.6);
+    R(25, 20, 46, 13, '#150d06');
+    g.save();
+    g.setTransform(1, 0, 0, 1, 0, 0); // taupe et patte en pixels réels de la toile
     if (global.Mole16) {
       const m = document.createElement('canvas');
-      m.width = 24; m.height = 16;
       global.Mole16.draw(m, 'happy', { x: 0, y: 0 });
-      g.drawImage(m, 36, 4);
+      g.imageSmoothingEnabled = false;
+      g.drawImage(m, 72, 8 + bob * 2);
     }
-    // Wagonnet : caisse en planches cerclée de fer, roues.
-    R(29, 18, 38, 14, '#150d06');
-    for (let i = 0; i < 3; i++) { R(30, 19 + i * 4, 36, 3, i % 2 ? '#6a4524' : '#7d5430'); R(30, 19 + i * 4, 36, 1, '#9a6c3c'); }
-    R(28, 17, 40, 3, '#8a8e98'); R(28, 17, 40, 1, '#c4c8d0');
-    for (const x of [35, 59]) { R(x, 18, 2, 14, '#5a5e68'); R(x, 18, 1, 14, '#8a8e98'); }
-    for (const x of [33, 57]) { R(x, 29, 7, 7, '#0e0e12'); R(x + 1, 30, 5, 5, '#555a64'); R(x + 3, 32, 1, 1, '#ffd36a'); }
-    R(24, 27, 4, 2, '#5a5e68'); R(68, 27, 4, 2, '#5a5e68');
+    // Patte qui fait signe : « suis-moi ! » (bras levé qui balance, patte rose au bout).
+    const sw = calm ? 0 : Math.sin(t * 7);
+    const sx = 114, sy = 34 + bob * 2, tx = Math.round(122 + sw * 7), ty = Math.round(12 - Math.abs(sw) * 2);
+    g.fillStyle = '#3a2410';
+    for (let i = 0; i <= 12; i++) { const f = i / 12; g.fillRect(Math.round(sx + (tx - sx) * f) - 1, Math.round(sy + (ty - sy) * f) - 1, 7, 7); }
+    g.fillStyle = '#9a6a3a';
+    for (let i = 0; i <= 12; i++) { const f = i / 12; g.fillRect(Math.round(sx + (tx - sx) * f), Math.round(sy + (ty - sy) * f), 5, 5); }
+    g.fillStyle = '#f28bb3'; g.fillRect(tx - 2, ty - 5, 9, 8);
+    g.fillStyle = '#ffc4d8'; g.fillRect(tx - 2, ty - 5, 9, 2);
+    g.restore();
+    for (let i = 0; i < 3; i++) { R(25, 21 + i * 4, 46, 3, i % 2 ? '#6a4524' : '#7d5430'); R(25, 21 + i * 4, 46, 1, '#9a6c3c'); }
+    R(23, 19, 50, 3, '#8a8e98'); R(23, 19, 50, 1, '#c4c8d0');
+    for (const x of [33, 62]) { R(x, 20, 2, 13, '#5a5e68'); R(x, 20, 1, 13, '#8a8e98'); }
+    for (const x of [31, 59]) { R(x, 29, 7, 7, '#0e0e12'); R(x + 1, 30, 5, 5, '#555a64'); R(x + 3, 32, 1, 1, '#ffd36a'); }
+    R(19, 27, 4, 2, '#5a5e68'); R(73, 27, 4, 2, '#5a5e68');
+  }
+  /** Anime la vignette tant que la fenêtre est ouverte (ne fait rien si les animations sont réduites). */
+  function playRescue(canvas, dialog) {
+    drawRescue(canvas, 0, calm || (global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches));
+    if (calm) return;
+    const t0 = performance.now();
+    const step = (now) => {
+      if (!dialog.open || !canvas.isConnected) return;
+      drawRescue(canvas, (now - t0) / 1000, false);
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  /** Dessine une image fixe du palier n (0 = ossuaire …) sur une toile, pour illustrer le tutoriel avec les vraies grottes du jeu. */
+  function snapshot(canvas, n) {
+    if (!global.Caves || !global.Pixel) return;
+    if (!cave || cave.seed !== global.Caves.seed()) cave = buildCave();
+    const { dims, world } = cave;
+    const h = canvas.height = Math.min(canvas.height || 80, dims.WORLD_H);
+    canvas.width = dims.W;
+    const tier = global.Caves.TIERS[FIRST + (n % tierCount())];
+    const cam = Math.max(dims.SKY + 4, Math.min(dims.WORLD_H - h, Math.round(dims.SKY + tier.from * dims.PPP - h / 3 + 20)));
+    const g = canvas.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    g.fillStyle = tier.dark;
+    g.fillRect(0, 0, canvas.width, h);
+    global.Caves.drawBack(g, cave.back, cam, h, dims);
+    g.drawImage(world, 0, cam, dims.W, h, 0, 0, dims.W, h);
+    g.save();
+    g.translate(0, -cam);
+    global.Caves.drawAnim(g, cave.anim, 3, cam, h, true);
+    if (cave.life) global.MineLife.draw(g, cave.life, 3, cam, h, true);
+    g.restore();
+    global.Caves.drawFront(g, cave.front, cam, h, 3);
   }
 
   /** Pour les captures et les essais : affiche directement le palier n (0 = ossuaire … 8 = cœur prismatique). */
@@ -259,5 +308,5 @@
     started = performance.now() - n * SCENE_MS - 2000;
   }
 
-  global.Galerie = { setOn, showTier, drawRescue, mountWagon, departWagon, resetWagon, get TIER_COUNT() { return tierCount(); } };
+  global.Galerie = { setOn, showTier, drawRescue, playRescue, snapshot, mountWagon, departWagon, resetWagon, get TIER_COUNT() { return tierCount(); } };
 })(window);
