@@ -89,6 +89,7 @@ const CALENDAR = {
   'star-wars': { name: () => 'Que la Force soit avec toi', description: (y) => `Forage du 4 mai ${y} (May the 4th)`, icon: 'sabre' },
   'fete-musique': { name: () => 'Concert souterrain', description: (y) => `Forage de la fête de la musique, le 21 juin ${y}`, icon: 'note' },
   'mardi-gras': { name: () => 'Gille de Binche', description: (y) => `Forage du Mardi gras ${y}`, icon: 'feu-artifice' },
+  anniversaire: { name: () => 'Joyeux anniversaire', description: (y) => `Forage le jour de ton anniversaire ${y}`, icon: 'feu-artifice' },
   paques: { name: () => 'Œuf de dinosaure', description: (y) => `Forage du dimanche de Pâques ${y}`, icon: 'oeuf', body: 'oeuf' },
   'premier-mai': { name: () => 'Gueule noire', description: (y) => `Forage de la fête du Travail ${y}, en hommage aux mineurs`, icon: 'lampe-mineur' },
   'fierte': { name: () => 'Fierté', description: (y) => `Forage du 17 mai ${y}, journée mondiale contre l'homophobie, la transphobie et la biphobie`, icon: 'drapeau-fierte', body: 'fierte' },
@@ -440,6 +441,8 @@ class BadgeService {
     if (answered.length === ROUNDS_PER_GAME && answered.every((r) => r.points < 40)) this.give(userId, 'sentier-battu', day, day);
     if (answered.length === ROUNDS_PER_GAME && answered.every((r) => r.points < 20)) this.give(userId, 'autoroute', day, day);
     calendarKinds(day).forEach((kind) => this.give(userId, kind, day.slice(0, 4), day));
+    const born = this.db.prepare('SELECT birthday FROM users WHERE id = ?').get(userId);
+    if (born && born.birthday === day.slice(5)) this.give(userId, 'anniversaire', day.slice(0, 4), day);
 
     const pepitesNow = rounds.filter((r) => r.points >= 100).length;
     if (pepitesNow >= 2) this.give(userId, 'filon', day, day);
@@ -764,7 +767,7 @@ class BadgeService {
         const hint = hintFor(type, id);
         return { id, name, unlocked: !hint || unlocked.has(`${type}:${id}`), hint };
       });
-    const user = this.db.prepare('SELECT skin_body, skin_bit, skin_timer, avatar, title, created_at FROM users WHERE id = ?').get(userId);
+    const user = this.db.prepare('SELECT skin_body, skin_bit, skin_timer, avatar, title, created_at, birthday FROM users WHERE id = ?').get(userId);
     const pepites = this.pepiteCount(userId);
     const bestScore = this.db.prepare("SELECT MAX(score) AS s FROM games WHERE user_id = ? AND mode = 'daily'").get(userId).s || 0;
     const info = BadgeService.streakInfo(days, today);
@@ -786,6 +789,7 @@ class BadgeService {
       timers: skinList(TIMERS, 'timer'),
       skin: this.skinOf(user),
       avatar: Avatar.normalize(user && user.avatar, userId),
+      birthday: (user && user.birthday) || null,
       avatarCatalog: Avatar.catalog(badges.concat(this.anniversaries(user, today)), beta),
       title: beta && user && Titles.labelOf(user.title) ? user.title : null,
       titles: beta ? Titles.catalog(badges, days.length) : [],
@@ -816,6 +820,18 @@ class BadgeService {
       description: `Être inscrit depuis ${n} an${n > 1 ? 's' : ''}`,
       count: years >= n ? 1 : 0,
     }));
+  }
+
+  /** Enregistre l'anniversaire (« MM-JJ ») ou l'efface avec `null`. Renvoie false si la date n'existe pas. */
+  setBirthday(userId, value) {
+    if (value !== null) {
+      const m = /^(\d\d)-(\d\d)$/.exec(String(value));
+      if (!m) return false;
+      const real = new Date(`2024-${value}T12:00:00Z`); // 2024 est bissextile : le 29 février reste possible
+      if (Number.isNaN(real.getTime()) || real.toISOString().slice(5, 10) !== value) return false;
+    }
+    this.db.prepare('UPDATE users SET birthday = ? WHERE id = ?').run(value, userId);
+    return true;
   }
 
   /** Enregistre l'avatar du joueur s'il ne contient que des éléments débloqués. Renvoie l'avatar, ou null. */

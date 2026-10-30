@@ -3070,6 +3070,7 @@
     }
 
     $('avatar-options').replaceChildren(...(betaOn('betaProfil') ? [wardrobe()] : buildRows()));
+    if (betaOn('betaProfil')) $('avatar-options').append(birthdayBlock(profile.birthday));
     preview();
     let timer = null;
     function commit() {
@@ -3091,6 +3092,32 @@
         }
       }, 500);
     }
+  }
+
+  /** Anniversaire facultatif : jour et mois, jamais montrés aux autres joueurs. */
+  function birthdayBlock(current) {
+    const MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+    const [m0, d0] = current ? current.split('-').map(Number) : [0, 0];
+    const day = el('select', { 'aria-label': 'Jour' }, el('option', { value: '' }, 'Jour'), ...Array.from({ length: 31 }, (_, i) => el('option', { value: String(i + 1) }, String(i + 1))));
+    const month = el('select', { 'aria-label': 'Mois' }, el('option', { value: '' }, 'Mois'), ...MONTHS.map((n, i) => el('option', { value: String(i + 1) }, n)));
+    day.value = d0 ? String(d0) : '';
+    month.value = m0 ? String(m0) : '';
+    const status = el('span', { class: 'muted small', role: 'status' });
+    const save = el('button', { class: 'btn ghost', type: 'button' }, 'Enregistrer');
+    save.addEventListener('click', async () => {
+      const blank = !day.value && !month.value;
+      if (!blank && (!day.value || !month.value)) { status.textContent = 'Choisis le jour et le mois.'; return; }
+      const value = blank ? null : `${month.value.padStart(2, '0')}-${day.value.padStart(2, '0')}`;
+      try {
+        await api('/api/profile/birthday', { birthday: value });
+        status.textContent = value ? 'Anniversaire enregistré.' : 'Anniversaire effacé.';
+      } catch (err) {
+        status.textContent = err.message;
+      }
+    });
+    return el('div', { class: 'wr-slot' }, el('h4', {}, 'Ton anniversaire (facultatif)'),
+      el('p', { class: 'muted small' }, 'Les autres joueurs ne le voient pas. Si tu fores ce jour-là, tu reçois un cadeau pour ton personnage.'),
+      el('div', { class: 'row' }, day, month, save), status);
   }
 
   $('btn-rename').addEventListener('click', () => {

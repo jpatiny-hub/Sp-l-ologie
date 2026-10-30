@@ -569,6 +569,12 @@
       P(5, oy - 1, 6, 1, '#d8d8e0');
       P(4, oy - 1, 1, 1, '#c8362d');
       P(11, oy - 1, 1, 1, '#c8362d');
+    } else if (hat === 'bougies') {
+      P(4, oy - 1, 8, 1, '#ff9ac8');
+      for (const x of [5, 7, 9]) {
+        P(x, oy - 3, 1, 2, '#fff8e0');
+        P(x, oy - 4, 1, 1, '#ffd84a');
+      }
     } else if (hat === 'chapeau-paille') {
       P(5, oy - 3, 6, 3, '#e8c547');
       P(2, oy - 1, 12, 1, '#e8c547');
@@ -676,6 +682,12 @@
       P(13, oy + 2, 3, 1, '#f2c230');
       P(12, oy + 3, 1, 2, '#f2c230');
       P(15, oy + 3, 1, 1, '#f2c230');
+    } else if (it === 'gateau') {
+      P(12, oy + 12, 4, 3, '#ff9ac8');
+      P(12, oy + 11, 4, 1, '#fff8f0');
+      P(13, oy + 12, 1, 1, '#c8362d');
+      P(14, oy + 9, 1, 2, '#fff8e0');
+      P(14, oy + 8, 1, 1, '#ffd84a');
     } else if (it === 'orange') {
       P(13, oy + 12, 3, 3, '#ff9a1a');
       P(13, oy + 12, 1, 1, '#ffc866');
@@ -1376,6 +1388,7 @@
     { id: 'cupidon', name: 'Cupidon', theme: 'saint-valentin', drill: 'Cupidon', pieces: { chapeau: 'aureole', tenue: 'costume-cupidon', dos: 'ailes-cupidon', objet: 'arc-coeur' }, fx: { kind: 'coeurs', colors: ['#ff4a7a', '#ff9ab8'] } },
     { id: 'grand-saint', name: 'Grand Saint', theme: 'saint-nicolas', drill: 'Grand Saint', pieces: { chapeau: 'mitre', tenue: 'chape-eveque', objet: 'crosse' }, fx: { kind: 'scintille', colors: ['#ffe84a', '#fff8c0'] } },
     { id: 'gille', name: 'Gille de Binche', theme: 'mardi-gras', drill: 'Gille', pieces: { chapeau: 'plumes-gille', tenue: 'costume-gille', objet: 'orange', accessoire: 'grelots' }, fx: { kind: 'tombe', colors: ['#ff9a1a', '#ffd84a', '#c8362d'] } },
+    { id: 'gateau', name: 'Joyeux anniversaire', theme: 'anniversaire', drill: 'Gâteau', pieces: { chapeau: 'bougies', objet: 'gateau', accessoire: 'noeud-rose' }, fx: { kind: 'tombe', colors: ['#ff9ac8', '#fff8e0', '#ffd84a'] } },
     { id: 'lapin', name: 'Lapin de Pâques', theme: 'paques', drill: 'Lapin', pieces: { chapeau: 'oreilles-lapin', objet: 'panier-paques', accessoire: 'noeud-papillon' }, fx: { kind: 'monte', colors: ['#ff9ad8', '#9ae8ff', '#ffe89a', '#b8ff9a'] } },
     { id: 'minuit', name: 'Minuit', theme: 'nouvel-an', drill: 'Minuit', pieces: { chapeau: 'cotillon', objet: 'coupe', accessoire: 'serpentin' }, fx: { kind: 'tombe', colors: ['#ff5a8a', '#ffe84a', '#5ac8ff', '#8aff5a'] } },
     { id: 'pi', name: 'Mathématicien du 14 mars', theme: 'pi-day', drill: 'Pi', pieces: { accessoire: 'pin-pi', objet: 'tarte', tenue: 'blouse' }, fx: { kind: 'monte', colors: ['#5ac8ff', '#ffffff'] } },

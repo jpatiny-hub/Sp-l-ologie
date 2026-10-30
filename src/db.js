@@ -285,6 +285,8 @@ const MIGRATIONS = [
   ['users', 'tutorial_seen', 'INTEGER NOT NULL DEFAULT 0'],
   // Titre de mineur affiché à côté du pseudo (identifiant, voir src/titles.js).
   ['users', 'title', 'TEXT'],
+  // Anniversaire facultatif (MM-JJ), jamais montré aux autres joueurs.
+  ['users', 'birthday', 'TEXT'],
   // Avatar (JSON des choix) et date du dernier changement de pseudo (un changement par semaine).
   ['users', 'avatar', 'TEXT'],
   ['users', 'username_changed_at', 'INTEGER'],
