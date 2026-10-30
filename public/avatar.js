@@ -1211,9 +1211,9 @@
    */
   const STORIES = {
     humain: { text: 'Mineur de métier : il connaît chaque galerie par cœur.', preset: { tenue: 'mineur', chapeau: 'casque', objet: 'pioche' } },
-    nain: { text: 'Les nains creusent ici depuis avant les cartes. Barbe nattée, hache à la ceinture, rancune tenace envers les éboulements.', preset: { tenue: 'mineur-nain', chapeau: 'casque-nain', objet: 'hache', barbe: 'tressee', couleur: 'roux' } },
+    nain: { text: 'Les nains creusent ici depuis avant les cartes. Barbe nattée, hache à la ceinture, rancune tenace envers les éboulements.', preset: { tenue: 'mineur-nain', chapeau: 'casque-nain', objet: 'hache' }, look: { barbe: 'tressee', couleur: 'roux' } },
     robot: { text: 'Automate construit pour pomper l\'eau des galeries. À force de tourner, il a appris à poser des questions.', preset: { chapeau: 'chapeau-metal', objet: 'pipe', accessoire: 'aucun' } },
-    taupe: { text: 'Géomètre de la mine : mesure les galeries à l\'oreille et signe ses plans à la plume.', preset: { tenue: 'redingote', chapeau: 'melon', objet: 'canne', yeux: 'rondes', accessoire: 'noeud-papillon' } },
+    taupe: { text: 'Géomètre de la mine : mesure les galeries à l\'oreille et signe ses plans à la plume.', preset: { tenue: 'redingote', chapeau: 'melon', objet: 'canne', accessoire: 'noeud-papillon' }, look: { yeux: 'rondes' } },
     citrouille: { text: 'Gardien des galeries la nuit venue. Il n\'a jamais su qui lui avait taillé ce sourire.', preset: { tenue: 'epouvantail', chapeau: 'chapeau-paille', objet: 'torche', accessoire: 'aucun' } },
     squelette: { text: 'Dernier d\'une expédition perdue il y a un siècle. Il cherche toujours la sortie, sa carte à la main.', preset: { tenue: 'explorateur', chapeau: 'casque-colonial', objet: 'lanterne', accessoire: 'aucun' } },
     fantome: { text: 'Mineur disparu lors d\'un éboulement. Il revient éclairer le chemin des autres, ses chaînes en bandoulière.', preset: { chapeau: 'casque', objet: 'lanterne', accessoire: 'chaines', compagnon: 'lucioles' } },
@@ -1223,6 +1223,12 @@
     diablotin: { text: 'Comptable des profondeurs : tient les comptes du feu et ne rend jamais la monnaie.', preset: { tenue: 'tunique-infernale', chapeau: 'aucun', objet: 'torche', accessoire: 'aucun' } },
     grenouille: { text: 'Mineur des cascades : à l\'aise dans l\'eau jusqu\'au cou, ciré jaune toujours ruisselant.', preset: { tenue: 'cire-jaune', chapeau: 'suroit', objet: 'pioche', accessoire: 'aucun' } },
   };
+  // Réglages neutres pour les vignettes de la liste des types : elles ne doivent pas dépendre du personnage en cours.
+  const NEUTRAL = { forme: 'm', peau: 'clair', cheveux: 'court', couleur: 'brun', yeux: 'points', iris: 'defaut', barbe: 'aucune', trait: 'aucun', bouche: 'normal', piercing: 'aucun', tatouage: 'aucun', accessoire: 'aucun', compagnon: 'aucun', aura: 'aucune', dos: 'aucun', modele: 'classique', lieu: 'hublot' };
+  function thumb(species) {
+    const story = STORIES[species] || { preset: {} };
+    return { ...NEUTRAL, ...story.preset, ...(story.look || {}), espece: species };
+  }
   const MODELS = {
     classique: 'Le modèle de série : tuyaux, rivets et un panache de vapeur.',
     cyclope: 'Un seul grand œil et une lanterne sur le crâne : il éclaire devant lui.',
@@ -1337,5 +1343,5 @@
     return c;
   }
 
-  global.Avatar = { canvas, sprite, finished, STORIES, MODELS, W, H, OY, SWATCHES: { robot: METAL, taupe: FUR, citrouille: GOURD, squelette: BONE, fantome: GHOST, golem: CRYSTAL, champignon: CAP, 'ver-luisant': WORM, diablotin: IMP, grenouille: FROG, lentilles: LENS } };
+  global.Avatar = { canvas, sprite, finished, STORIES, MODELS, thumb, W, H, OY, SWATCHES: { robot: METAL, taupe: FUR, citrouille: GOURD, squelette: BONE, fantome: GHOST, golem: CRYSTAL, champignon: CAP, 'ver-luisant': WORM, diablotin: IMP, grenouille: FROG, lentilles: LENS } };
 })(window);

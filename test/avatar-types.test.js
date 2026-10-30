@@ -83,3 +83,19 @@ test('avatar : tenue d\'origine de chaque type et modèles de robots, que des é
   assert.equal(Avatar.validate({ ...base, espece: 'robot', modele: 'cyclope' }, 5, []).modele, 'cyclope');
   assert.equal(Avatar.validate({ ...base, espece: 'robot', modele: 'blinde' }, 5, []), null, 'sentinelle blindée : badge de duel');
 });
+
+test('avatar : les vignettes des types ne dépendent pas du personnage en cours', () => {
+  const vm = require('node:vm');
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const win = {};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '..', 'public', 'avatar.js'), 'utf8'), { window: win, document: {} });
+  const { thumb } = win.Avatar;
+  assert.equal(thumb('humain').barbe, 'aucune', 'pas de barbe de nain sur la vignette humaine');
+  assert.equal(thumb('nain').barbe, 'tressee');
+  assert.equal(thumb('robot').espece, 'robot');
+  // Ni la tenue d'origine ni la vignette ne touchent à la barbe, à la couleur de cheveux ni aux yeux d'un joueur.
+  for (const [id, story] of Object.entries(win.Avatar.STORIES)) {
+    for (const slot of ['barbe', 'couleur', 'yeux', 'cheveux']) assert.ok(!(slot in story.preset), `${id} : ${slot} dans la tenue d'origine`);
+  }
+});

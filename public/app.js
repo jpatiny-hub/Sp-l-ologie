@@ -2968,6 +2968,9 @@
         const opt = catalog[slot] && catalog[slot].options.find((o) => o.id === id);
         if (opt && opt.unlocked) draft[slot] = id;
       }
+      // Le nain se choisit avec sa barbe, sauf si le joueur en a déjà une.
+      const look = story.look || {};
+      if (look.barbe && draft.barbe === 'aucune') draft.barbe = look.barbe;
     };
     const onChoice = (slot, id) => {
       draft[slot] = id;
@@ -3034,7 +3037,7 @@
             const grid = el('div', { class: `wr-grid${THUMBS.has(slot) ? '' : ' text'}` });
             optionsOf(slot).forEach((opt) => {
               const selected = draft[slot] === opt.id;
-              const content = THUMBS.has(slot) ? avatarEl({ ...draft, [slot]: opt.id }, FULL.has(slot) ? 'full' : 'bust', 2) : null;
+              const content = THUMBS.has(slot) ? avatarEl(slot === 'espece' ? window.Avatar.thumb(opt.id) : { ...draft, [slot]: opt.id }, FULL.has(slot) ? 'full' : 'bust', 2) : null;
               const b = el('button', { class: `wr-opt${selected ? ' sel' : ''}${opt.unlocked ? '' : ' locked'}`, type: 'button', title: opt.unlocked ? opt.label : opt.hint || opt.label, 'aria-pressed': String(selected) }, content, el('span', { class: 'wr-lab' }, `${opt.unlocked ? '' : '🔒 '}${opt.label}`));
               b.addEventListener('click', () => {
                 onChoice(slot, opt.id);
