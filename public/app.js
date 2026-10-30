@@ -2262,7 +2262,8 @@
     const data = app.me && app.me.collective;
     if (!data) return;
     $('collective-title').textContent = data.reached ? 'Le diamant est atteint, bravo à tous !' : `Creusons ensemble ${data.goal.toLocaleString('fr-BE')} points avant la fin du mois.`;
-    $('collective-total').textContent = `${data.total.toLocaleString('fr-BE')} / ${data.goal.toLocaleString('fr-BE')} points`;
+    // Objectif dépassé : total et objectif séparés, sans le faux « 50 758 / 10 000 ».
+    $('collective-total').textContent = data.total > data.goal ? `${data.total.toLocaleString('fr-BE')} points (objectif : ${data.goal.toLocaleString('fr-BE')})` : `${data.total.toLocaleString('fr-BE')} / ${data.goal.toLocaleString('fr-BE')} points`;
     $('collective-left').textContent = data.daysLeft > 0 ? plural(data.daysLeft, 'jour restant', 'jours restants') : '';
     $('collective-legend').replaceChildren(
       ...data.players.map((p, i) => {
