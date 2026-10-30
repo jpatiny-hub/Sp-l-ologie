@@ -3,7 +3,7 @@
 /*
  * Avatar du joueur en pixel art : grille de 16 x 28 pixels, dessinée à partir de quelques choix (voir src/avatar.js).
  * Types de personnage : humain, nain (humain trapu), robot à vapeur, taupe, citrouille, squelette, fantôme, golem de cristal, champignon, ver luisant, diablotin, grenouille.
- *   Avatar.canvas(av, { scale, view })  → <canvas> (view : 'full', 'bust' ou 'head')
+ *   Avatar.canvas(av, { scale, view, finish })  → <canvas> (view : 'full', 'bust' ou 'head' ; finish : style abouti, contours et ombres)
  *   Avatar.sprite(av)                   → canevas 16 x 28 à l'échelle 1 (pour la scène de forage)
  */
 (function (global) {
@@ -1115,11 +1115,73 @@
     return c;
   }
 
+  const finishCache = new Map();
+
+  /**
+   * Version « aboutie » du sprite : contour de la couleur voisine assombrie, reflet sur les bords haut et gauche, ombre sur les
+   * bords bas et droit, petite ombre au sol. Canevas de (W + 2) x (H + 2), l'original décalé d'un pixel.
+   */
+  function finished(av) {
+    const key = JSON.stringify(av || {});
+    let out = finishCache.get(key);
+    if (out) return out;
+    const src = sprite(av).getContext('2d').getImageData(0, 0, W, H).data;
+    out = document.createElement('canvas');
+    out.width = W + 2;
+    out.height = H + 2;
+    const c = out.getContext('2d');
+    const img = c.createImageData(W + 2, H + 2);
+    const d = img.data;
+    const at = (x, y) => (y * W + x) * 4;
+    const solid = (x, y) => x >= 0 && y >= 0 && x < W && y < H && src[at(x, y) + 3] > 200;
+    const tone = (i, f) => [0, 1, 2].map((k) => Math.max(0, Math.min(255, Math.round(src[i + k] * f))));
+    const put = (x, y, rgb, a) => {
+      const i = ((y + 1) * (W + 2) + (x + 1)) * 4;
+      d[i] = rgb[0];
+      d[i + 1] = rgb[1];
+      d[i + 2] = rgb[2];
+      d[i + 3] = a;
+    };
+    // Ombre au sol sous les pieds.
+    for (const [x0, x1, y] of [[5, 10, H], [3, 12, H - 1]]) for (let x = x0; x <= x1; x++) if (!solid(x, y)) put(x, y, [0, 0, 0], 70);
+    for (let y = -1; y <= H; y++) {
+      for (let x = -1; x <= W; x++) {
+        if (solid(x, y)) {
+          const i = at(x, y);
+          let f = 1;
+          if (!solid(x - 1, y) || !solid(x, y - 1)) f = 1.22;
+          else if (!solid(x + 1, y) || !solid(x, y + 1)) f = 0.78;
+          put(x, y, tone(i, f), 255);
+          continue;
+        }
+        const near = [[0, -1], [-1, 0], [1, 0], [0, 1]].map(([dx, dy]) => [x + dx, y + dy]).find(([nx, ny]) => solid(nx, ny));
+        if (near) put(x, y, tone(at(near[0], near[1]), 0.3), 255);
+        else if (x >= 0 && y >= 0 && x < W && y < H && src[at(x, y) + 3]) {
+          const i = at(x, y);
+          put(x, y, [src[i], src[i + 1], src[i + 2]], src[i + 3]);
+        }
+      }
+    }
+    c.putImageData(img, 0, 0);
+    if (finishCache.size > 80) finishCache.clear();
+    finishCache.set(key, out);
+    return out;
+  }
+
   /** Nouveau canevas pixel art ; `scale` = pixels d'écran par pixel d'avatar. */
-  function canvas(av, { scale = 3, view = 'full' } = {}) {
+  function canvas(av, { scale = 3, view = 'full', finish = false } = {}) {
     const [sx, sy, sw, sh] = VIEWS[view] || VIEWS.full;
     const c = document.createElement('canvas');
     c.className = `avatar avatar-${view}`;
+    if (finish) {
+      // Style abouti : le contour déborde d'un pixel de chaque côté de la zone recadrée.
+      c.width = (sw + 2) * scale;
+      c.height = (sh + 2) * scale;
+      const fctx = c.getContext('2d');
+      fctx.imageSmoothingEnabled = false;
+      fctx.drawImage(finished(av), sx, sy, sw + 2, sh + 2, 0, 0, c.width, c.height);
+      return c;
+    }
     if (global.Pixel && global.Pixel.isHd && global.Pixel.isHd()) {
       // Essai HD-2D : sprite redessiné en haute définition (voir Pixel.hdUpgrade), au double de définition pour les écrans nets.
       const up = global.Pixel.hdUpgrade(sprite(av));
@@ -1141,5 +1203,5 @@
     return c;
   }
 
-  global.Avatar = { canvas, sprite, W, H, OY, SWATCHES: { robot: METAL, taupe: FUR, citrouille: GOURD, squelette: BONE, fantome: GHOST, golem: CRYSTAL, champignon: CAP, 'ver-luisant': WORM, diablotin: IMP, grenouille: FROG, lentilles: LENS } };
+  global.Avatar = { canvas, sprite, finished, W, H, OY, SWATCHES: { robot: METAL, taupe: FUR, citrouille: GOURD, squelette: BONE, fantome: GHOST, golem: CRYSTAL, champignon: CAP, 'ver-luisant': WORM, diablotin: IMP, grenouille: FROG, lentilles: LENS } };
 })(window);
