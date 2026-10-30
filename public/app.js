@@ -42,7 +42,7 @@
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
   for (const flag of BETA_FLAGS) settings[flag] = true;
   // Refonte 16-bit : réservée au responsable, désactivée au départ. `betaRefonte` active tout d'un coup ; les autres cases, un morceau à la fois pour comparer.
-  const REFONTE_FLAGS = ['betaRefonte', 'betaCaves', 'betaMole16', 'betaGalerie', 'betaSon16', 'betaFetes'];
+  const REFONTE_FLAGS = ['betaRefonte', 'betaCaves', 'betaMole16', 'betaGalerie', 'betaSon16', 'betaFetes', 'betaDefis'];
   for (const flag of REFONTE_FLAGS) settings[flag] = false;
   settings.betaDrill16 = ''; // foreuse 16-bit à l'essai (refonte, responsable seulement)
   // Ambiance sonore : coups de pioche, grondement, musiques d'accueil, bruits de boutons et chrono sonore, au choix de chaque joueur : coups de pioche, grondement et musique « Galerie » activés au départ, le reste non.
@@ -103,6 +103,8 @@
   /** Sons 16-bit : un bruit par minerai, wagonnet, taupe, onglets, foreuses spéciales et célébrations. */
   const son16On = () => refonteOn('betaSon16');
   /** Fêtes de podium en 16 bits (semaine, mois) et Gazette sur plan de mine. */
+  /** Défis en galeries de mine 16 bits (« Ton filon », « Galerie commune »). */
+  const defisOn = () => !!(refonteOn('betaDefis') && window.Defis16);
   const fetesOn = () => !!(refonteOn('betaFetes') && window.Celebrations16);
   const betaOn = (name) => !!(app.me && (!app.me.isAdmin || settings[name]));
 
@@ -1945,6 +1947,9 @@
     const collective = app.me.collective;
     $('challenge-card').hidden = !ch && !collective;
     $('challenge-tab-month').hidden = !collective;
+    // Onglets en habit de mine (refonte)
+    document.querySelector('#challenge-tabs [data-challenge="week"]').textContent = defisOn() ? 'Ton filon' : 'Semaine';
+    $('challenge-tab-month').textContent = defisOn() ? 'Galerie commune' : 'Mois';
     $('challenge-week').hidden = !ch || (challengeTab === 'month' && !!collective);
     $('challenge-month').hidden = !collective || challengeTab !== 'month' && !!ch;
     // Résumé toujours visible quand le bloc des défis est replié.
@@ -2131,6 +2136,7 @@
 
   /** Le personnage du joueur (sans objet en main) avance dans un tunnel, pioche en main, vers un diamant : l'avancée suit le défi. */
   function drawWeekly(canvas, ch, avatar, t) {
+    if (defisOn()) return Defis16.weekly(canvas, ch, avatar, t);
     const ctx = canvas.getContext('2d');
     const ty = 6;
     const th = 34;
@@ -2196,14 +2202,16 @@
     const ch = app.me && app.me.streak && app.me.streak.challenge;
     if (!ch) return;
     const canvas = $('weekly-canvas');
-    const scale = Math.max(1, Math.min(4, Math.floor((canvas.parentElement.clientWidth || 330) / WW)));
-    canvas.style.width = `${WW * scale}px`;
-    canvas.style.height = `${WH * scale}px`;
+    const [cw, chh] = defisOn() ? Defis16.SIZE.weekly : [WW, WH];
+    const scale = Math.max(1, Math.min(4, Math.floor((canvas.parentElement.clientWidth || 330) / cw)));
+    canvas.style.width = `${cw * scale}px`;
+    canvas.style.height = `${chh * scale}px`;
     drawWeekly(canvas, ch, app.me.avatar, 0);
   }
 
   /** Tunnel creusé ensemble : la foreuse avance avec les points du mois, chaque joueur a sa couleur, un tas de diamants au bout. */
   function drawCollective(canvas, data, t) {
+    if (defisOn()) return Defis16.collective(canvas, data, COLLECTIVE_COLORS, t);
     const ctx = canvas.getContext('2d');
     const ty = 8;
     const th = 24;
@@ -2284,9 +2292,10 @@
       ? `Objectif atteint le ${formatDay(data.reachedOn, { day: 'numeric', month: 'long' })}. Continuez à creuser, le tas de diamants brille pour tout le monde !`
       : 'Chaque point de ton forage du jour fait avancer la foreuse. Chaque couleur est la part de tunnel creusée par un joueur.';
     const canvas = $('collective-canvas');
-    const scale = Math.max(1, Math.min(4, Math.floor((canvas.parentElement.clientWidth || 330) / CW)));
-    canvas.style.width = `${CW * scale}px`;
-    canvas.style.height = `${CH * scale}px`;
+    const [cw, chh] = defisOn() ? Defis16.SIZE.collective : [CW, CH];
+    const scale = Math.max(1, Math.min(4, Math.floor((canvas.parentElement.clientWidth || 330) / cw)));
+    canvas.style.width = `${cw * scale}px`;
+    canvas.style.height = `${chh * scale}px`;
     drawCollective(canvas, data, 0);
   }
   setInterval(() => {
