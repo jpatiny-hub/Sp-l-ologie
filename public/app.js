@@ -2930,19 +2930,21 @@
     peau: { clair: '#f1c9a5', mat: '#d9a066', brun: '#9c6a43', fonce: '#6b4328' },
     couleur: { brun: '#4a2f1a', noir: '#1b1410', blond: '#e8c547', roux: '#c4562a', gris: '#b8b8c0', rose: '#e86aa8', bleu: '#4a86e8' },
   };
-  const AVATAR_ORDER = ['espece', 'forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'accessoire', 'aura', 'dos', 'chapeau', 'tenue', 'objet', 'compagnon', 'lieu'];
+  const AVATAR_ORDER = ['espece', 'modele', 'forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'accessoire', 'aura', 'dos', 'chapeau', 'tenue', 'objet', 'compagnon', 'lieu'];
   // Selon le type de personnage : catégories sans effet (masquées) et noms/couleurs adaptés.
   const SPECIES_UI = {
+    humain: { hide: ['modele'] },
+    nain: { hide: ['modele'] },
     robot: { hide: ['forme', 'cheveux', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'tenue', 'iris'], labels: { peau: 'Carrosserie', couleur: 'Lentilles' }, swatch: { peau: 'robot', couleur: 'lentilles' } },
-    taupe: { hide: ['cheveux', 'couleur', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage', 'iris'], labels: { peau: 'Pelage' }, swatch: { peau: 'taupe' } },
-    citrouille: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'iris'], labels: { peau: 'Citrouille' }, swatch: { peau: 'citrouille' } },
-    squelette: { hide: ['cheveux', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage', 'iris'], labels: { peau: 'Os', couleur: 'Lueur des orbites' }, swatch: { peau: 'squelette', couleur: 'lentilles' } },
-    fantome: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'tenue', 'iris'], labels: { peau: 'Drap' }, swatch: { peau: 'fantome' } },
-    champignon: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'chapeau'], labels: { peau: 'Chapeau du champignon' }, swatch: { peau: 'champignon' } },
-    'ver-luisant': { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'tenue'], labels: { peau: 'Corps' }, swatch: { peau: 'ver-luisant' } },
-    diablotin: { hide: ['forme', 'trait', 'yeux', 'iris', 'bouche'], labels: { peau: 'Peau' }, swatch: { peau: 'diablotin' } },
-    grenouille: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'iris', 'bouche', 'piercing', 'tatouage'], labels: { peau: 'Peau' }, swatch: { peau: 'grenouille' } },
-    golem: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'tenue', 'iris'], labels: { peau: 'Cristaux' }, swatch: { peau: 'golem' } },
+    taupe: { hide: ['cheveux', 'couleur', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage', 'iris', 'modele'], labels: { peau: 'Pelage' }, swatch: { peau: 'taupe' } },
+    citrouille: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'iris', 'modele'], labels: { peau: 'Citrouille' }, swatch: { peau: 'citrouille' } },
+    squelette: { hide: ['cheveux', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage', 'iris', 'modele'], labels: { peau: 'Os', couleur: 'Lueur des orbites' }, swatch: { peau: 'squelette', couleur: 'lentilles' } },
+    fantome: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'tenue', 'iris', 'modele'], labels: { peau: 'Drap' }, swatch: { peau: 'fantome' } },
+    champignon: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'chapeau', 'modele'], labels: { peau: 'Chapeau du champignon' }, swatch: { peau: 'champignon' } },
+    'ver-luisant': { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'tenue', 'modele'], labels: { peau: 'Corps' }, swatch: { peau: 'ver-luisant' } },
+    diablotin: { hide: ['forme', 'trait', 'yeux', 'iris', 'bouche', 'modele'], labels: { peau: 'Peau' }, swatch: { peau: 'diablotin' } },
+    grenouille: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'modele'], labels: { peau: 'Peau' }, swatch: { peau: 'grenouille' } },
+    golem: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'tenue', 'iris', 'modele'], labels: { peau: 'Cristaux' }, swatch: { peau: 'golem' } },
   };
   const speciesOf = (draft) => SPECIES_UI[draft.espece] || {};
 
@@ -2958,9 +2960,21 @@
       const key = (speciesOf(draft).swatch || {})[slot];
       return key ? (window.Avatar.SWATCHES[key] || {})[id] : (SWATCH[slot] || {})[id];
     };
+    // Tenue d'origine d'un type : ses réglages, sauf ce qui n'est pas encore débloqué.
+    const applyStory = (species) => {
+      const story = window.Avatar.STORIES[species];
+      if (!story) return;
+      for (const [slot, id] of Object.entries(story.preset)) {
+        const opt = catalog[slot] && catalog[slot].options.find((o) => o.id === id);
+        if (opt && opt.unlocked) draft[slot] = id;
+      }
+    };
     const onChoice = (slot, id) => {
       draft[slot] = id;
-      if (slot === 'espece' && draft.tenue === 'poil' && id !== 'taupe') draft.tenue = 'mineur';
+      if (slot === 'espece') {
+        applyStory(id);
+        if (draft.tenue === 'poil' && id !== 'taupe') draft.tenue = 'mineur';
+      }
     };
     const preview = () => {
       $('prof-avatar').replaceChildren(avatarEl(draft, 'full', 6));
@@ -2996,14 +3010,14 @@
     // Vestiaire (bêta) : des vignettes à toucher, rangées en quatre onglets, au lieu de dix lignes de flèches.
     function wardrobe() {
       const GROUPS = [
-        ['Type', ['espece', 'aura']],
+        ['Type', ['espece', 'modele', 'aura']],
         ['Tête', ['cheveux', 'couleur', 'chapeau']],
         ['Visage', ['peau', 'yeux', 'iris', 'bouche', 'barbe', 'trait', 'piercing']],
         ['Corps', ['forme', 'tenue', 'accessoire', 'dos', 'tatouage']],
         ['Outil', ['objet', 'compagnon', 'lieu']],
       ];
-      const FULL = new Set(['espece', 'aura', 'dos', 'forme', 'tenue', 'objet', 'tatouage']);
-      const THUMBS = new Set(['espece', 'aura', 'dos', 'iris', 'forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage', 'accessoire', 'chapeau', 'tenue', 'objet', 'compagnon']);
+      const FULL = new Set(['espece', 'modele', 'aura', 'dos', 'forme', 'tenue', 'objet', 'tatouage']);
+      const THUMBS = new Set(['espece', 'modele', 'aura', 'dos', 'iris', 'forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage', 'accessoire', 'chapeau', 'tenue', 'objet', 'compagnon']);
       let current = 0;
       const tabs = el('div', { class: 'wr-tabs', role: 'tablist' });
       const panel = el('div', { class: 'wr-panel' });
@@ -3030,7 +3044,10 @@
               });
               grid.append(b);
             });
-            return el('div', { class: 'wr-slot' }, el('h4', {}, labelOf(slot)), grid);
+            const story = slot === 'espece' ? window.Avatar.STORIES[draft.espece] : slot === 'modele' ? { text: window.Avatar.MODELS[draft.modele] } : null;
+            const again = slot === 'espece' ? el('button', { class: 'btn ghost', type: 'button' }, "Reprendre la tenue d'origine") : null;
+            if (again) again.addEventListener('click', () => { applyStory(draft.espece); preview(); commit(); render(); });
+            return el('div', { class: 'wr-slot' }, el('h4', {}, labelOf(slot)), grid, story ? el('p', { class: 'muted small' }, story.text) : null, again);
           }),
         );
         if (!panel.children.length) panel.append(el('p', { class: 'muted small' }, 'Rien à régler ici pour ce type de personnage.'));

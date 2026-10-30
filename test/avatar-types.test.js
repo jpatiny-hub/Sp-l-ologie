@@ -64,3 +64,22 @@ test('avatar : nouveaux personnages et auras débloqués par les bons badges', (
   }
   assert.ok(Avatar.validate({ ...base, iris: 'vairons', dos: 'ailes-fee' }, 5, []), 'yeux vairons et ailes de fée libres');
 });
+
+test('avatar : tenue d\'origine de chaque type et modèles de robots, que des éléments qui existent', () => {
+  const vm = require('node:vm');
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const win = {};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '..', 'public', 'avatar.js'), 'utf8'), { window: win, document: {} });
+  const { STORIES, MODELS } = win.Avatar;
+  for (const [id] of Avatar.OPTIONS.espece) {
+    assert.ok(STORIES[id] && STORIES[id].text, `histoire de ${id}`);
+    for (const [slot, value] of Object.entries(STORIES[id].preset)) {
+      assert.ok(Avatar.OPTIONS[slot].some(([v]) => v === value), `${id} : ${slot}=${value} inconnu`);
+    }
+  }
+  for (const [id] of Avatar.OPTIONS.modele) assert.ok(MODELS[id], `modèle ${id}`);
+  const base = Avatar.defaultAvatar(5);
+  assert.equal(Avatar.validate({ ...base, espece: 'robot', modele: 'cyclope' }, 5, []).modele, 'cyclope');
+  assert.equal(Avatar.validate({ ...base, espece: 'robot', modele: 'blinde' }, 5, []), null, 'sentinelle blindée : badge de duel');
+});

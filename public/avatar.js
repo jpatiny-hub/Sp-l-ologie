@@ -53,7 +53,7 @@
       P(3, oy + 17, 10, 1, '#a77f12');
     }
     // Jambes.
-    const legs = (o.espece === 'robot' ? shade(METAL[o.peau] || METAL.clair, 0.6) : null) || { smoking: '#222', scaphandre: '#6b7a8c', cape: '#3a4a6b', armure: '#8a8f98', pirate: '#5a3a1a', cuisinier: '#4a4a52', 'mineur-nain': '#5a4a3a', 'armure-naine': '#5a4a3a', 'gilet-vapeur': '#4a3a2a', golem: '#46425a', poil: fur }[outfit] || '#3a4a6b';
+    const legs = (o.espece === 'robot' ? shade(METAL[o.peau] || METAL.clair, 0.6) : null) || { smoking: '#222', scaphandre: '#6b7a8c', cape: '#3a4a6b', armure: '#8a8f98', pirate: '#5a3a1a', cuisinier: '#4a4a52', 'mineur-nain': '#5a4a3a', 'armure-naine': '#5a4a3a', 'gilet-vapeur': '#4a3a2a', golem: '#46425a', 'tablier-forge': '#3a3a44', redingote: '#2a2a34', epouvantail: '#6a5a3a', explorateur: '#8a7a4a', herboriste: '#6a5a3a', 'tunique-infernale': '#2a1a2a', 'cire-jaune': '#3a4a6b', poil: fur }[outfit] || '#3a4a6b';
     if (robe) {
       const hem = outfit === 'robe' ? '#b02a6a' : '#e8466a';
       P(5, oy + 15, 2, 5, skin);
@@ -67,7 +67,7 @@
       P(8, oy + 21, 3, 1, K);
     }
     // Torse et bras.
-    const top = (o.espece === 'robot' ? METAL[o.peau] || METAL.clair : null) || { mineur: '#d9772b', salopette: '#d9772b', robe: '#e86aa8', 'robe-fleurs': '#f3e1c8', smoking: '#222', pull: '#4a86e8', scaphandre: '#8aa0b8', cape: '#4a86e8', armure: '#aeb6c2', pirate: '#f3f3f3', cuisinier: '#ffffff', blouse: '#f3f3f3', chasuble: '#ff8c1a', 'mineur-nain': '#7a4a24', 'armure-naine': '#9a7a3a', 'gilet-vapeur': '#5a2a1a', golem: '#5a5668', poil: fur }[outfit] || '#d9772b';
+    const top = (o.espece === 'robot' ? METAL[o.peau] || METAL.clair : null) || { mineur: '#d9772b', salopette: '#d9772b', robe: '#e86aa8', 'robe-fleurs': '#f3e1c8', smoking: '#222', pull: '#4a86e8', scaphandre: '#8aa0b8', cape: '#4a86e8', armure: '#aeb6c2', pirate: '#f3f3f3', cuisinier: '#ffffff', blouse: '#f3f3f3', chasuble: '#ff8c1a', 'mineur-nain': '#7a4a24', 'armure-naine': '#9a7a3a', 'gilet-vapeur': '#5a2a1a', golem: '#5a5668', 'tablier-forge': '#8a8f98', redingote: '#3a2a4a', epouvantail: '#b8843a', explorateur: '#c8b078', herboriste: '#4a8a4a', 'tunique-infernale': '#2a1a2a', 'cire-jaune': '#f2c230', poil: fur }[outfit] || '#d9772b';
     if (fem) {
       P(5, oy + 7, 6, 4, top);
       if (robe) {
@@ -158,6 +158,50 @@
       P(6, oy + 11, 1, 1, '#d9a21a');
       P(9, oy + 11, 1, 1, '#d9a21a');
       P(9, oy + 12, 3, 1, '#d9a21a');
+    }
+    if (outfit === 'tablier-forge') {
+      P(5, oy + 8, 6, 6, '#7a4a24');
+      P(5, oy + 7, 1, 1, '#7a4a24');
+      P(10, oy + 7, 1, 1, '#7a4a24');
+      P(6, oy + 11, 1, 1, '#2a1a10');
+      P(9, oy + 9, 1, 1, '#2a1a10');
+    }
+    if (outfit === 'redingote') {
+      P(6, oy + 8, 4, 4, '#c8a04a');
+      P(7, oy + 7, 2, 2, '#f3e9d2');
+      P(7, oy + 10, 2, 1, '#8a6a1a');
+      P(4, oy + 14, 2, 3, '#3a2a4a');
+      P(10, oy + 14, 2, 3, '#3a2a4a');
+    }
+    if (outfit === 'epouvantail') {
+      P(5, oy + 9, 2, 2, '#4a86e8');
+      P(9, oy + 11, 2, 2, '#c8362d');
+      P(2, oy + 13, 2, 1, '#e8c547');
+      P(12, oy + 13, 2, 1, '#e8c547');
+      P(6, oy + 13, 1, 1, '#e8c547');
+    }
+    if (outfit === 'explorateur') {
+      [[5, 8], [6, 9], [7, 10], [8, 11], [9, 12]].forEach(([x, y]) => P(x, oy + y, 1, 1, '#6a4a2a'));
+      P(4, oy + 11, 2, 2, '#a8905a');
+      P(10, oy + 9, 2, 2, '#a8905a');
+    }
+    if (outfit === 'herboriste') {
+      P(4, oy + 12, 8, 1, '#6a4a2a');
+      P(9, oy + 12, 3, 2, '#8b5a2b');
+      P(7, oy + 8, 2, 1, '#8ad87a');
+      P(8, oy + 9, 1, 1, '#8ad87a');
+    }
+    if (outfit === 'tunique-infernale') {
+      P(5, oy + 7, 6, 1, '#c8362d');
+      P(4, oy + 13, 8, 1, '#ff5a2a');
+      P(5, oy + 12, 1, 1, '#ffb43a');
+      P(8, oy + 12, 1, 1, '#ffb43a');
+      P(10, oy + 12, 1, 1, '#ff5a2a');
+    }
+    if (outfit === 'cire-jaune') {
+      P(4, oy + 7, 8, 1, '#d9a21a');
+      P(4, oy + 13, 8, 1, '#d9a21a');
+      for (const y of [8, 10, 12]) P(8, oy + y, 1, 1, '#8a6a10');
     }
     if (outfit === 'golem') {
       const cr = CRYSTAL[o.peau] || CRYSTAL.clair;
@@ -450,6 +494,22 @@
       P(6, oy - 6, 4, 2, '#c8362d');
       P(7, oy - 4, 2, 3, '#f2c230');
       P(4, oy - 1, 8, 1, '#f2c230');
+    } else if (hat === 'chapeau-paille') {
+      P(5, oy - 3, 6, 3, '#e8c547');
+      P(2, oy - 1, 12, 1, '#e8c547');
+      P(5, oy - 1, 6, 1, '#8b5a2b');
+      P(3, oy, 1, 1, '#e8c547');
+      P(12, oy, 1, 1, '#e8c547');
+    } else if (hat === 'casque-colonial') {
+      P(7, oy - 4, 2, 1, '#e8e0c8');
+      P(4, oy - 3, 8, 3, '#e8e0c8');
+      P(3, oy - 1, 10, 1, '#e8e0c8');
+      P(4, oy - 1, 8, 1, '#8b5a2b');
+    } else if (hat === 'suroit') {
+      P(4, oy - 2, 8, 3, '#f2c230');
+      P(2, oy, 12, 1, '#f2c230');
+      P(3, oy + 1, 1, 3, '#d9a21a');
+      P(12, oy + 1, 1, 3, '#d9a21a');
     } else if (hat === 'casquette') {
       P(4, oy - 2, 8, 3, '#3a6ab8');
       P(7, oy - 3, 2, 1, '#27498a');
@@ -635,6 +695,14 @@
       P(7, oy + 9, 1, 1, '#e8466a');
       P(5, oy + 10, 3, 1, '#e8466a');
       P(6, oy + 11, 1, 1, '#e8466a');
+    } else if (a === 'chaines') {
+      [[4, 8], [5, 9], [6, 10], [9, 10], [10, 9], [11, 8]].forEach(([x, y], i) => P(x, oy + y, 1, 1, i % 2 ? '#6a6a76' : '#b8b8c0'));
+      P(7, oy + 11, 2, 1, '#b8b8c0');
+    } else if (a === 'runes') {
+      P(2, oy + 9, 1, 2, '#7fe0ff');
+      P(13, oy + 9, 1, 2, '#7fe0ff');
+      P(6, oy + 10, 1, 1, '#7fe0ff');
+      P(9, oy + 10, 1, 1, '#7fe0ff');
     } else if (a === 'perles') {
       P(5, oy + 7, 6, 1, '#f3f3f3');
       P(6, oy + 8, 4, 1, '#f3f3f3');
@@ -692,27 +760,67 @@
     const d = shade(m, 0.6);
     const l = shade(m, 1.25);
     const lens = LENS[o.couleur] || LENS.brun;
+    const model = o.modele || 'classique';
     paintBody(P, { ...o, tenue: 'robot' }, d, null);
+    if (model === 'chenilles') {
+      P(3, oy + 15, 10, 6, '#3a3a44');
+      P(3, oy + 21, 10, 1, K);
+      for (const x of [4, 7, 10]) P(x, oy + 17, 2, 2, '#8a8a96');
+      P(3, oy + 16, 10, 1, '#55555f');
+    }
     P(4, oy, 8, 7, m);
     P(4, oy, 8, 1, l);
     P(4, oy + 6, 8, 1, d);
     P(4, oy, 1, 1, d);
     P(11, oy, 1, 1, d);
-    P(4, oy + 1, 8, 4, '#2a2a30');
-    P(5, oy + 2, 2, 2, lens);
-    P(9, oy + 2, 2, 2, lens);
-    P(5, oy + 2, 1, 1, '#fff');
-    P(9, oy + 2, 1, 1, '#fff');
+    if (model === 'cyclope') {
+      P(4, oy + 1, 8, 4, '#2a2a30');
+      P(6, oy + 2, 4, 2, lens);
+      P(6, oy + 2, 1, 1, '#fff');
+      P(7, oy - 2, 2, 2, '#fff6b0');
+      P(7, oy, 2, 1, d);
+    } else if (model === 'blinde') {
+      P(4, oy + 2, 8, 2, '#2a2a30');
+      P(5, oy + 3, 6, 1, lens);
+      P(0, oy + 6, 3, 3, d);
+      P(13, oy + 6, 3, 3, d);
+      P(0, oy + 6, 3, 1, l);
+      P(13, oy + 6, 3, 1, l);
+      P(7, oy - 2, 2, 2, '#c8362d');
+    } else if (model === 'dandy') {
+      P(4, oy + 1, 8, 4, '#2a2a30');
+      P(5, oy + 2, 2, 2, lens);
+      P(9, oy + 2, 2, 2, lens);
+      P(8, oy + 1, 4, 1, '#f2c230');
+      P(8, oy + 4, 4, 1, '#f2c230');
+      P(8, oy + 2, 1, 2, '#f2c230');
+      P(11, oy + 2, 1, 2, '#f2c230');
+      P(12, oy + 5, 1, 3, '#f2c230');
+    } else {
+      P(4, oy + 1, 8, 4, '#2a2a30');
+      P(5, oy + 2, 2, 2, lens);
+      P(9, oy + 2, 2, 2, lens);
+      P(5, oy + 2, 1, 1, '#fff');
+      P(9, oy + 2, 1, 1, '#fff');
+    }
     P(6, oy + 5, 4, 1, d);
     P(7, oy + 5, 1, 1, l);
     P(9, oy + 5, 1, 1, l);
+    if (model === 'dandy') {
+      P(5, oy + 5, 6, 1, '#8a5a1a');
+      P(4, oy + 4, 1, 1, '#8a5a1a');
+      P(11, oy + 4, 1, 1, '#8a5a1a');
+      P(5, oy + 8, 6, 5, '#5a2a1a');
+      P(7, oy + 9, 1, 1, '#f2c230');
+      P(7, oy + 11, 1, 1, '#f2c230');
+    }
     // Cheminée sur le côté et son panache de fumée.
     P(2, oy + 1, 2, 4, d);
     P(2, oy + 1, 2, 1, l);
     P(3, oy - 1, 1, 1, '#e8ecf0');
     P(2, oy - 3, 2, 1, '#c8ccd4');
     P(3, oy - 5, 1, 1, '#aab0ba');
-    if ((o.chapeau || 'aucun') === 'aucun') {
+    if ((o.chapeau || 'aucun') === 'aucun' && model === 'classique') {
       P(7, oy - 2, 2, 2, d);
       P(7, oy - 4, 2, 2, '#e8466a');
     }
@@ -1097,6 +1205,32 @@
     draw(painter(c));
   }
 
+  /**
+   * Tenue d'origine et histoire de chaque type de personnage : choisir un type applique ces réglages
+   * (sauf ceux que le joueur n'a pas encore débloqués).
+   */
+  const STORIES = {
+    humain: { text: 'Mineur de métier : il connaît chaque galerie par cœur.', preset: { tenue: 'mineur', chapeau: 'casque', objet: 'pioche' } },
+    nain: { text: 'Les nains creusent ici depuis avant les cartes. Barbe nattée, hache à la ceinture, rancune tenace envers les éboulements.', preset: { tenue: 'mineur-nain', chapeau: 'casque-nain', objet: 'hache', barbe: 'tressee', couleur: 'roux' } },
+    robot: { text: 'Automate construit pour pomper l\'eau des galeries. À force de tourner, il a appris à poser des questions.', preset: { chapeau: 'chapeau-metal', objet: 'pipe', accessoire: 'aucun' } },
+    taupe: { text: 'Géomètre de la mine : mesure les galeries à l\'oreille et signe ses plans à la plume.', preset: { tenue: 'redingote', chapeau: 'melon', objet: 'canne', yeux: 'rondes', accessoire: 'noeud-papillon' } },
+    citrouille: { text: 'Gardien des galeries la nuit venue. Il n\'a jamais su qui lui avait taillé ce sourire.', preset: { tenue: 'epouvantail', chapeau: 'chapeau-paille', objet: 'torche', accessoire: 'aucun' } },
+    squelette: { text: 'Dernier d\'une expédition perdue il y a un siècle. Il cherche toujours la sortie, sa carte à la main.', preset: { tenue: 'explorateur', chapeau: 'casque-colonial', objet: 'lanterne', accessoire: 'aucun' } },
+    fantome: { text: 'Mineur disparu lors d\'un éboulement. Il revient éclairer le chemin des autres, ses chaînes en bandoulière.', preset: { chapeau: 'casque', objet: 'lanterne', accessoire: 'chaines', compagnon: 'lucioles' } },
+    golem: { text: 'Gardien de pierre d\'un temple englouti. Ses runes s\'allument quand quelqu\'un creuse trop près.', preset: { accessoire: 'runes', chapeau: 'aucun', objet: 'marteau' } },
+    champignon: { text: 'Herboriste des grottes : cultive la lumière entre les stalactites et parle aux lucioles.', preset: { tenue: 'herboriste', objet: 'fleur', compagnon: 'lucioles', accessoire: 'aucun' } },
+    'ver-luisant': { text: 'Guide des galeries sombres : sa queue éclaire le chemin, et il connaît tous les raccourcis.', preset: { chapeau: 'casquette', objet: 'lanterne', accessoire: 'foulard' } },
+    diablotin: { text: 'Comptable des profondeurs : tient les comptes du feu et ne rend jamais la monnaie.', preset: { tenue: 'tunique-infernale', chapeau: 'aucun', objet: 'torche', accessoire: 'aucun' } },
+    grenouille: { text: 'Mineur des cascades : à l\'aise dans l\'eau jusqu\'au cou, ciré jaune toujours ruisselant.', preset: { tenue: 'cire-jaune', chapeau: 'suroit', objet: 'pioche', accessoire: 'aucun' } },
+  };
+  const MODELS = {
+    classique: 'Le modèle de série : tuyaux, rivets et un panache de vapeur.',
+    cyclope: 'Un seul grand œil et une lanterne sur le crâne : il éclaire devant lui.',
+    blinde: 'Épaulières massives et visière fendue : il garde les portes de la mine.',
+    chenilles: 'Pas de jambes, des chenilles : rien ne l\'arrête dans les éboulis.',
+    dandy: 'Monocle, moustache à ressorts et gilet de laiton : il ne travaille que pour les galas.',
+  };
+
   const cache = new Map();
 
   /** Canevas 16 x 28 à l'échelle 1 (mis en cache). */
@@ -1203,5 +1337,5 @@
     return c;
   }
 
-  global.Avatar = { canvas, sprite, finished, W, H, OY, SWATCHES: { robot: METAL, taupe: FUR, citrouille: GOURD, squelette: BONE, fantome: GHOST, golem: CRYSTAL, champignon: CAP, 'ver-luisant': WORM, diablotin: IMP, grenouille: FROG, lentilles: LENS } };
+  global.Avatar = { canvas, sprite, finished, STORIES, MODELS, W, H, OY, SWATCHES: { robot: METAL, taupe: FUR, citrouille: GOURD, squelette: BONE, fantome: GHOST, golem: CRYSTAL, champignon: CAP, 'ver-luisant': WORM, diablotin: IMP, grenouille: FROG, lentilles: LENS } };
 })(window);
