@@ -633,6 +633,8 @@
   function show(view) {
     trackView(view);
     closeFoldsOfLeftView(view);
+    // Une fenêtre du centre (podium, Dans la mine) se ferme d'elle-même quand on part vers un autre écran.
+    if (view !== 'home' && $('centre-sheet').open) $('centre-sheet').close();
     document.querySelectorAll('.view').forEach((v) => (v.hidden = v.id !== `view-${view}`));
     // Sur téléphone, la scène de forage ne sert qu'en partie et dans les résultats : pas sur l'accueil.
     $('stage').hidden = (view === 'podium' || view === 'profile' || view === 'home' || view === 'recap' || view === 'duel' || view === 'admin' || view === 'museum' || view === 'messages') && window.innerWidth < 860;
