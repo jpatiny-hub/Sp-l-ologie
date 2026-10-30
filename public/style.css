@@ -1638,7 +1638,7 @@ html[data-mole16] .beta-mascot { cursor: pointer; -webkit-tap-highlight-color: t
 .beta-mascot.poked, .game-mole.poked canvas { animation: mole-poke 0.35s steps(4) 1; }
 @keyframes mole-poke { 0% { transform: translateY(0); } 35% { transform: translateY(-8px); } 70% { transform: translateY(0); } 85% { transform: translateY(-3px); } 100% { transform: translateY(0); } }
 /* ===== Essai « galerie vivante » (réservé au responsable) : grottes animées en plein écran, accueil sans cadre, éléments au centre en verre fumé ===== */
-#galerie-bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; image-rendering: pixelated; pointer-events: none; }
+#galerie-bg { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; image-rendering: pixelated; pointer-events: none; }
 html[data-galerie] { background: #0d0a0a; --glass: rgba(12, 10, 16, 0.74); --edge: rgba(255, 231, 176, 0.28); --lamp: #ffc25a; --lamp-d: #c27a12; }
 html[data-galerie] body { background: transparent !important; background-image: none !important; }
 /* Voile : assombrit le haut et le bas de l'écran pour que le texte posé sur la grotte reste lisible. */

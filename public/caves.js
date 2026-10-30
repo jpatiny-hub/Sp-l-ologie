@@ -97,6 +97,7 @@
    * imposé par le paysage, ou null). Les mêmes valeurs redonnent toujours le même décor.
    */
   function setSeed(seed, soil) {
+    CURRENT = `${seed | 0}:${soil || ''}`;
     // Brassage de la graine : deux forages voisins (identifiants qui se suivent) donnent des décors sans rapport.
     let h = Math.imul((seed | 0) ^ 0x9e3779b9, 0x85ebca6b);
     h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
@@ -125,6 +126,7 @@
 
   // Graine de l'exploration en cours : chaque forage a ses propres palettes, contours de grottes et trouvailles.
   let SEED = 0;
+  let CURRENT = '0:'; // graine et sol demandés (voir `seed`), pour savoir quand reconstruire un décor
   function hash(x, y, s) {
     let h = Math.imul(x | 0, 374761393) ^ Math.imul(y | 0, 668265263) ^ Math.imul((s | 0) + 1 + SEED * 7919, 2246822519);
     h = Math.imul(h ^ (h >>> 13), 1274126177);
@@ -1121,5 +1123,5 @@
     ctx.fillRect(0, 0, W, h);
   }
 
-  global.Caves = { TIERS, tierIndex, setSeed, build, drawAnim, backdrop, foreground, drawBack, drawFront, drawAir };
+  global.Caves = { TIERS, tierIndex, setSeed, seed: () => CURRENT, build, drawAnim, backdrop, foreground, drawBack, drawFront, drawAir };
 })(window);

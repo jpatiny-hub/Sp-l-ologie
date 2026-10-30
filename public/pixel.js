@@ -1608,6 +1608,6 @@
   }
 
   global.Pixel = {
-    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, formatRemaining, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, setSeason, setSkullMode, setCaves, isCaves: () => caves, drawDrill, WIDTH: W, HEIGHT: H,
+    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, formatRemaining, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, setSeason, setSkullMode, setCaves, isCaves: () => caves, drawDrill, WIDTH: W, HEIGHT: H, SKY, PPP, WORLD_H,
   };
 })(window);
