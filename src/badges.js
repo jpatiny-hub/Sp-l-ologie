@@ -822,6 +822,28 @@ class BadgeService {
     }));
   }
 
+  /**
+   * Remise à zéro unique des avatars à la refonte : chaque avatar enregistré est copié dans `avatar_backup`, puis effacé
+   * (le joueur retrouve le personnage standard). Ne touche ni à la foreuse, ni aux titres, ni aux badges. Une seule fois :
+   * renvoie null si elle a déjà eu lieu.
+   */
+  resetAvatars() {
+    const done = this.db.prepare("SELECT value FROM settings WHERE key = 'avatars_reset_at'").get();
+    if (done) return null;
+    const now = this.now();
+    this.db.exec('BEGIN');
+    try {
+      const copied = this.db.prepare('INSERT OR REPLACE INTO avatar_backup (user_id, avatar, saved_at) SELECT id, avatar, ? FROM users WHERE avatar IS NOT NULL').run(now).changes;
+      this.db.prepare('UPDATE users SET avatar = NULL WHERE avatar IS NOT NULL').run();
+      this.db.prepare("INSERT INTO settings (key, value) VALUES ('avatars_reset_at', ?)").run(String(now));
+      this.db.exec('COMMIT');
+      return Number(copied);
+    } catch (err) {
+      this.db.exec('ROLLBACK');
+      throw err;
+    }
+  }
+
   /** Enregistre l'anniversaire (« MM-JJ ») ou l'efface avec `null`. Renvoie false si la date n'existe pas. */
   setBirthday(userId, value) {
     if (value !== null) {

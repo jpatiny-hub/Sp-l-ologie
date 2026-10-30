@@ -393,6 +393,22 @@ function createApp({
       }
     },
 
+    // Remise à zéro unique des avatars (refonte). Jamais automatique : le responsable doit taper la confirmation.
+    'POST /api/admin/avatars/reset': async (req, res) => {
+      requireAdmin(req, res);
+      const { confirm } = await readJson(req);
+      if (confirm !== 'REMISE A ZERO') throw new HttpError(400, 'Confirmation manquante : tape REMISE A ZERO.');
+      try {
+        backupNow(db, { now });
+      } catch (err) {
+        errors.record('processus', `Sauvegarde avant remise à zéro des avatars impossible : ${err.message}`);
+        throw new HttpError(500, 'La sauvegarde a échoué, rien n\'a été effacé.');
+      }
+      const count = game.badges.resetAvatars();
+      if (count === null) throw new HttpError(409, 'La remise à zéro des avatars a déjà eu lieu.');
+      json(res, 200, { ok: true, count });
+    },
+
     'POST /api/admin/errors/clear': async (req, res) => {
       requireAdmin(req, res);
       await readJson(req);
