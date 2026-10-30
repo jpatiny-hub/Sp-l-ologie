@@ -1688,3 +1688,84 @@ html[data-hd][data-hd][data-hd] .hud { z-index: 2; }
 html[data-hd][data-hd][data-hd] .hud span { background: linear-gradient(180deg, rgba(18, 28, 66, 0.88), rgba(8, 12, 34, 0.88)); border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 4px; font-size: calc(18px * var(--fs)); }
 html[data-hd][data-hd][data-hd] canvas.avatar, html[data-hd][data-hd][data-hd] .game-mole canvas, html[data-hd][data-hd][data-hd] .pf-mole canvas,
 html[data-hd][data-hd][data-hd] .msg-mole, html[data-hd][data-hd][data-hd] .tuto-mole { image-rendering: auto; }
+
+/* ===== Essai « galerie vivante » (réservé au responsable) : grottes animées en plein écran, accueil sans cadre, éléments au centre en verre fumé ===== */
+#galerie-bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; image-rendering: pixelated; pointer-events: none; }
+html[data-galerie] { background: #0d0a0a; --glass: rgba(12, 10, 16, 0.74); --edge: rgba(255, 231, 176, 0.28); --lamp: #ffc25a; --lamp-d: #c27a12; }
+html[data-galerie] body { background: transparent !important; background-image: none !important; }
+/* Voile : assombrit le haut et le bas de l'écran pour que le texte posé sur la grotte reste lisible. */
+html[data-galerie] body::after { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(rgba(0, 0, 0, 0.55), transparent 24%, transparent 55%, rgba(0, 0, 0, 0.8) 90%), radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(0, 0, 0, 0.45)); }
+html[data-galerie] .layout { padding: 0 12px 72px; gap: 8px; }
+html[data-galerie] .panel-area, html[data-galerie] .view { gap: 12px; }
+html[data-galerie] .topbar { padding: 8px 12px; }
+html[data-galerie] .logo { font-size: calc(11px * var(--fs)); color: #ffe7b0; text-shadow: 2px 2px 0 #000, 0 0 12px rgba(255, 170, 60, 0.6); }
+/* Panneaux des autres écrans : verre fumé, bord fin, coins arrondis. */
+html[data-galerie] .card, html[data-galerie] dialog.card {
+  position: relative; margin: 0; padding: 12px 14px; border-radius: 14px;
+  background: var(--glass) !important; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  border: 1px solid var(--edge) !important; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+html[data-galerie] .card h2 { font-size: calc(10px * var(--fs)); line-height: 1.5; margin: 0 0 8px; color: var(--lamp); letter-spacing: 0.5px; }
+html[data-galerie] .card p { margin: 0 0 6px; font-size: calc(19px * var(--fs)); line-height: 1.2; }
+html[data-galerie] .btn { padding: 11px 10px; border-radius: 10px; font-size: calc(10px * var(--fs)); color: #231503; background: var(--lamp); border: 0; box-shadow: 0 0 16px rgba(255, 170, 60, 0.35); }
+html[data-galerie] .btn.secondary, html[data-galerie] .btn.ghost { color: #fff; background: rgba(255, 255, 255, 0.08); box-shadow: inset 0 0 0 1px var(--edge); }
+html[data-galerie] .tab { border-radius: 8px; background: rgba(255, 255, 255, 0.05); color: #ddd; box-shadow: inset 0 0 0 1px var(--edge); }
+html[data-galerie] .tab.active { background: var(--lamp); color: #231503; box-shadow: none; }
+html[data-galerie] .icon-btn { border-radius: 50%; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--edge); box-shadow: none; color: #ffe7b0; }
+html[data-galerie] .bottom-nav { background: linear-gradient(transparent, rgba(0, 0, 0, 0.9) 55%); border: 0; box-shadow: none; }
+html[data-galerie] .bottom-nav button { padding-left: 0; padding-right: 0; }
+html[data-galerie] .bottom-nav button.active .nav-lab { color: var(--lamp); }
+html[data-galerie] .nav-lab { font-size: 7px; }
+html[data-galerie] .podium .empty .block { background: rgba(255, 255, 255, 0.08); }
+html:not([data-galerie]) #bottom-nav [data-nav='defis'], html:not([data-galerie]) #home-feed { display: none !important; }
+html[data-galerie] #bottom-nav [data-nav='messages'] { display: none; }
+
+/* Accueil sans cadre : la grotte occupe l'écran, le texte est posé dessus, la lanterne de forage au centre. */
+html[data-galerie] #view-home { min-height: calc(100dvh - 140px); }
+html[data-galerie] #view-home > .card { order: 1; }
+html[data-galerie] #view-home > .beta-hello, html[data-galerie] #view-home > .profile-card, html[data-galerie] #view-home > .play-card {
+  background: none !important; border: 0 !important; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 0 4px;
+  color: #fff; text-shadow: 0 2px 0 #000, 0 0 8px rgba(0, 0, 0, 0.9);
+}
+html[data-galerie] #view-home > .beta-hello { order: 0; margin-top: 6px; }
+html[data-galerie] #view-home > .profile-card { order: 0; margin-top: -6px; }
+html[data-galerie] #view-home > .play-card { order: 2; margin-top: auto; text-align: center; }
+html[data-galerie] #view-home > #home-feed { order: 3; }
+html[data-galerie] #view-home > .podium-card, html[data-galerie] #view-home > .beta-social, html[data-galerie] #view-home > .challenge { display: none !important; }
+html[data-galerie] .beta-greet { font-size: calc(11px * var(--fs)); margin: 0 0 4px; color: var(--lamp); }
+html[data-galerie] .beta-sub { font-size: calc(18px * var(--fs)); margin: 2px 0 4px; }
+html[data-galerie] .beta-mascot { width: 84px; height: 56px; filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.6)); }
+html[data-galerie] .beta-mascot canvas { width: 84px; height: 56px; }
+html[data-galerie] .hero-row { margin-bottom: 0; }
+html[data-galerie] .hero-player, html[data-galerie] .profile-card .home-profile, html[data-galerie] #next-badges, html[data-galerie] #beta-dots,
+html[data-galerie] #btn-carnet, html[data-galerie] #streak-note, html[data-galerie] #today-date, html[data-galerie] .play-card > h2, html[data-galerie] #mode-tabs { display: none !important; }
+html[data-galerie] .profile-card .home-chips { margin: 0; gap: 14px; align-items: center; }
+html[data-galerie] .profile-card .streak, html[data-galerie] .profile-card .freezes { background: none; box-shadow: none; border: 0; padding: 0; }
+html[data-galerie] .profile-card .streak-lantern { width: 32px; height: 32px; image-rendering: pixelated; }
+html[data-galerie] .profile-card .freeze-icon { width: 20px; height: 20px; }
+html[data-galerie] #today-status:empty { display: none; }
+html[data-galerie] #next-reset { font-size: calc(15px * var(--fs)); opacity: 0.75; margin: 10px 0 0; }
+/* Le wagonnet : le bouton du forage du jour (la toile est décorative ; le bouton texte dessous reste le vrai bouton). */
+.wagon { display: none; }
+html[data-galerie] #view-home .wagon { display: block; width: calc(100% + 8px); margin: 0 -4px; height: auto; aspect-ratio: 160 / 64; image-rendering: pixelated; cursor: pointer; }
+html[data-galerie] #view-home #btn-daily {
+  width: auto; margin: 6px auto 0; padding: 10px 22px; border-radius: 999px; font-size: calc(10px * var(--fs)); text-shadow: none;
+  color: #231503; background: var(--lamp); box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.55), 0 0 22px rgba(255, 170, 60, 0.55);
+}
+/* Le fil : des lignes discrètes qui ouvrent leur élément au centre. */
+html[data-galerie] .home-feed { display: flex; flex-direction: column; padding: 0 2px; }
+.home-feed button { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 11px 4px; border: 0; border-top: 1px solid rgba(255, 255, 255, 0.22); background: none; color: #fff; font: inherit; font-size: calc(18px * var(--fs)); text-align: left; text-shadow: 0 2px 0 #000, 0 0 8px rgba(0, 0, 0, 0.9); cursor: pointer; }
+.home-feed button b { font-family: 'Press Start 2P', monospace; font-size: calc(9px * var(--fs)); color: var(--lamp); font-weight: normal; }
+.home-feed button::after { content: '›'; margin-left: auto; padding-left: 8px; color: var(--lamp); }
+.home-feed button span { opacity: 0.85; }
+/* Éléments au centre (podium, vie de la mine, défis) : ils naissent de l'endroit touché. */
+html[data-galerie] dialog.centre, html[data-galerie] #defis-sheet {
+  position: fixed; inset: 0; margin: auto; width: min(380px, calc(100vw - 28px)); height: fit-content; max-height: 80dvh; overflow: auto;
+  padding: 0; border-radius: 16px; border: 1px solid var(--edge); background: var(--glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  color: var(--ink); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); animation: none;
+}
+html[data-galerie] dialog.centre::backdrop, html[data-galerie] #defis-sheet::backdrop { background: rgba(0, 0, 0, 0.45); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+html[data-galerie] dialog.centre .drawer-frame, html[data-galerie] #defis-sheet .drawer-frame { min-height: 0; background: none; padding: 14px 16px 18px; }
+html[data-galerie] dialog.centre .card, html[data-galerie] #defis-sheet .card { background: none !important; border: 0 !important; box-shadow: none; padding: 0; -webkit-backdrop-filter: none; backdrop-filter: none; }
+html[data-galerie] dialog.centre .card > h2:first-child, html[data-galerie] #defis-sheet .card summary { display: none; }
+html[data-galerie] #defis-sheet-body canvas { max-width: 100%; height: auto !important; }
