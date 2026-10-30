@@ -151,6 +151,15 @@
       if (node.dataset.orig === undefined) node.dataset.orig = node.textContent;
       node.textContent = galerieOn() ? label : node.dataset.orig;
     }
+    // Noms thématiques de la barre du bas et du podium (refonte).
+    for (const [selector, label] of [['[data-nav="home"]', 'Camp'], ['[data-nav="play"]', 'Forer'], ['[data-nav="mine"]', 'Filons'], ['[data-nav="profile"]', 'Mineur'], ['#home-podium-tabs [data-period="day"]', 'Veille'], ['#home-podium-tabs [data-period="week"]', 'Filon de la semaine'], ['#home-podium-tabs [data-period="month"]', 'Grande veine']]) {
+      const node = document.querySelector(selector);
+      if (!node) continue;
+      const text = node.querySelector('.nav-lab') || node;
+      if (text.dataset.orig === undefined) text.dataset.orig = text.textContent;
+      text.textContent = galerieOn() ? label : text.dataset.orig;
+      if (node.hasAttribute('aria-label')) node.setAttribute('aria-label', text.textContent);
+    }
     if (!app.me && decor && window.Mole16) {
       const open = document.querySelector('#auth-mascot .m-open');
       if (open && !open.dataset.drawn) { open.dataset.drawn = '1'; Mole16.draw(open, 'happy', { x: 0, y: 0 }); }
