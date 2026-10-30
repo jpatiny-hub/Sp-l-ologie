@@ -6,33 +6,48 @@
  */
 
 const OPTIONS = {
+  espece: [['humain', 'Humain'], ['nain', 'Nain ou naine'], ['robot', 'Robot à vapeur'], ['taupe', 'Taupe ou taupinette'], ['citrouille', 'Citrouille hantée'], ['squelette', 'Squelette fossile'], ['fantome', 'Fantôme de la mine'], ['golem', 'Golem de cristal'],
+    ['champignon', 'Champignon lumineux'], ['ver-luisant', 'Ver luisant géant'], ['diablotin', 'Diablotin des profondeurs'], ['grenouille', 'Grenouille des cascades']],
   forme: [['m', 'Masculine'], ['f', 'Féminine']],
   peau: [['clair', 'Teint clair'], ['mat', 'Teint mat'], ['brun', 'Teint brun'], ['fonce', 'Teint foncé']],
-  cheveux: [['court', 'Courts'], ['long', 'Longs'], ['chignon', 'Chignon'], ['crete', 'Crête'], ['afro', 'Afro'], ['tresses', 'Tresses'], ['chauve', 'Chauve']],
+  cheveux: [['court', 'Courts'], ['long', 'Longs'], ['chignon', 'Chignon'], ['crete', 'Crête'], ['afro', 'Afro'], ['tresses', 'Tresses'], ['chauve', 'Chauve'], ['queue', 'Queue de cheval'], ['carre', 'Carré']],
   couleur: [['brun', 'Brun'], ['noir', 'Noir'], ['blond', 'Blond'], ['roux', 'Roux'], ['gris', 'Gris'], ['rose', 'Rose'], ['bleu', 'Bleu']],
-  yeux: [['points', 'Discrets'], ['grands', 'Grands'], ['lunettes', 'Lunettes'], ['heureux', 'Rieurs'], ['monocle', 'Monocle'], ['cache-oeil', 'Cache-œil'], ['etoiles', 'Yeux étoilés']],
-  barbe: [['aucune', 'Aucune'], ['barbe', 'Barbe'], ['moustache', 'Moustache'], ['bouc', 'Bouc'], ['guidon', 'Moustache en guidon'], ['favoris', 'Favoris'], ['sage', 'Longue barbe de sage']],
+  yeux: [['points', 'Discrets'], ['grands', 'Grands'], ['lunettes', 'Lunettes'], ['heureux', 'Rieurs'], ['monocle', 'Monocle'], ['cache-oeil', 'Cache-œil'], ['etoiles', 'Yeux étoilés'], ['soleil', 'Lunettes de soleil'], ['rondes', 'Lunettes rondes'], ['aviateur', "Lunettes d'aviateur"]],
+  barbe: [['aucune', 'Aucune'], ['barbe', 'Barbe'], ['moustache', 'Moustache'], ['bouc', 'Bouc'], ['guidon', 'Moustache en guidon'], ['favoris', 'Favoris'], ['sage', 'Longue barbe de sage'], ['tressee', 'Barbe tressée'], ['nattes', 'Barbe à deux nattes'], ['fourchue', 'Barbe fourchue']],
   trait: [['aucun', 'Aucun'], ['taches', 'Taches de rousseur'], ['joues', 'Joues rosées'], ['cicatrice', 'Cicatrice'], ['guerre', 'Peinture de guerre']],
+  modele: [['classique', 'Automate à vapeur'], ['cyclope', 'Cyclope-lanterne'], ['blinde', 'Sentinelle blindée'], ['chenilles', 'Foreur à chenilles'], ['dandy', 'Automate de salon']],
+  iris: [['defaut', 'Naturelle'], ['bleu', 'Bleus'], ['vert', 'Verts'], ['noisette', 'Noisette'], ['gris', 'Gris'], ['violet', 'Violets'], ['dore', 'Dorés'], ['vairons', 'Vairons']],
+  aura: [['aucune', 'Aucune'], ['dore', 'Lueur dorée'], ['feu', 'Braises'], ['givre', 'Givre'], ['etoiles', 'Étoiles'], ['ombre', 'Brume sombre']],
+  dos: [['aucun', 'Rien'], ['sac-a-dos', 'Sac de mineur'], ['cape-rouge', 'Cape rouge'], ['ailes-fee', 'Ailes de fée'], ['ailes-chauve-souris', 'Ailes de chauve-souris'], ['ailes-dragon', 'Ailes de dragon']],
+  bouche: [['normal', 'Discrète'], ['sourire', 'Grand sourire'], ['serieux', 'Sérieuse'], ['ouvert', 'Bouche ouverte'], ['langue', 'Tire la langue'], ['rouge', 'Rouge à lèvres'], ['dent-or', 'Dent en or']],
+  compagnon: [['aucun', 'Aucun'], ['canari', 'Canari de mine'], ['lucioles', 'Lucioles'], ['chauve-souris', 'Chauve-souris']],
+  piercing: [['aucun', 'Aucun'], ['nez', 'Au nez'], ['sourcil', 'Au sourcil'], ['levre', 'À la lèvre'], ['oreille', 'Aux oreilles'], ['multiples', 'Plusieurs']],
+  tatouage: [['aucun', 'Aucun'], ['ancre', 'Ancre'], ['tribal', 'Bracelets tribaux'], ['serpent', 'Serpent'], ['larme', 'Larme'], ['maori', 'Motif sur la joue']],
+  accessoire: [['aucun', 'Aucun'], ['noeud-papillon', 'Nœud papillon'], ['noeud-rose', 'Nœud rose'], ['foulard', 'Foulard'], ['medaille', 'Médaille'], ['perles', 'Collier de perles'], ['coeur', 'Broche en cœur'], ['noeud-arc-en-ciel', 'Nœud arc-en-ciel'], ['chaines', 'Chaînes rouillées'], ['runes', 'Runes lumineuses']],
   chapeau: [
     ['aucun', 'Aucun'], ['casque', 'Casque de mineur'], ['haut', 'Haut-de-forme'], ['diademe', 'Diadème'], ['bonnet', 'Bonnet'],
     ['casque-blanc', 'Casque de chef de chantier'], ['casque-or', 'Casque doré'], ['couronne', 'Couronne'],
     ['viking', 'Casque viking'], ['heaume', 'Heaume de chevalier'], ['toque', 'Toque de chef'], ['bandana', 'Bandana de pirate'],
+    ['casque-nain', 'Casque de nain'], ['chapeau-metal', 'Chapeau de métal'], ['melon', 'Chapeau melon'], ['casquette', 'Casquette'], ['bonnet-noel', 'Bonnet de Noël'], ['mitre', 'Mitre de saint Nicolas'],
+    ['chapeau-paille', 'Chapeau de paille'], ['casque-colonial', 'Casque colonial'], ['suroit', 'Suroît jaune'],
   ],
   tenue: [
     ['mineur', 'Tenue de mineur'], ['salopette', 'Salopette'], ['robe', 'Robe rose'], ['smoking', 'Smoking'], ['pull', 'Pull bleu'],
     ['scaphandre', 'Combinaison de forage'], ['cape', 'Cape dorée'],
     ['armure', 'Armure de chevalier'], ['pirate', 'Marinière de pirate'], ['cuisinier', 'Veste de cuisinier'], ['blouse', 'Blouse de laboratoire'],
+    ['chasuble', 'Chasuble orange fluo'], ['robe-fleurs', 'Robe à fleurs'], ['mineur-nain', 'Tenue de mineur nain'], ['armure-naine', 'Armure naine'], ['gilet-vapeur', 'Gilet à vapeur'], ['tablier-forge', 'Tablier de forgeron'], ['redingote', 'Redingote de géomètre'], ['epouvantail', "Habit d'épouvantail"], ['explorateur', "Tenue d'explorateur"], ['herboriste', "Tunique d'herboriste"], ['tunique-infernale', 'Tunique infernale'], ['cire-jaune', 'Ciré jaune'], ['poil', 'Juste le poil'],
   ],
   objet: [
     ['aucun', 'Rien'], ['pioche', 'Pioche'], ['lanterne', 'Lanterne'], ['fleur', 'Fleur'], ['canne', 'Canne'], ['ballon', 'Ballon'],
     ['fanion', 'Fanion de chantier'], ['dynamite', 'Bâton de dynamite'], ['diamant', 'Diamant'], ['torche', 'Torche'],
     ['epee', 'Épée'], ['bouclier', 'Bouclier'], ['marteau', 'Marteau de forgeron'],
+    ['hache', 'Hache'], ['hache-double', 'Hache à deux tranchants'], ['pipe', 'Pipe'], ['chope', 'Chope de bière'],
   ],
   lieu: [['hublot', 'Au hublot de la foreuse'], ['surface', 'À la surface'], ['aucun', 'Nulle part']],
 };
 
 const LABELS = {
-  forme: 'Silhouette', peau: 'Teint', cheveux: 'Cheveux', couleur: 'Couleur', yeux: 'Yeux', barbe: 'Barbe', trait: 'Traits du visage',
+  espece: 'Type de personnage', modele: 'Modèle de robot', iris: 'Couleur des yeux', aura: 'Aura', dos: 'Dans le dos', bouche: 'Bouche', compagnon: 'Compagnon', piercing: 'Piercings', tatouage: 'Tatouages', accessoire: 'Accessoire', forme: 'Silhouette', peau: 'Teint', cheveux: 'Cheveux', couleur: 'Couleur', yeux: 'Yeux', barbe: 'Barbe', trait: 'Traits du visage',
   chapeau: 'Couvre-chef', tenue: 'Tenue', objet: 'Objet en main', lieu: 'Pendant le forage',
 };
 const SLOTS = Object.keys(OPTIONS);
@@ -68,6 +83,34 @@ const LOCKS = {
   'yeux:etoiles': ['public-10'],
   'barbe:guidon': ['serie-7'],
   'barbe:sage': ['serie-30'],
+  'objet:hache': ['attaquant-1'],
+  'objet:hache-double': ['attaquant-15'],
+  'tenue:armure-naine': ['defenseur-15'],
+  'chapeau:casque-nain': ['defenseur-5'],
+  // Jours spéciaux (badges du calendrier) et profondeurs.
+  'espece:citrouille': ['halloween'],
+  'espece:fantome': ['toussaint'],
+  'espece:squelette': ['darwin-day', 'halloween'],
+  'espece:golem': ['profondeur-650'],
+  'compagnon:chauve-souris': ['halloween'],
+  'modele:blinde': ['defenseur-5'],
+  'modele:chenilles': ['entrainement-50'],
+  'modele:dandy': ['diplomate-3'],
+  'espece:champignon': ['serie-7'],
+  'espece:ver-luisant': ['sainte-barbe'],
+  'espece:diablotin': ['cranes-25'],
+  'espece:grenouille': ['jour-terre'],
+  'dos:ailes-chauve-souris': ['halloween'],
+  'dos:ailes-dragon': ['profondeur-700'],
+  'aura:dore': ['podium-semaine', 'podium-mois'],
+  'aura:feu': ['sainte-barbe'],
+  'aura:givre': ['noel'],
+  'aura:etoiles': ['public-10'],
+  'aura:ombre': ['toussaint'],
+  'chapeau:bonnet-noel': ['noel'],
+  'chapeau:mitre': ['saint-nicolas'],
+  'accessoire:coeur': ['saint-valentin'],
+  'accessoire:noeud-arc-en-ciel': ['fierte'],
 };
 
 function defaultAvatar(userId) {
@@ -78,6 +121,7 @@ function defaultAvatar(userId) {
   };
   const forme = pick('forme', 1);
   return {
+    espece: 'humain',
     forme,
     peau: pick('peau', 2),
     cheveux: pick('cheveux', 3, ['court', 'long', 'chignon', 'crete', 'afro', 'tresses', 'chauve']),
@@ -85,6 +129,15 @@ function defaultAvatar(userId) {
     yeux: pick('yeux', 5, ['points', 'grands', 'lunettes', 'heureux']),
     barbe: forme === 'm' ? pick('barbe', 6, ['aucune', 'barbe', 'moustache', 'bouc']) : 'aucune',
     trait: 'aucun',
+    modele: 'classique',
+    iris: 'defaut',
+    aura: 'aucune',
+    dos: 'aucun',
+    bouche: 'normal',
+    compagnon: 'aucun',
+    piercing: 'aucun',
+    tatouage: 'aucun',
+    accessoire: 'aucun',
     chapeau: 'casque',
     tenue: 'mineur',
     objet: 'pioche',
@@ -109,6 +162,7 @@ function normalize(raw, userId) {
     const ids = OPTIONS[slot].map((o) => o[0]);
     out[slot] = typeof saved[slot] === 'string' && ids.includes(saved[slot]) ? saved[slot] : base[slot];
   }
+  if (out.tenue === 'poil' && out.espece !== 'taupe') out.tenue = base.tenue;
   return out;
 }
 
@@ -119,6 +173,25 @@ const BETA = new Set([
   'chapeau:viking', 'chapeau:heaume', 'chapeau:toque', 'chapeau:bandana',
   'tenue:armure', 'tenue:pirate', 'tenue:cuisinier', 'tenue:blouse',
   'objet:epee', 'objet:bouclier', 'objet:marteau',
+  'espece:nain', 'espece:robot', 'espece:taupe', 'espece:citrouille', 'espece:squelette', 'espece:fantome', 'espece:golem',
+  'espece:champignon', 'espece:ver-luisant', 'espece:diablotin', 'espece:grenouille',
+  'modele:cyclope', 'modele:blinde', 'modele:chenilles', 'modele:dandy',
+  'chapeau:chapeau-paille', 'chapeau:casque-colonial', 'chapeau:suroit', 'accessoire:chaines', 'accessoire:runes',
+  'tenue:tablier-forge', 'tenue:redingote', 'tenue:epouvantail', 'tenue:explorateur', 'tenue:herboriste', 'tenue:tunique-infernale', 'tenue:cire-jaune',
+  'iris:bleu', 'iris:vert', 'iris:noisette', 'iris:gris', 'iris:violet', 'iris:dore', 'iris:vairons',
+  'aura:dore', 'aura:feu', 'aura:givre', 'aura:etoiles', 'aura:ombre',
+  'dos:sac-a-dos', 'dos:cape-rouge', 'dos:ailes-fee', 'dos:ailes-chauve-souris', 'dos:ailes-dragon',
+  'bouche:sourire', 'bouche:serieux', 'bouche:ouvert', 'bouche:langue', 'bouche:rouge', 'bouche:dent-or',
+  'compagnon:canari', 'compagnon:lucioles', 'compagnon:chauve-souris',
+  'chapeau:bonnet-noel', 'chapeau:mitre', 'accessoire:coeur', 'accessoire:noeud-arc-en-ciel',
+  'cheveux:queue', 'cheveux:carre', 'yeux:soleil', 'yeux:rondes', 'yeux:aviateur',
+  'barbe:tressee', 'barbe:nattes', 'barbe:fourchue',
+  'piercing:nez', 'piercing:sourcil', 'piercing:levre', 'piercing:oreille', 'piercing:multiples',
+  'tatouage:ancre', 'tatouage:tribal', 'tatouage:serpent', 'tatouage:larme', 'tatouage:maori',
+  'accessoire:noeud-papillon', 'accessoire:noeud-rose', 'accessoire:foulard', 'accessoire:medaille', 'accessoire:perles',
+  'chapeau:casque-nain', 'chapeau:chapeau-metal', 'chapeau:melon', 'chapeau:casquette',
+  'tenue:chasuble', 'tenue:robe-fleurs', 'tenue:mineur-nain', 'tenue:armure-naine', 'tenue:gilet-vapeur', 'tenue:poil',
+  'objet:hache', 'objet:hache-double', 'objet:pipe', 'objet:chope',
 ]);
 
 /** Catalogue pour l'éditeur : éléments débloqués ou non (selon la liste des badges du joueur, avec leur nom). */
@@ -141,18 +214,22 @@ function catalog(badges, beta = true) {
   return out;
 }
 
+// Champs arrivés après coup : une page restée ouverte avant leur arrivée ne les envoie pas.
+const OPTIONAL = { trait: 'aucun', modele: 'classique', iris: 'defaut', aura: 'aucune', dos: 'aucun', bouche: 'normal', compagnon: 'aucun', piercing: 'aucun', tatouage: 'aucun', accessoire: 'aucun', espece: 'humain' };
+
 /** Vérifie qu'un avatar ne contient que des éléments connus et débloqués. Renvoie l'avatar nettoyé, ou null. */
 function validate(candidate, userId, badges, beta = true) {
   if (!candidate || typeof candidate !== 'object') return null;
   const cat = catalog(badges, beta);
   const out = {};
   for (const slot of SLOTS) {
-    // Une application restée ouverte avant l'arrivée des traits du visage n'envoie pas ce champ : on garde « aucun ».
-    const want = slot === 'trait' && candidate[slot] === undefined ? 'aucun' : candidate[slot];
+    const want = OPTIONAL[slot] && candidate[slot] === undefined ? OPTIONAL[slot] : candidate[slot];
     const opt = cat[slot].options.find((o) => o.id === want);
     if (!opt || !opt.unlocked) return null;
     out[slot] = opt.id;
   }
+  // « Juste le poil » est réservé aux taupes.
+  if (out.tenue === 'poil' && out.espece !== 'taupe') return null;
   return out;
 }
 
