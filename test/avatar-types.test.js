@@ -145,3 +145,26 @@ test('personnage standard : le même, au teint clair, pour tous les joueurs', ()
   assert.equal(a.espece, 'humain');
   assert.deepEqual(Avatar.normalize(null, 42), a);
 });
+
+test('remise à zéro des avatars : confirmation, réservée au responsable, une seule fois, copie conservée', async () => {
+  const { startServer, client } = require('./helpers');
+  const app = await startServer();
+  try {
+    const boss = client(app.base);
+    await boss('/api/signup', { username: 'boss', password: 'secret123' });
+    const joueur = client(app.base);
+    await joueur('/api/signup', { username: 'joueur', password: 'secret123' });
+    const mine = { ...Avatar.defaultAvatar(1), cheveux: 'long', peau: 'brun' };
+    assert.equal((await joueur('/api/profile/avatar', { avatar: mine })).status, 200);
+    assert.equal((await joueur('/api/admin/avatars/reset', { confirm: 'REMISE A ZERO' })).status, 403);
+    assert.equal((await boss('/api/admin/avatars/reset', {})).status, 400);
+    assert.equal((await joueur('/api/profile')).data.avatar.peau, 'brun', 'rien n\'est effacé sans confirmation');
+    const res = await boss('/api/admin/avatars/reset', { confirm: 'REMISE A ZERO' });
+    assert.equal(res.status, 200);
+    assert.equal(res.data.count, 1);
+    assert.deepEqual((await joueur('/api/profile')).data.avatar, Avatar.defaultAvatar(1));
+    assert.equal((await boss('/api/admin/avatars/reset', { confirm: 'REMISE A ZERO' })).status, 409);
+  } finally {
+    await app.close();
+  }
+});
