@@ -42,7 +42,7 @@
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
   for (const flag of BETA_FLAGS) settings[flag] = true;
   // Refonte 16-bit : réservée au responsable, désactivée au départ. `betaRefonte` active tout d'un coup ; les autres cases, un morceau à la fois pour comparer.
-  const REFONTE_FLAGS = ['betaRefonte', 'betaCaves', 'betaMole16', 'betaGalerie', 'betaSon16'];
+  const REFONTE_FLAGS = ['betaRefonte', 'betaCaves', 'betaMole16', 'betaGalerie', 'betaSon16', 'betaFetes'];
   for (const flag of REFONTE_FLAGS) settings[flag] = false;
   settings.betaDrill16 = ''; // foreuse 16-bit à l'essai (refonte, responsable seulement)
   // Ambiance sonore : coups de pioche, grondement, musiques d'accueil, bruits de boutons et chrono sonore, au choix de chaque joueur : coups de pioche, grondement et musique « Galerie » activés au départ, le reste non.
@@ -102,6 +102,8 @@
   const galerieOn = () => refonteOn('betaGalerie');
   /** Sons 16-bit : un bruit par minerai, wagonnet, taupe, onglets, foreuses spéciales et célébrations. */
   const son16On = () => refonteOn('betaSon16');
+  /** Fêtes de podium en 16 bits (semaine, mois) et Gazette sur plan de mine. */
+  const fetesOn = () => !!(refonteOn('betaFetes') && window.Celebrations16);
   const betaOn = (name) => !!(app.me && (!app.me.isAdmin || settings[name]));
 
   const isHalloween = () => document.documentElement.dataset.season === 'halloween';
@@ -6196,7 +6198,8 @@
       renderRecap(data);
       show('recap');
       window.scrollTo(0, 0);
-      startFireworks(data);
+      if (fetesOn() && (data.kind === 'week' || data.kind === 'month')) startFete(data);
+      else startFireworks(data);
     } catch {
       /* les podiums sont un bonus : s'ils échouent, on reste sur l'accueil */
       app.celebrationQueue = [];
@@ -6205,6 +6208,10 @@
 
   function startFireworks(data) {
     clearInterval(recapTimer);
+    if (stopFete) stopFete();
+    $('recap-canvas').classList.remove('fete16');
+    $('recap-names').classList.remove('fete-off');
+    $('recap-title').classList.remove('fete-off');
     const conf = CELEBRATION[data.kind] || CELEBRATION.week;
     const canvas = $('recap-canvas');
     const ctx = canvas.getContext('2d');
@@ -6346,6 +6353,47 @@
     }, 80);
   }
 
+  let stopFete = null;
+
+  /** Fête 16 bits (refonte) : voir celebrations16.js ; les temps sont ceux de Sound.celebrate. */
+  function startFete(data) {
+    clearInterval(recapTimer);
+    if (stopFete) stopFete();
+    const canvas = $('recap-canvas');
+    canvas.classList.add('fete16');
+    canvas.style.width = '';
+    canvas.style.height = '';
+    const names = $('recap-names');
+    const title = $('recap-title');
+    names.classList.add('fete-off');
+    if (data.kind === 'month') title.classList.add('fete-off');
+    else title.classList.remove('fete-off');
+    stopFete = Celebrations16.scene(data.kind, data, canvas, {
+      drill: data.champion && data.champion.drill,
+      onTitle: () => title.classList.remove('fete-off'),
+      onNames: () => {
+        names.classList.remove('fete-off');
+        if (son16On() && data.me && data.me.rank <= 3) Sound.tada();
+      },
+    }, reducedMotion());
+  }
+
+  /** « Passer l'animation » : les fêtes en attente comptent comme vues, on file au podium. */
+  async function skipCelebrations() {
+    if (stopFete) stopFete();
+    clearInterval(recapTimer);
+    const pending = [app.recap, ...(app.celebrationQueue || [])].filter(Boolean);
+    app.celebrationQueue = [];
+    app.recap = null;
+    if (app.me) {
+      app.me.celebrations = (app.me.celebrations || []).filter((c) => !pending.some((p) => p.kind === c.kind && p.start === c.start));
+      app.me.recap = null;
+    }
+    pending.forEach((p) => api('/api/celebration/seen', { kind: p.kind, start: p.start }).catch(() => {}));
+    openPodium('week', null);
+  }
+  $('btn-recap-skip').addEventListener('click', skipCelebrations);
+
   function renderRecap(data) {
     const conf = CELEBRATION[data.kind] || CELEBRATION.week;
     const queue = app.celebrationQueue || [];
@@ -6354,7 +6402,8 @@
     $('recap-canvas').setAttribute('aria-label', `${conf.title} sous un feu d'artifice`);
     $('recap-fireworks').hidden = false;
     $('recap-gazette').hidden = true;
-    if (son16On()) Sound.celebrate(data.kind);
+    $('btn-recap-skip').hidden = !fetesOn();
+    if (son16On()) Sound.celebrate(data.kind, { drill: data.champion && data.champion.drill });
     $('recap-names').replaceChildren(
       ...[2, 1, 3].map((place) => {
         const e = data.entries.find((x) => x.rank === place);
@@ -6417,11 +6466,23 @@
       el('button', { class: 'btn', id: 'btn-recap-done', type: 'button' }, nextKind ? `Suite : ${nextKind.title.toLowerCase()}` : 'À la mine !'),
     );
     $('btn-recap-done').addEventListener('click', finishRecap);
+    g.classList.remove('paper16');
+    if (fetesOn()) {
+      // Gazette sur un plan de mine : le fond est peint quand l'article est visible (voir le bouton « Voir la Gazette »).
+      const ink = el('div', { class: 'ink' }, ...Array.from(g.childNodes));
+      g.replaceChildren(el('canvas', { class: 'bg', 'aria-hidden': 'true' }), ink);
+      g.classList.add('paper16');
+      if (queue.length) ink.append(el('button', { class: 'btn ghost', id: 'btn-gazette-skip', type: 'button' }, 'Passer au podium'));
+      const skip = $('btn-gazette-skip');
+      if (skip) skip.addEventListener('click', skipCelebrations);
+    }
   }
 
   $('btn-recap-next').addEventListener('click', () => {
     $('recap-fireworks').hidden = true;
     $('recap-gazette').hidden = false;
+    if (stopFete) stopFete();
+    if ($('recap-gazette').classList.contains('paper16')) Celebrations16.paper($('recap-gazette'));
     if (son16On()) Sound.paper();
     window.scrollTo(0, 0);
   });

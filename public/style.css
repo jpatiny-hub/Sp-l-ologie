@@ -1769,3 +1769,14 @@ html[data-frameless] #view-results .section-title { background: rgba(10, 8, 16, 
 /* Comparer les puits, sans cadre : même verre fumé que l'après-forage. */
 html[data-frameless] #view-compare { text-shadow: 0 2px 0 #000, 0 0 10px rgba(0, 0, 0, 0.9); }
 html[data-frameless] #view-compare .card { background: rgba(10, 8, 16, 0.5) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-color: rgba(255, 211, 106, 0.18) !important; }
+
+/* Fêtes de podium 16 bits (refonte) : canevas pleine largeur, titre et noms qui apparaissent au bon moment, Gazette sur plan de mine */
+.recap-canvas.fete16 { width: 100%; max-width: 460px; height: auto; box-shadow: none; }
+.recap-names, #recap-title { transition: opacity .5s; }
+.recap-names.fete-off, #recap-title.fete-off { opacity: 0; }
+.recap-skip { margin: 0 0 10px auto; width: auto; font-size: calc(10px * var(--fs)); padding: 8px 14px; display: block; }
+.gazette.paper16 { position: relative; background: none; border: 0; box-shadow: none; padding: 30px 18px 28px; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.6)); animation: unroll16 1s steps(14) both; }
+.gazette.paper16 > canvas.bg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; image-rendering: pixelated; }
+.gazette.paper16 > .ink { position: relative; z-index: 1; }
+@keyframes unroll16 { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+@media (prefers-reduced-motion: reduce) { .gazette.paper16 { animation: none; } }
