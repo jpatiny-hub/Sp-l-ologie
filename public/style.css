@@ -1688,3 +1688,12 @@ html[data-hd][data-hd][data-hd] .hud { z-index: 2; }
 html[data-hd][data-hd][data-hd] .hud span { background: linear-gradient(180deg, rgba(18, 28, 66, 0.88), rgba(8, 12, 34, 0.88)); border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 4px; font-size: calc(18px * var(--fs)); }
 html[data-hd][data-hd][data-hd] canvas.avatar, html[data-hd][data-hd][data-hd] .game-mole canvas, html[data-hd][data-hd][data-hd] .pf-mole canvas,
 html[data-hd][data-hd][data-hd] .msg-mole, html[data-hd][data-hd][data-hd] .tuto-mole { image-rendering: auto; }
+
+/* Essai : taupe en 16 bits (48 × 32 pixels, affichée à l'échelle entière) */
+html[data-mole16] .game-mole canvas { width: 96px; height: 64px; }
+html[data-mole16] .msg-mole { width: 48px; height: 32px; }
+html[data-mole16] .beta-mascot { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.beta-mascot .m-say { position: absolute; left: 50%; bottom: 100%; transform: translateX(-50%); width: max-content; max-width: 170px; margin-bottom: 8px; padding: 6px 8px; background: var(--well); color: var(--ink); font-size: calc(14px * var(--fs)); line-height: 1.3; text-align: center; box-shadow: 0 0 0 2px var(--line); z-index: 3; pointer-events: none; }
+.beta-mascot .m-say::after { content: ''; position: absolute; left: 50%; top: 100%; margin-left: -4px; border: 4px solid transparent; border-top: 6px solid var(--well); }
+.beta-mascot.poked, .game-mole.poked canvas { animation: mole-poke 0.35s steps(4) 1; }
+@keyframes mole-poke { 0% { transform: translateY(0); } 35% { transform: translateY(-8px); } 70% { transform: translateY(0); } 85% { transform: translateY(-3px); } 100% { transform: translateY(0); } }
