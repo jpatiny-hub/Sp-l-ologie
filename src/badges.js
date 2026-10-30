@@ -757,7 +757,7 @@ class BadgeService {
         const hint = hintFor(type, id);
         return { id, name, unlocked: !hint || unlocked.has(`${type}:${id}`), hint };
       });
-    const user = this.db.prepare('SELECT skin_body, skin_bit, skin_timer, avatar, title FROM users WHERE id = ?').get(userId);
+    const user = this.db.prepare('SELECT skin_body, skin_bit, skin_timer, avatar, title, created_at FROM users WHERE id = ?').get(userId);
     const pepites = this.pepiteCount(userId);
     const bestScore = this.db.prepare("SELECT MAX(score) AS s FROM games WHERE user_id = ? AND mode = 'daily'").get(userId).s || 0;
     const info = BadgeService.streakInfo(days, today);
@@ -779,7 +779,7 @@ class BadgeService {
       timers: skinList(TIMERS, 'timer'),
       skin: this.skinOf(user),
       avatar: Avatar.normalize(user && user.avatar, userId),
-      avatarCatalog: Avatar.catalog(badges, beta),
+      avatarCatalog: Avatar.catalog(badges.concat(this.anniversaries(user, today)), beta),
       title: beta && user && Titles.labelOf(user.title) ? user.title : null,
       titles: beta ? Titles.catalog(badges, days.length) : [],
     };
@@ -796,9 +796,25 @@ class BadgeService {
     return true;
   }
 
+  /**
+   * Badges virtuels d'ancienneté (1, 2 et 3 ans d'inscription), uniquement pour débloquer des cosmétiques d'avatar :
+   * ils n'apparaissent ni dans la vitrine ni dans la liste des badges.
+   */
+  anniversaries(user, today) {
+    const joined = user && Number(user.created_at);
+    const years = joined ? (Date.parse(`${today}T12:00:00Z`) - joined) / (365.25 * 86400000) : 0;
+    return [1, 2, 3].map((n) => ({
+      id: `annee-${n}`,
+      name: `${n} an${n > 1 ? 's' : ''} dans la mine`,
+      description: `Être inscrit depuis ${n} an${n > 1 ? 's' : ''}`,
+      count: years >= n ? 1 : 0,
+    }));
+  }
+
   /** Enregistre l'avatar du joueur s'il ne contient que des éléments débloqués. Renvoie l'avatar, ou null. */
   setAvatar(userId, today, candidate, beta = true) {
-    const clean = Avatar.validate(candidate, userId, this.profile(userId, today, beta).badges, beta);
+    const user = this.db.prepare('SELECT created_at FROM users WHERE id = ?').get(userId);
+    const clean = Avatar.validate(candidate, userId, this.profile(userId, today, beta).badges.concat(this.anniversaries(user, today)), beta);
     if (!clean) return null;
     this.db.prepare('UPDATE users SET avatar = ? WHERE id = ?').run(JSON.stringify(clean), userId);
     return clean;

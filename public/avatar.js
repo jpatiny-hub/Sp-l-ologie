@@ -46,16 +46,16 @@
     const fem = o.forme === 'f';
     const oy = OY;
     const outfit = o.tenue || 'mineur';
-    const robe = outfit === 'robe' || outfit === 'robe-fleurs';
+    const robe = outfit === 'robe' || outfit === 'robe-fleurs' || outfit === 'robe-sorciere';
     // Cape dorée : derrière le corps.
     if (outfit === 'cape') {
       P(3, oy + 7, 10, 11, '#c8941c');
       P(3, oy + 17, 10, 1, '#a77f12');
     }
     // Jambes.
-    const legs = (o.espece === 'robot' ? shade(METAL[o.peau] || METAL.clair, 0.6) : null) || { smoking: '#222', scaphandre: '#6b7a8c', cape: '#3a4a6b', armure: '#8a8f98', pirate: '#5a3a1a', cuisinier: '#4a4a52', 'mineur-nain': '#5a4a3a', 'armure-naine': '#5a4a3a', 'gilet-vapeur': '#4a3a2a', golem: '#46425a', 'tablier-forge': '#3a3a44', redingote: '#2a2a34', epouvantail: '#6a5a3a', explorateur: '#8a7a4a', herboriste: '#6a5a3a', 'tunique-infernale': '#2a1a2a', 'cire-jaune': '#3a4a6b', poil: fur }[outfit] || '#3a4a6b';
+    const legs = (o.espece === 'robot' ? shade(METAL[o.peau] || METAL.clair, 0.6) : null) || { smoking: '#222', scaphandre: '#6b7a8c', cape: '#3a4a6b', armure: '#8a8f98', pirate: '#5a3a1a', cuisinier: '#4a4a52', 'mineur-nain': '#5a4a3a', 'armure-naine': '#5a4a3a', 'gilet-vapeur': '#4a3a2a', golem: '#46425a', 'costume-cupidon': '#e8dcc0', 'manteau-noel': '#c8362d', 'chape-eveque': '#c8362d', 'tablier-forge': '#3a3a44', redingote: '#2a2a34', epouvantail: '#6a5a3a', explorateur: '#8a7a4a', herboriste: '#6a5a3a', 'tunique-infernale': '#2a1a2a', 'cire-jaune': '#3a4a6b', poil: fur }[outfit] || '#3a4a6b';
     if (robe) {
-      const hem = outfit === 'robe' ? '#b02a6a' : '#e8466a';
+      const hem = { robe: '#b02a6a', 'robe-fleurs': '#e8466a', 'robe-sorciere': '#2a1a3a' }[outfit];
       P(5, oy + 15, 2, 5, skin);
       P(9, oy + 15, 2, 5, skin);
       P(5, oy + 20, 2, 1, hem);
@@ -67,7 +67,7 @@
       P(8, oy + 21, 3, 1, K);
     }
     // Torse et bras.
-    const top = (o.espece === 'robot' ? METAL[o.peau] || METAL.clair : null) || { mineur: '#d9772b', salopette: '#d9772b', robe: '#e86aa8', 'robe-fleurs': '#f3e1c8', smoking: '#222', pull: '#4a86e8', scaphandre: '#8aa0b8', cape: '#4a86e8', armure: '#aeb6c2', pirate: '#f3f3f3', cuisinier: '#ffffff', blouse: '#f3f3f3', chasuble: '#ff8c1a', 'mineur-nain': '#7a4a24', 'armure-naine': '#9a7a3a', 'gilet-vapeur': '#5a2a1a', golem: '#5a5668', 'tablier-forge': '#8a8f98', redingote: '#3a2a4a', epouvantail: '#b8843a', explorateur: '#c8b078', herboriste: '#4a8a4a', 'tunique-infernale': '#2a1a2a', 'cire-jaune': '#f2c230', poil: fur }[outfit] || '#d9772b';
+    const top = (o.espece === 'robot' ? METAL[o.peau] || METAL.clair : null) || { mineur: '#d9772b', salopette: '#d9772b', robe: '#e86aa8', 'robe-fleurs': '#f3e1c8', smoking: '#222', pull: '#4a86e8', scaphandre: '#8aa0b8', cape: '#4a86e8', armure: '#aeb6c2', pirate: '#f3f3f3', cuisinier: '#ffffff', blouse: '#f3f3f3', chasuble: '#ff8c1a', 'mineur-nain': '#7a4a24', 'armure-naine': '#9a7a3a', 'gilet-vapeur': '#5a2a1a', golem: '#5a5668', 'costume-cupidon': '#f3e9d2', 'manteau-noel': '#c8362d', 'robe-sorciere': '#4a2a6a', 'chape-eveque': '#c8362d', 'tablier-forge': '#8a8f98', redingote: '#3a2a4a', epouvantail: '#b8843a', explorateur: '#c8b078', herboriste: '#4a8a4a', 'tunique-infernale': '#2a1a2a', 'cire-jaune': '#f2c230', poil: fur }[outfit] || '#d9772b';
     if (fem) {
       P(5, oy + 7, 6, 4, top);
       if (robe) {
@@ -158,6 +158,35 @@
       P(6, oy + 11, 1, 1, '#d9a21a');
       P(9, oy + 11, 1, 1, '#d9a21a');
       P(9, oy + 12, 3, 1, '#d9a21a');
+    }
+    if (outfit === 'costume-cupidon') {
+      P(4, oy + 7, 8, 1, '#f2c230');
+      P(4, oy + 12, 8, 1, '#f2c230');
+      P(7, oy + 9, 2, 1, '#e8508f');
+      P(6, oy + 10, 4, 1, '#e8508f');
+      P(7, oy + 11, 2, 1, '#e8508f');
+    }
+    if (outfit === 'manteau-noel') {
+      P(4, oy + 7, 8, 1, '#fff');
+      P(4, oy + 13, 8, 1, '#fff');
+      P(7, oy + 8, 2, 5, '#fff');
+      P(4, oy + 11, 8, 1, '#1b1410');
+      P(7, oy + 11, 2, 1, '#f2c230');
+      P(2, oy + 12, 2, 1, '#fff');
+      P(12, oy + 12, 2, 1, '#fff');
+    }
+    if (outfit === 'robe-sorciere') {
+      [[5, 9], [9, 11], [6, 13], [10, 8], [7, 12]].forEach(([x, y]) => P(x, oy + y, 1, 1, '#ffd84a'));
+      P(4, oy + 11, 8, 1, '#2a1a3a');
+      P(7, oy + 11, 2, 1, '#a8ff5a');
+    }
+    if (outfit === 'chape-eveque') {
+      P(4, oy + 7, 8, 1, '#f2c230');
+      P(7, oy + 8, 2, 5, '#f2c230');
+      P(5, oy + 8, 1, 5, '#f2c230');
+      P(10, oy + 8, 1, 5, '#f2c230');
+      P(7, oy + 10, 2, 1, '#c8362d');
+      P(4, oy + 13, 8, 1, '#f2c230');
     }
     if (outfit === 'tablier-forge') {
       P(5, oy + 8, 6, 6, '#7a4a24');
@@ -494,6 +523,31 @@
       P(6, oy - 6, 4, 2, '#c8362d');
       P(7, oy - 4, 2, 3, '#f2c230');
       P(4, oy - 1, 8, 1, '#f2c230');
+    } else if (hat === 'aureole') {
+      P(5, oy - 3, 6, 1, '#ffe68a');
+      P(4, oy - 2, 1, 1, '#ffe68a');
+      P(11, oy - 2, 1, 1, '#ffe68a');
+      P(5, oy - 1, 6, 1, '#c8a020');
+    } else if (hat === 'chapeau-sorciere') {
+      P(8, oy - 6, 2, 1, '#2a1a3a');
+      P(7, oy - 5, 4, 1, '#2a1a3a');
+      P(6, oy - 4, 5, 1, '#2a1a3a');
+      P(5, oy - 3, 6, 1, '#2a1a3a');
+      P(5, oy - 2, 6, 1, '#a8ff5a');
+      P(2, oy - 1, 12, 1, '#2a1a3a');
+    } else if (hat === 'oreilles-lapin') {
+      for (const x of [5, 9]) {
+        P(x, oy - 6, 2, 5, '#f3f3f8');
+        P(x + 1, oy - 5, 1, 3, '#ff9ac8');
+      }
+      P(4, oy - 1, 8, 1, '#f3f3f8');
+    } else if (hat === 'cotillon') {
+      P(8, oy - 6, 1, 1, '#ffd84a');
+      P(7, oy - 5, 3, 1, '#ff5ac8');
+      P(6, oy - 4, 5, 1, '#4ad8ff');
+      P(5, oy - 3, 7, 1, '#ff5ac8');
+      P(5, oy - 2, 7, 1, '#ffd84a');
+      P(5, oy - 1, 7, 1, '#4ad8ff');
     } else if (hat === 'chapeau-paille') {
       P(5, oy - 3, 6, 3, '#e8c547');
       P(2, oy - 1, 12, 1, '#e8c547');
@@ -573,6 +627,55 @@
       P(14, oy + 9, 1, 6, '#8b5a2b');
       P(13, oy + 6, 3, 3, '#ff9a3c');
       P(14, oy + 5, 1, 2, '#ffd84a');
+    } else if (it === 'arc-coeur') {
+      P(13, oy + 4, 2, 1, '#8b5a2b');
+      P(15, oy + 5, 1, 7, '#8b5a2b');
+      P(13, oy + 12, 2, 1, '#8b5a2b');
+      P(13, oy + 5, 1, 7, '#e8e0d0');
+      P(14, oy + 7, 2, 1, '#e8508f');
+      P(14, oy + 8, 1, 1, '#e8508f');
+    } else if (it === 'cadeau') {
+      P(13, oy + 11, 3, 3, '#c8362d');
+      P(14, oy + 11, 1, 3, '#f2c230');
+      P(13, oy + 12, 3, 1, '#f2c230');
+      P(13, oy + 10, 3, 1, '#f2c230');
+    } else if (it === 'canne-sucre') {
+      P(14, oy + 7, 1, 7, '#fff');
+      P(14, oy + 8, 1, 1, '#c8362d');
+      P(14, oy + 10, 1, 1, '#c8362d');
+      P(14, oy + 12, 1, 1, '#c8362d');
+      P(14, oy + 6, 2, 1, '#fff');
+      P(15, oy + 7, 1, 1, '#c8362d');
+    } else if (it === 'balai') {
+      P(14, oy + 2, 1, 11, '#8b5a2b');
+      P(13, oy + 13, 3, 3, '#c8a04a');
+      P(13, oy + 13, 3, 1, '#6a4220');
+    } else if (it === 'crosse') {
+      P(14, oy + 3, 1, 11, '#f2c230');
+      P(13, oy + 2, 3, 1, '#f2c230');
+      P(12, oy + 3, 1, 2, '#f2c230');
+      P(15, oy + 3, 1, 1, '#f2c230');
+    } else if (it === 'panier-paques') {
+      P(13, oy + 12, 3, 3, '#c8945a');
+      P(13, oy + 11, 3, 1, '#8b5a2b');
+      P(13, oy + 10, 1, 1, '#ff9ac8');
+      P(15, oy + 10, 1, 1, '#4ad8ff');
+      P(14, oy + 10, 1, 1, '#ffd84a');
+    } else if (it === 'coupe') {
+      P(13, oy + 9, 3, 2, '#fff6b0');
+      P(14, oy + 11, 1, 3, '#e8ecf0');
+      P(13, oy + 14, 3, 1, '#e8ecf0');
+      P(14, oy + 8, 1, 1, '#fff');
+    } else if (it === 'tarte') {
+      P(12, oy + 11, 4, 2, '#d8a050');
+      P(12, oy + 11, 4, 1, '#e8b868');
+      P(13, oy + 12, 1, 1, '#b07030');
+      P(12, oy + 13, 4, 1, '#c8c8d0');
+    } else if (it === 'poisson') {
+      P(12, oy + 10, 3, 2, '#5ac8e8');
+      P(15, oy + 9, 1, 4, '#3aa8c8');
+      P(12, oy + 10, 1, 1, K);
+      P(13, oy + 11, 1, 1, '#c8f0ff');
     } else if (it === 'hache') {
       P(14, oy + 4, 1, 10, '#8b5a2b');
       P(12, oy + 3, 2, 4, '#a9b0b8');
@@ -628,6 +731,14 @@
       P(1, oy + 4, 1, 1, K);
       P(0, oy + 4, 1, 1, '#ff9a3c');
       P(2, oy + 7, 1, 1, '#ff9a3c');
+    } else if (c === 'chat-noir') {
+      P(1, oy + 5, 3, 2, '#1b1b24');
+      P(1, oy + 3, 2, 2, '#1b1b24');
+      P(1, oy + 2, 1, 1, '#1b1b24');
+      P(2, oy + 2, 1, 1, '#1b1b24');
+      P(1, oy + 4, 1, 1, '#ffd84a');
+      P(0, oy + 6, 1, 2, '#1b1b24');
+      P(3, oy + 7, 1, 1, '#1b1b24');
     } else if (c === 'lucioles') {
       for (const [x, y] of [[1, 1], [13, 3], [2, -2], [14, -1]]) {
         P(x, oy + y, 1, 1, '#e8ff6a');
@@ -695,6 +806,19 @@
       P(7, oy + 9, 1, 1, '#e8466a');
       P(5, oy + 10, 3, 1, '#e8466a');
       P(6, oy + 11, 1, 1, '#e8466a');
+    } else if (a === 'serpentin') {
+      [[5, 7, '#ff5ac8'], [6, 8, '#ffd84a'], [7, 7, '#4ad8ff'], [8, 8, '#ff5ac8'], [9, 7, '#ffd84a'], [10, 8, '#4ad8ff']].forEach(([x, y, col]) => P(x, oy + y, 1, 1, col));
+      P(10, oy + 9, 1, 2, '#ff5ac8');
+    } else if (a === 'pin-pi') {
+      P(5, oy + 9, 3, 1, '#f2c230');
+      P(5, oy + 10, 1, 2, '#f2c230');
+      P(7, oy + 10, 1, 2, '#f2c230');
+    } else if (a.startsWith('insigne-')) {
+      const n = Number(a[8]);
+      const col = ['#c8803a', '#c8ccd4', '#ffd84a'][n - 1];
+      P(6, oy + 8, 1, 3, col);
+      P(5, oy + 9, 3, 1, col);
+      for (let i = 0; i < n; i++) P(5 + i, oy + 11, 1, 1, col);
     } else if (a === 'chaines') {
       [[4, 8], [5, 9], [6, 10], [9, 10], [10, 9], [11, 8]].forEach(([x, y], i) => P(x, oy + y, 1, 1, i % 2 ? '#6a6a76' : '#b8b8c0'));
       P(7, oy + 11, 2, 1, '#b8b8c0');
@@ -1147,6 +1271,29 @@
       P(12, oy + 3, 1, 4, '#8b5a2b');
       P(11, oy + 2, 3, 1, '#a9b0b8');
       P(1, oy + 8, 2, 3, '#6a7a8c');
+    } else if (d === 'ailes-cupidon') {
+      both((Q) => {
+        Q(0, 3, 3, 3, '#fff');
+        Q(1, 6, 3, 3, '#f0f0f8');
+        Q(0, 4, 1, 2, '#d8d8e8');
+      });
+    } else if (d === 'hotte') {
+      P(12, oy + 4, 4, 8, '#8b3a1a');
+      P(12, oy + 3, 3, 1, '#8b3a1a');
+      P(13, oy + 2, 2, 1, '#c8362d');
+      P(14, oy + 1, 1, 1, '#f2c230');
+      P(11, oy + 7, 1, 5, '#5a2a10');
+    } else if (d === 'reservoir-vapeur') {
+      both((Q) => {
+        Q(0, 5, 3, 7, '#9a7048');
+        Q(0, 5, 1, 7, '#c8a078');
+        Q(1, 8, 1, 1, '#ff5a2a');
+        Q(1, 3, 1, 1, '#e8ecf0');
+      });
+    } else if (d === 'poisson-papier') {
+      P(0, oy + 9, 3, 2, '#e8f0ff');
+      P(0, oy + 11, 1, 1, '#e8f0ff');
+      P(1, oy + 9, 1, 1, K);
     } else if (d === 'ailes-fee') {
       both((Q) => {
         Q(0, 2, 3, 4, 'rgba(210,245,255,0.9)');
