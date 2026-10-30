@@ -5,15 +5,11 @@
  * (roche tramée, cristaux lumineux, rayons de lumière, brume, poussières, bords assombris).
  *   Defis16.weekly(canvas, ch, avatar, t)       → « Ton filon » : une cathédrale de cristal, une passerelle par étape du défi qui monte vers les diamants
  *   Defis16.collective(canvas, data, colors, t) → « Galerie commune » : une seule foreuse sur un pont au-dessus du lac, un seul sol doré qui avance avec les points
- *   Defis16.drillId                             → foreuse du jeu à dessiner (défaut « bourdon »)
  *   Defis16.SIZE                                → taille des canevas [largeur, hauteur]
  * t = temps en secondes (0 = image fixe).
  */
 (function (global) {
   const SIZE = { weekly: [160, 200], collective: [160, 200] };
-  const drillOff = document.createElement('canvas');
-  drillOff.width = 68;
-  drillOff.height = 108;
   const hash = (n) => Math.abs(Math.sin(n * 12.9898) * 43758.5453) % 1;
   const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
   const bay = (x, y) => BAYER[(y & 3) * 4 + (x & 3)];
@@ -274,60 +270,105 @@
     }
   }
 
-  /** Foreuse du jeu (Drills16), couchée pour avancer vers la droite ; sinon un dessin de secours. Pointe en (tipX, cy). */
-  function gameDrill(x, tipX, cy, t, drilling) {
-    if (global.Drills16) {
-      const o = drillOff.getContext('2d');
-      o.clearRect(0, 0, 68, 108);
-      const hub = global.Drills16.draw(o, global.Defis16.drillId || 'bourdon', { tipX: 34, tipY: 102, px: 2, time: t, drilling, view: { w: 34, h: 54 }, calm: t === 0 });
-      x.save();
-      x.translate(tipX, cy);
-      x.rotate(-Math.PI / 2);
-      x.translate(-34, -102);
-      x.drawImage(drillOff, 0, 0);
-      x.restore();
-      glow(x, tipX - 40, cy, 50, '#ffd070', 0.2);
-      return hub;
+  /**
+   * Foreuse de chantier à chenilles, dessinée d'un seul tenant : chenilles intégrées au châssis, cabine vitrée avec gyrophare,
+   * échappement qui fume, bras hydraulique et foret conique qui tourne. Pointe du foret en (tipX, baseY - 21), chenilles posées sur baseY.
+   */
+  function tunnelDrill(x, tipX, baseY, t, moving) {
+    const ox = tipX - 72;
+    const INK = '#16121c';
+    const Y = ['#fff3a0', '#ffd23f', '#f0a81c', '#b8700f', '#7a430a'];
+    const S = ['#f2f6fa', '#c3cbd6', '#8f99a8', '#5f6877', '#3b414d'];
+    const r = (px, py, w, h, c) => { x.fillStyle = c; x.fillRect(ox + px, baseY + py, w, h); };
+    const sh = moving ? Math.round(Math.sin(t * 10)) : 0;
+    // Chenilles (py : -15 à 0) : carter arrondi, patins sur le dessus et le dessous, galets et barbotins qui tournent
+    r(3, -15, 52, 15, INK);
+    r(1, -13, 56, 11, INK);
+    r(4, -14, 50, 13, S[4]);
+    r(3, -12, 52, 9, S[4]);
+    const off = moving ? Math.floor(t * 14) % 4 : 0;
+    for (let i = -1; i < 14; i++) {
+      const px = 3 + i * 4 + off;
+      if (px < 3 || px > 50) continue;
+      r(px, -15, 3, 2, S[2]);
+      r(px, -2, 3, 2, S[2]);
+      r(px, -15, 3, 1, S[1]);
     }
-    return null;
-  }
-
-  /** Train de chenilles sous la foreuse : carter sombre, galets, patins qui défilent. Haut à y, longueur len. */
-  function tracks(x, x0, y, len, t, moving) {
-    x.fillStyle = '#16121c';
-    x.fillRect(x0 + 1, y, len - 2, 10);
-    x.fillRect(x0, y + 2, len, 6);
-    x.fillStyle = '#3b414d';
-    x.fillRect(x0 + 2, y + 1, len - 4, 8);
-    // patins : plaques qui avancent (haut et bas)
-    const off = moving ? Math.floor(t * 12) % 4 : 0;
-    for (let i = -1; i < len / 4; i++) {
-      const px = x0 + 2 + i * 4 + off;
-      if (px < x0 + 1 || px > x0 + len - 4) continue;
-      x.fillStyle = '#8f99a8';
-      x.fillRect(px, y, 3, 1);
-      x.fillRect(px, y + 9, 3, 1);
-      x.fillStyle = '#5f6877';
-      x.fillRect(px + 3, y, 1, 1);
-      x.fillRect(px + 3, y + 9, 1, 1);
-    }
-    // galets et barbotins
-    const wheels = [5, len / 2 - 4, len / 2 + 4, len - 6];
-    wheels.forEach((w, i) => {
-      const wx = Math.round(x0 + w);
-      x.fillStyle = '#16121c';
-      x.fillRect(wx - 3, y + 2, 7, 6);
-      x.fillStyle = '#8f99a8';
-      x.fillRect(wx - 2, y + 3, 5, 4);
-      x.fillStyle = '#c3cbd6';
-      x.fillRect(wx - 2, y + 3, 5, 1);
-      x.fillStyle = '#3b414d';
+    r(6, -11, 46, 7, S[3]);
+    [8, 20, 32, 44].forEach((wx, i) => {
+      r(wx, -11, 7, 7, INK);
+      r(wx + 1, -10, 5, 5, S[1]);
+      r(wx + 1, -10, 5, 1, S[0]);
+      r(wx + 2, -9, 3, 3, S[3]);
       const spin = moving ? Math.floor(t * 12 + i) % 2 : 0;
-      x.fillRect(wx - 1 + spin, y + 4, 1, 2);
-      x.fillRect(wx + 1 - spin, y + 4, 1, 2);
+      r(wx + 3, -9 + spin, 1, 3 - spin, S[0]);
     });
-    x.fillStyle = 'rgba(0,0,0,0.35)';
-    x.fillRect(x0, y + 10, len, 1);
+    r(0, -9, 3, 5, INK);
+    r(53, -9, 3, 5, INK);
+    // Châssis (py : -31 à -14) : posé dans le cadre des chenilles, jaune de chantier
+    r(2, -31 + sh, 50, 18, INK);
+    r(3, -30 + sh, 48, 16, Y[2]);
+    r(3, -30 + sh, 48, 3, Y[0]);
+    r(3, -27 + sh, 48, 2, Y[1]);
+    r(3, -17 + sh, 48, 3, Y[3]);
+    // bandes de sécurité à l'avant du châssis
+    for (let i = 0; i < 6; i++) r(38 + i * 2, -16 + sh, 1, 2, INK);
+    // rivets et grille d'aération
+    [6, 18, 30, 46].forEach((bx) => r(bx, -29 + sh, 1, 1, Y[0]));
+    r(8, -24 + sh, 14, 6, Y[4]);
+    for (let i = 0; i < 6; i++) r(9 + i * 2, -23 + sh, 1, 4, INK);
+    // Cabine vitrée avec toit et gyrophare
+    r(26, -42 + sh, 22, 12, INK);
+    r(27, -41 + sh, 20, 10, Y[2]);
+    r(29, -40 + sh, 16, 8, '#0e3a5e');
+    r(30, -39 + sh, 14, 6, '#8fe3ff');
+    r(30, -39 + sh, 5, 2, '#e8fbff');
+    r(37, -38 + sh, 6, 1, '#3fb3e8');
+    r(25, -43 + sh, 24, 2, S[3]);
+    r(25, -43 + sh, 24, 1, S[1]);
+    const beacon = Math.floor(t * 5) % 2 === 0;
+    r(35, -47 + sh, 5, 4, INK);
+    r(36, -46 + sh, 3, 2, beacon ? '#ff9a30' : '#7a3a10');
+    // Échappement qui fume
+    r(6, -40 + sh, 3, 10, S[4]);
+    r(5, -41 + sh, 5, 2, S[3]);
+    for (let i = 0; i < 4; i++) {
+      const sy = -44 - ((Math.floor(t * 6) + i * 4) % 14);
+      x.fillStyle = `rgba(200,200,210,${0.5 - ((Math.floor(t * 6) + i * 4) % 14) / 36})`;
+      x.fillRect(ox + 5 + Math.round(Math.sin(t * 2 + i) * 2) + i, baseY + sy + sh, 3, 3);
+    }
+    // Bras hydraulique : vérin du châssis jusqu'à la tête du foret
+    r(52, -27 + sh, 8, 8, INK);
+    r(52, -26 + sh, 8, 6, S[2]);
+    r(52, -26 + sh, 8, 1, S[0]);
+    r(54, -29 + sh, 6, 2, S[1]);
+    r(54, -29 + sh, 2, 12, S[3]);
+    // Foret conique : stries en spirale qui défilent
+    const spin = Math.floor(t * 16) % 4;
+    for (let c = 0; c < 20; c++) {
+      const half = Math.max(1, Math.round(10 - c * 0.5));
+      const cx = 60 + c;
+      for (let yy = -half; yy <= half; yy++) {
+        const band = (c + yy + spin * 2) % 8 < 4;
+        const edge = yy === -half || yy === half;
+        x.fillStyle = edge ? S[4] : band ? S[1] : S[2];
+        x.fillRect(ox + cx, baseY - 21 + sh + yy, 1, 1);
+      }
+      x.fillStyle = S[0];
+      x.fillRect(ox + cx, baseY - 21 + sh - half + 2, 1, 1);
+    }
+    // Feux avant, étincelles à la pointe, lueur
+    r(51, -31 + sh, 3, 2, '#fff2a8');
+    x.globalCompositeOperation = 'lighter';
+    glow(x, ox + 53, baseY - 30 + sh, 22, '#ffd070', 0.3);
+    glow(x, ox + 36, baseY - 44 + sh, 18, '#ff9a30', beacon ? 0.28 : 0.05);
+    x.globalCompositeOperation = 'source-over';
+    if (moving) {
+      for (let i = 0; i < 6; i++) {
+        x.fillStyle = ['#ffd070', '#fff', '#ff9a30'][i % 3];
+        x.fillRect(ox + 81 + (i % 3) * 2, baseY - 24 + sh + ((i + Math.floor(t * 12)) % 7), 1, 1);
+      }
+    }
   }
 
   /** Cathédrale commune aux deux scènes : voûte, stalactites, piliers de cristal au fond, lac et reflets. */
@@ -437,7 +478,7 @@
     const f = Math.min(1, data.total / Math.max(1, data.goal));
     const ly = 140;
     const by = 112;
-    const tip = Math.round(48 + 70 * f);
+    const tip = Math.round(72 + 46 * f);
     cathedral(x, W, H, 'ccat', 'c', t, { seed: 4, lake: ly, water: ['#0e3a44', '#04141a'], pillars: [[20, 120, 2.4, false], [54, 86, 1.4, false], [128, 110, 2.8, false]] });
     farCart(x, W, 50, t + 12, 46);
     waterfall(x, 36, 22, ly, t);
@@ -457,24 +498,15 @@
     x.globalAlpha = 1;
     // Fanions à 25, 50 et 75 %
     [0.25, 0.5, 0.75].forEach((q) => {
-      const fx = Math.round(48 + 70 * q);
+      const fx = Math.round(72 + 46 * q);
       x.fillStyle = '#5a3a1e';
       x.fillRect(fx, by - 18, 1, 15);
       x.fillStyle = f >= q ? '#ffd84a' : '#4a3a20';
       x.fillRect(fx + 1, by - 18, 7, 4);
       x.fillRect(fx + 1, by - 14, 4, 1);
     });
-    // Foreuse du jeu, couchée vers la droite, posée sur le pont
-    x.save();
-    x.translate(tip - 94, by - 20);
-    x.scale(2, 2);
-    tracks(x, 0, 0, 48, t, !data.reached);
-    x.restore();
-    const hubbed = gameDrill(x, tip, by - 54, t, !data.reached);
-    if (!hubbed) {
-      x.fillStyle = '#f0a81c';
-      x.fillRect(tip - 30, by - 28, 30, 22);
-    }
+    // Foreuse de chantier à chenilles, d'un seul tenant, posée sur le pont
+    tunnelDrill(x, tip, by, t, !data.reached);
     // Chambre de diamants
     const lit = data.reached ? 1 : 0.3 + 0.7 * f;
     crystalsScaled(x, 142, by, 1.5, lit, t + 1);
@@ -487,5 +519,5 @@
     for (let k = 34; k < tip - 10; k += 60) lantern(x, k, 24, t, 'c');
   }
 
-  global.Defis16 = { weekly, collective, SIZE, drillId: null };
+  global.Defis16 = { weekly, collective, SIZE };
 })(window);

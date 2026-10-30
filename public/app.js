@@ -2222,10 +2222,7 @@
 
   /** Tunnel creusé ensemble : la foreuse avance avec les points du mois, chaque joueur a sa couleur, un tas de diamants au bout. */
   function drawCollective(canvas, data, t) {
-    if (defisOn()) {
-      Defis16.drillId = settings.betaDrill16 || null; // la foreuse choisie par le responsable, sinon « Bourdon »
-      return Defis16.collective(canvas, data, COLLECTIVE_COLORS, t);
-    }
+    if (defisOn()) return Defis16.collective(canvas, data, COLLECTIVE_COLORS, t);
     const ctx = canvas.getContext('2d');
     const ty = 8;
     const th = 24;
