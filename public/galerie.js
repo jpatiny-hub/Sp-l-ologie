@@ -4,6 +4,7 @@
  * Fond animé « Galerie vivante » : les grottes des galeries de forage (caves.js) défilent lentement derrière l'interface
  * (refonte 16-bit, réservée au responsable). Un palier toutes les 14 s, de l'ossuaire au cœur prismatique, avec les mêmes décors,
  * animations, premier plan et lueurs que pendant le forage, et l'ambiance du forage en cours (graine de caves.js).
+ * La vie de mine (minelife.js) anime les galeries creusées entre les grottes.
  * Figé si l'animation est réduite, en pause quand la page est cachée.
  */
 (function (global) {
@@ -39,8 +40,12 @@
     };
     const built = global.Caves.build({ ...dims, set });
     for (let i = 0; i < built.alpha.length; i++) img.data[i * 4 + 3] = built.alpha[i];
+    // Vie de mine : galeries étayées creusées entre les grottes, scènes tirées avec la graine du forage.
+    let num = 7;
+    for (const c of global.Caves.seed()) num = (Math.imul(num, 31) + c.charCodeAt(0)) | 0;
+    const life = global.MineLife ? global.MineLife.build({ ...dims, data: img.data, set, seed: num }) : null;
     ctx.putImageData(img, 0, 0);
-    return { seed: global.Caves.seed(), dims, world, anim: built.anim, back: global.Caves.backdrop(dims), front: global.Caves.foreground(dims) };
+    return { seed: global.Caves.seed(), dims, world, life, anim: built.anim, back: global.Caves.backdrop(dims), front: global.Caves.foreground(dims) };
   }
 
   const tierCount = () => global.Caves.TIERS.length - FIRST;
@@ -64,7 +69,11 @@
     g.fillRect(0, 0, canvas.width, h);
     global.Caves.drawBack(g, cave.back, cam, h, dims);
     g.drawImage(world, 0, cam, dims.W, h, 0, 0, dims.W, h);
+    g.save();
+    g.translate(0, -cam);
     global.Caves.drawAnim(g, cave.anim, time, cam, h, calm);
+    if (cave.life) global.MineLife.draw(g, cave.life, time, cam, h, calm);
+    g.restore();
     global.Caves.drawFront(g, cave.front, cam, h, time);
     global.Caves.drawAir(g, dims, cam, h, time, calm);
     if (!calm && !document.hidden) raf = requestAnimationFrame(frame);
