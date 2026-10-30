@@ -292,6 +292,44 @@
     return null;
   }
 
+  /** Train de chenilles sous la foreuse : carter sombre, galets, patins qui défilent. Haut à y, longueur len. */
+  function tracks(x, x0, y, len, t, moving) {
+    x.fillStyle = '#16121c';
+    x.fillRect(x0 + 1, y, len - 2, 10);
+    x.fillRect(x0, y + 2, len, 6);
+    x.fillStyle = '#3b414d';
+    x.fillRect(x0 + 2, y + 1, len - 4, 8);
+    // patins : plaques qui avancent (haut et bas)
+    const off = moving ? Math.floor(t * 12) % 4 : 0;
+    for (let i = -1; i < len / 4; i++) {
+      const px = x0 + 2 + i * 4 + off;
+      if (px < x0 + 1 || px > x0 + len - 4) continue;
+      x.fillStyle = '#8f99a8';
+      x.fillRect(px, y, 3, 1);
+      x.fillRect(px, y + 9, 3, 1);
+      x.fillStyle = '#5f6877';
+      x.fillRect(px + 3, y, 1, 1);
+      x.fillRect(px + 3, y + 9, 1, 1);
+    }
+    // galets et barbotins
+    const wheels = [5, len / 2 - 4, len / 2 + 4, len - 6];
+    wheels.forEach((w, i) => {
+      const wx = Math.round(x0 + w);
+      x.fillStyle = '#16121c';
+      x.fillRect(wx - 3, y + 2, 7, 6);
+      x.fillStyle = '#8f99a8';
+      x.fillRect(wx - 2, y + 3, 5, 4);
+      x.fillStyle = '#c3cbd6';
+      x.fillRect(wx - 2, y + 3, 5, 1);
+      x.fillStyle = '#3b414d';
+      const spin = moving ? Math.floor(t * 12 + i) % 2 : 0;
+      x.fillRect(wx - 1 + spin, y + 4, 1, 2);
+      x.fillRect(wx + 1 - spin, y + 4, 1, 2);
+    });
+    x.fillStyle = 'rgba(0,0,0,0.35)';
+    x.fillRect(x0, y + 10, len, 1);
+  }
+
   /** Cathédrale commune aux deux scènes : voûte, stalactites, piliers de cristal au fond, lac et reflets. */
   function cathedral(x, W, H, key, mood, t, o) {
     x.drawImage(rock(key, W, H, mood), 0, 0);
@@ -427,7 +465,8 @@
       x.fillRect(fx + 1, by - 14, 4, 1);
     });
     // Foreuse du jeu, couchée vers la droite, posée sur le pont
-    const hubbed = gameDrill(x, tip + 2, by - 17, t, !data.reached);
+    tracks(x, tip - 46, by - 9, 48, t, !data.reached);
+    const hubbed = gameDrill(x, tip + 2, by - 17 - 9, t, !data.reached);
     if (!hubbed) {
       x.fillStyle = '#f0a81c';
       x.fillRect(tip - 30, by - 28, 30, 22);
