@@ -1830,3 +1830,20 @@ html[data-galerie] .feed-fold .feed-list { background: rgba(255, 231, 176, 0.06)
 html[data-galerie] .feed-fold .feed-list li { border-bottom-color: var(--edge); }
 html[data-galerie] .feed-fold .feed-list * { color: inherit; }
 html[data-galerie] .pm { background: rgba(0, 0, 0, 0.35) !important; border: 1px solid var(--edge) !important; border-radius: 8px !important; box-shadow: none !important; color: var(--lamp) !important; }
+
+/* Écran de connexion et tutoriel dans la refonte : grotte plein écran, panneau de verre, taupe qui accueille. */
+html[data-galerie] #tutorial {
+  position: fixed; inset: 0; margin: auto; width: min(400px, calc(100vw - 24px)); max-width: none; height: fit-content; max-height: 90dvh; overflow: auto;
+  border-radius: 16px; animation: none; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+html[data-galerie] #tutorial::backdrop { background: rgba(0, 0, 0, 0.5); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+html[data-galerie] #tutorial h2 { text-align: center; }
+html[data-galerie] .tuto-art { background: rgba(0, 0, 0, 0.35); border: 1px solid var(--edge); border-radius: 12px; }
+html[data-galerie] .tuto-mole { height: 64px; width: auto; aspect-ratio: 3 / 2; image-rendering: pixelated; }
+.auth-mascot { display: none; }
+html[data-galerie] .auth-mascot { display: block; width: 96px; height: 64px; margin: 4px auto -6px; filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.6)); }
+html[data-galerie] .auth-mascot canvas { width: 96px; height: 64px; image-rendering: pixelated; }
+html[data-galerie] #view-auth, html[data-galerie] #view-recovery { min-height: calc(100dvh - 100px); justify-content: flex-end; }
+html[data-galerie] #view-auth .tagline { text-align: center; color: #ffe7b0; text-shadow: 0 2px 0 #000; font-size: calc(18px * var(--fs)); }
+html[data-galerie] #view-auth input { background: rgba(0, 0, 0, 0.45); border: 1px solid var(--edge); border-radius: 10px; color: var(--ink); }
+html[data-galerie] #view-auth .tabs { gap: 6px; }

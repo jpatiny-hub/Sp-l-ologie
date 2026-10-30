@@ -138,8 +138,14 @@
     Pixel.setColorblind(settings.colors);
     applySeason();
     root.toggleAttribute('data-mole16', mole16On());
-    root.toggleAttribute('data-galerie', galerieOn());
-    Galerie.setOn(galerieOn(), reducedMotion());
+    // L'écran de connexion prend l'allure de la refonte sur un appareil où la bêta est activée (réglage local du responsable).
+    const decor = galerieOn() || (!app.me && !!settings.betaRefonte);
+    root.toggleAttribute('data-galerie', decor);
+    Galerie.setOn(decor, reducedMotion());
+    if (!app.me && decor && window.Mole16) {
+      const open = document.querySelector('#auth-mascot .m-open');
+      if (open && !open.dataset.drawn) { open.dataset.drawn = '1'; Mole16.draw(open, 'happy', { x: 0, y: 0 }); }
+    }
     if (typeof scene !== 'undefined') scene.drill16 = app.me && app.me.isAdmin && settings.betaDrill16 ? settings.betaDrill16 : null;
     placeChallenge();
     root.classList.toggle('colorblind', settings.colors !== 'normal');
@@ -612,6 +618,7 @@
     document.querySelectorAll('.view').forEach((v) => (v.hidden = v.id !== `view-${view}`));
     // Sur téléphone, la scène de forage ne sert qu'en partie et dans les résultats : pas sur l'accueil.
     $('stage').hidden = (view === 'podium' || view === 'profile' || view === 'home' || view === 'recap' || view === 'duel' || view === 'admin' || view === 'museum' || view === 'messages') && window.innerWidth < 860;
+    if ((view === 'auth' || view === 'recovery') && document.documentElement.hasAttribute('data-galerie')) $('stage').hidden = true; // la grotte du fond suffit
     if (view === 'profile') startPreview();
     if (view !== 'game') $('focus-keeper').blur();
     updateBanner();
@@ -788,7 +795,7 @@
     {
       title: 'Bienvenue dans la mine !',
       art: () => {
-        const mole = el('canvas', { class: 'tuto-mole', width: '16', height: '16', 'aria-hidden': 'true' });
+        const mole = el('canvas', { class: 'tuto-mole', width: mole16On() ? '24' : '16', height: '16', 'aria-hidden': 'true' });
         drawMascot(mole, 'happy');
         return el('div', { class: 'tuto-art-row' }, mole, tutoIcon('pioche', 64));
       },
@@ -832,7 +839,7 @@
     {
       title: 'À toi de jouer !',
       art: () => {
-        const mole = el('canvas', { class: 'tuto-mole', width: '16', height: '16', 'aria-hidden': 'true' });
+        const mole = el('canvas', { class: 'tuto-mole', width: mole16On() ? '24' : '16', height: '16', 'aria-hidden': 'true' });
         drawMascot(mole, 'idle');
         return el('div', { class: 'tuto-art-row' }, mole, tutoIcon('diamant', 64));
       },
@@ -850,6 +857,13 @@
     $('tuto-title').textContent = slide.title;
     $('tuto-art').replaceChildren(slide.art());
     $('tuto-body').replaceChildren(...slide.body());
+    if (galerieOn()) {
+      // Refonte : le mode « Infini » s'appelle « Illimité » et le wagonnet de « Jouer » indique la voie.
+      $('tuto-title').textContent = slide.title.replace('infini', 'illimité');
+      const walker = document.createTreeWalker($('tuto-dialog-text') || document.getElementById('tutorial'), NodeFilter.SHOW_TEXT);
+      for (let n = walker.nextNode(); n; n = walker.nextNode()) n.nodeValue = n.nodeValue.replace('Infini', 'Illimité').replace('infini', 'illimité');
+      if (slide.title.startsWith('Duel')) $('tuto-body').append(el('p', { class: 'muted' }, 'Dans « Jouer », le wagonnet part à droite pour le forage du jour, et à gauche pour le duel et l\'illimité.'));
+    }
     $('tuto-dots').replaceChildren(
       ...SLIDES.map((_, i) => {
         const pip = el('span', { class: `tuto-pip${i === tuto.index ? ' on' : ''}` });
