@@ -861,7 +861,6 @@
   };
 
   // Séries accordées aux panoplies du vestiaire : chevalier et pirate (nain = Pionnier, steampunk = Horloger).
-  const BLASON = ['#c8dcff', '#4a78d8', '#2a4ea8', '#1a3278', '#0e1e4a'];
   FBITS.lance = coneBit((x, y, t, f) => (groove(x, y, f) < 4 ? FUR[t] : M.rouge[t]));
   FBITS.lance.draw = (b, f) => {
     cone(b, 16, 4.5, 33, 47, f, 1, { color: (x, y, t) => (groove(x, y, f) < 4 ? FUR[t] : M.rouge[t]) });
@@ -879,9 +878,9 @@
         part(b, heaume, M.acier, cyl(4, 27, 4, 25));
         paint(b, and(heaume, (x, y) => (x === 15 || x === 16) && y < 7), (x) => M.acier[x === 15 ? 0 : 2]);
         for (const x of [6, 25]) for (let y = 15; y <= 21; y += 2) dot(b, x, y, M.acier[4]);
-        part(b, poly([[11.5, 17], [20.5, 17], [20.5, 21.5], [16, 25.6], [11.5, 21.5]]), BLASON, cyl(11, 20, 17, 25), {
+        part(b, poly([[11.5, 17], [20.5, 17], [20.5, 21.5], [16, 25.6], [11.5, 21.5]]), M.rouge, cyl(11, 20, 17, 25), {
           edge: 'ink',
-          color: (x, y, t) => ((x === 15 || x === 16 || y === 20) ? M.or[Math.min(4, t)] : null),
+          color: (x, y, t) => (y === 20 || y === 21 ? M.or[Math.min(4, t)] : null),
         });
       },
       front(b) { hublot(b, 16, 12, 5); },
