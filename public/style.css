@@ -1780,3 +1780,70 @@ html[data-frameless] #view-compare .card { background: rgba(10, 8, 16, 0.5) !imp
 .gazette.paper16 > .ink { position: relative; z-index: 1; }
 @keyframes unroll16 { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
 @media (prefers-reduced-motion: reduce) { .gazette.paper16 { animation: none; } }
+
+/* ---------- Refonte : panneaux de verre fumé partout (retours du bac à sable, 30/10) ---------- */
+/* Boîtes de dialogue centrées, comme « Défis » (le duel, les titres, les gels, les réglages…). */
+html[data-galerie] #mode-dialog, html[data-galerie] #title-dialog, html[data-galerie] #freeze-dialog, html[data-galerie] #assign-dialog,
+html[data-galerie] #decide-dialog, html[data-galerie] #settings {
+  position: fixed; inset: 0; margin: auto; width: min(400px, calc(100vw - 24px)); max-width: none; height: fit-content; max-height: 86dvh; overflow: auto;
+  padding: 14px 14px 16px; border-radius: 16px; transform: none; animation: none; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+html[data-galerie] #mode-dialog::backdrop, html[data-galerie] #title-dialog::backdrop, html[data-galerie] #freeze-dialog::backdrop, html[data-galerie] #assign-dialog::backdrop,
+html[data-galerie] #decide-dialog::backdrop, html[data-galerie] #settings::backdrop { background: rgba(0, 0, 0, 0.5); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+html[data-galerie] #mode-dialog h2, html[data-galerie] #settings h2 { text-align: center; }
+html[data-galerie] #mode-dialog > p, html[data-galerie] #mode-step-mode > p, html[data-galerie] #mode-step-opponent > p { text-align: center; }
+html[data-galerie] .mode-choice { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; width: 100%; margin-top: 8px; padding: 12px 10px; }
+html[data-galerie] .mode-choice strong { font-size: calc(10px * var(--fs)); }
+html[data-galerie] .mode-choice span { font-size: calc(16px * var(--fs)); line-height: 1.15; font-weight: 400; }
+html[data-galerie] #mode-dialog > .btn.ghost, html[data-galerie] #settings .btn { margin-top: 10px; width: 100%; }
+
+/* Réglages et contremaître : les sections repliables et les rangées perdent le brun plein. */
+html[data-galerie] #settings fieldset, html[data-galerie] #settings details, html[data-galerie] #settings .fold,
+html[data-galerie] #view-admin details.fold, html[data-galerie] #view-admin .fold {
+  background: var(--glass) !important; border: 1px solid var(--edge); border-radius: 12px; padding: 10px 12px; margin: 0 0 8px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+html[data-galerie] #settings legend { padding: 0 6px; color: var(--lamp); font-size: calc(9px * var(--fs)); }
+html[data-galerie] #settings details > summary, html[data-galerie] #view-admin details.fold > summary { color: var(--lamp); }
+html[data-galerie] details.fold > summary .pm, html[data-galerie] details.fold > summary [class*='plus'] { background: rgba(0, 0, 0, 0.35); border: 1px solid var(--edge); border-radius: 8px; box-shadow: none; color: var(--lamp); }
+
+/* Feuille « Jouer » : duels, résultats et entraînement en panneaux de verre, texte centré. */
+html[data-galerie] #play-sheet-body { text-align: center; }
+html[data-galerie] #play-sheet-body h3 { color: var(--lamp); font-size: calc(10px * var(--fs)); margin: 14px 0 6px; }
+html[data-galerie] #play-sheet-body > *, html[data-galerie] #play-sheet-body li, html[data-galerie] #play-sheet-body .duel-row, html[data-galerie] #play-sheet-body .duel-card {
+  --panel-2: rgba(255, 231, 176, 0.06);
+}
+html[data-galerie] #play-sheet-body ul { list-style: none; padding: 0; margin: 6px 0; display: flex; flex-direction: column; gap: 8px; }
+html[data-galerie] #play-sheet-body ul > li, html[data-galerie] #play-sheet-body .duel-item {
+  background: var(--glass) !important; border: 1px solid var(--edge); border-radius: 14px; padding: 10px 12px; text-align: left; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+/* Onglets du profil et du contremaître : une vraie barre, bien visible. */
+html[data-galerie] .pf-tabs {
+  position: sticky; top: 4px; z-index: 6; gap: 6px; padding: 6px; margin: 2px 0; border-radius: 14px;
+  background: rgba(8, 6, 12, 0.82); border: 1px solid var(--edge); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+}
+html[data-galerie] .pf-tabs .tab { padding: 12px 2px; font-size: calc(9px * var(--fs)); border-radius: 10px; background: rgba(255, 231, 176, 0.07); color: #f1e3c2; box-shadow: inset 0 0 0 1px var(--edge); text-shadow: 0 1px 0 #000; }
+html[data-galerie] .pf-tabs .tab.active { background: var(--lamp); color: #231503; box-shadow: 0 0 16px rgba(255, 194, 90, 0.6), inset 0 -3px 0 rgba(0, 0, 0, 0.25); text-shadow: none; }
+
+/* « Dans la mine » : le journal sur papier devient un parchemin sombre à la lueur de la lampe. */
+html[data-galerie] .feed-fold .feed-list { background: rgba(255, 231, 176, 0.06); color: var(--ink); box-shadow: inset 0 0 0 1px var(--edge); border-radius: 12px; }
+html[data-galerie] .feed-fold .feed-list li { border-bottom-color: var(--edge); }
+html[data-galerie] .feed-fold .feed-list * { color: inherit; }
+html[data-galerie] .pm { background: rgba(0, 0, 0, 0.35) !important; border: 1px solid var(--edge) !important; border-radius: 8px !important; box-shadow: none !important; color: var(--lamp) !important; }
+
+/* Écran de connexion et tutoriel dans la refonte : grotte plein écran, panneau de verre, taupe qui accueille. */
+html[data-galerie] #tutorial {
+  position: fixed; inset: 0; margin: auto; width: min(400px, calc(100vw - 24px)); max-width: none; height: fit-content; max-height: 90dvh; overflow: auto;
+  border-radius: 16px; animation: none; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+html[data-galerie] #tutorial::backdrop { background: rgba(0, 0, 0, 0.5); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+html[data-galerie] #tutorial h2 { text-align: center; }
+html[data-galerie] .tuto-art { background: rgba(0, 0, 0, 0.35); border: 1px solid var(--edge); border-radius: 12px; }
+html[data-galerie] .tuto-mole { height: 64px; width: auto; aspect-ratio: 3 / 2; image-rendering: pixelated; }
+.auth-mascot { display: none; }
+html[data-galerie] .auth-mascot { display: block; width: 96px; height: 64px; margin: 4px auto -6px; filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.6)); }
+html[data-galerie] .auth-mascot canvas { width: 96px; height: 64px; image-rendering: pixelated; }
+html[data-galerie] #view-auth, html[data-galerie] #view-recovery { min-height: calc(100dvh - 100px); justify-content: flex-end; }
+html[data-galerie] #view-auth .tagline { text-align: center; color: #ffe7b0; text-shadow: 0 2px 0 #000; font-size: calc(18px * var(--fs)); }
+html[data-galerie] #view-auth input { background: rgba(0, 0, 0, 0.45); border: 1px solid var(--edge); border-radius: 10px; color: var(--ink); }
+html[data-galerie] #view-auth .tabs { gap: 6px; }
