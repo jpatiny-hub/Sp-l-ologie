@@ -1718,3 +1718,22 @@ html[data-galerie] dialog.centre .drawer-frame, html[data-galerie] #defis-sheet 
 html[data-galerie] dialog.centre .card, html[data-galerie] #defis-sheet .card { background: none !important; border: 0 !important; box-shadow: none; padding: 0; -webkit-backdrop-filter: none; backdrop-filter: none; }
 html[data-galerie] dialog.centre .card > h2:first-child, html[data-galerie] #defis-sheet .card summary { display: none; }
 html[data-galerie] #defis-sheet-body canvas { max-width: 100%; height: auto !important; }
+
+/* Aiguillage de « Jouer » (galerie vivante) : la feuille devient transparente sur la grotte, le wagonnet choisit la voie. */
+.aiguillage, .voie-back { display: none; }
+html[data-galerie] #play-sheet { inset: 0; width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; background: rgba(6, 4, 10, 0.35); border: 0; box-shadow: none; }
+html[data-galerie] #play-sheet::backdrop { background: transparent; }
+/* Pendant l'aiguillage, l'accueil s'efface : seule la grotte reste derrière. */
+html[data-galerie][data-play-open] .layout, html[data-galerie][data-play-open] .topbar, html[data-galerie][data-play-open] #bottom-nav { visibility: hidden; }
+html[data-galerie] #play-sheet .drawer-frame { background: none; max-width: 520px; margin: 0 auto; min-height: 100%; text-shadow: 0 2px 0 #000, 0 0 10px rgba(0, 0, 0, 0.9); }
+html[data-galerie] #play-sheet .aiguillage:not([hidden]) { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
+html[data-galerie] #play-sheet .voie-back:not([hidden]) { display: block; align-self: flex-end; }
+html[data-galerie] #switch { display: block; width: 100%; max-width: 320px; height: auto; aspect-ratio: 160 / 64; margin: 0 auto; image-rendering: pixelated; }
+.voies { display: flex; flex-direction: column; }
+.voies button { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 12px 6px; border: 0; border-top: 1px solid rgba(255, 226, 170, 0.14); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; text-shadow: inherit; }
+.voies button span { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.voies button small { opacity: 0.8; font-size: 0.85em; }
+.voies button b { color: var(--lamp, #ffc25a); font-size: 1.3em; }
+.voies button:focus-visible { outline: 2px solid var(--lamp, #ffc25a); outline-offset: 2px; }
+html[data-galerie] #play-sheet-body #mode-duel::before, html[data-galerie] #play-sheet-body #mode-training::before { display: none; }
+html[data-galerie] #play-sheet-body #mode-training { border-top: 0; margin-top: 0; padding-top: 0; }

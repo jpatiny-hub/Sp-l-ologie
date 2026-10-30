@@ -276,7 +276,17 @@
         <h2>Jouer</h2>
         <button class="icon-btn" id="btn-sheet-close" type="button" aria-label="Fermer"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h2v2H1zM3 3h2v2H3zM5 5h2v2H5zM7 7h2v2H7zM9 9h2v2H9zM9 1h2v2H9zM7 3h2v2H7zM3 7h2v2H3zM1 9h2v2H1z"/></svg></button>
       </div>
+      <div class="aiguillage" id="aiguillage" hidden>
+        <p class="muted small">Choisis ta voie : à droite le forage du jour, à gauche les autres modes.</p>
+        <canvas class="wagon" id="switch" aria-hidden="true"></canvas>
+        <nav class="voies" aria-label="Modes de jeu">
+          <button type="button" data-voie="daily"><span><strong>Forage du jour</strong><small>7 thèmes, les mêmes pour tous</small></span><b aria-hidden="true">→</b></button>
+          <button type="button" data-voie="duel"><b aria-hidden="true">←</b><span><strong>Duel <span class="tab-dot" id="voie-duel-dot" hidden></span></strong><small>défie un mineur, résultat le lendemain matin</small></span></button>
+          <button type="button" data-voie="training"><b aria-hidden="true">←</b><span><strong>Illimité</strong><small>des thèmes au hasard, sans classement</small></span></button>
+        </nav>
+      </div>
       <div class="drawer-body" id="play-sheet-body"></div>
+      <button class="btn ghost voie-back" id="btn-voie-back" type="button" hidden>Revenir à l'aiguillage →</button>
     </div>
   </dialog>
 

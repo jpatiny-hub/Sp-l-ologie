@@ -1542,7 +1542,10 @@
     if (go === 'play' && betaOn('betaHome')) {
       if (app.view !== 'home') await goHome();
       loadDuels();
-      return $('play-sheet').showModal();
+      setVoie('');
+      $('play-sheet').showModal();
+      document.documentElement.toggleAttribute('data-play-open', galerieOn());
+      return Galerie.resetWagon();
     }
     if (app.view !== 'home') await goHome();
     if (go === 'play') document.querySelector('.play-card').scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
@@ -1624,11 +1627,57 @@
   $('btn-daily').addEventListener('click', departAndPlay, true);
   $('wagon').addEventListener('click', () => $('btn-daily').click());
   Galerie.mountWagon($('wagon'));
+  /*
+   * Aiguillage de « Jouer » (galerie vivante) : le wagonnet part à droite vers le forage du jour, à gauche vers le duel ou l'illimité ;
+   * l'écran glisse dans le même sens, et le bouton de retour ramène à l'aiguillage.
+   */
+  Galerie.mountWagon($('switch'), 'switch');
+  /** '' : l'aiguillage ; 'duel' ou 'training' : le panneau de ce mode. Hors galerie vivante, la feuille montre les deux modes. */
+  function setVoie(voie) {
+    const on = galerieOn();
+    $('play-sheet').dataset.voie = on ? voie : '';
+    $('aiguillage').hidden = !on || !!voie;
+    $('btn-voie-back').hidden = !on || !voie;
+    $('play-sheet-body').hidden = on && !voie;
+    $('mode-duel').hidden = on && voie !== 'duel';
+    $('mode-training').hidden = on && voie !== 'training';
+    $('voie-duel-dot').hidden = $('duel-dot').hidden;
+    $('play-sheet').querySelector('.drawer-head h2').textContent = { duel: 'Duel', training: 'Illimité' }[on && voie] || 'Jouer';
+  }
+  const slideIn = (el, from) => el.animate && !reducedMotion() ? el.animate([{ transform: `translateX(${from})`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 380, easing: 'cubic-bezier(.2,.8,.2,1)' }).finished.catch(() => {}) : Promise.resolve();
+  let switching = false;
+  document.querySelectorAll('[data-voie]').forEach((button) =>
+    button.addEventListener('click', async () => {
+      if (switching) return;
+      switching = true;
+      const voie = button.dataset.voie;
+      const calm = reducedMotion();
+      if (voie === 'daily') {
+        if (!calm) await Galerie.departWagon(1, $('switch'));
+        $('play-sheet').close();
+        switching = false;
+        await startGame('daily');
+        if (app.view !== 'home') slideIn(document.querySelector('.layout'), '-45%');
+        return;
+      }
+      if (!calm) await Galerie.departWagon(-1, $('switch'));
+      setVoie(voie);
+      if (voie === 'duel') loadDuels();
+      await slideIn($('play-sheet-body'), '45%');
+      switching = false;
+    }),
+  );
+  $('play-sheet').addEventListener('close', () => document.documentElement.removeAttribute('data-play-open'));
+  $('btn-voie-back').addEventListener('click', async () => {
+    setVoie('');
+    Galerie.resetWagon();
+    await slideIn($('aiguillage'), '-45%');
+  });
   $('btn-sheet-close').addEventListener('click', () => $('play-sheet').close());
   $('play-sheet').addEventListener('click', (event) => {
     if (event.target === $('play-sheet')) return $('play-sheet').close();
     const button = event.target.closest('button.btn');
-    if (button && button.id !== 'btn-duel-new') $('play-sheet').close();
+    if (button && button.id !== 'btn-duel-new' && button.id !== 'btn-voie-back') $('play-sheet').close();
   });
 
   /** La vie de la mine : combien de mineurs ont foré aujourd'hui, les derniers forages terminés et leurs pépites. */
