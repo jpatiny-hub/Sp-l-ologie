@@ -1327,7 +1327,7 @@
   }
 
   /** Icônes en pixel art de la barre du bas (le profil montre la tête du personnage du joueur). */
-  const NAV_ICONS = { home: 'maison', play: 'pioche', podium: 'trophee', defis: 'diamant', messages: 'enveloppe', mine: 'pepite', admin: 'bouclier' };
+  const NAV_ICONS = { home: 'maison', play: 'pioche', defis: 'diamant', messages: 'enveloppe', mine: 'pepite', admin: 'bouclier' };
   function drawNavIcons() {
     document.querySelectorAll('#bottom-nav button').forEach((button) => {
       const kind = button.dataset.nav;
@@ -1425,7 +1425,6 @@
     if (!button) return;
     const go = button.dataset.nav;
     if (go === 'messages') return openMessages();
-    if (go === 'podium') return openPodium(homePodiumPeriod, null);
     if (go === 'defis') {
       renderCollective();
       renderWeekly();

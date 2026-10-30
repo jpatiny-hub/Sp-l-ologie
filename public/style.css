@@ -1692,7 +1692,7 @@ html[data-hd][data-hd][data-hd] .msg-mole, html[data-hd][data-hd][data-hd] .tuto
 /* ===== Essai « galerie vivante » (réservé au responsable) : décor animé visible entre des panneaux de pierre sombre compacts, comme la maquette D ===== */
 #galerie-bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; image-rendering: pixelated; pointer-events: none; }
 html[data-galerie] { background: #0d0a0a; }
-html[data-galerie] body { background: transparent; }
+html[data-galerie] body { background: transparent !important; background-image: none !important; }
 html[data-galerie] .layout { padding: 0 10px 72px; gap: 8px; }
 html[data-galerie] .panel-area, html[data-galerie] .view { gap: 12px; }
 html[data-galerie] .topbar { padding: 8px 12px; }
@@ -1712,10 +1712,10 @@ html[data-galerie] .hero-row { margin-bottom: 4px; }
 html[data-galerie] .btn { padding: 9px 8px; font-size: calc(10px * var(--fs)); box-shadow: inset 3px 3px 0 rgba(255, 230, 168, 0.8), inset -3px -3px 0 rgba(120, 70, 10, 0.7), 0 0 14px rgba(255, 170, 50, 0.35); }
 html[data-galerie] .bottom-nav { background: rgba(14, 13, 17, 0.9); border-top: 3px solid rgba(150, 140, 160, 0.6); }
 
-/* Accueil « Camp de base » : une scène et peu de blocs. Le podium et les défis passent dans la barre du bas ; badges, profil en double et décompte bruyant disparaissent. */
-html:not([data-galerie]) #bottom-nav [data-nav='podium'], html:not([data-galerie]) #bottom-nav [data-nav='defis'] { display: none; }
+/* Accueil « Camp de base » : une scène et peu de blocs. Les défis passent dans la barre du bas, le podium reste sur l'accueil ; badges, profil en double et décompte bruyant disparaissent. */
+html:not([data-galerie]) #bottom-nav [data-nav='defis'] { display: none; }
 html[data-galerie] #bottom-nav [data-nav='messages'] { display: none; }
-html[data-galerie] .podium-card, html[data-galerie] .hero-player, html[data-galerie] .profile-card .home-profile, html[data-galerie] #next-badges,
+html[data-galerie] .hero-player, html[data-galerie] .profile-card .home-profile, html[data-galerie] #next-badges,
 html[data-galerie] #btn-carnet, html[data-galerie] #streak-note, html[data-galerie] #today-date { display: none !important; }
 html[data-galerie] #next-reset { font-size: calc(15px * var(--fs)); color: var(--muted); opacity: 0.7; margin: 6px 0 0; }
 html[data-galerie] .profile-card .home-chips { margin: 0; }
