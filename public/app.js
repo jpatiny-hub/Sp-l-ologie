@@ -2283,11 +2283,16 @@
     $('collective-total').textContent = data.total > data.goal ? `${data.total.toLocaleString('fr-BE')} points (objectif : ${data.goal.toLocaleString('fr-BE')})` : `${data.total.toLocaleString('fr-BE')} / ${data.goal.toLocaleString('fr-BE')} points`;
     $('collective-left').textContent = data.daysLeft > 0 ? plural(data.daysLeft, 'jour restant', 'jours restants') : '';
     $('collective-legend').replaceChildren(
-      ...data.players.map((p, i) => {
-        const swatch = el('span', { class: 'swatch' });
-        swatch.style.background = COLLECTIVE_COLORS[i % COLLECTIVE_COLORS.length];
-        return el('li', { class: p.me ? 'me' : '' }, swatch, avatarEl(p.avatar, 'head', 2), el('span', { class: 'who-name' }, p.username), el('span', {}, pts(p.points)));
-      }),
+      ...data.players
+        .map((p, i) => ({ p, i }))
+        // Refonte : pas de classement, ordre alphabétique et part de la galerie en %.
+        .sort((a, b) => (defisOn() ? a.p.username.localeCompare(b.p.username, 'fr') : 0))
+        .map(({ p, i }) => {
+          const swatch = el('span', { class: 'swatch' });
+          swatch.style.background = COLLECTIVE_COLORS[i % COLLECTIVE_COLORS.length];
+          const share = defisOn() ? `${Math.round((p.points / Math.max(1, data.total)) * 100)} % de la galerie` : pts(p.points);
+          return el('li', { class: p.me ? 'me' : '' }, swatch, avatarEl(p.avatar, 'head', 2), el('span', { class: 'who-name' }, p.username), el('span', {}, share));
+        }),
     );
     const duel = data.duel;
     $('collective-duel-title').hidden = $('collective-duel-bar').hidden = $('collective-duel-note').hidden = !duel;
@@ -2300,7 +2305,9 @@
     }
     $('collective-note').textContent = data.reached
       ? `Objectif atteint le ${formatDay(data.reachedOn, { day: 'numeric', month: 'long' })}. Continuez à creuser, le tas de diamants brille pour tout le monde !`
-      : 'Chaque point de ton forage du jour fait avancer la foreuse. Chaque couleur est la part de tunnel creusée par un joueur.';
+      : defisOn()
+        ? 'Une seule foreuse pour tout le monde. Chaque point de chacun la fait avancer ; ta couleur est ta part de galerie.'
+        : 'Chaque point de ton forage du jour fait avancer la foreuse. Chaque couleur est la part de tunnel creusée par un joueur.';
     const canvas = $('collective-canvas');
     const [cw, chh] = defisOn() ? Defis16.SIZE.collective : [CW, CH];
     const scale = Math.max(1, Math.min(4, Math.floor((canvas.parentElement.clientWidth || 330) / cw)));
