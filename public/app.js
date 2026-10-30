@@ -3256,7 +3256,7 @@
         ['Visage', ['peau', 'yeux', 'iris', 'bouche', 'barbe', 'trait', 'piercing']],
         ['Corps', ['forme', 'corpulence', 'tenue', 'accessoire', 'dos', 'tatouage']],
         ['Outil', ['objet', 'compagnon', 'lieu']],
-      ];
+      ].filter(([, slots]) => slots.some(inCatalog)); // sans le vestiaire 16-bit (joueurs pendant la bêta), pas d'onglet « Type » vide
       const FULL = new Set(['espece', 'modele', 'aura', 'dos', 'forme', 'corpulence', 'tenue', 'objet', 'tatouage']);
       const THUMBS = new Set(['espece', 'modele', 'aura', 'dos', 'iris', 'forme', 'corpulence', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage', 'accessoire', 'chapeau', 'tenue', 'objet', 'compagnon']);
       let current = 0;
