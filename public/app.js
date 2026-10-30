@@ -44,6 +44,7 @@
   settings.betaHd = false; // essai du style HD-2D : réservé au responsable, désactivé au départ
   settings.betaCaves = false; // essai des galeries 16-bit (grottes mystérieuses) : réservé au responsable, désactivé au départ
   settings.betaMole16 = false; // essai de la taupe en 16 bits (réagit au toucher) : réservé au responsable, désactivé au départ
+  settings.betaGalerie = false; // essai du fond animé « Galerie vivante » : réservé au responsable, désactivé au départ
   // Ambiance sonore : coups de pioche, grondement, musiques d'accueil, bruits de boutons et chrono sonore, au choix de chaque joueur : coups de pioche, grondement et musique « Galerie » activés au départ, le reste non.
   const AMBIENT_FLAGS = ['labTaps', 'labRumble'];
   const LAB_FLAGS = [...AMBIENT_FLAGS, 'labTabs', 'labClicks', 'labTimer'];
@@ -97,6 +98,8 @@
   const cavesOn = () => !!(app.me && app.me.isAdmin && settings.betaCaves);
   /** Essai de la taupe en 16 bits : uniquement pour le responsable qui l'active. */
   const mole16On = () => !!(app.me && app.me.isAdmin && settings.betaMole16 && window.Mole16);
+  /** Essai de la galerie vivante (fond animé et panneaux de pierre sombre) : uniquement pour le responsable qui l'active. */
+  const galerieOn = () => !!(app.me && app.me.isAdmin && settings.betaGalerie);
   const betaOn = (name) => !!(app.me && (!app.me.isAdmin || settings[name]));
 
   const isHalloween = () => document.documentElement.dataset.season === 'halloween';
@@ -132,6 +135,9 @@
     root.toggleAttribute('data-hd', hdOn());
     Pixel.setHd(hdOn());
     root.toggleAttribute('data-mole16', mole16On());
+    root.toggleAttribute('data-galerie', galerieOn());
+    Galerie.setOn(galerieOn(), reducedMotion());
+    placeChallenge();
     root.classList.toggle('colorblind', settings.colors !== 'normal');
     if (settings.colors === 'normal') delete root.dataset.colors;
     else root.dataset.colors = settings.colors;
@@ -279,9 +285,11 @@
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
     $('beta-box').hidden = !(app.me && app.me.isAdmin);
     $('hd-box').hidden = $('beta-box').hidden;
+    $('galerie-box').hidden = $('beta-box').hidden;
     settingsForm.elements.betaHd.checked = !!settings.betaHd;
     settingsForm.elements.betaCaves.checked = !!settings.betaCaves;
     settingsForm.elements.betaMole16.checked = !!settings.betaMole16;
+    settingsForm.elements.betaGalerie.checked = !!settings.betaGalerie;
     renderVersions();
     for (const name of BETA_FLAGS) settingsForm.elements[name].checked = !!settings[name];
     $('lab-box').hidden = !app.me;
@@ -331,6 +339,7 @@
     settings.betaHd = settingsForm.elements.betaHd.checked;
     settings.betaCaves = settingsForm.elements.betaCaves.checked;
     settings.betaMole16 = settingsForm.elements.betaMole16.checked;
+    settings.betaGalerie = settingsForm.elements.betaGalerie.checked;
     for (const name of LAB_FLAGS) settings[name] = settingsForm.elements[name].checked;
     settings.labMusic = settingsForm.elements.labMusic.value || '';
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
@@ -959,7 +968,7 @@
     status.replaceChildren();
     const button = $('btn-daily');
     if (!today.gameId) {
-      status.append(el('p', {}, '7 thèmes t\'attendent. Prêt à creuser ?'));
+      if (!galerieOn()) status.append(el('p', {}, '7 thèmes t\'attendent. Prêt à creuser ?'));
       button.textContent = 'Commencer le forage';
       scene.setLayers([], false);
     } else if (!today.finished) {
@@ -1422,7 +1431,7 @@
   }
 
   /** Icônes en pixel art de la barre du bas (le profil montre la tête du personnage du joueur). */
-  const NAV_ICONS = { home: 'maison', play: 'pioche', messages: 'enveloppe', mine: 'pepite', admin: 'bouclier' };
+  const NAV_ICONS = { home: 'maison', play: 'pioche', defis: 'diamant', messages: 'enveloppe', mine: 'pepite', admin: 'bouclier' };
   function drawNavIcons() {
     document.querySelectorAll('#bottom-nav button').forEach((button) => {
       const kind = button.dataset.nav;
@@ -1452,6 +1461,7 @@
     setBubble('messages', me.unreadMessages || 0);
     setBubble('play', me.today && !me.today.finished ? true : !$('duel-dot').hidden);
     setBubble('profile', me.unseenBadges || 0);
+    setBubble('defis', galerieOn() && defisMilestone() > 0);
     // « Mine » : nouvelles pépites au musée, plus les nouvelles du journal (les annonces de pépites y sont déjà comptées au musée).
     // Deux pastilles pour « Mine » : rouge pour les nouvelles du journal, bleue pour les nouvelles pépites du musée.
     setBubble('mine', app.feedNew || 0);
@@ -1461,6 +1471,43 @@
       blue.textContent = app.museumNew > 9 ? '9+' : String(app.museumNew || '');
     }
     setBubble('admin', me.isAdmin ? app.adminPending || 0 : 0);
+  }
+
+  /**
+   * Défis (essai galerie vivante) : onglet du bas avec une pastille quand un défi commence, atteint 50 % ou est réussi.
+   * Palier 0 = rien, 1 = commencé, 2 = à moitié, 3 = réussi (le plus haut des deux défis) ; le palier vu est mémorisé par défi.
+   */
+  function defisState() {
+    const st = app.me && app.me.streak;
+    const ch = st && st.challenge;
+    const col = app.me && app.me.collective;
+    const level = (frac) => (frac >= 1 ? 3 : frac >= 0.5 ? 2 : frac > 0 ? 1 : 0);
+    return [
+      ch ? { key: `week:${ch.id}`, level: level(ch.progress / ch.goal) } : null,
+      col ? { key: `month:${col.month}`, level: level(col.total / col.goal) } : null,
+    ].filter(Boolean);
+  }
+  const DEFIS_KEY = 'speleologie.defisVus';
+  function defisVus() {
+    try { return JSON.parse(localStorage.getItem(DEFIS_KEY)) || {}; } catch { return {}; }
+  }
+  const defisMilestone = () => defisState().reduce((n, d) => n + (d.level > (defisVus()[d.key] || 0) ? 1 : 0), 0);
+  function markDefisSeen() {
+    const seen = defisVus();
+    for (const d of defisState()) seen[d.key] = d.level;
+    try { localStorage.setItem(DEFIS_KEY, JSON.stringify(seen)); } catch { /* sans stockage */ }
+    updateBubbles();
+  }
+  /** En mode galerie vivante, le bloc des défis quitte l'accueil pour la fenêtre « Défis » du bas. */
+  function placeChallenge() {
+    const card = $('challenge-card');
+    const inSheet = card.parentNode === $('defis-sheet-body');
+    if (galerieOn() && !inSheet) {
+      card.open = true;
+      $('defis-sheet-body').append(card);
+    } else if (!galerieOn() && inSheet) {
+      document.querySelector('.podium-card').before(card);
+    }
   }
 
   /** Barre du bas : mêmes destinations que sur l'accueil, plus le musée et le journal. */
@@ -1482,6 +1529,13 @@
     if (!button) return;
     const go = button.dataset.nav;
     if (go === 'messages') return openMessages();
+    if (go === 'defis') {
+      renderCollective();
+      renderWeekly();
+      $('defis-sheet').showModal();
+      if (galerieOn()) flip($('defis-sheet'), button, false);
+      return markDefisSeen();
+    }
     if (go === 'profile') return $('btn-carnet').click();
     if (go === 'admin') return openAdmin();
     if (go === 'mine') {
@@ -1504,6 +1558,66 @@
     if (go === 'play') document.querySelector('.play-card').scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
     else window.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' });
   });
+  $('btn-defis-close').addEventListener('click', () => closeCentre($('defis-sheet')));
+  $('defis-sheet').addEventListener('click', (event) => event.target === $('defis-sheet') && closeCentre($('defis-sheet')));
+
+  /*
+   * Accueil sans cadre (essai galerie vivante) : le podium et la vie de la mine sont des lignes du fil ; touchées, elles s'ouvrent au centre
+   * de l'écran en grandissant depuis leur place, puis y retournent à la fermeture. Le bloc d'origine est déplacé dans la fenêtre, puis remis.
+   */
+  const CENTRE = { podium: { title: 'Podium', node: () => document.querySelector('.podium-card') }, social: { title: 'Dans la mine', node: () => $('beta-social') } };
+  let centreSource = null;
+  let centreBack = null;
+  function flip(dialog, from, reverse) {
+    if (!from || reducedMotion() || !dialog.animate) return null;
+    const a = from.getBoundingClientRect();
+    const b = dialog.getBoundingClientRect();
+    if (!b.width || !b.height) return null;
+    const start = { transform: `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.width / b.width}, ${a.height / b.height})`, opacity: 0.2, transformOrigin: 'top left' };
+    const end = { transform: 'none', opacity: 1, transformOrigin: 'top left' };
+    return dialog.animate(reverse ? [end, { ...start, opacity: 0 }] : [start, end], { duration: reverse ? 260 : 380, easing: reverse ? 'cubic-bezier(.4,0,.6,1)' : 'cubic-bezier(.2,.8,.2,1)' });
+  }
+  function openCentre(kind, from) {
+    const spec = CENTRE[kind];
+    const node = spec && spec.node();
+    if (!node) return;
+    centreBack = { node, parent: node.parentNode, next: node.nextSibling, hidden: node.hidden };
+    node.hidden = false;
+    $('centre-title').textContent = spec.title;
+    $('centre-body').replaceChildren(node);
+    centreSource = from;
+    $('centre-sheet').showModal();
+    flip($('centre-sheet'), from, false);
+  }
+  function closeCentre(dialog) {
+    if (!dialog.open) return;
+    const from = dialog === $('centre-sheet') ? centreSource : document.querySelector('#bottom-nav [data-nav="defis"]');
+    const anim = galerieOn() ? flip(dialog, from, true) : null;
+    if (anim) anim.onfinish = () => dialog.close();
+    else dialog.close();
+  }
+  $('centre-sheet').addEventListener('close', () => {
+    if (centreBack) {
+      centreBack.node.hidden = centreBack.hidden;
+      centreBack.parent.insertBefore(centreBack.node, centreBack.next);
+      centreBack = null;
+    }
+    if (centreSource) centreSource.focus();
+  });
+  $('btn-centre-close').addEventListener('click', () => closeCentre($('centre-sheet')));
+  $('centre-sheet').addEventListener('click', (event) => event.target === $('centre-sheet') && closeCentre($('centre-sheet')));
+  $('home-feed').addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-centre]');
+    if (button) openCentre(button.dataset.centre, button);
+  });
+  // Descente : la lanterne illumine l'écran au lancement du forage.
+  $('btn-daily').addEventListener('click', () => {
+    if (!galerieOn() || reducedMotion()) return;
+    const flash = $('dive-flash');
+    flash.classList.remove('go');
+    void flash.offsetWidth;
+    flash.classList.add('go');
+  });
   $('btn-sheet-close').addEventListener('click', () => $('play-sheet').close());
   $('play-sheet').addEventListener('click', (event) => {
     if (event.target === $('play-sheet')) return $('play-sheet').close();
@@ -1515,9 +1629,12 @@
   async function renderBetaSocial() {
     const card = $('beta-social');
     card.hidden = !((betaOn('betaSocial') || betaOn('betaHome')) && app.me && app.me.today);
+    const feedRow = document.querySelector('#home-feed [data-centre="social"]');
+    feedRow.hidden = card.hidden;
     if (card.hidden) return;
     try {
       const mine = await api('/api/mine-today');
+      $('feed-social-text').textContent = mine.started ? `${plural(mine.started, 'mineur', 'mineurs')} aujourd'hui` : 'encore calme';
       const text = $('beta-social-text');
       if (!mine.started) text.textContent = 'La mine est encore silencieuse : tu pourrais être le premier à descendre aujourd\'hui !';
       else text.textContent = `${plural(mine.started, 'mineur est descendu', 'mineurs sont descendus')} aujourd'hui, ${mine.finished} ${mine.finished > 1 ? 'ont fini' : 'a fini'} leur forage.`;
@@ -1531,6 +1648,7 @@
       );
     } catch {
       card.hidden = true;
+      feedRow.hidden = true;
     }
   }
 
@@ -1576,7 +1694,7 @@
     // Phrase de la taupe, suivie de l'avancement du forage.
     const st = app.me.streak;
     let tail;
-    if (!today.gameId) tail = st && st.current > 1 ? `${st.current} jours d'affilée : 7 thèmes t'attendent !` : '7 nouveaux thèmes t\'attendent.';
+    if (!today.gameId) tail = galerieOn() ? (st && st.current > 1 ? `${st.current} jours d'affilée !` : '') : st && st.current > 1 ? `${st.current} jours d'affilée : 7 thèmes t'attendent !` : '7 nouveaux thèmes t\'attendent.';
     else if (!today.finished) tail = `Plus que ${ROUNDS - (today.roundsDone || 0)} thème${ROUNDS - (today.roundsDone || 0) > 1 ? 's' : ''} à creuser.`;
     else tail = `Beau forage : ${pts(today.score)} aujourd'hui !`;
     $('beta-sub').textContent = withMascot ? `« ${activity.say} » ${tail}` : tail;

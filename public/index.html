@@ -177,6 +177,11 @@
         <label class="check"><input type="checkbox" name="betaCaves"> Activer les galeries 16-bit</label>
         <label class="check"><input type="checkbox" name="betaMole16"> Taupe en 16 bits : regard qui suit le doigt, réactions au toucher</label>
       </fieldset>
+      <fieldset id="galerie-box" hidden>
+        <legend>Essai : galerie vivante (contremaître)</legend>
+        <p class="hint">Décor de mine animé derrière le jeu (galerie, cristaux, cascade, contremaître) et panneaux de pierre sombre. Uniquement sur cet appareil. Figé si « Réduire les animations » est coché.</p>
+        <label class="check"><input type="checkbox" name="betaGalerie"> Activer la galerie vivante</label>
+      </fieldset>
       <fieldset id="beta-box" hidden>
         <legend>Ancienne version (contremaître)</legend>
         <p class="hint">Revois le jeu tel qu'il était à une date donnée, uniquement sur cet appareil : les autres joueurs ne sont pas touchés.</p>
@@ -258,6 +263,7 @@
   <nav class="bottom-nav" id="bottom-nav" aria-label="Navigation" hidden>
     <button type="button" data-nav="home" aria-label="Accueil"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Accueil</span><span class="nav-bubble" hidden></span></button>
     <button type="button" data-nav="play" aria-label="Jouer"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Jouer</span><span class="nav-bubble" hidden></span></button>
+    <button type="button" data-nav="defis" aria-label="Défis"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Défis</span><span class="nav-bubble" hidden></span></button>
     <button type="button" data-nav="messages" aria-label="Messages"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Messages</span><span class="nav-bubble" hidden></span></button>
     <button type="button" data-nav="mine" aria-label="Mine"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Mine</span><span class="nav-bubble" hidden></span><span class="nav-bubble blue" hidden></span></button>
     <button type="button" data-nav="profile" aria-label="Profil"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Profil</span><span class="nav-bubble" hidden></span></button>
@@ -271,6 +277,27 @@
         <button class="icon-btn" id="btn-sheet-close" type="button" aria-label="Fermer"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h2v2H1zM3 3h2v2H3zM5 5h2v2H5zM7 7h2v2H7zM9 9h2v2H9zM9 1h2v2H9zM7 3h2v2H7zM3 7h2v2H3zM1 9h2v2H1z"/></svg></button>
       </div>
       <div class="drawer-body" id="play-sheet-body"></div>
+    </div>
+  </dialog>
+
+  <dialog class="centre" id="centre-sheet" aria-labelledby="centre-title">
+    <div class="drawer-frame">
+      <div class="drawer-head">
+        <h2 id="centre-title"></h2>
+        <button class="icon-btn" id="btn-centre-close" type="button" aria-label="Fermer"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h2v2H1zM3 3h2v2H3zM5 5h2v2H5zM7 7h2v2H7zM9 9h2v2H9zM9 1h2v2H9zM7 3h2v2H7zM3 7h2v2H3zM1 9h2v2H1z"/></svg></button>
+      </div>
+      <div class="drawer-body" id="centre-body"></div>
+    </div>
+  </dialog>
+  <div class="dive-flash" id="dive-flash" aria-hidden="true"></div>
+
+  <dialog class="drawer play-sheet" id="defis-sheet" aria-label="Défis">
+    <div class="drawer-frame">
+      <div class="drawer-head">
+        <h2>Défis</h2>
+        <button class="icon-btn" id="btn-defis-close" type="button" aria-label="Fermer"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h2v2H1zM3 3h2v2H3zM5 5h2v2H5zM7 7h2v2H7zM9 9h2v2H9zM9 1h2v2H9zM7 3h2v2H7zM3 7h2v2H3zM1 9h2v2H1z"/></svg></button>
+      </div>
+      <div class="drawer-body" id="defis-sheet-body"></div>
     </div>
   </dialog>
 
@@ -500,6 +527,10 @@
             <p class="muted small" id="collective-note"></p>
           </div>
         </details>
+        <nav class="home-feed" id="home-feed" aria-label="Le fil de la mine">
+          <button type="button" data-centre="podium"><b>Podium</b></button>
+          <button type="button" data-centre="social"><b>Dans la mine</b><span id="feed-social-text"></span></button>
+        </nav>
         <div class="card podium-card">
           <h2>Podium</h2>
           <div class="mini-tabs" id="home-podium-tabs" role="tablist">
@@ -1036,6 +1067,7 @@
   <script src="sound.js"></script>
   <script src="caves.js"></script>
   <script src="pixel.js"></script>
+  <script src="galerie.js"></script>
   <script src="icons.js"></script>
   <script src="timers.js"></script>
   <script src="avatar.js"></script>
