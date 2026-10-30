@@ -2222,7 +2222,10 @@
 
   /** Tunnel creusé ensemble : la foreuse avance avec les points du mois, chaque joueur a sa couleur, un tas de diamants au bout. */
   function drawCollective(canvas, data, t) {
-    if (defisOn()) return Defis16.collective(canvas, data, COLLECTIVE_COLORS, t);
+    if (defisOn()) {
+      Defis16.drillId = settings.betaDrill16 || null; // la foreuse choisie par le responsable, sinon « Bourdon »
+      return Defis16.collective(canvas, data, COLLECTIVE_COLORS, t);
+    }
     const ctx = canvas.getContext('2d');
     const ty = 8;
     const th = 24;
@@ -2292,8 +2295,8 @@
         .map(({ p, i }) => {
           const swatch = el('span', { class: 'swatch' });
           swatch.style.background = COLLECTIVE_COLORS[i % COLLECTIVE_COLORS.length];
-          const share = defisOn() ? `${Math.round((p.points / Math.max(1, data.total)) * 100)} % de la galerie` : pts(p.points);
-          return el('li', { class: p.me ? 'me' : '' }, swatch, avatarEl(p.avatar, 'head', 2), el('span', { class: 'who-name' }, p.username), el('span', {}, share));
+          const share = defisOn() ? `${Math.round((p.points / Math.max(1, data.total)) * 100)} % du chemin` : pts(p.points);
+          return el('li', { class: p.me ? 'me' : '' }, defisOn() ? null : swatch, avatarEl(p.avatar, 'head', 2), el('span', { class: 'who-name' }, p.username), el('span', {}, share));
         }),
     );
     const duel = data.duel;
@@ -2318,7 +2321,7 @@
     $('collective-note').textContent = data.reached
       ? `Objectif atteint le ${formatDay(data.reachedOn, { day: 'numeric', month: 'long' })}. Continuez à creuser, le tas de diamants brille pour tout le monde !`
       : defisOn()
-        ? 'Une seule foreuse pour tout le monde. Chaque point de chacun la fait avancer ; ta couleur est ta part de galerie.'
+        ? 'Une seule foreuse pour tout le monde : chaque point de chacun la fait avancer vers les diamants.'
         : 'Chaque point de ton forage du jour fait avancer la foreuse. Chaque couleur est la part de tunnel creusée par un joueur.';
     const canvas = $('collective-canvas');
     const [cw, chh] = defisOn() ? Defis16.SIZE.collective : [CW, CH];
