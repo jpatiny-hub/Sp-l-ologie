@@ -1,0 +1,25 @@
+# Bac à sable de la bêta (Render, offre gratuite) : un faux jeu réservé au responsable, à part du vrai jeu.
+# Base neuve à chaque démarrage, remplie par scripts/demo-seed.js (faux mineurs, forages passés, duels, podiums).
+services:
+  - type: web
+    name: speleologie-bac-a-sable
+    runtime: node
+    plan: free
+    branch: claude/project-thread-lp839v
+    autoDeploy: true
+    buildCommand: node --version
+    startCommand: npm run demo
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: DATA_DIR
+        value: /tmp/speleologie-bac-a-sable
+      - key: DEMO_USER
+        value: Jonas
+      - key: DEMO_PASSWORD
+        sync: false
+      - key: DEMO_INVITE
+        generateValue: true
