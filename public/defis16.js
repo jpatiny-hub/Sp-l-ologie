@@ -3,13 +3,17 @@
 /*
  * Défis en 16 bits (refonte, réservée au responsable) : deux scènes de mine dans le style des grottes du jeu
  * (roche tramée, cristaux lumineux, rayons de lumière, brume, poussières, bords assombris).
- *   Defis16.weekly(canvas, ch, avatar, t)       → « Ton filon » : un puits vertical, une cage d'ascenseur, un palier par étape du défi
- *   Defis16.collective(canvas, data, colors, t) → « Galerie commune » : une seule galerie et une seule foreuse ; le sol est coloré par joueur
+ *   Defis16.weekly(canvas, ch, avatar, t)       → « Ton filon » : une cathédrale de cristal, une passerelle par étape du défi qui monte vers les diamants
+ *   Defis16.collective(canvas, data, colors, t) → « Galerie commune » : une seule foreuse sur un pont au-dessus du lac, un seul sol doré qui avance avec les points
+ *   Defis16.drillId                             → foreuse du jeu à dessiner (défaut « bourdon »)
  *   Defis16.SIZE                                → taille des canevas [largeur, hauteur]
  * t = temps en secondes (0 = image fixe).
  */
 (function (global) {
-  const SIZE = { weekly: [160, 200], collective: [160, 150] };
+  const SIZE = { weekly: [160, 200], collective: [160, 200] };
+  const drillOff = document.createElement('canvas');
+  drillOff.width = 34;
+  drillOff.height = 54;
   const hash = (n) => Math.abs(Math.sin(n * 12.9898) * 43758.5453) % 1;
   const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
   const bay = (x, y) => BAYER[(y & 3) * 4 + (x & 3)];
@@ -196,186 +200,249 @@
     return x;
   }
 
-  /** Défi de la semaine : un puits, une cage d'ascenseur qui descend d'un palier à chaque étape, une poche de diamants au fond. */
+  // Ambiances : la semaine est violette, le mois turquoise.
+  MOODS.w = { rock: ['#15112a', '#221a3c', '#2f2550', '#403368', '#56467f'], dark: '#08060f', air: '#8a6cff', ore: ['#c79bff', '#5ee0ff', '#ffc24a'] };
+  MOODS.c = { rock: ['#0b1a1c', '#112a2e', '#183b40', '#245259', '#34707a'], dark: '#050e10', air: '#40e0d0', ore: ['#6bf0b0', '#5ee0ff', '#ffc24a'] };
+  const VIOLET = ['#4a2a8c', '#b48cff', '#ece0ff'];
+
+  /** Cascade : filets d'eau qui tombent du plafond jusqu'au lac, éclaboussures et brume. */
+  function waterfall(x, wx, top, bottom, t) {
+    for (let i = 0; i < 6; i++) {
+      const col = wx + i;
+      x.fillStyle = i % 2 ? 'rgba(150,210,255,0.55)' : 'rgba(210,240,255,0.7)';
+      x.fillRect(col, top, 1, bottom - top);
+      for (let k = 0; k < 5; k++) {
+        const y = top + (((hash(k * 3 + i) * (bottom - top) + t * (30 + i * 4)) % (bottom - top)) + (bottom - top)) % (bottom - top);
+        x.fillStyle = 'rgba(255,255,255,0.9)';
+        x.fillRect(col, Math.floor(y), 1, 3);
+      }
+    }
+    x.globalCompositeOperation = 'lighter';
+    glow(x, wx + 3, bottom - 2, 20, '#9fe0ff', 0.25 + 0.05 * Math.sin(t * 3));
+    for (let k = 0; k < 6; k++) {
+      x.fillStyle = 'rgba(220,245,255,0.6)';
+      x.fillRect(wx + 3 + Math.round(Math.sin(t * 5 + k * 2) * (3 + k)), bottom - 2 - ((Math.floor(t * 8) + k * 3) % 7), 1, 1);
+    }
+    x.globalCompositeOperation = 'source-over';
+  }
+
+  /** Touffe de champignons luminescents. */
+  function mushrooms(x, mx, my, s, t, color) {
+    const pulse = 0.6 + 0.4 * Math.sin(t * 2 + mx);
+    [[0, 0, 4], [6, 1, 3], [-5, 2, 3]].forEach(([dx, dy, w], i) => {
+      const cx = mx + dx * s;
+      const h = (w + 1) * s;
+      x.fillStyle = '#d8d0c0';
+      x.fillRect(cx, my + dy - h + 2, 1, h - 1);
+      x.fillStyle = color[0];
+      x.fillRect(cx - w + 1, my + dy - h, w * 2 - 1, 2);
+      x.fillStyle = color[1];
+      x.fillRect(cx - w + 2, my + dy - h, w * 2 - 3, 1);
+      x.fillStyle = '#ffffff';
+      x.fillRect(cx - 1 + (i % 2), my + dy - h, 1, 1);
+    });
+    glow(x, mx, my - 4 * s, 22 * s, color[1], 0.22 * pulse);
+  }
+
+  /** Wagon de minerai au loin, sur un rail du fond : il traverse lentement la caverne. */
+  function farCart(x, W, y, t, period) {
+    x.fillStyle = 'rgba(143,153,168,0.35)';
+    x.fillRect(0, y + 8, W, 1);
+    for (let i = 0; i < W; i += 9) { x.fillStyle = 'rgba(90,60,30,0.5)'; x.fillRect(i, y + 9, 3, 1); }
+    const cx = ((t / period) % 1) * (W + 40) - 20;
+    x.fillStyle = 'rgba(22,18,28,0.85)';
+    x.fillRect(cx, y, 14, 8);
+    x.fillStyle = 'rgba(95,104,119,0.9)';
+    x.fillRect(cx + 1, y + 1, 12, 5);
+    [['#ffc24a', 2], ['#5ee0ff', 6], ['#c79bff', 9]].forEach(([c, dx]) => { x.fillStyle = c; x.fillRect(cx + dx, y - 2, 3, 3); });
+    x.fillStyle = 'rgba(22,18,28,0.9)';
+    x.fillRect(cx + 2, y + 7, 3, 2);
+    x.fillRect(cx + 9, y + 7, 3, 2);
+    glow(x, cx + 7, y - 2, 12, '#ffd070', 0.12);
+  }
+
+  /** Chauves-souris qui passent au loin. */
+  function bats(x, W, t) {
+    x.fillStyle = 'rgba(8,6,15,0.9)';
+    for (let k = 0; k < 3; k++) {
+      const bx = ((t * (9 + k * 3) + k * 57) % (W + 30)) - 15;
+      const by = 34 + k * 14 + Math.sin(t * 2 + k) * 6;
+      const flap = Math.floor(t * 8 + k) % 2;
+      x.fillRect(bx, by, 3, 2);
+      x.fillRect(bx - 2, by - (flap ? 2 : 0), 2, 1);
+      x.fillRect(bx + 3, by - (flap ? 2 : 0), 2, 1);
+    }
+  }
+
+  /** Foreuse du jeu (Drills16), couchée pour avancer vers la droite ; sinon un dessin de secours. Pointe en (tipX, cy). */
+  function gameDrill(x, tipX, cy, t, drilling) {
+    if (global.Drills16) {
+      const o = drillOff.getContext('2d');
+      o.clearRect(0, 0, 34, 54);
+      const hub = global.Drills16.draw(o, global.Defis16.drillId || 'bourdon', { tipX: 17, tipY: 51, px: 1, time: t, drilling, view: { w: 34, h: 54 }, calm: t === 0 });
+      x.save();
+      x.translate(tipX, cy);
+      x.rotate(-Math.PI / 2);
+      x.translate(-17, -51);
+      x.drawImage(drillOff, 0, 0);
+      x.restore();
+      glow(x, tipX - 24, cy, 34, '#ffd070', 0.2);
+      return hub;
+    }
+    return null;
+  }
+
+  /** Cathédrale commune aux deux scènes : voûte, stalactites, piliers de cristal au fond, lac et reflets. */
+  function cathedral(x, W, H, key, mood, t, o) {
+    x.drawImage(rock(key, W, H, mood), 0, 0);
+    const m = MOODS[mood];
+    x.fillStyle = m.dark;
+    x.fillRect(0, 20, W, H - 20);
+    for (let i = 0; i < W; i += 2) { x.fillStyle = m.rock[0]; x.fillRect(i, 18, 2, Math.floor(hash(i * 3.1 + o.seed) * 20)); }
+    o.pillars.forEach(([px, py, s, v], i) => crystals2(x, px, py, s, 0.5 + 0.2 * Math.sin(t + i), t + i, v ? VIOLET : null));
+    const ly = o.lake;
+    const g = x.createLinearGradient(0, ly, 0, H);
+    g.addColorStop(0, o.water[0]);
+    g.addColorStop(1, o.water[1]);
+    x.fillStyle = g;
+    x.fillRect(0, ly, W, H - ly);
+    for (let k = 0; k < 14; k++) {
+      x.fillStyle = `rgba(150,220,255,${0.1 + 0.1 * Math.sin(t * 2 + k)})`;
+      x.fillRect(((hash(k + o.seed) * W + Math.sin(t + k) * 5) % W) | 0, (ly + 4 + k * 3.4) | 0, 16 + hash(k + 3) * 24, 1);
+    }
+  }
+  const crystals2 = (x, px, py, s, lit, t, pal) => crystalsScaled(x, px, py, s, lit, t, pal);
+  /** Amas de cristaux à l'échelle s. */
+  function crystalsScaled(x, px, py, s, lit, t, pal) {
+    pal = pal || ['#1e86b0', '#5ee0ff', '#e6ffff'];
+    const a = (Math.sin(t * 3 + px) + 1) / 2;
+    x.globalAlpha = 0.4 + 0.6 * lit;
+    [[0, 0, 5, 12], [-6, 2, 4, 8], [6, 2, 4, 9], [-11, 4, 3, 5], [11, 4, 3, 6]].forEach(([dx, dy, w, h]) => {
+      const ww = Math.round(w * s);
+      const hh2 = Math.round(h * s);
+      const left = px + Math.round(dx * s) - (ww >> 1);
+      x.fillStyle = pal[0];
+      x.fillRect(left, py + dy - hh2, ww, hh2);
+      x.fillStyle = pal[1];
+      x.fillRect(left, py + dy - hh2, Math.max(1, ww - 2), hh2 - 1);
+      x.fillStyle = pal[2];
+      x.fillRect(left, py + dy - hh2, 1, Math.max(1, hh2 - 4));
+    });
+    x.globalAlpha = 1;
+    glow(x, px, py - 6 * s, 34 * s, pal[1], (0.18 + 0.2 * a) * lit);
+    x.fillStyle = `rgba(255,255,255,${lit * a})`;
+    x.fillRect(px - 1, py - Math.round(18 * s), 1, 5);
+    x.fillRect(px - 3, py - Math.round(16 * s), 5, 1);
+  }
+
+  /** Défi de la semaine : passerelles qui montent vers les diamants, une lanterne par étape, ton mineur sur la dernière franchie. */
   function weekly(canvas, ch, avatar, t) {
     const [W, H] = SIZE.weekly;
     const x = setup(canvas, SIZE.weekly);
     const goal = Math.max(1, ch.goal);
     const done = !!ch.done;
-    x.drawImage(rock('w', W, H, 'w'), 0, 0);
-    // Puits
-    const sx = 56;
-    const sw = 48;
-    x.fillStyle = MOODS.w.dark;
-    x.fillRect(sx, 0, sw, H);
-    x.fillStyle = 'rgba(0,0,0,0.35)';
-    x.fillRect(sx, 0, 6, H);
-    for (let y = 6; y < H; y += 24) { timber(x, sx - 2, y, y + 24); timber(x, sx + sw - 1, y, y + 24); x.fillStyle = '#5a3a1e'; x.fillRect(sx, y + 12, sw, 2); }
-    // Paliers : une galerie latérale par étape, alternativement à gauche et à droite
-    const top = 40;
-    const gap = (H - 48 - top) / goal;
-    const levelY = (k) => Math.round(top + gap * k - gap / 2 + 12);
+    const ly = 150;
+    cathedral(x, W, H, 'wcat', 'w', t, { seed: 9, lake: ly, water: ['#16224a', '#080c20'], pillars: [[18, 150, 2.2, false], [140, 130, 2.6, true], [96, 110, 1.6, false]] });
+    farCart(x, W, 44, t, 40);
+    waterfall(x, 68, 22, ly, t);
+    mushrooms(x, 22, 118, 1, t, ['#c0509a', '#ff8ad0']);
+    mushrooms(x, 150, 160, 1, t, ['#2aa0c0', '#7ae8ff']);
+    bats(x, W, t);
+    // Passerelles : de la rive gauche vers le sommet, une par étape
+    const pos = (k) => { const f = goal === 1 ? 0 : (k - 1) / (goal - 1); return [Math.round(8 + f * 100), Math.round(142 - f * 66)]; };
     for (let k = 1; k <= goal; k++) {
-      const y = levelY(k);
-      const left = k % 2 === 1;
-      const gx = left ? 4 : sx + sw;
-      const gw = left ? sx - 4 : W - sx - sw - 4;
+      const [px, py] = pos(k);
       const lit = ch.progress >= k;
-      x.fillStyle = MOODS.w.dark;
-      x.fillRect(gx, y - 14, gw, 26);
-      x.fillStyle = '#5a3a1e';
-      x.fillRect(gx, y - 14, gw, 2);
-      x.fillStyle = '#2a1a0c';
-      x.fillRect(gx, y + 12, gw, 3);
-      const lampX = left ? gx + 12 : gx + gw - 12;
       x.fillStyle = '#16121c';
-      x.fillRect(lampX - 2, y - 12, 5, 6);
+      x.fillRect(px, py, 30, 4);
+      x.fillStyle = lit ? '#9a6a3a' : '#4a3a2a';
+      x.fillRect(px, py, 30, 2);
+      for (let q = 0; q < 30; q += 6) { x.fillStyle = '#3a2410'; x.fillRect(px + q, py + 2, 1, 2); }
+      timber(x, px + 4, py + 4, py + 30);
+      timber(x, px + 24, py + 4, py + 30);
+      x.fillStyle = '#16121c';
+      x.fillRect(px + 12, py - 9, 5, 7);
       x.fillStyle = lit ? '#ffd84a' : '#4a3a20';
-      x.fillRect(lampX - 1, y - 11, 3, 4);
-      if (lit) {
-        x.globalCompositeOperation = 'lighter';
-        glow(x, lampX, y - 8, 34, '#ffb030', 0.3 + 0.06 * Math.sin(t * 8 + k));
-        x.globalCompositeOperation = 'source-over';
-      }
-      // Wagonnet de minerai sur le palier
-      const wx = left ? gx + 22 : gx + 6;
-      x.fillStyle = '#16121c';
-      x.fillRect(wx, y + 1, 20, 11);
-      x.fillStyle = lit ? '#8f99a8' : '#4b525e';
-      x.fillRect(wx + 1, y + 2, 18, 8);
-      if (lit) [[3, '#ffc24a'], [8, '#d9822b'], [13, '#5ee0ff']].forEach(([dx, c]) => { x.fillStyle = c; x.fillRect(wx + dx, y - 2, 4, 3); });
-      x.fillStyle = '#8f99a8';
-      x.fillRect(gx, y + 12, gw, 1);
+      x.fillRect(px + 13, py - 8, 3, 5);
+      if (lit) glow(x, px + 14, py - 6, 26, '#ffb030', 0.3 + 0.05 * Math.sin(t * 8 + k));
     }
-    // Poche de diamants au fond du puits
-    const bottom = H - 22;
-    x.fillStyle = MOODS.w.dark;
-    x.fillRect(sx - 14, bottom - 18, sw + 28, 22);
-    crystals(x, sx + sw / 2 - 12, bottom + 2, done ? 1 : 0.35, t, 'c');
-    crystals(x, sx + sw / 2 + 10, bottom + 2, done ? 1 : 0.35, t + 2, 'c');
-    // Cage d'ascenseur : au palier atteint, avec un léger balancement
-    const level = Math.min(goal, Math.max(0, ch.progress));
-    const cageY = done ? bottom - 36 : level === 0 ? 8 : levelY(level) - 18;
-    const cy = cageY + Math.round(Math.sin(t * 2) * 1.2);
-    x.fillStyle = '#8f99a8';
-    x.fillRect(sx + sw / 2 - 1, 0, 2, cy);
-    x.fillStyle = '#16121c';
-    x.fillRect(sx + 7, cy, 34, 34);
-    x.fillStyle = '#3b414d';
-    x.fillRect(sx + 9, cy + 2, 30, 30);
-    x.fillStyle = '#0b0705';
-    x.fillRect(sx + 11, cy + 4, 26, 26);
-    x.fillStyle = 'rgba(255,200,90,0.25)';
-    x.fillRect(sx + 11, cy + 4, 26, 4);
+    // Reflets des passerelles allumées dans l'eau
+    x.globalAlpha = 0.25;
+    for (let k = 1; k <= Math.min(goal, ch.progress); k++) { const [px, py] = pos(k); x.fillStyle = '#ffd84a'; x.fillRect(px + 10, ly + Math.round((ly - py) * 0.15) + 4, 10, 1); }
+    x.globalAlpha = 1;
+    // Diamants au sommet
+    crystalsScaled(x, 142, 74, 1.4, done ? 1 : 0.4, t);
+    crystalsScaled(x, 150, 92, 1.1, done ? 1 : 0.4, t + 2);
+    // Ton mineur, sur la dernière passerelle franchie
     const who = global.Avatar ? global.Avatar.sprite({ ...(avatar || {}), objet: 'aucun' }) : null;
-    if (who) x.drawImage(who, sx + 24 - Math.floor(who.width / 2), cy + 32 - who.height);
+    if (who) {
+      const [px, py] = pos(Math.max(1, Math.min(goal, ch.progress || 1)));
+      x.drawImage(who, px + 10, py - who.height + Math.round(Math.sin(t * 2) * (ch.progress ? 0 : 0)));
+      glow(x, px + 16, py - 14, 22, '#ffd070', 0.16);
+    }
     if (done) {
       x.globalCompositeOperation = 'lighter';
-      for (let i = 0; i < 10; i++) {
+      for (let i = 0; i < 12; i++) {
         x.fillStyle = ['#ffd84a', '#5ee0ff', '#ffffff'][i % 3];
-        x.fillRect(sx + Math.floor(hash(i + 1) * sw), Math.floor(bottom - 20 - ((hash(i + 9) * 40 + t * 14) % 40)), 1, 2);
+        x.fillRect(100 + Math.floor(hash(i + 1) * 56), Math.floor(100 - ((hash(i + 9) * 80 + t * 14) % 80)), 1, 2);
       }
       x.globalCompositeOperation = 'source-over';
     }
-    stalactites(x, W, 0, 'w', 1);
-    lantern(x, sx - 12, 8, t, 'w');
-    lantern(x, sx + sw + 13, 8, t, 'w');
-    atmosphere(x, W, H, t, 'w', [sx - 6, sx + 22]);
+    stalactites(x, W, 0, 'w', 2);
+    atmosphere(x, W, H, t, 'w', [14, 70, 118]);
   }
 
-  /** Défi du mois : une seule galerie, une seule foreuse ; chaque joueur a sa couleur de sol, la chambre de diamants brille de plus en plus. */
+  /** Défi du mois : une seule foreuse du jeu sur un pont au-dessus du lac, un seul sol doré qui avance avec les points. */
   function collective(canvas, data, colors, t) {
     const [W, H] = SIZE.collective;
     const x = setup(canvas, SIZE.collective);
-    const floor = 104;
     const f = Math.min(1, data.total / Math.max(1, data.goal));
-    const head = Math.round(8 + 92 * f);
-    const span = head + 8;
-    x.drawImage(rock('c', W, H, 'c'), 0, 0);
-    // Galerie commune : voûte étayée, rails
-    const end = Math.min(W, head + 34);
-    x.fillStyle = MOODS.c.dark;
-    x.fillRect(0, 34, end, floor - 34);
-    x.fillStyle = '#4a3320';
-    x.fillRect(0, 31, end, 4);
-    x.fillStyle = '#6e4a2c';
-    x.fillRect(0, 31, end, 1);
-    for (let k = 10; k < end - 6; k += 28) timber(x, k, 34, floor);
-    x.fillStyle = '#2a1a0c';
-    x.fillRect(0, floor, end, 3);
-    x.fillStyle = '#8f99a8';
-    x.fillRect(0, floor - 1, head + 8, 1);
-    // Chambre des diamants : s'éclaire avec l'avancée
-    x.fillStyle = MOODS.c.dark;
-    x.fillRect(128, 28, 32, floor - 28 + 3);
-    const lit = data.reached ? 1 : 0.3 + 0.7 * f;
-    crystals(x, 138, floor, lit, t, 'c');
-    crystals(x, 150, floor, lit, t + 1.5, 'v');
-    crystals(x, 144, floor - 26, lit * 0.8, t + 3, 'c');
-    // Plancher : une bande par joueur ; petit mineur dessus
-    let from = 0;
-    data.players.forEach((p, i) => {
-      const w = i === data.players.length - 1 ? span - from : Math.round((span * p.points) / Math.max(1, data.total));
-      x.fillStyle = colors[i % colors.length];
-      x.fillRect(from, floor + 4, Math.max(0, w), 5);
-      x.fillStyle = 'rgba(255,255,255,0.35)';
-      x.fillRect(from, floor + 4, Math.max(0, w), 1);
-      if (w >= 12 && i < 6) {
-        const mx = from + Math.round(w / 2) - 5;
-        const bob = p.me ? Math.round(Math.sin(t * 6)) : 0;
-        x.fillStyle = '#16121c';
-        x.fillRect(mx, floor - 18 + bob, 10, 18);
-        x.fillStyle = colors[i % colors.length];
-        x.fillRect(mx + 1, floor - 10 + bob, 8, 9);
-        x.fillStyle = '#f0c090';
-        x.fillRect(mx + 2, floor - 15 + bob, 6, 5);
-        x.fillStyle = '#ffc24a';
-        x.fillRect(mx + 1, floor - 18 + bob, 8, 4);
-        if (p.me) { x.fillStyle = '#ffffff'; x.fillRect(mx + 4, floor - 22 + bob, 2, 2); }
-      }
-      from += w;
-    });
+    const ly = 140;
+    const by = 112;
+    const tip = Math.round(14 + 102 * f);
+    cathedral(x, W, H, 'ccat', 'c', t, { seed: 4, lake: ly, water: ['#0e3a44', '#04141a'], pillars: [[20, 120, 2.4, false], [54, 86, 1.4, false], [128, 110, 2.8, false]] });
+    farCart(x, W, 50, t + 12, 46);
+    waterfall(x, 36, 22, ly, t);
+    mushrooms(x, 100, 70, 1, t, ['#2aa0c0', '#7ae8ff']);
+    mushrooms(x, 8, 134, 1, t, ['#c0509a', '#ff8ad0']);
+    bats(x, W, t);
+    // Pont : poteaux, planches ; la part creusée est soulignée d'un seul liseré doré
+    x.fillStyle = '#16121c';
+    x.fillRect(0, by, tip + 6, 5);
+    for (let k = 0; k < tip + 6; k += 8) timber(x, k + 2, by + 5, by + 28);
+    x.fillStyle = '#9a6a3a';
+    x.fillRect(0, by, tip + 6, 2);
+    x.fillStyle = '#ffd070';
+    x.fillRect(0, by + 2, tip + 6, 1);
+    x.globalAlpha = 0.3;
+    x.fillRect(0, ly + Math.round((ly - by) * 0.12) + 2, tip + 6, 2);
+    x.globalAlpha = 1;
     // Fanions à 25, 50 et 75 %
     [0.25, 0.5, 0.75].forEach((q) => {
-      const fx = Math.round(8 + 92 * q) + 30;
+      const fx = Math.round(14 + 102 * q);
       x.fillStyle = '#5a3a1e';
-      x.fillRect(fx, 16, 1, 15);
+      x.fillRect(fx, by - 18, 1, 15);
       x.fillStyle = f >= q ? '#ffd84a' : '#4a3a20';
-      x.fillRect(fx + 1, 16, 7, 4);
-      x.fillRect(fx + 1, 20, 4, 1);
+      x.fillRect(fx + 1, by - 18, 7, 4);
+      x.fillRect(fx + 1, by - 14, 4, 1);
     });
-    // Foreuse unique
-    const bob = Math.round(Math.sin(t * 10));
-    const dx = head;
-    const dy = floor - 30 + bob;
-    x.fillStyle = '#16121c';
-    x.fillRect(dx, dy + 4, 34, 26);
-    x.fillStyle = '#f0a81c';
-    x.fillRect(dx + 1, dy + 5, 24, 20);
-    x.fillStyle = '#ffd23f';
-    x.fillRect(dx + 1, dy + 5, 24, 4);
-    x.fillStyle = '#b8700f';
-    x.fillRect(dx + 1, dy + 21, 24, 4);
-    x.fillStyle = '#16121c';
-    x.fillRect(dx + 6, dy, 14, 8);
-    x.fillStyle = '#8fe3ff';
-    x.fillRect(dx + 7, dy + 1, 12, 6);
-    x.fillStyle = '#e8fbff';
-    x.fillRect(dx + 7, dy + 1, 4, 2);
-    x.fillStyle = '#c3cbd6';
-    x.fillRect(dx + 26, dy + 10, 8, 14);
-    x.fillStyle = '#8f99a8';
-    for (let i = 0; i < 3; i++) x.fillRect(dx + 26 + i * 3, dy + 10 + ((i + Math.floor(t * 14)) % 3) * 4, 3, 4);
-    x.globalCompositeOperation = 'lighter';
-    glow(x, dx + 12, dy + 6, 26, '#ffd070', 0.22);
-    if (!data.reached) {
-      for (let i = 0; i < 5; i++) { x.fillStyle = '#ffd070'; x.fillRect(dx + 35 + i * 2, dy + 12 + ((i + Math.floor(t * 12)) % 5), 1, 1); }
+    // Foreuse du jeu, couchée vers la droite, posée sur le pont
+    const hubbed = gameDrill(x, tip + 2, by - 17, t, !data.reached);
+    if (!hubbed) {
+      x.fillStyle = '#f0a81c';
+      x.fillRect(tip - 30, by - 28, 30, 22);
     }
-    x.globalCompositeOperation = 'source-over';
-    stalactites(x, W, 0, 'c', 2);
-    for (let k = 26; k < end - 10; k += 56) lantern(x, k, 36, t, 'c');
-    atmosphere(x, W, H, t, 'c', [14, 70, 118]);
+    // Chambre de diamants
+    const lit = data.reached ? 1 : 0.3 + 0.7 * f;
+    crystalsScaled(x, 142, by, 1.5, lit, t + 1);
+    crystalsScaled(x, 126, by + 2, 1, lit, t, VIOLET);
+    lanternsAlong(x, tip, t);
+    stalactites(x, W, 0, 'c', 5);
+    atmosphere(x, W, H, t, 'c', [20, 80, 126]);
+  }
+  function lanternsAlong(x, tip, t) {
+    for (let k = 34; k < tip - 10; k += 60) lantern(x, k, 24, t, 'c');
   }
 
-  global.Defis16 = { weekly, collective, SIZE };
+  global.Defis16 = { weekly, collective, SIZE, drillId: null };
 })(window);
