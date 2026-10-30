@@ -1719,6 +1719,57 @@ html[data-galerie] dialog.centre .card, html[data-galerie] #defis-sheet .card { 
 html[data-galerie] dialog.centre .card > h2:first-child, html[data-galerie] #defis-sheet .card summary { display: none; }
 html[data-galerie] #defis-sheet-body canvas { max-width: 100%; height: auto !important; }
 
+/* Aiguillage de « Jouer » (galerie vivante) : la feuille devient transparente sur la grotte, le wagonnet choisit la voie. */
+.aiguillage, .voie-back { display: none; }
+html[data-galerie] #play-sheet { inset: 0; width: 100%; max-width: none; height: 100%; max-height: none; margin: 0; background: rgba(6, 4, 10, 0.35); border: 0; box-shadow: none; }
+html[data-galerie] #play-sheet::backdrop { background: transparent; }
+/* Pendant l'aiguillage, l'accueil s'efface : seule la grotte reste derrière. */
+html[data-galerie][data-play-open] .layout, html[data-galerie][data-play-open] .topbar, html[data-galerie][data-play-open] #bottom-nav { visibility: hidden; }
+html[data-galerie] #play-sheet .drawer-frame { background: none; max-width: 520px; margin: 0 auto; min-height: 100%; text-shadow: 0 2px 0 #000, 0 0 10px rgba(0, 0, 0, 0.9); }
+html[data-galerie] #play-sheet .aiguillage:not([hidden]) { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
+html[data-galerie] #play-sheet .voie-back:not([hidden]) { display: block; align-self: flex-end; }
+html[data-galerie] #switch { display: block; width: 100%; max-width: 320px; height: auto; aspect-ratio: 160 / 64; margin: 0 auto; image-rendering: pixelated; }
+.voies { display: flex; flex-direction: column; }
+.voies button { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 12px 6px; border: 0; border-top: 1px solid rgba(255, 226, 170, 0.14); background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; text-shadow: inherit; }
+.voies button span { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+.voies button small { opacity: 0.8; font-size: 0.85em; }
+.voies button b { color: var(--lamp, #ffc25a); font-size: 1.3em; }
+.voies button:focus-visible { outline: 2px solid var(--lamp, #ffc25a); outline-offset: 2px; }
+html[data-galerie] #play-sheet-body #mode-duel::before, html[data-galerie] #play-sheet-body #mode-training::before { display: none; }
+html[data-galerie] #play-sheet-body #mode-training { border-top: 0; margin-top: 0; padding-top: 0; }
+
+/*
+ * Forage sans cadre (galerie vivante) : la coupe du terrain remplit l'écran derrière l'interface ; la foreuse creuse dans le décor.
+ * Le thème reste en haut, la réponse en bas, rien ne cache la mine au milieu.
+ */
+html[data-frameless] #galerie-bg { display: none; }
+html[data-frameless] .stage { position: fixed; inset: 0; z-index: -1; display: block; }
+html[data-frameless] .stage-frame { width: 100%; height: 100%; box-shadow: none; background: none; padding: 0; }
+html[data-frameless] #scene { width: 100vw !important; height: 100vh !important; }
+html[data-frameless] .stage::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(rgba(6, 4, 10, 0.72), rgba(6, 4, 10, 0) 26%, rgba(6, 4, 10, 0) 70%, rgba(6, 4, 10, 0.78)); }
+html[data-frameless] .hud { top: auto; bottom: 14px; left: 50%; transform: translateX(-50%); flex-direction: row; gap: 8px; }
+html[data-frameless] .hud span { background: rgba(10, 8, 14, 0.6); border-radius: 999px; padding: 4px 10px; }
+html[data-frameless] #view-game { min-height: calc(100dvh - 120px); text-shadow: 0 2px 0 #000, 0 0 10px rgba(0, 0, 0, 0.9); }
+html[data-frameless] #view-game .card { background: none !important; box-shadow: none !important; border: 0 !important; padding: 4px 2px; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html[data-frameless] #view-game .game-head { padding: 0 2px; }
+html[data-frameless] #pane-prompt:not([hidden]), html[data-frameless] #pane-feedback:not([hidden]), html[data-frameless] #pane-ready:not([hidden]) { flex: 1; display: flex; flex-direction: column; gap: 8px; text-align: center; }
+html[data-frameless] #pane-prompt .theme-title { font-size: calc(15px * var(--fs, 1)); line-height: 1.5; text-wrap: balance; margin: 0; }
+html[data-frameless] #form-answer { margin-top: auto; }
+html[data-frameless] #form-answer input { background: rgba(12, 10, 16, 0.74); border-radius: 999px; text-align: center; }
+html[data-frameless] #pane-feedback .feedback-points { font-size: 1.6em; }
+html[data-frameless] #pane-feedback #btn-next, html[data-frameless] #pane-ready #btn-reveal { margin-top: auto; }
+html[data-frameless] #pane-feedback > p:not(.feedback-points):not(.feedback-tier) { background: rgba(12, 10, 16, 0.55); border-radius: 12px; padding: 4px 8px; }
+
+/* Après le forage, sans cadre : le puits creusé reste visible derrière des panneaux de verre fumé. */
+html[data-frameless] #view-results { text-shadow: 0 2px 0 #000, 0 0 10px rgba(0, 0, 0, 0.9); }
+html[data-frameless] #view-results .card, html[data-frameless] #view-results .theme-card { background: rgba(10, 8, 16, 0.5) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-color: rgba(255, 211, 106, 0.18) !important; }
+html[data-frameless] #view-results .results-head { background: none !important; border: 0 !important; box-shadow: none !important; text-align: center; }
+html[data-frameless] #view-results .section-title { background: rgba(10, 8, 16, 0.5); border-radius: 12px; padding: 6px 10px; }
+
+/* Comparer les puits, sans cadre : même verre fumé que l'après-forage. */
+html[data-frameless] #view-compare { text-shadow: 0 2px 0 #000, 0 0 10px rgba(0, 0, 0, 0.9); }
+html[data-frameless] #view-compare .card { background: rgba(10, 8, 16, 0.5) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-color: rgba(255, 211, 106, 0.18) !important; }
+
 /* Fêtes de podium 16 bits (refonte) : canevas pleine largeur, titre et noms qui apparaissent au bon moment, Gazette sur plan de mine */
 .recap-canvas.fete16 { width: 100%; max-width: 460px; height: auto; box-shadow: none; }
 .recap-names, #recap-title { transition: opacity .5s; }
