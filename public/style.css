@@ -1717,7 +1717,7 @@ html[data-galerie] .bottom-nav button { padding-left: 0; padding-right: 0; }
 html[data-galerie] .bottom-nav button.active .nav-lab { color: var(--lamp); }
 html[data-galerie] .nav-lab { font-size: 7px; }
 html[data-galerie] .podium .empty .block { background: rgba(255, 255, 255, 0.08); }
-html:not([data-galerie]) #bottom-nav [data-nav='defis'], html:not([data-galerie]) #home-feed, html:not([data-galerie]) #dive-flash { display: none !important; }
+html:not([data-galerie]) #bottom-nav [data-nav='defis'], html:not([data-galerie]) #home-feed { display: none !important; }
 html[data-galerie] #bottom-nav [data-nav='messages'] { display: none; }
 
 /* Accueil sans cadre : la grotte occupe l'écran, le texte est posé dessus, la lanterne de forage au centre. */
@@ -1745,14 +1745,13 @@ html[data-galerie] .profile-card .streak-lantern { width: 32px; height: 32px; im
 html[data-galerie] .profile-card .freeze-icon { width: 20px; height: 20px; }
 html[data-galerie] #today-status:empty { display: none; }
 html[data-galerie] #next-reset { font-size: calc(15px * var(--fs)); opacity: 0.75; margin: 10px 0 0; }
-/* La lanterne : le bouton du forage du jour. */
+/* Le wagonnet : le bouton du forage du jour (la toile est décorative ; le bouton texte dessous reste le vrai bouton). */
+.wagon { display: none; }
+html[data-galerie] #view-home .wagon { display: block; width: calc(100% + 8px); margin: 0 -4px; height: auto; aspect-ratio: 160 / 64; image-rendering: pixelated; cursor: pointer; }
 html[data-galerie] #view-home #btn-daily {
-  width: 140px; height: 140px; margin: 0 auto; padding: 14px; border-radius: 50%; display: grid; place-items: center; text-align: center; line-height: 1.7; white-space: normal;
-  font-size: calc(10px * var(--fs)); color: #231503; text-shadow: none;
-  background: radial-gradient(circle at 40% 35%, #fff3c8, var(--lamp) 45%, var(--lamp-d) 80%);
-  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.55), 0 0 40px 10px rgba(255, 170, 60, 0.5); animation: lamp-pulse 2.4s ease-in-out infinite;
+  width: auto; margin: 6px auto 0; padding: 10px 22px; border-radius: 999px; font-size: calc(10px * var(--fs)); text-shadow: none;
+  color: #231503; background: var(--lamp); box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.55), 0 0 22px rgba(255, 170, 60, 0.55);
 }
-@keyframes lamp-pulse { 50% { box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.55), 0 0 56px 16px rgba(255, 170, 60, 0.68); } }
 /* Le fil : des lignes discrètes qui ouvrent leur élément au centre. */
 html[data-galerie] .home-feed { display: flex; flex-direction: column; padding: 0 2px; }
 .home-feed button { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 11px 4px; border: 0; border-top: 1px solid rgba(255, 255, 255, 0.22); background: none; color: #fff; font: inherit; font-size: calc(18px * var(--fs)); text-align: left; text-shadow: 0 2px 0 #000, 0 0 8px rgba(0, 0, 0, 0.9); cursor: pointer; }
@@ -1770,9 +1769,3 @@ html[data-galerie] dialog.centre .drawer-frame, html[data-galerie] #defis-sheet 
 html[data-galerie] dialog.centre .card, html[data-galerie] #defis-sheet .card { background: none !important; border: 0 !important; box-shadow: none; padding: 0; -webkit-backdrop-filter: none; backdrop-filter: none; }
 html[data-galerie] dialog.centre .card > h2:first-child, html[data-galerie] #defis-sheet .card summary { display: none; }
 html[data-galerie] #defis-sheet-body canvas { max-width: 100%; height: auto !important; }
-/* Descente : la lanterne illumine l'écran au lancement du forage. */
-.dive-flash { position: fixed; inset: 0; z-index: 50; pointer-events: none; opacity: 0; background: radial-gradient(circle at 50% 70%, #fff3c8, #ffc25a 40%, #3a1a02 100%); }
-.dive-flash.go { animation: dive 0.9s ease-out; }
-@keyframes dive { 0% { opacity: 0; } 35% { opacity: 1; } 100% { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { html[data-galerie] #view-home #btn-daily { animation: none; } .dive-flash.go { animation-duration: 0.3s; } }
-:root[data-calm] .dive-flash.go { animation: none; }

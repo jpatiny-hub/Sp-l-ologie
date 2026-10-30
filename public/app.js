@@ -1506,14 +1506,30 @@
     const button = event.target.closest('button[data-centre]');
     if (button) openCentre(button.dataset.centre, button);
   });
-  // Descente : la lanterne illumine l'écran au lancement du forage.
-  $('btn-daily').addEventListener('click', () => {
-    if (!galerieOn() || reducedMotion()) return;
-    const flash = $('dive-flash');
-    flash.classList.remove('go');
-    void flash.offsetWidth;
-    flash.classList.add('go');
-  });
+  /*
+   * Départ en wagonnet (essai galerie vivante) : au toucher, le wagonnet file vers la droite, l'accueil glisse avec lui,
+   * puis l'écran de forage arrive par la gauche. Sans animation (réglage ou système), le forage démarre tout de suite.
+   */
+  let departing = false;
+  async function departAndPlay(event) {
+    if (!galerieOn() || reducedMotion() || app.view !== 'home') return;
+    event.stopImmediatePropagation();
+    if (departing) return;
+    departing = true;
+    const home = $('view-home');
+    const slide = home.animate ? home.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateX(60%)', opacity: 0 }], { duration: 520, delay: 180, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' }) : null;
+    await Galerie.departWagon();
+    if (slide) await slide.finished.catch(() => {});
+    await startGame('daily');
+    if (slide) slide.cancel();
+    departing = false;
+    Galerie.resetWagon();
+    const layout = document.querySelector('.layout');
+    if (app.view !== 'home' && layout.animate) layout.animate([{ transform: 'translateX(-45%)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 420, easing: 'cubic-bezier(.2,.8,.2,1)' });
+  }
+  $('btn-daily').addEventListener('click', departAndPlay, true);
+  $('wagon').addEventListener('click', () => $('btn-daily').click());
+  Galerie.mountWagon($('wagon'));
   $('btn-sheet-close').addEventListener('click', () => $('play-sheet').close());
   $('play-sheet').addEventListener('click', (event) => {
     if (event.target === $('play-sheet')) return $('play-sheet').close();

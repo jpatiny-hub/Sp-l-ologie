@@ -179,6 +179,7 @@
   }
   function kick() {
     if (running && !raf) raf = requestAnimationFrame(frame);
+    if (wagon && !wagonRaf) wagonRaf = requestAnimationFrame(wagonFrame);
   }
   document.addEventListener('visibilitychange', kick);
 
@@ -201,10 +202,81 @@
       raf = requestAnimationFrame(frame);
     }
   }
+
+  // ---------- Wagonnet : le bouton du forage du jour sur l'accueil ----------
+  // Toile de 160×64 : rails sur toute la largeur, wagonnet plein de minerai lumineux au centre ; `departWagon` le fait filer vers la droite.
+  const WW = 160, WH = 64;
+  let wagon = null;
+  let wagonRaf = 0;
+  let wagonGo = null; // { t0, resolve } pendant le départ
+  function drawWagon(g, t, k) {
+    const moving = k > 0;
+    const cx = Math.round(80 + k * 140), cy = 30, b = moving ? Math.round(Math.sin(t * 18)) : Math.round(Math.sin(t * 2) * 0.6);
+    g.clearRect(0, 0, WW, WH);
+    // Rails (les traverses défilent quand le wagonnet part).
+    g.fillStyle = '#3a2412';
+    const off = moving ? (k * 140) % 10 : 0;
+    for (let x = -off; x < WW; x += 10) g.fillRect(Math.round(x), cy + 23, 4, 3);
+    g.fillStyle = '#8a8e98'; g.fillRect(0, cy + 21, WW, 2);
+    // Lueur du minerai.
+    const gl = g.createRadialGradient(cx, cy - 4, 0, cx, cy - 4, 40);
+    gl.addColorStop(0, `rgba(255,190,80,${0.5 + 0.12 * Math.sin(t * 3)})`); gl.addColorStop(1, 'rgba(255,190,80,0)');
+    g.fillStyle = gl; g.fillRect(cx - 40, cy - 44, 80, 80);
+    // Minerai qui scintille.
+    const ORE = ['#ffd36a', '#ff9a3c', '#fff2b0'];
+    for (let i = 0; i < 9; i++) {
+      g.fillStyle = ORE[(i + Math.floor(t * 2)) % 3];
+      g.fillRect(cx - 20 + (i * 5) % 40, cy - 12 - (i % 3) * 3 + b, 5, 5);
+    }
+    // Caisse rivetée.
+    g.fillStyle = '#1a1208'; g.fillRect(cx - 26, cy - 6 + b, 52, 24);
+    g.fillStyle = '#7a7e88'; g.fillRect(cx - 24, cy - 4 + b, 48, 20);
+    g.fillStyle = '#a8acb4'; g.fillRect(cx - 24, cy - 4 + b, 48, 3);
+    g.fillStyle = '#5a5e68'; for (let i = 0; i < 4; i++) g.fillRect(cx - 20 + i * 12, cy + 2 + b, 2, 2);
+    // Roues.
+    for (const dx of [-16, 8]) { g.fillStyle = '#111'; g.fillRect(cx + dx, cy + 16, 8, 8); g.fillStyle = moving && Math.floor(t * 20) % 2 ? '#888' : '#555'; g.fillRect(cx + dx + 2, cy + 18, 4, 4); }
+    // Étincelles sous les roues au départ.
+    if (moving) for (let i = 0; i < 6; i++) { g.fillStyle = i % 2 ? '#ffd36a' : '#ff7a2a'; g.fillRect(cx - 26 - ((i * 7 + t * 90) % 24), cy + 18 + (i % 3), 1, 1); }
+  }
+  function wagonFrame(now) {
+    wagonRaf = 0;
+    if (!wagon || !wagon.isConnected) return;
+    const t = now / 1000;
+    let k = 0;
+    if (wagonGo) {
+      const e = Math.min(1, (now - wagonGo.t0) / 650);
+      k = e * e;
+      if (e >= 1) { const done = wagonGo.resolve; wagonGo = null; drawWagon(wagon.getContext('2d'), t, 1); done(); return; }
+    }
+    drawWagon(wagon.getContext('2d'), calm ? 0 : t, k);
+    if ((!calm || wagonGo) && !document.hidden) wagonRaf = requestAnimationFrame(wagonFrame);
+  }
+  /** Branche la toile du wagonnet (dessin au repos, léger balancement). */
+  function mountWagon(canvas) {
+    wagon = canvas;
+    canvas.width = WW;
+    canvas.height = WH;
+    if (!wagonRaf) wagonRaf = requestAnimationFrame(wagonFrame);
+  }
+  /** Le wagonnet file vers la droite ; la promesse se résout quand il a quitté l'écran. */
+  function departWagon() {
+    if (!wagon) return Promise.resolve();
+    return new Promise((resolve) => {
+      wagonGo = { t0: performance.now(), resolve };
+      if (wagonRaf) cancelAnimationFrame(wagonRaf);
+      wagonRaf = requestAnimationFrame(wagonFrame);
+    });
+  }
+  /** Remet le wagonnet en place (retour à l'accueil). */
+  function resetWagon() {
+    wagonGo = null;
+    if (wagon && !wagonRaf) wagonRaf = requestAnimationFrame(wagonFrame);
+  }
+
   /** Pour les captures et les essais : affiche directement le palier n (0 à 8). */
   function showTier(n) {
     started = performance.now() - n * SCENE_MS - 2000;
   }
 
-  global.Galerie = { setOn, showTier, TIER_COUNT: TIERS.length };
+  global.Galerie = { setOn, showTier, mountWagon, departWagon, resetWagon, TIER_COUNT: TIERS.length };
 })(window);
