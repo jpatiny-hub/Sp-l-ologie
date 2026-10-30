@@ -42,16 +42,91 @@
   GEMS.ice = { o: '#06121c', l: '#dcf6ff', m: '#8ed0f0', d: '#3a7ab0', t: '#ffffff' };
   // Couleur de l'air (brume, lueurs, arrière-plan) et gemme des grands cristaux du premier plan, par palier.
   const AIR = ['#3a2412', '#6a4420', '#2a5a8a', '#5a3e1a', '#5a2ca0', '#12705a', '#1a4cb8', '#a02c12', '#1e6a60', '#5a24a0'];
-  const FG_GEM = [null, null, 'ice', 'topaz', 'amethyst', 'emerald', 'sapphire', 'ruby', 'topaz', 'rainbow'];
   const RAINBOW = [GEMS.ruby, GEMS.topaz, GEMS.emerald, GEMS.sapphire, GEMS.amethyst, GEMS.rose];
+  const rgbOf = (hex) => {
+    const n = parseInt(hex.slice(1), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  };
+
+  // ---------- Variantes : chaque palier a plusieurs ambiances, tirées au sort pour chaque forage ----------
+  /** Couleur HSL (h en degrés, s et l entre 0 et 1) → « #rrggbb ». */
+  function hsl(h, sat, l) {
+    const k = (n) => (n + h / 30) % 12;
+    const a = sat * Math.min(l, 1 - l);
+    const f = (n) => Math.round(255 * Math.max(0, Math.min(1, l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1)))));
+    return '#' + [f(0), f(8), f(4)].map((v) => v.toString(16).padStart(2, '0')).join('');
+  }
+  /** Palette 16 bits à partir d'une teinte : les ombres virent vers le bleu, les lumières vers le jaune. */
+  function paletteFrom(h, sat, lift = 1) {
+    const shade = (k) => h + (k - 2) * -8;
+    return {
+      rock: [0.12, 0.2, 0.3, 0.42, 0.55].map((l, k) => hsl(shade(k), sat, Math.min(0.85, l * lift))),
+      back: [0.05, 0.075, 0.1].map((l) => hsl(h - 14, sat * 0.8, l * lift)),
+      dark: hsl(h - 10, sat * 0.7, 0.07 * lift),
+      air: hsl(h, Math.min(1, sat * 1.4), 0.3 * Math.min(1.3, lift)),
+    };
+  }
+  /** Gemme générée à partir d'une teinte (quand aucune gemme nommée ne convient). */
+  const hueGem = (h) => ({ o: hsl(h, 0.6, 0.06), l: hsl(h + 10, 0.85, 0.78), m: hsl(h, 0.75, 0.52), d: hsl(h - 10, 0.7, 0.3), t: hsl(h + 20, 1, 0.95) });
+  const gemOf = (spec) => (typeof spec === 'number' ? hueGem(spec) : GEMS[spec]);
+  // Variante 0 : l'ambiance d'origine. gems : [principale, secondaire] (nom de GEMS ou teinte).
+  const BASE_GEMS = [[null, null], [null, null], ['ice', 'ice'], ['topaz', 'topaz'], ['amethyst', 'rose'], ['emerald', 'emerald'], ['sapphire', 'sapphire'], ['ruby', 'obsidian'], ['topaz', 'topaz'], ['rainbow', 'rainbow']];
+  const VARIANTS = [
+    [],
+    [{ name: 'Les catacombes', h: 215, s: 0.12 }, { name: 'Le cimetière englouti', h: 105, s: 0.22 }],
+    [{ name: 'Grotte de calcite', h: 40, s: 0.25, lift: 1.25, gems: ['topaz', 'topaz'] }, { name: 'Grotte des glaces', h: 192, s: 0.38, lift: 1.25 }],
+    [{ name: 'Mine de cuivre', h: 165, s: 0.25, gems: [170, 170] }, { name: 'Mine de sel', h: 345, s: 0.18, lift: 1.5, gems: [350, 350] }],
+    [{ name: 'Caverne de citrine', h: 36, s: 0.45, gems: ['topaz', 28] }, { name: 'Grotte de glace', h: 205, s: 0.35, lift: 1.2, gems: ['ice', 'sapphire'] }],
+    [{ name: 'Forêt de champignons', h: 300, s: 0.35, gems: [290, 320] }, { name: 'Jardin de jade', h: 140, s: 0.2, lift: 1.2, gems: [140, 140] }],
+    [{ name: 'Lagon turquoise', h: 178, s: 0.55, gems: [176, 176] }, { name: 'Mer des perles', h: 225, s: 0.15, lift: 1.2, gems: [230, 'ice'] }],
+    [{ name: "Forge d'ambre", h: 28, s: 0.6, gems: ['topaz', 24] }, { name: "Cœur d'obsidienne", h: 275, s: 0.25, gems: [280, 'obsidian'] }],
+    [{ name: 'Temple de jade', h: 150, s: 0.3, gems: ['emerald', 'emerald'] }, { name: "Cité d'or", h: 45, s: 0.55, lift: 1.1, gems: ['topaz', 'topaz'] }],
+    [{ name: 'Cœur stellaire', h: 230, s: 0.5 }, { name: 'Cœur solaire', h: 32, s: 0.6 }],
+  ];
+  // Sol de surface selon le paysage (voir pixel.js).
+  const SOILS = { sable: { name: 'Sable des dunes', h: 40, s: 0.4, lift: 1.5 }, eboulis: { name: 'Éboulis', h: 210, s: 0.08, lift: 1.2 } };
+  const BASE = TIERS.map((t, i) => ({ name: t.name, rock: t.rock.slice(), back: t.back.slice(), dark: t.dark, air: AIR[i], gems: BASE_GEMS[i] }));
+  const AIR_RGB = AIR.map(rgbOf);
+  const GEM_A = BASE_GEMS.map((g) => g[0]);
+  const GEM_B = BASE_GEMS.map((g) => g[1]);
+  const gemA = (t) => gemOf(GEM_A[t]);
+  const gemB = (t) => gemOf(GEM_B[t]);
+
+  /**
+   * Choisit l'ambiance de chaque palier pour un forage : seed (entier, 0 = ambiances d'origine) et soil (sol de surface
+   * imposé par le paysage, ou null). Les mêmes valeurs redonnent toujours le même décor.
+   */
+  function setSeed(seed, soil) {
+    // Brassage de la graine : deux forages voisins (identifiants qui se suivent) donnent des décors sans rapport.
+    let h = Math.imul((seed | 0) ^ 0x9e3779b9, 0x85ebca6b);
+    h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
+    SEED = seed ? (h ^ (h >>> 16)) & 0xfffffff : 0;
+    TIERS.forEach((tier, t) => {
+      const options = VARIANTS[t];
+      let v = BASE[t];
+      const pickIndex = SEED ? Math.floor(hash(t, 1, 4242) * (options.length + 1)) : 0;
+      const spec = t === 0 && soil && SOILS[soil] ? SOILS[soil] : pickIndex ? options[pickIndex - 1] : null;
+      if (spec) v = { name: spec.name, ...paletteFrom(spec.h, spec.s, spec.lift), gems: spec.gems || BASE_GEMS[t] };
+      tier.name = v.name;
+      tier.rock = v.rock;
+      tier.back = v.back;
+      tier.dark = v.dark;
+      AIR_RGB[t] = rgbOf(v.air);
+      GEM_A[t] = v.gems[0];
+      GEM_B[t] = v.gems[1];
+    });
+    PRISM_ROCKS[0] = TIERS[9].rock;
+  }
 
   const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
   const bay = (x, y) => BAYER[(y & 3) * 4 + (x & 3)];
   /** Tramage ordonné : la valeur v (0 → 1) devient l'un des n niveaux, avec le motif en damier typique des consoles 16 bits. */
   const level = (v, n, x, y) => Math.max(0, Math.min(n - 1, Math.floor(v * (n - 1) + bay(x, y))));
 
+  // Graine de l'exploration en cours : chaque forage a ses propres palettes, contours de grottes et trouvailles.
+  let SEED = 0;
   function hash(x, y, s) {
-    let h = Math.imul(x | 0, 374761393) ^ Math.imul(y | 0, 668265263) ^ Math.imul((s | 0) + 1, 2246822519);
+    let h = Math.imul(x | 0, 374761393) ^ Math.imul(y | 0, 668265263) ^ Math.imul((s | 0) + 1 + SEED * 7919, 2246822519);
     h = Math.imul(h ^ (h >>> 13), 1274126177);
     h ^= h >>> 16;
     return (h >>> 0) / 4294967296;
@@ -199,6 +274,26 @@
     // Cœur prismatique : immense vide étoilé.
     carve(80, 1124, 74, 66, 0.25);
     fill(0, 1188, W - 1, 1228 - 1);
+    // Poches creusées au hasard dans la roche : chaque forage croise d'autres trouvailles.
+    const pockets = [];
+    for (let t = 1; t < TIERS.length; t++) {
+      const top = TIERS[t].from * PPP + 8;
+      const bottom = (t + 1 < TIERS.length ? TIERS[t + 1].from * PPP : 1186) - 8;
+      const want = 1 + Math.floor(hash(t, 2, 4300) * 3);
+      for (let k = 0, tries = 0; k < want && tries < 24; tries++) {
+        const rx = 6 + Math.floor(hash(t, tries, 4301) * 5);
+        const ry = 4 + Math.floor(hash(t, tries, 4302) * 3);
+        const cx = rx + 2 + Math.floor(hash(t, tries, 4303) * (W - 2 * rx - 4));
+        const cd = top + ry + Math.floor(hash(t, tries, 4304) * Math.max(1, bottom - top - 2 * ry));
+        if (Math.abs(cx - 80) < rx + 14 || cd - ry < top - 8 || cd + ry > bottom + 8) continue;
+        let clear = true;
+        for (let y = at(cd) - ry - 4; y <= at(cd) + ry + 4 && clear; y++) for (let x = cx - rx - 4; x <= cx + rx + 4; x++) if (isOpen(x, y)) clear = false;
+        if (!clear) continue;
+        carve(cx, cd, rx, ry, 0.3);
+        pockets.push({ t, cx, cd, roll: hash(t, tries, 4305) });
+        k++;
+      }
+    }
 
     // ---------- Stalactites et stalagmites (font partie de la roche) ----------
     const tierAtD = (x, d) => {
@@ -451,7 +546,7 @@
     // ---------- Caverne d'améthyste : géode géante tapissée de cristaux ----------
     for (let x = 12; x <= 148; x += 7) {
       if (Math.abs(x - 80) < 13) continue;
-      const pal = x > 100 && x < 130 ? GEMS.rose : GEMS.amethyst;
+      const pal = x > 100 && x < 130 ? gemB(4) : gemA(4);
       cluster(x, floorBelow(x, 220), -1, pal, hash(x, 0, 710) < 0.5 ? 1 : 1.4, 10);
       if (hash(x, 1, 711) < 0.8) cluster(x + 3, ceilAbove(x + 3, 220), 1, pal, hash(x, 2, 712) < 0.5 ? 0.8 : 1.2, 20);
     }
@@ -497,7 +592,7 @@
       set(px, top + len, '#c8ffe0');
       glow(px, top + len, 5, '150,255,200', 0.4, 2 + i * 0.3);
     });
-    [[110, 0.9], [124, 1.3], [138, 1]].forEach(([x, k]) => cluster(x, ceilAbove(x, 370), 1, GEMS.emerald, k, 40));
+    [[110, 0.9], [124, 1.3], [138, 1]].forEach(([x, k]) => cluster(x, ceilAbove(x, 370), 1, gemA(5), k, 40));
     anim.push({ type: 'fly', x: 50, y: at(380), rx: 34, ry: 40, n: 8, color: '#d8ff6a' }, { type: 'fly', x: 120, y: at(400), rx: 22, ry: 30, n: 6, color: '#d8ff6a' });
 
     // ---------- Lac de saphir : mer souterraine, cristaux bleus, méduses ----------
@@ -505,10 +600,10 @@
     pool(0, W - 1, seaD, ['#040c24', '#081838', '#0c2450', '#143268'], '#9ad0ff');
     for (let x = 10; x < W - 6; x += 8) {
       if (Math.abs(x - 80) < 12) continue;
-      cluster(x, ceilAbove(x, 550), 1, GEMS.sapphire, hash(x, 2, 730) < 0.5 ? 1.3 : 0.8, 50);
+      cluster(x, ceilAbove(x, 550), 1, hash(x, 4, 730) < 0.8 ? gemA(6) : gemB(6), hash(x, 2, 730) < 0.5 ? 1.3 : 0.8, 50);
     }
     // Îlots de cristal qui émergent de l'eau.
-    [[28, 1.4], [128, 1.6]].forEach(([x, k]) => cluster(x, at(seaD) + 2, -1, GEMS.sapphire, k, 60));
+    [[28, 1.4], [128, 1.6]].forEach(([x, k]) => cluster(x, at(seaD) + 2, -1, gemA(6), k, 60));
     for (let i = 0; i < 10; i++) anim.push({ type: 'tw', x: 10 + Math.floor(hash(i, 3, 731) * 140), y: at(seaD), color: '#ffffff' });
     [[30, 590], [110, 596], [56, 604], [136, 588], [86, 612]].forEach(([x, d], i) => anim.push({ type: 'jelly', x, y: at(d), ph: i * 1.7, pal: i % 2 ? { p: '#ff8ad8', w: '#ffe0f4' } : { p: '#6ae8ff', w: '#e0fbff' } }));
     glow(80, at(seaD + 20), 50, '80,150,255', 0.12, 0.7);
@@ -523,9 +618,9 @@
     anim.push({ type: 'ember', x: 40, y: at(lavaD), w: 34 }, { type: 'ember', x: 60, y: at(lavaD), w: 20 });
     for (let x = 12; x <= 148; x += 8) {
       if (Math.abs(x - 80) < 12 || Math.abs(x - 48) < 5) continue;
-      cluster(x, ceilAbove(x, 752), 1, GEMS.ruby, hash(x, 3, 732) < 0.5 ? 1 : 1.4, 70);
+      cluster(x, ceilAbove(x, 752), 1, gemA(7), hash(x, 3, 732) < 0.5 ? 1 : 1.4, 70);
     }
-    for (let x = 98; x <= 150; x += 7) cluster(x, floorBelow(x, 752), -1, x % 2 ? GEMS.obsidian : GEMS.ruby, x % 2 ? 1.5 : 1.1, 80);
+    for (let x = 98; x <= 150; x += 7) cluster(x, floorBelow(x, 752), -1, x % 2 ? gemB(7) : gemA(7), x % 2 ? 1.5 : 1.1, 80);
 
     // ---------- Temple englouti : colonnes, idole, glyphes, braseros, trésor ----------
     const templeFloor = at(1009);
@@ -579,6 +674,50 @@
     }
     [[30, 1090], [60, 1120], [104, 1100], [130, 1130], [46, 1150], [118, 1160]].forEach(([x, d], i) => anim.push({ type: 'shard', x, y: at(d), ph: i * 1.3, pal: RAINBOW[i % RAINBOW.length] }));
     glow(80, at(1180), 40, '200,160,255', 0.14, 0.8);
+
+    // ---------- Trouvailles des poches ----------
+    const CHEST = ['.ooooo.', 'oyyyyyo', 'okkGkko', 'oyyyyyo', 'ooooooo'];
+    const HELMET = ['..yyy..', '.yyyyl.', 'yyyyyyy', 'ooooooo'];
+    const FINDS = [
+      [],
+      ['skull', 'skull', 'fossil', 'helmet', 'chest'],
+      ['fossil', 'fossil', 'skull', 'pond', 'chest'],
+      ['helmet', 'gems', 'fossil', 'chest'],
+      ['gems', 'gems', 'geode', 'chest'],
+      ['mush', 'gems', 'pond', 'chest'],
+      ['gems', 'pond', 'chest', 'skull'],
+      ['gems', 'gems', 'lava', 'chest'],
+      ['chest', 'glyph', 'gems', 'skull'],
+      ['gems', 'gems', 'chest'],
+    ];
+    pockets.forEach(({ t, cx, cd, roll }) => {
+      const list = FINDS[t];
+      const kind = list[Math.floor(roll * list.length)];
+      const fy = floorBelow(cx, cd);
+      const pal = GEM_A[t] === 'rainbow' ? RAINBOW[Math.floor(roll * 60) % RAINBOW.length] : gemA(t) || GEMS.topaz;
+      if (kind === 'skull') sprite(shaded(SKULL), cx - 3, fy - 5, BONE_PAL, '#140c06');
+      else if (kind === 'fossil') fossil([AMMONITE, TRILOBITE, FISH, RIBS][Math.floor(roll * 97) % 4], cx - 4, fy - SKY - 6);
+      else if (kind === 'helmet') {
+        sprite(HELMET, cx - 3, fy - 3, { y: '#f2c230', l: '#fff6c0', o: '#7a5d1f' }, '#1a1206');
+        glow(cx + 2, fy - 2, 7, '255,240,180', 0.35, 1);
+      } else if (kind === 'chest') {
+        sprite(CHEST, cx - 3, fy - 4, { o: '#3a2410', y: '#a06d3a', k: '#5a3a20', G: '#ffd84a' }, '#100804');
+        glow(cx, fy - 3, 9, '255,210,90', 0.3, 1.6);
+        anim.push({ type: 'tw', x: cx, y: fy - 2, color: '#ffffff' });
+      } else if (kind === 'pond') pool(cx - 10, cx + 10, fy - SKY - 1, ['#0e2a40', '#123a58', '#1a4e72'], '#7ac0e8');
+      else if (kind === 'lava') {
+        pool(cx - 10, cx + 10, fy - SKY - 1, ['#ffd25a', '#f7a23b', '#e8742a', '#c4481f'], '#fff1a8');
+        glow(cx, fy - 2, 12, '255,120,40', 0.3, 2);
+      } else if (kind === 'mush') {
+        sprite(MUSH, cx - 2, fy - 4, { c: '#c070ff', s: '#e8fff8', t: '#cfe0c8' }, '#03100c');
+        glow(cx, fy - 3, 9, '200,120,255', 0.35, 1.5);
+      } else if (kind === 'glyph') {
+        anim.push({ type: 'glyph', rows: GLYPHS[Math.floor(roll * 50) % GLYPHS.length], x: cx - 1, y: fy - 5, ph: roll * 6 });
+      } else if (kind === 'geode') {
+        cluster(cx, fy, -1, gemB(t) || pal, 0.8, 120);
+        cluster(cx + 1, ceilAbove(cx + 1, cd), 1, gemB(t) || pal, 0.6, 121);
+      } else cluster(cx, fy, -1, pal, 0.9, 110);
+    });
 
     // Puits : là où il traverse une grotte, on voit la foreuse pendre au bout de son câble.
     const shaftOpen = new Uint8Array(H);
@@ -761,11 +900,6 @@
   const P_BACK = 0.55; // l'arrière-plan défile plus lentement que la roche…
   const P_FRONT = 1.35; // … et le premier plan plus vite : effet de profondeur
   const VIEW = 200;
-  const rgbOf = (hex) => {
-    const n = parseInt(hex.slice(1), 16);
-    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-  };
-  const AIR_RGB = AIR.map(rgbOf);
   const css = (c, f = 1, a = 1) => `rgba(${Math.min(255, c[0] * f) | 0},${Math.min(255, c[1] * f) | 0},${Math.min(255, c[2] * f) | 0},${a})`;
 
   /** Couleur de l'air à une profondeur d (pixels sous la surface), fondue d'un palier à l'autre. */
@@ -879,9 +1013,9 @@
         }
       }
       const edgeX = left ? cx + rx - 2 : cx - rx + 2;
-      const gem = FG_GEM[t];
+      const gem = GEM_A[t];
       if (gem) {
-        const pal = gem === 'rainbow' ? RAINBOW[n % RAINBOW.length] : GEMS[gem];
+        const pal = gem === 'rainbow' ? RAINBOW[n % RAINBOW.length] : gemOf(gem);
         const top = r - Math.round(ry * 0.45);
         const lean = left ? 0.18 : -0.18;
         bigCrystal(edgeX - (left ? 6 : -6), top + 6, 10 + Math.floor(hash(n, 4, 950) * 6), pal, lean);
@@ -989,5 +1123,5 @@
     }
   }
 
-  global.Caves = { TIERS, tierIndex, build, drawAnim, backdrop, foreground, drawBack, drawFront, drawAir };
+  global.Caves = { TIERS, tierIndex, setSeed, build, drawAnim, backdrop, foreground, drawBack, drawFront, drawAir };
 })(window);

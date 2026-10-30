@@ -625,6 +625,12 @@
     return `${n} pt${n > 1 ? 's' : ''}`;
   }
 
+  /** Couches du forage dans la scène ; dans les galeries 16-bit, chaque forage a aussi son propre décor. */
+  function sceneLayers(state, animate) {
+    scene.setSeed(state && state.id);
+    scene.setLayers(layersOf(state), animate);
+  }
+
   function layersOf(state) {
     return state.rounds.filter((r) => r.status === 'done' && r.tier).map((r) => ({ points: r.points, tier: r.tier.id }));
   }
@@ -961,7 +967,7 @@
     }
     if (today.gameId) {
       api(`/api/game/${today.gameId}`)
-        .then((state) => scene.setLayers(layersOf(state), false))
+        .then((state) => sceneLayers(state, false))
         .catch(() => {});
     }
     renderStreak();
@@ -1984,7 +1990,7 @@
 
   function enterGame(state) {
     app.game = state;
-    scene.setLayers(layersOf(state), false);
+    sceneLayers(state, false);
     if (state.finished) return showResults(state);
     show('game');
     renderGame();
@@ -2245,7 +2251,7 @@
       if (after === before) return false;
       stopTimer();
       clearPending();
-      scene.setLayers(layersOf(state), true);
+      sceneLayers(state, true);
       if (state.finished) showResults(state);
       else renderGame();
       return true;
@@ -2407,7 +2413,7 @@
       // La manche a pu être clôturée côté serveur entre-temps : on resynchronise.
       try {
         app.game = await api(`/api/game/${app.game.id}`);
-        scene.setLayers(layersOf(app.game), false);
+        sceneLayers(app.game, false);
         if (app.game.finished) showResults(app.game);
         else renderGame();
       } catch {
@@ -2423,7 +2429,7 @@
     stopTimer();
     app.game = state;
     holdKeyboard();
-    scene.setLayers(layersOf(state), true);
+    sceneLayers(state, true);
     renderPips(state);
     $('pane-prompt').hidden = true;
     $('pane-ready').hidden = true;
@@ -2516,7 +2522,7 @@
     refreshMine(true);
     app.game = state;
     if (state.mode === 'duel') return afterDuelGame(state);
-    scene.setLayers(layersOf(state), false);
+    sceneLayers(state, false);
     scene.overview();
     renderResults(state);
     $('share-status').textContent = '';
