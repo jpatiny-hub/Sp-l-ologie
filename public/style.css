@@ -1765,3 +1765,7 @@ html[data-frameless] #view-results { text-shadow: 0 2px 0 #000, 0 0 10px rgba(0,
 html[data-frameless] #view-results .card, html[data-frameless] #view-results .theme-card { background: rgba(10, 8, 16, 0.5) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-color: rgba(255, 211, 106, 0.18) !important; }
 html[data-frameless] #view-results .results-head { background: none !important; border: 0 !important; box-shadow: none !important; text-align: center; }
 html[data-frameless] #view-results .section-title { background: rgba(10, 8, 16, 0.5); border-radius: 12px; padding: 6px 10px; }
+
+/* Comparer les puits, sans cadre : même verre fumé que l'après-forage. */
+html[data-frameless] #view-compare { text-shadow: 0 2px 0 #000, 0 0 10px rgba(0, 0, 0, 0.9); }
+html[data-frameless] #view-compare .card { background: rgba(10, 8, 16, 0.5) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border-color: rgba(255, 211, 106, 0.18) !important; }

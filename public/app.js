@@ -367,7 +367,7 @@
   function fitCanvas() {
     const canvas = $('scene');
     // Forage sans cadre (galerie vivante) : la coupe remplit tout l'écran, derrière l'interface.
-    const frameless = galerieOn() && (app.view === 'game' || app.view === 'results');
+    const frameless = galerieOn() && (app.view === 'game' || app.view === 'results' || app.view === 'compare');
     document.documentElement.toggleAttribute('data-frameless', frameless);
     scene.focus = frameless ? 0.62 : 0.6;
     if (frameless) {
