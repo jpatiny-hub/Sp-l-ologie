@@ -934,6 +934,7 @@
     renderAnnouncements();
     renderInstallNudge();
     renderNews();
+    maybeShowPoster();
     const today = app.me.today;
     $('today-date').textContent = formatDay(today.day, { weekday: 'long', day: 'numeric', month: 'long' });
     const status = $('today-status');
@@ -3401,7 +3402,7 @@
 
   // ---------- Musée des pépites ----------
   /**
-   * Annonce de l'arrivée de Jack-o'-lantern (31 octobre) au-dessus du journal de la mine : du 28 au 31 octobre,
+   * Annonce de l'arrivée de Jack-o'-lantern (31 octobre) au-dessus du journal de la mine : du 28 au 30 octobre (le 31, l'affiche prend sa place),
    * avec un compte à rebours et un épouvantail à tête de citrouille aux yeux verts. On n'en dit pas plus.
    */
   function drawJack() {
@@ -3483,11 +3484,49 @@
     put(18, 13, 1, 1);
     draw('jack-glow', glow.map((r) => r.join('')), { e: '#7dff5a' });
   }
+  /**
+   * Affiche du jour de collection (31 octobre) : s'ouvre une fois à la première ouverture de l'application ce jour-là,
+   * puis reste consultable dans « Dans la mine » jusqu'au lendemain à 2 h (fin du jour de jeu).
+   */
+  const POSTER_SEEN_KEY = 'speleo-poster-seen';
+  const POSTER_SKULLS = [['evident', 'Os'], ['courant', 'Jauni'], ['original', 'Bronze'], ['rare', 'Rubis'], ['pepite', 'Or']];
+  function drawPoster(canvasId) {
+    const canvas = $(canvasId);
+    if (!canvas.dataset.drawn) {
+      Poster.draw(canvas);
+      canvas.dataset.drawn = '1';
+    }
+    for (const box of document.querySelectorAll('[data-poster-skulls]')) {
+      if (box.childElementCount) continue;
+      box.replaceChildren(
+        ...POSTER_SKULLS.map(([tier, label]) => {
+          const icon = el('canvas', { class: 'skull-icon', width: '8', height: '7', 'aria-hidden': 'true' });
+          sprite(icon.getContext('2d'), HW_SKULL, { '#': Pixel.TIER_COLORS[tier] || '#888' }, 0, 0);
+          return el('div', { class: 'skull-cell' }, icon, el('span', { class: 'muted small' }, label));
+        }),
+      );
+    }
+  }
+  function maybeShowPoster() {
+    const day = app.me && app.me.today && app.me.today.day;
+    if (!day || !app.me.skullDay || !betaOn('betaHome') || readKey(POSTER_SEEN_KEY) === day) return;
+    if (document.querySelector('dialog[open]')) return; // tutoriel ou autre fenêtre en cours : l'affiche viendra plus tard
+    writeKey(POSTER_SEEN_KEY, day);
+    drawPoster('poster-canvas');
+    $('poster-dialog').showModal();
+  }
+  $('poster-close').addEventListener('click', () => $('poster-dialog').close());
+  $('poster-dialog').addEventListener('click', (event) => event.target === $('poster-dialog') && $('poster-dialog').close());
+
   function renderJack() {
     const card = $('jack-card');
     const day = app.me && app.me.today && app.me.today.day;
     const md = day ? day.slice(5) : '';
-    const show = betaOn('betaHome') && day && md >= '10-28' && md <= '10-31';
+    // Le 31 (jour de collection), l'affiche prend la place de l'annonce : elle reste là jusqu'au lendemain à 2 h.
+    const posterDay = betaOn('betaHome') && !!(app.me && app.me.skullDay);
+    $('poster-card').hidden = !posterDay;
+    if (posterDay) drawPoster('poster-card-canvas');
+    const show = betaOn('betaHome') && day && md >= '10-28' && md <= '10-30';
     card.hidden = !show;
     if (!show) return;
     const left = 31 - Number(md.slice(3));

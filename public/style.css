@@ -1688,3 +1688,15 @@ html[data-hd][data-hd][data-hd] .hud { z-index: 2; }
 html[data-hd][data-hd][data-hd] .hud span { background: linear-gradient(180deg, rgba(18, 28, 66, 0.88), rgba(8, 12, 34, 0.88)); border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 4px; font-size: calc(18px * var(--fs)); }
 html[data-hd][data-hd][data-hd] canvas.avatar, html[data-hd][data-hd][data-hd] .game-mole canvas, html[data-hd][data-hd][data-hd] .pf-mole canvas,
 html[data-hd][data-hd][data-hd] .msg-mole, html[data-hd][data-hd][data-hd] .tuto-mole { image-rendering: auto; }
+
+/* Affiche du 31 octobre (fenêtre à la première ouverture, puis carte dans « Dans la mine ») */
+.poster-dialog { border: 0; padding: 0; background: var(--panel); color: var(--ink); width: min(94vw, 460px); max-width: 460px; box-shadow: 0 0 0 4px var(--line); }
+.poster-dialog::backdrop { background: rgba(8, 5, 3, 0.85); }
+.poster-art { display: block; width: 100%; height: auto; aspect-ratio: 5 / 3; image-rendering: pixelated; background: #0a0812; }
+.poster-info { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
+.poster-info h2 { margin: 0; font-size: calc(13px * var(--fs)); line-height: 1.6; }
+.poster-info p { margin: 0; }
+.poster-date { font-family: 'Press Start 2P', monospace; font-size: calc(9px * var(--fs)); letter-spacing: 2px; color: #7dff5a; }
+.poster-skulls { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; text-align: center; }
+.poster-skulls .skull-cell { gap: 2px; }
+.poster-card { padding: 0; overflow: hidden; }
