@@ -212,10 +212,52 @@
     kickWagons();
   }
 
+
+  /** Vignette de la galerie de secours : un wagonnet sur son rail, la taupe qui dépasse de la caisse, dans l'arche d'un tunnel éclairé. */
+  function drawRescue(canvas) {
+    const W = 96, H = 40;
+    canvas.width = W;
+    canvas.height = H;
+    const g = canvas.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    g.clearRect(0, 0, W, H);
+    const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+    // Arche du tunnel : roche en dégradé, deux étais, une lanterne qui éclaire.
+    for (let y = 0; y < 30; y++) for (let x = 0; x < W; x++) {
+      const dx = (x - 47.5) / 40, dy = (y - 30) / 29, d = dx * dx + dy * dy;
+      if (d > 1) continue;
+      if (d > 0.8) R(x, y, 1, 1, d > 0.93 ? '#120c08' : (x + y) % 3 ? '#4a4048' : '#5d555e');
+      else { const t = Math.sqrt(d); R(x, y, 1, 1, t < 0.3 ? '#4a3418' : t < 0.55 ? '#2e2214' : '#1a1410'); }
+    }
+    const gl = g.createRadialGradient(47, 24, 0, 47, 24, 34);
+    gl.addColorStop(0, 'rgba(255,194,90,0.45)'); gl.addColorStop(1, 'rgba(255,194,90,0)');
+    g.fillStyle = gl; g.fillRect(0, 0, W, 34);
+    for (const x of [14, 80]) { R(x, 8, 3, 22, '#6a4524'); R(x, 8, 1, 22, '#8c6034'); R(x - 2, 6, 7, 3, '#8c6034'); }
+    R(46, 2, 2, 5, '#555'); R(44, 7, 6, 6, '#2a2218'); R(45, 8, 4, 4, '#ffd36a'); R(46, 9, 2, 2, '#fff2b0');
+    // Rails et traverses.
+    R(0, 33, W, 2, '#8a8e98'); R(0, 33, W, 1, '#c4c8d0');
+    for (let x = 2; x < W; x += 8) R(x, 35, 5, 3, '#4a2f1a');
+    R(0, 38, W, 2, '#150d06');
+    // La taupe dépasse de la caisse (dessinée avant l'avant du wagonnet pour que le corps soit caché).
+    if (global.Mole16) {
+      const m = document.createElement('canvas');
+      m.width = 24; m.height = 16;
+      global.Mole16.draw(m, 'happy', { x: 0, y: 0 });
+      g.drawImage(m, 36, 4);
+    }
+    // Wagonnet : caisse en planches cerclée de fer, roues.
+    R(29, 18, 38, 14, '#150d06');
+    for (let i = 0; i < 3; i++) { R(30, 19 + i * 4, 36, 3, i % 2 ? '#6a4524' : '#7d5430'); R(30, 19 + i * 4, 36, 1, '#9a6c3c'); }
+    R(28, 17, 40, 3, '#8a8e98'); R(28, 17, 40, 1, '#c4c8d0');
+    for (const x of [35, 59]) { R(x, 18, 2, 14, '#5a5e68'); R(x, 18, 1, 14, '#8a8e98'); }
+    for (const x of [33, 57]) { R(x, 29, 7, 7, '#0e0e12'); R(x + 1, 30, 5, 5, '#555a64'); R(x + 3, 32, 1, 1, '#ffd36a'); }
+    R(24, 27, 4, 2, '#5a5e68'); R(68, 27, 4, 2, '#5a5e68');
+  }
+
   /** Pour les captures et les essais : affiche directement le palier n (0 = ossuaire … 8 = cœur prismatique). */
   function showTier(n) {
     started = performance.now() - n * SCENE_MS - 2000;
   }
 
-  global.Galerie = { setOn, showTier, mountWagon, departWagon, resetWagon, get TIER_COUNT() { return tierCount(); } };
+  global.Galerie = { setOn, showTier, drawRescue, mountWagon, departWagon, resetWagon, get TIER_COUNT() { return tierCount(); } };
 })(window);

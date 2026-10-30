@@ -1847,3 +1847,46 @@ html[data-galerie] #view-auth, html[data-galerie] #view-recovery { min-height: c
 html[data-galerie] #view-auth .tagline { text-align: center; color: #ffe7b0; text-shadow: 0 2px 0 #000; font-size: calc(18px * var(--fs)); }
 html[data-galerie] #view-auth input { background: rgba(0, 0, 0, 0.45); border: 1px solid var(--edge); border-radius: 10px; color: var(--ink); }
 html[data-galerie] #view-auth .tabs { gap: 6px; }
+
+/* ---------- Courrier de la mine : la messagerie (refonte) ---------- */
+/* Un rail sous le titre, des lettres cachetées pour les conversations, du parchemin pour les messages. */
+html[data-galerie] #view-messages .card h2 { display: flex; align-items: center; gap: 8px; }
+html[data-galerie] #msg-list-pane > h2::after, html[data-galerie] .msg-head h2::after {
+  content: ''; flex: 1; height: 6px; margin-left: 6px; opacity: 0.8;
+  background: linear-gradient(#8a8e98 0 2px, transparent 2px) 0 1px / 100% 2px no-repeat, repeating-linear-gradient(90deg, #6a4524 0 4px, transparent 4px 10px) 0 3px / 100% 3px no-repeat;
+}
+html[data-galerie] #form-msg-new input, html[data-galerie] #msg-input { background: rgba(0, 0, 0, 0.45); border: 1px solid var(--edge); border-radius: 10px; color: var(--ink); }
+html[data-galerie] #msg-input { min-height: 84px; background: rgba(233, 220, 184, 0.08); border-color: rgba(233, 220, 184, 0.35); }
+html[data-galerie] .msg-conversations { gap: 8px; }
+html[data-galerie] .msg-conversations li button {
+  position: relative; padding: 10px 12px 10px 14px; border-radius: 12px; background: var(--glass); border: 1px solid var(--edge);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35), inset 3px 0 0 rgba(255, 194, 90, 0.35);
+}
+html[data-galerie] .msg-conversations li.unread button { background: rgba(233, 220, 184, 0.14); border-color: rgba(233, 220, 184, 0.6); box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35), inset 3px 0 0 var(--lamp); }
+html[data-galerie] .msg-conversations li.unread button::after { /* cachet de cire */
+  content: ''; flex: none; width: 12px; height: 12px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #ff7a5c, #b3261a 70%); box-shadow: 0 0 0 2px #5a130c, 0 0 10px rgba(255, 90, 60, 0.6);
+}
+html[data-galerie] .msg-conversations .who-name { color: var(--lamp); font-size: calc(10px * var(--fs)); }
+html[data-galerie] .msg-thread { gap: 10px; padding: 6px 2px; }
+html[data-galerie] .msg-thread li {
+  position: relative; max-width: 88%; padding: 9px 12px; border-radius: 4px 12px 12px 12px; color: var(--ink);
+  background: var(--glass); border: 1px solid var(--edge); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35); text-shadow: 0 1px 0 #000;
+}
+html[data-galerie] .msg-thread li.mine {
+  border-radius: 12px 4px 12px 12px; color: #2a1f17; text-shadow: none; border-color: #b49c6a;
+  background: linear-gradient(#efe3c0, #e2d3a8); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), inset 0 0 0 3px rgba(180, 156, 106, 0.55);
+}
+html[data-galerie] .msg-thread li.mine .msg-meta { color: #6a5a3a; }
+html[data-galerie] .msg-thread li:not(.mine)::before { /* lettre du contremaître ou d'un mineur : liseré lampe */
+  content: ''; position: absolute; left: -1px; top: 8px; bottom: 8px; width: 3px; border-radius: 2px; background: var(--lamp);
+}
+html[data-galerie] .msg-head h2 { color: var(--lamp); font-size: calc(10px * var(--fs)); }
+html[data-galerie] #btn-msg-back { padding: 8px 10px; }
+
+/* Galerie de secours dans la refonte : panneau de verre centré, vignette du wagonnet et de la taupe dans le tunnel. */
+html[data-galerie] .gallery-dialog { margin: auto; }
+html[data-galerie] .gallery-dialog::backdrop { background: rgba(0, 0, 0, 0.5); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+html[data-galerie] .gallery-frame { background: var(--glass); border: 1px solid var(--edge); border-radius: 16px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); padding: 0 12px; overflow: hidden; }
+html[data-galerie] .gallery-post, html[data-galerie] .gallery-beam, html[data-galerie] .gallery-floor { display: none; }
+html[data-galerie] .gallery-body canvas#gallery-icon { width: 100%; max-width: 288px; height: auto; aspect-ratio: 96 / 40; filter: none; }
+html[data-galerie] .gallery-body h2 { color: var(--lamp); font-size: calc(11px * var(--fs)); }

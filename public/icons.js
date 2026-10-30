@@ -204,5 +204,28 @@
     }
   }
 
-  global.Icons = { drawBadge, drawIcon, drawLantern, lanternLevel };
+
+  // Icônes 16-bit de la barre du bas (refonte) : 16 × 16, contour sombre, ombrage venant d'en haut à gauche.
+  const NAV16_PAL = { k: '#120c08', l: '#b9afb6', s: '#8a8088', S: '#5d555e', d: '#2b2330', R: '#7a2a14', o: '#f08a24', O: '#b85a12', y: '#ffc25a', W: '#fff2b0', w: '#ffffff', N: '#5a3a1c', n: '#8a5a2b', c: '#bff4ff', b: '#4fb6ec', B: '#2a5fc0', e: '#efe6cf', m: '#a89a78', r: '#d9342b' };
+  const NAV16 = {"home": ["................", "......kkkk......", ".....klsssk.....", "....klsssssk....", "...klsddddssk...", "..klsddddddssk..", "..ksdddRRdddsk..", ".kssddRRRRddssk.", ".ksddRRooRRddsk.", ".ksddRooooRddsk.", "kssdRooyyooRdssk", "ksddRoyyyyoRddsk", "ksddRoyyyyoRddsk", "ksddRoyWWyoRddsk", "ksddRoyWWyoRddsk", ".kkkkkkkkkkkkkk."], "play": ["......kkkkkk....", "....kkWWWWWskk..", "...kWWsssssWWsk.", "..kWsssskkksWWsk", ".kWsskkk...ksWWs", ".kssk.....kNnsWs", "kSssk....kNnnkSs", "kSsk....kNnnkkSs", ".kk....kNnnk..kk", "......kNnnk.....", ".....kNnnk......", "....kNnnk.......", "...kNnnk........", "..kNnnk.........", "..knnk..........", "...kk..........."], "defis": ["................", ".......kk.......", ".....kkWck......", "....kwwWcck.....", "....kwWWccck....", "...kWWWWWWWWk...", "..kccccbbBBBBk..", ".kcccccbbBBBBBk.", "kccccccbBBBBBBBk", ".kcccccbBBBBBBk.", "..kccccbBBBBBk..", "...kcccbBBBBk...", "....kccbBBBk....", ".....kcbBBk.....", "......kbbk......", ".......kk......."], "messages": ["................", "................", ".kkkkkkkkkkkkkk.", "kwwwwwwwwwwwwwwk", "kemmwewewewemmek", "keeemwewewemeeek", "keeeemwewemeeeek", "keeeeerRRreeeeek", "keeeeeRmrreeeeek", "keeeeererreeeeek", "keeeeeeeeeeeeeek", "keeeeeeeeeeeeeek", "kmmmmmmmmmmmmmmk", ".kkkkkkkkkkkkkk.", "................", "................"], "mine": ["............k...", "...........kWk..", ".......kkkkWwWk.", "......kWWykkwk..", "....kkWWyyykk...", "...kWWWyyyyokk..", "..kWWwwyyyooook.", ".kWWWwyyyooooOk.", ".kWWyyyyooooOOOk", ".kWyyyyooooOOOOk", ".kyyyyooooOOOOk.", "..kyyooooOOOOOk.", "..kyooooOOOOkk..", "...koooOOOOk....", "....kkOOOkk.....", "......kkk......."], "admin": [".kkkkkkkkkkkkkk.", "kssssssssssssssk", "kssbbbbbBBBBBSSk", "kssbbbbbBBBBBSSk", "kssbbbbbBBBBBSSk", "kssbbbbbBBBwBSSk", "kssbbbbbBBwwBSSk", "kssbbwbbBwwBBSSk", "kssbbwwbwwBBBSSk", "kssbbbwwwBBBBSSk", ".kksbbbwBBBBSkk.", "...ksbbbBBBSk...", "....ksbbBBSk....", ".....ksbBSk.....", "......ksSk......", ".......kk......."]};
+  /** Dessine l'icône 16-bit d'un onglet du bas (home, play, defis, messages, mine, admin) ; faux s'il n'y en a pas. */
+  function drawNav16(canvas, kind) {
+    const rows = NAV16[kind];
+    if (!rows) return false;
+    canvas.width = 16;
+    canvas.height = 16;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, 16, 16);
+    rows.forEach((row, y) => {
+      for (let x = 0; x < 16; x++) {
+        const ch = row[x];
+        if (ch === '.') continue;
+        ctx.fillStyle = NAV16_PAL[ch];
+        ctx.fillRect(x, y, 1, 1);
+      }
+    });
+    return true;
+  }
+
+  global.Icons = { drawBadge, drawIcon, drawLantern, lanternLevel, drawNav16 };
 })(window);
