@@ -2298,8 +2298,18 @@
     );
     const duel = data.duel;
     $('collective-duel-title').hidden = $('collective-duel-bar').hidden = $('collective-duel-note').hidden = !duel;
+    if (!duel) $('collective-duel-cars').hidden = true;
     if (duel) {
       $('collective-duel-title').textContent = duel.reached ? 'Défi duel du mois réussi : bravo à tous les duellistes !' : `Défi duel : terminons ${duel.goal} duels ensemble avant la fin du mois.`;
+      // Refonte : un wagonnet par duel à terminer, plein quand le duel est fait (les tiens en doré plus vif).
+      const cars = $('collective-duel-cars');
+      cars.hidden = !defisOn();
+      $('collective-duel-bar').hidden = defisOn();
+      if (defisOn()) {
+        const n = Math.min(100, duel.goal);
+        cars.setAttribute('aria-label', `${duel.total} wagonnets pleins sur ${duel.goal}`);
+        cars.replaceChildren(...Array.from({ length: n }, (_, i) => el('span', { class: i < duel.total ? (i < duel.mine ? 'on mine' : 'on') : '' })));
+      }
       $('collective-duel-fill').style.width = `${Math.min(100, Math.round((duel.total / duel.goal) * 100))}%`;
       $('collective-duel-bar').setAttribute('aria-valuemax', String(duel.goal));
       $('collective-duel-bar').setAttribute('aria-valuenow', String(Math.min(duel.goal, duel.total)));

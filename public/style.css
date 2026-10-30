@@ -1968,3 +1968,9 @@ html[data-galerie] .swatch, html[data-galerie] .best .sw, html[data-galerie] .pi
 html[data-galerie] .progress { height: 18px; border-radius: 3px; background: repeating-linear-gradient(90deg, #1b1612 0 6px, #241c16 6px 12px); box-shadow: 0 0 0 2px #5a4632, inset 0 2px 0 rgba(0, 0, 0, 0.6); }
 html[data-galerie] .progress-fill { background: repeating-linear-gradient(90deg, transparent 0 10px, rgba(60, 35, 0, 0.45) 10px 12px), linear-gradient(#ffe08a, #e9a93a 55%, #b8741a); box-shadow: 0 0 8px rgba(255, 190, 80, 0.55); }
 html[data-galerie] #weekly-canvas, html[data-galerie] #collective-canvas { margin-left: auto; margin-right: auto; border-radius: 4px; box-shadow: 0 0 0 2px #5a4632, 0 4px 10px rgba(0, 0, 0, 0.45); }
+
+/* Refonte : wagonnets de duels (un par duel à terminer) */
+.duel-cars { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; margin: 8px 0; }
+.duel-cars span { aspect-ratio: 1.4; background: #1b1612; border: 2px solid #3a2c20; border-radius: 2px; position: relative; }
+.duel-cars span.on { background: linear-gradient(#ffe08a, #b8741a); border-color: #ffd070; box-shadow: 0 0 6px rgba(255, 190, 80, 0.4); }
+.duel-cars span.mine { background: linear-gradient(#b8f0ff, #3aa0c8); border-color: #8fe3ff; box-shadow: 0 0 6px rgba(94, 224, 255, 0.5); }
