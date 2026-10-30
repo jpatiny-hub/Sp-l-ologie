@@ -99,3 +99,14 @@ test('avatar : les vignettes des types ne dépendent pas du personnage en cours'
     for (const slot of ['barbe', 'couleur', 'yeux', 'cheveux']) assert.ok(!(slot in story.preset), `${id} : ${slot} dans la tenue d'origine`);
   }
 });
+
+test('avatar : le vestiaire 16-bit reste réservé au responsable pendant la bêta de la refonte', () => {
+  const base = Avatar.defaultAvatar(5);
+  const nain = { ...base, espece: 'nain' };
+  assert.deepEqual(Avatar.validate(nain, 5, [], true, true), nain);
+  assert.equal(Avatar.validate(nain, 5, [], true, false), null);
+  assert.ok(Avatar.validate(base, 5, [], true, false));
+  assert.ok(!Avatar.catalog([], true, false).espece.options.some((o) => o.id === 'nain'));
+  // Les éléments déjà ouverts à tous avant la refonte restent visibles.
+  assert.ok(Avatar.catalog([], true, false).chapeau.options.some((o) => o.id === 'viking'));
+});

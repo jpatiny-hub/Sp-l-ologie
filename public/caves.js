@@ -1067,7 +1067,7 @@
   }
 
   /** Atmosphère (coordonnées écran) : lueur de l'air du palier, rayons de lumière, poussières lumineuses et vignette. */
-  function drawAir(ctx, { W, SKY, PPP }, cam, h, time, calm, hd) {
+  function drawAir(ctx, { W, SKY, PPP }, cam, h, time, calm) {
     const d = cam + h / 2 - SKY;
     const show = Math.max(0, Math.min(1, (d - 10) / 60));
     if (!show) return;
@@ -1114,13 +1114,11 @@
       ctx.fill();
     }
     ctx.globalCompositeOperation = 'source-over';
-    if (!hd) {
-      const vg = ctx.createRadialGradient(W / 2, h / 2, h * 0.32, W / 2, h / 2, h * 0.75);
-      vg.addColorStop(0, 'rgba(0,0,0,0)');
-      vg.addColorStop(1, `rgba(0,0,0,${0.3 * show})`);
-      ctx.fillStyle = vg;
-      ctx.fillRect(0, 0, W, h);
-    }
+    const vg = ctx.createRadialGradient(W / 2, h / 2, h * 0.32, W / 2, h / 2, h * 0.75);
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, `rgba(0,0,0,${0.3 * show})`);
+    ctx.fillStyle = vg;
+    ctx.fillRect(0, 0, W, h);
   }
 
   global.Caves = { TIERS, tierIndex, setSeed, build, drawAnim, backdrop, foreground, drawBack, drawFront, drawAir };

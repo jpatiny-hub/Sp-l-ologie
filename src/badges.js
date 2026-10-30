@@ -712,7 +712,7 @@ class BadgeService {
   }
 
   /** Carnet du joueur : statistiques, badges (obtenus ou à gagner) et apparences débloquées. */
-  profile(userId, today, beta = true) {
+  profile(userId, today, beta = true, refonte = true) {
     this.awardPodiums(today);
     const days = this.playedDays(userId);
     const rows = this.db
@@ -779,7 +779,7 @@ class BadgeService {
       timers: skinList(TIMERS, 'timer'),
       skin: this.skinOf(user),
       avatar: Avatar.normalize(user && user.avatar, userId),
-      avatarCatalog: Avatar.catalog(badges, beta),
+      avatarCatalog: Avatar.catalog(badges, beta, refonte),
       title: beta && user && Titles.labelOf(user.title) ? user.title : null,
       titles: beta ? Titles.catalog(badges, days.length) : [],
     };
@@ -797,8 +797,8 @@ class BadgeService {
   }
 
   /** Enregistre l'avatar du joueur s'il ne contient que des éléments débloqués. Renvoie l'avatar, ou null. */
-  setAvatar(userId, today, candidate, beta = true) {
-    const clean = Avatar.validate(candidate, userId, this.profile(userId, today, beta).badges, beta);
+  setAvatar(userId, today, candidate, beta = true, refonte = true) {
+    const clean = Avatar.validate(candidate, userId, this.profile(userId, today, beta, refonte).badges, beta, refonte);
     if (!clean) return null;
     this.db.prepare('UPDATE users SET avatar = ? WHERE id = ?').run(JSON.stringify(clean), userId);
     return clean;

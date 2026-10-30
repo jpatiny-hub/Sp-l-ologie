@@ -439,7 +439,7 @@ function createApp({
     'GET /api/profile': async (req, res) => {
       const user = requireUser(req, res);
       const joined = db.prepare('SELECT created_at FROM users WHERE id = ?').get(user.id);
-      json(res, 200, { ...game.badges.profile(user.id, game.today()), joinedAt: joined ? joined.created_at : null, playerStats: game.playerStats(user.id), skulls: { ...game.skulls.collection(user.id), active: game.skulls.isSkullDay(game.today()) } });
+      json(res, 200, { ...game.badges.profile(user.id, game.today(), true, isAdmin(user)), joinedAt: joined ? joined.created_at : null, playerStats: game.playerStats(user.id), skulls: { ...game.skulls.collection(user.id), active: game.skulls.isSkullDay(game.today()) } });
     },
 
     // Titre de mineur affiché à côté du pseudo : un titre débloqué, ou null pour n'en afficher aucun.
@@ -624,7 +624,7 @@ function createApp({
     'POST /api/profile/avatar': async (req, res) => {
       const user = requireUser(req, res);
       const { avatar } = await readJson(req);
-      const saved = game.badges.setAvatar(user.id, game.today(), avatar);
+      const saved = game.badges.setAvatar(user.id, game.today(), avatar, true, isAdmin(user));
       if (!saved) throw new HttpError(403, "Cet avatar contient un élément pas encore débloqué.");
       json(res, 200, { avatar: saved });
     },

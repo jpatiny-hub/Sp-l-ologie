@@ -166,13 +166,8 @@ function normalize(raw, userId) {
   return out;
 }
 
-// Éléments que `catalog(…, false)` masque (interrupteur de sécurité ; tout le monde les voit par défaut).
-const BETA = new Set([
-  'yeux:monocle', 'yeux:cache-oeil', 'yeux:etoiles', 'barbe:guidon', 'barbe:favoris', 'barbe:sage',
-  'trait:taches', 'trait:joues', 'trait:cicatrice', 'trait:guerre',
-  'chapeau:viking', 'chapeau:heaume', 'chapeau:toque', 'chapeau:bandana',
-  'tenue:armure', 'tenue:pirate', 'tenue:cuisinier', 'tenue:blouse',
-  'objet:epee', 'objet:bouclier', 'objet:marteau',
+// Vestiaire 16-bit (refonte) : réservé au responsable tant que la refonte est en bêta (`catalog(…, …, false)` les masque).
+const REFONTE_ITEMS = [
   'espece:nain', 'espece:robot', 'espece:taupe', 'espece:citrouille', 'espece:squelette', 'espece:fantome', 'espece:golem',
   'espece:champignon', 'espece:ver-luisant', 'espece:diablotin', 'espece:grenouille',
   'modele:cyclope', 'modele:blinde', 'modele:chenilles', 'modele:dandy',
@@ -192,16 +187,27 @@ const BETA = new Set([
   'chapeau:casque-nain', 'chapeau:chapeau-metal', 'chapeau:melon', 'chapeau:casquette',
   'tenue:chasuble', 'tenue:robe-fleurs', 'tenue:mineur-nain', 'tenue:armure-naine', 'tenue:gilet-vapeur', 'tenue:poil',
   'objet:hache', 'objet:hache-double', 'objet:pipe', 'objet:chope',
+];
+const REFONTE = new Set(REFONTE_ITEMS);
+
+// Éléments que `catalog(…, false)` masque (interrupteur de sécurité ; tout le monde les voit par défaut).
+const BETA = new Set([
+  'yeux:monocle', 'yeux:cache-oeil', 'yeux:etoiles', 'barbe:guidon', 'barbe:favoris', 'barbe:sage',
+  'trait:taches', 'trait:joues', 'trait:cicatrice', 'trait:guerre',
+  'chapeau:viking', 'chapeau:heaume', 'chapeau:toque', 'chapeau:bandana',
+  'tenue:armure', 'tenue:pirate', 'tenue:cuisinier', 'tenue:blouse',
+  'objet:epee', 'objet:bouclier', 'objet:marteau',
+  ...REFONTE_ITEMS,
 ]);
 
 /** Catalogue pour l'éditeur : éléments débloqués ou non (selon la liste des badges du joueur, avec leur nom). */
-function catalog(badges, beta = true) {
+function catalog(badges, beta = true, refonte = true) {
   const byId = new Map(badges.map((b) => [b.id, b]));
   const out = {};
   for (const slot of SLOTS) {
     out[slot] = {
       label: LABELS[slot],
-      options: OPTIONS[slot].filter(([id]) => beta || !BETA.has(`${slot}:${id}`)).map(([id, label]) => {
+      options: OPTIONS[slot].filter(([id]) => (beta || !BETA.has(`${slot}:${id}`)) && (refonte || !REFONTE.has(`${slot}:${id}`))).map(([id, label]) => {
         const need = LOCKS[`${slot}:${id}`];
         if (!need) return { id, label, unlocked: true, hint: null };
         const defs = need.map((k) => byId.get(k)).filter(Boolean);
@@ -218,9 +224,9 @@ function catalog(badges, beta = true) {
 const OPTIONAL = { trait: 'aucun', modele: 'classique', iris: 'defaut', aura: 'aucune', dos: 'aucun', bouche: 'normal', compagnon: 'aucun', piercing: 'aucun', tatouage: 'aucun', accessoire: 'aucun', espece: 'humain' };
 
 /** Vérifie qu'un avatar ne contient que des éléments connus et débloqués. Renvoie l'avatar nettoyé, ou null. */
-function validate(candidate, userId, badges, beta = true) {
+function validate(candidate, userId, badges, beta = true, refonte = true) {
   if (!candidate || typeof candidate !== 'object') return null;
-  const cat = catalog(badges, beta);
+  const cat = catalog(badges, beta, refonte);
   const out = {};
   for (const slot of SLOTS) {
     const want = OPTIONAL[slot] && candidate[slot] === undefined ? OPTIONAL[slot] : candidate[slot];
@@ -233,4 +239,4 @@ function validate(candidate, userId, badges, beta = true) {
   return out;
 }
 
-module.exports = { OPTIONS, LOCKS, BETA, defaultAvatar, normalize, catalog, validate };
+module.exports = { OPTIONS, LOCKS, BETA, REFONTE, defaultAvatar, normalize, catalog, validate };

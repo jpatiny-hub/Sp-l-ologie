@@ -41,10 +41,9 @@
   const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false, btn: 'normal', onehand: false, contrast: false, calm: false, mole: true };
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
   for (const flag of BETA_FLAGS) settings[flag] = true;
-  settings.betaHd = false; // essai du style HD-2D : réservé au responsable, désactivé au départ
-  settings.betaCaves = false; // essai des galeries 16-bit (grottes mystérieuses) : réservé au responsable, désactivé au départ
-  settings.betaMole16 = false; // essai de la taupe en 16 bits (réagit au toucher) : réservé au responsable, désactivé au départ
-  settings.betaGalerie = false; // essai du fond animé « Galerie vivante » : réservé au responsable, désactivé au départ
+  // Refonte 16-bit : réservée au responsable, désactivée au départ. `betaRefonte` active tout d'un coup ; les autres cases, un morceau à la fois pour comparer.
+  const REFONTE_FLAGS = ['betaRefonte', 'betaCaves', 'betaMole16', 'betaGalerie'];
+  for (const flag of REFONTE_FLAGS) settings[flag] = false;
   // Ambiance sonore : coups de pioche, grondement, musiques d'accueil, bruits de boutons et chrono sonore, au choix de chaque joueur : coups de pioche, grondement et musique « Galerie » activés au départ, le reste non.
   const AMBIENT_FLAGS = ['labTaps', 'labRumble'];
   const LAB_FLAGS = [...AMBIENT_FLAGS, 'labTabs', 'labClicks', 'labTimer'];
@@ -92,14 +91,14 @@
   /** Nouveautés à l'essai : réservées au responsable du jeu, une par une. */
   const labOn = (name) => !!(app.me && settings[name]);
   // Nouveau look : pour tous les joueurs ; le responsable peut en retirer des morceaux dans les réglages pour comparer.
-  /** Essai du style HD-2D (lumière, profondeur, nouvelle interface) : uniquement pour le responsable qui l'active. */
-  const hdOn = () => !!(app.me && app.me.isAdmin && settings.betaHd);
-  /** Essai des galeries 16-bit : uniquement pour le responsable qui l'active. */
-  const cavesOn = () => !!(app.me && app.me.isAdmin && settings.betaCaves);
-  /** Essai de la taupe en 16 bits : uniquement pour le responsable qui l'active. */
-  const mole16On = () => !!(app.me && app.me.isAdmin && settings.betaMole16 && window.Mole16);
-  /** Essai de la galerie vivante (fond animé et panneaux de pierre sombre) : uniquement pour le responsable qui l'active. */
-  const galerieOn = () => !!(app.me && app.me.isAdmin && settings.betaGalerie);
+  /** Un morceau de la refonte 16-bit : uniquement pour le responsable, s'il active toute la refonte ou ce morceau. */
+  const refonteOn = (name) => !!(app.me && app.me.isAdmin && (settings.betaRefonte || settings[name]));
+  /** Galeries 16-bit : grottes mystérieuses par paliers sous la surface. */
+  const cavesOn = () => refonteOn('betaCaves');
+  /** Taupe en 16 bits. */
+  const mole16On = () => !!(refonteOn('betaMole16') && window.Mole16);
+  /** Galerie vivante : accueil sans cadre devant les grottes animées. */
+  const galerieOn = () => refonteOn('betaGalerie');
   const betaOn = (name) => !!(app.me && (!app.me.isAdmin || settings[name]));
 
   const isHalloween = () => document.documentElement.dataset.season === 'halloween';
@@ -132,8 +131,6 @@
     Sound.configure({ enabled: settings.sound, volume: settings.volume / 100 });
     Pixel.setColorblind(settings.colors);
     applySeason();
-    root.toggleAttribute('data-hd', hdOn());
-    Pixel.setHd(hdOn());
     root.toggleAttribute('data-mole16', mole16On());
     root.toggleAttribute('data-galerie', galerieOn());
     Galerie.setOn(galerieOn(), reducedMotion());
@@ -284,12 +281,8 @@
     settingsForm.elements.season.checked = settings.season !== false;
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
     $('beta-box').hidden = !(app.me && app.me.isAdmin);
-    $('hd-box').hidden = $('beta-box').hidden;
-    $('galerie-box').hidden = $('beta-box').hidden;
-    settingsForm.elements.betaHd.checked = !!settings.betaHd;
-    settingsForm.elements.betaCaves.checked = !!settings.betaCaves;
-    settingsForm.elements.betaMole16.checked = !!settings.betaMole16;
-    settingsForm.elements.betaGalerie.checked = !!settings.betaGalerie;
+    $('refonte-box').hidden = $('beta-box').hidden;
+    for (const name of REFONTE_FLAGS) settingsForm.elements[name].checked = !!settings[name];
     renderVersions();
     for (const name of BETA_FLAGS) settingsForm.elements[name].checked = !!settings[name];
     $('lab-box').hidden = !app.me;
@@ -336,10 +329,7 @@
     settings.lisible = settingsForm.elements.lisible.checked;
     settings.season = settingsForm.elements.season.checked;
     for (const name of BETA_FLAGS) settings[name] = settingsForm.elements[name].checked;
-    settings.betaHd = settingsForm.elements.betaHd.checked;
-    settings.betaCaves = settingsForm.elements.betaCaves.checked;
-    settings.betaMole16 = settingsForm.elements.betaMole16.checked;
-    settings.betaGalerie = settingsForm.elements.betaGalerie.checked;
+    for (const name of REFONTE_FLAGS) settings[name] = settingsForm.elements[name].checked;
     for (const name of LAB_FLAGS) settings[name] = settingsForm.elements[name].checked;
     settings.labMusic = settingsForm.elements.labMusic.value || '';
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
@@ -1059,15 +1049,6 @@
       ctx.fillStyle = MOLE_COLORS[ch];
       ctx.fillRect(x + OX, y, 1, 1);
     }));
-    if (Pixel.isHd()) {
-      // Essai HD-2D : la taupe redessinée en haute définition (volume, reflets, contour net).
-      const up = Pixel.hdUpgrade(canvas);
-      canvas.width = 96;
-      canvas.height = 64;
-      const hctx = canvas.getContext('2d');
-      hctx.imageSmoothingEnabled = true;
-      hctx.drawImage(up.canvas, up.pad * 4, up.pad * 4, 96, 64, 0, 0, 96, 64);
-    }
   }
 
   /**
