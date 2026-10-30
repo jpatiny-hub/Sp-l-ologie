@@ -178,6 +178,7 @@
         <label class="check"><input type="checkbox" name="betaGalerie"> Accueil sans cadre devant les grottes animées</label>
         <label class="check"><input type="checkbox" name="betaMole16"> Taupe en 16 bits : regard qui suit le doigt, réactions au toucher</label>
         <label class="check"><input type="checkbox" name="betaSon16"> Sons 16-bit : un bruit par minerai, wagonnet, taupe, onglets, foreuses spéciales et feux d'artifice des podiums</label>
+        <label class="check"><input type="checkbox" name="betaFetes"> Fêtes de podium en 16 bits (semaine, mois) et Gazette sur plan de mine</label>
         <p class="hint">Foreuse 16-bit ; celles de fête ont un effet animé pendant le forage :</p>
         <div class="choices vertical" id="refonte-drill16">
           <label><input type="radio" name="betaDrill16" value=""> Ma foreuse habituelle</label>
@@ -548,6 +549,7 @@
       <!-- Podiums du jour, de la semaine et du mois -->
       <div class="view" id="view-recap" hidden>
         <div id="recap-fireworks">
+          <button class="btn ghost recap-skip" id="btn-recap-skip" type="button" hidden>Passer l'animation</button>
           <p class="recap-title" id="recap-title">Bravo les mineurs !</p>
           <p class="muted recap-sub" id="recap-sub"></p>
           <canvas class="recap-canvas" id="recap-canvas" width="160" height="190" role="img" aria-label="Le podium sous un feu d'artifice"></canvas>
@@ -1074,6 +1076,7 @@
   <script src="timers.js"></script>
   <script src="avatar.js"></script>
   <script src="mole16.js"></script>
+  <script src="celebrations16.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
