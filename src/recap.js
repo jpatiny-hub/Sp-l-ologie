@@ -79,11 +79,12 @@ function markRecapSeen(db, userId, week) {
 }
 
 /** Bilan d'une période (jour, semaine ou mois) : podium, records, moments forts et statistiques du joueur. */
-/** Premier du classement, avec l'apparence de sa foreuse (pour la fête du mois). */
+/**
+ * Premier du classement, avec sa foreuse 16 bits pour la fête du mois. Tant que les joueurs n'ont pas de foreuse à personnaliser,
+ * `drill` reste nul et la fête prend la foreuse par défaut ; il suffira de le remplir plus tard.
+ */
 function championOf(db, entry) {
-  if (!entry) return null;
-  const row = db.prepare('SELECT skin_body FROM users WHERE username = ?').get(entry.username);
-  return { ...entry, drill: (row && row.skin_body) || 'classique' };
+  return entry ? { ...entry, drill: null } : null;
 }
 
 function periodRecap(game, kind, from, userId) {

@@ -179,12 +179,8 @@
     const ground = 204;
     const cols = [[2, 46, 38, ['#e6ecf5', '#bcc6d6', '#8592a8'], 1], [1, 100, 62, ['#ffe0ff', '#e59cff', '#b45ee8'], 0], [3, 154, 26, ['#ffd0a8', '#e8925a', '#b85d2c'], 2]];
     const colors = ['#e59cff', '#ffd84a', '#5ee0ff', '#ffffff', '#ff8ad6'];
-    // Foreuse de la gagnante : son apparence si elle existe en 16 bits (Noël, Cupidon, citrouille…), sinon un modèle choisi d'après son pseudo.
-    const models = global.Drills16 ? Drills16.MODELS.map((m) => m.id) : [];
-    const plain = ['bourdon', 'horloger', 'nautile', 'mammouth', 'comete', 'amethyste', 'fournaise', 'pionnier'].filter((id) => models.includes(id));
-    const name = (top[0] && top[0].username) || '';
-    const seed = [...name].reduce((n, ch) => n + ch.charCodeAt(0), 0);
-    const model = models.includes(hooks.drill) ? hooks.drill : plain[seed % Math.max(1, plain.length)] || 'amethyste';
+    // Foreuse de la gagnante : celle qu'elle a personnalisée (`hooks.drill`, quand elle existera), sinon la foreuse par défaut.
+    const model = global.Drills16 && Drills16.MODELS.some((m) => m.id === hooks.drill) ? hooks.drill : 'bourdon';
     let shown = false;
     return (t) => {
       const light = clamp01(t / 1.2);
