@@ -1974,3 +1974,7 @@ html[data-galerie] #weekly-canvas, html[data-galerie] #collective-canvas { margi
 .duel-cars span { aspect-ratio: 1.4; background: #1b1612; border: 2px solid #3a2c20; border-radius: 2px; position: relative; }
 .duel-cars span.on { background: linear-gradient(#ffe08a, #b8741a); border-color: #ffd070; box-shadow: 0 0 6px rgba(255, 190, 80, 0.4); }
 .duel-cars span.mine { background: linear-gradient(#b8f0ff, #3aa0c8); border-color: #8fe3ff; box-shadow: 0 0 6px rgba(94, 224, 255, 0.5); }
+
+/* Refonte : les titres longs passent à la ligne au lieu d'être coupés */
+html[data-galerie] .who-text { overflow: visible; }
+html[data-galerie] .who-text .ptitle { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.25; padding: 1px 6px; overflow-wrap: anywhere; }
