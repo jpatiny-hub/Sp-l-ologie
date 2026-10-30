@@ -53,7 +53,7 @@
       P(3, oy + 17, 10, 1, '#a77f12');
     }
     // Jambes.
-    const legs = (o.espece === 'robot' ? shade(METAL[o.peau] || METAL.clair, 0.6) : null) || { smoking: '#222', scaphandre: '#6b7a8c', cape: '#3a4a6b', armure: '#8a8f98', pirate: '#5a3a1a', cuisinier: '#4a4a52', 'mineur-nain': '#5a4a3a', 'armure-naine': '#5a4a3a', 'gilet-vapeur': '#4a3a2a', golem: '#46425a', 'costume-cupidon': '#e8dcc0', 'manteau-noel': '#c8362d', 'chape-eveque': '#c8362d', 'tablier-forge': '#3a3a44', redingote: '#2a2a34', epouvantail: '#6a5a3a', explorateur: '#8a7a4a', herboriste: '#6a5a3a', 'tunique-infernale': '#2a1a2a', 'cire-jaune': '#3a4a6b', poil: fur }[outfit] || '#3a4a6b';
+    const legs = (o.espece === 'robot' ? shade(METAL[o.peau] || METAL.clair, 0.6) : null) || { smoking: '#222', scaphandre: '#6b7a8c', cape: '#3a4a6b', armure: '#8a8f98', pirate: '#5a3a1a', cuisinier: '#4a4a52', 'mineur-nain': '#5a4a3a', 'armure-naine': '#5a4a3a', 'gilet-vapeur': '#4a3a2a', golem: '#46425a', 'costume-cupidon': '#e8dcc0', 'costume-gille': '#f2c230', 'manteau-noel': '#c8362d', 'chape-eveque': '#c8362d', 'tablier-forge': '#3a3a44', redingote: '#2a2a34', epouvantail: '#6a5a3a', explorateur: '#8a7a4a', herboriste: '#6a5a3a', 'tunique-infernale': '#2a1a2a', 'cire-jaune': '#3a4a6b', poil: fur }[outfit] || '#3a4a6b';
     if (robe) {
       const hem = { robe: '#b02a6a', 'robe-fleurs': '#e8466a', 'robe-sorciere': '#2a1a3a' }[outfit];
       P(5, oy + 15, 2, 5, skin);
@@ -67,7 +67,7 @@
       P(8, oy + 21, 3, 1, K);
     }
     // Torse et bras.
-    const top = (o.espece === 'robot' ? METAL[o.peau] || METAL.clair : null) || { mineur: '#d9772b', salopette: '#d9772b', robe: '#e86aa8', 'robe-fleurs': '#f3e1c8', smoking: '#222', pull: '#4a86e8', scaphandre: '#8aa0b8', cape: '#4a86e8', armure: '#aeb6c2', pirate: '#f3f3f3', cuisinier: '#ffffff', blouse: '#f3f3f3', chasuble: '#ff8c1a', 'mineur-nain': '#7a4a24', 'armure-naine': '#9a7a3a', 'gilet-vapeur': '#5a2a1a', golem: '#5a5668', 'costume-cupidon': '#f3e9d2', 'manteau-noel': '#c8362d', 'robe-sorciere': '#4a2a6a', 'chape-eveque': '#c8362d', 'tablier-forge': '#8a8f98', redingote: '#3a2a4a', epouvantail: '#b8843a', explorateur: '#c8b078', herboriste: '#4a8a4a', 'tunique-infernale': '#2a1a2a', 'cire-jaune': '#f2c230', poil: fur }[outfit] || '#d9772b';
+    const top = (o.espece === 'robot' ? METAL[o.peau] || METAL.clair : null) || { mineur: '#d9772b', salopette: '#d9772b', robe: '#e86aa8', 'robe-fleurs': '#f3e1c8', smoking: '#222', pull: '#4a86e8', scaphandre: '#8aa0b8', cape: '#4a86e8', armure: '#aeb6c2', pirate: '#f3f3f3', cuisinier: '#ffffff', blouse: '#f3f3f3', chasuble: '#ff8c1a', 'mineur-nain': '#7a4a24', 'armure-naine': '#9a7a3a', 'gilet-vapeur': '#5a2a1a', golem: '#5a5668', 'costume-cupidon': '#f3e9d2', 'costume-gille': '#f2c230', 'manteau-noel': '#c8362d', 'robe-sorciere': '#4a2a6a', 'chape-eveque': '#c8362d', 'tablier-forge': '#8a8f98', redingote: '#3a2a4a', epouvantail: '#b8843a', explorateur: '#c8b078', herboriste: '#4a8a4a', 'tunique-infernale': '#2a1a2a', 'cire-jaune': '#f2c230', poil: fur }[outfit] || '#d9772b';
     if (fem) {
       P(5, oy + 7, 6, 4, top);
       if (robe) {
@@ -158,6 +158,13 @@
       P(6, oy + 11, 1, 1, '#d9a21a');
       P(9, oy + 11, 1, 1, '#d9a21a');
       P(9, oy + 12, 3, 1, '#d9a21a');
+    }
+    if (outfit === 'costume-gille') {
+      for (const [x, y] of [[5, 9], [8, 9], [6, 11], [9, 11], [5, 13], [8, 13]]) P(x, oy + y, 2, 1, '#c8362d');
+      for (const [x, y] of [[6, 8], [9, 8], [7, 10], [10, 10], [6, 12], [9, 12]]) P(x, oy + y, 1, 1, '#c8362d');
+      P(4, oy + 7, 8, 1, '#fff');
+      P(5, oy + 8, 1, 1, '#fff');
+      P(10, oy + 8, 1, 1, '#fff');
     }
     if (outfit === 'costume-cupidon') {
       P(4, oy + 7, 8, 1, '#f2c230');
@@ -557,6 +564,11 @@
       P(5, oy - 3, 7, 1, '#ff5ac8');
       P(5, oy - 2, 7, 1, '#ffd84a');
       P(5, oy - 1, 7, 1, '#4ad8ff');
+    } else if (hat === 'plumes-gille') {
+      for (const [x, y, w, h] of [[5, -4, 2, 3], [7, -5, 2, 4], [9, -4, 2, 3], [4, -3, 1, 2], [11, -3, 1, 2]]) P(x, oy + y, w, h, '#fff');
+      P(5, oy - 1, 6, 1, '#d8d8e0');
+      P(4, oy - 1, 1, 1, '#c8362d');
+      P(11, oy - 1, 1, 1, '#c8362d');
     } else if (hat === 'chapeau-paille') {
       P(5, oy - 3, 6, 3, '#e8c547');
       P(2, oy - 1, 12, 1, '#e8c547');
@@ -664,6 +676,10 @@
       P(13, oy + 2, 3, 1, '#f2c230');
       P(12, oy + 3, 1, 2, '#f2c230');
       P(15, oy + 3, 1, 1, '#f2c230');
+    } else if (it === 'orange') {
+      P(13, oy + 12, 3, 3, '#ff9a1a');
+      P(13, oy + 12, 1, 1, '#ffc866');
+      P(14, oy + 11, 1, 1, '#3a9a4a');
     } else if (it === 'panier-paques') {
       P(13, oy + 12, 3, 3, '#c8945a');
       P(13, oy + 11, 3, 1, '#8b5a2b');
@@ -819,6 +835,9 @@
       P(7, oy + 9, 1, 1, '#e8466a');
       P(5, oy + 10, 3, 1, '#e8466a');
       P(6, oy + 11, 1, 1, '#e8466a');
+    } else if (a === 'grelots') {
+      [[4, 8], [6, 9], [8, 9], [10, 9], [11, 8]].forEach(([x, y]) => P(x, oy + y, 1, 1, '#ffd84a'));
+      P(5, oy + 8, 6, 1, '#fff');
     } else if (a === 'serpentin') {
       [[5, 7, '#ff5ac8'], [6, 8, '#ffd84a'], [7, 7, '#4ad8ff'], [8, 8, '#ff5ac8'], [9, 7, '#ffd84a'], [10, 8, '#4ad8ff']].forEach(([x, y, col]) => P(x, oy + y, 1, 1, col));
       P(10, oy + 9, 1, 2, '#ff5ac8');
@@ -1356,6 +1375,7 @@
     { id: 'sapin', name: 'Lutin du sapin', theme: 'noel', drill: 'Sapin', pieces: { chapeau: 'bonnet-noel', objet: 'canne-sucre', compagnon: 'lucioles', aura: 'givre' }, fx: { kind: 'scintille', colors: ['#ff5a5a', '#ffe84a', '#5aff8a', '#5ac8ff'] } },
     { id: 'cupidon', name: 'Cupidon', theme: 'saint-valentin', drill: 'Cupidon', pieces: { chapeau: 'aureole', tenue: 'costume-cupidon', dos: 'ailes-cupidon', objet: 'arc-coeur' }, fx: { kind: 'coeurs', colors: ['#ff4a7a', '#ff9ab8'] } },
     { id: 'grand-saint', name: 'Grand Saint', theme: 'saint-nicolas', drill: 'Grand Saint', pieces: { chapeau: 'mitre', tenue: 'chape-eveque', objet: 'crosse' }, fx: { kind: 'scintille', colors: ['#ffe84a', '#fff8c0'] } },
+    { id: 'gille', name: 'Gille de Binche', theme: 'mardi-gras', drill: 'Gille', pieces: { chapeau: 'plumes-gille', tenue: 'costume-gille', objet: 'orange', accessoire: 'grelots' }, fx: { kind: 'tombe', colors: ['#ff9a1a', '#ffd84a', '#c8362d'] } },
     { id: 'lapin', name: 'Lapin de Pâques', theme: 'paques', drill: 'Lapin', pieces: { chapeau: 'oreilles-lapin', objet: 'panier-paques', accessoire: 'noeud-papillon' }, fx: { kind: 'monte', colors: ['#ff9ad8', '#9ae8ff', '#ffe89a', '#b8ff9a'] } },
     { id: 'minuit', name: 'Minuit', theme: 'nouvel-an', drill: 'Minuit', pieces: { chapeau: 'cotillon', objet: 'coupe', accessoire: 'serpentin' }, fx: { kind: 'tombe', colors: ['#ff5a8a', '#ffe84a', '#5ac8ff', '#8aff5a'] } },
     { id: 'pi', name: 'Mathématicien du 14 mars', theme: 'pi-day', drill: 'Pi', pieces: { accessoire: 'pin-pi', objet: 'tarte', tenue: 'blouse' }, fx: { kind: 'monte', colors: ['#5ac8ff', '#ffffff'] } },

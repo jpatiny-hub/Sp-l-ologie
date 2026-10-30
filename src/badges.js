@@ -88,6 +88,7 @@ const CALENDAR = {
   'journee-livre': { name: () => 'Livre de roche', description: (y) => `Forage de la journée mondiale du livre, le 23 avril ${y}`, icon: 'livre' },
   'star-wars': { name: () => 'Que la Force soit avec toi', description: (y) => `Forage du 4 mai ${y} (May the 4th)`, icon: 'sabre' },
   'fete-musique': { name: () => 'Concert souterrain', description: (y) => `Forage de la fête de la musique, le 21 juin ${y}`, icon: 'note' },
+  'mardi-gras': { name: () => 'Gille de Binche', description: (y) => `Forage du Mardi gras ${y}`, icon: 'feu-artifice' },
   paques: { name: () => 'Œuf de dinosaure', description: (y) => `Forage du dimanche de Pâques ${y}`, icon: 'oeuf', body: 'oeuf' },
   'premier-mai': { name: () => 'Gueule noire', description: (y) => `Forage de la fête du Travail ${y}, en hommage aux mineurs`, icon: 'lampe-mineur' },
   'fierte': { name: () => 'Fierté', description: (y) => `Forage du 17 mai ${y}, journée mondiale contre l'homophobie, la transphobie et la biphobie`, icon: 'drapeau-fierte', body: 'fierte' },
@@ -122,6 +123,11 @@ function easter(year) {
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
+/** Jour AAAA-MM-JJ décalé de n jours. */
+function shiftDay(day, n) {
+  return new Date(new Date(`${day}T12:00:00Z`).getTime() + n * 86400000).toISOString().slice(0, 10);
+}
+
 const FIXED_DAYS = {
   '01-01': 'nouvel-an',
   '01-06': 'epiphanie',
@@ -152,6 +158,7 @@ function calendarKinds(day) {
   const kinds = [];
   if (FIXED_DAYS[day.slice(5)]) kinds.push(FIXED_DAYS[day.slice(5)]);
   if (easter(Number(day.slice(0, 4))) === day) kinds.push('paques');
+  if (shiftDay(easter(Number(day.slice(0, 4))), -47) === day) kinds.push('mardi-gras');
   if (day.endsWith('-13') && new Date(`${day}T12:00:00Z`).getUTCDay() === 5) kinds.push('vendredi-13');
   return kinds;
 }
@@ -161,7 +168,7 @@ function nextYear(kind, today) {
   const year = Number(today.slice(0, 4));
   for (let y = year; y < year + 8; y++) {
     const md = Object.keys(FIXED_DAYS).find((k) => FIXED_DAYS[k] === kind);
-    const day = md ? `${y}-${md}` : kind === 'paques' ? easter(y) : null;
+    const day = md ? `${y}-${md}` : kind === 'paques' ? easter(y) : kind === 'mardi-gras' ? shiftDay(easter(y), -47) : null;
     if (!day) return year;
     const real = new Date(`${day}T12:00:00Z`).toISOString().slice(0, 10) === day; // pas de 29 février fictif
     if (real && day >= today && calendarKinds(day).includes(kind)) return y;
