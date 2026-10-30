@@ -142,6 +142,13 @@
     const decor = galerieOn() || (!app.me && !!settings.betaRefonte);
     root.toggleAttribute('data-galerie', decor);
     Galerie.setOn(decor, reducedMotion());
+    // Libellés de la refonte (courrier de la mine) ; on remet le texte d'origine quand elle est coupée.
+    for (const [selector, label] of [['#msg-list-pane > h2', 'Courrier de la mine'], ['#form-msg-new button[type="submit"]', 'Écrire une lettre'], ['#form-msg-send button[type="submit"]', 'Expédier par wagonnet'], ['#view-admin .card > h2', 'Bureau du contremaître']]) {
+      const node = document.querySelector(selector);
+      if (!node) continue;
+      if (node.dataset.orig === undefined) node.dataset.orig = node.textContent;
+      node.textContent = galerieOn() ? label : node.dataset.orig;
+    }
     if (!app.me && decor && window.Mole16) {
       const open = document.querySelector('#auth-mascot .m-open');
       if (open && !open.dataset.drawn) { open.dataset.drawn = '1'; Mole16.draw(open, 'happy', { x: 0, y: 0 }); }
@@ -700,7 +707,7 @@
 
   // ---------- Authentification ----------
   function showAuthTab(tab) {
-    document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === tab));
+    document.querySelectorAll('#view-auth .tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === tab));
     document.querySelectorAll('[data-pane]').forEach((f) => (f.hidden = f.dataset.pane !== tab));
     document.querySelectorAll('[data-pane] .error').forEach((e) => (e.textContent = ''));
   }
@@ -711,7 +718,7 @@
       .catch(() => {});
   }
   refreshSignupInfo();
-  document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => showAuthTab(t.dataset.tab)));
+  document.querySelectorAll('#view-auth .tab').forEach((t) => t.addEventListener('click', () => showAuthTab(t.dataset.tab)));
   document.querySelectorAll('[data-tab-link]').forEach((t) => t.addEventListener('click', () => showAuthTab(t.dataset.tabLink)));
 
   function bindForm(id, handler) {
@@ -1467,6 +1474,7 @@
       }
       const canvas = slot.querySelector('canvas') || el('canvas', { width: '16', height: '16', 'aria-hidden': 'true' });
       if (!canvas.parentNode) slot.replaceChildren(canvas);
+      if (galerieOn() && Icons.drawNav16(canvas, kind)) return;
       Icons.drawIcon(canvas, NAV_ICONS[kind] || 'lampe');
     });
   }
@@ -2672,7 +2680,8 @@
   function askGallery() {
     return new Promise((resolve) => {
       const dialog = $('gallery-dialog');
-      Icons.drawIcon($('gallery-icon'), 'galerie');
+      if (galerieOn()) Galerie.drawRescue($('gallery-icon'));
+      else Icons.drawIcon($('gallery-icon'), 'galerie');
       let answer = false;
       const done = (value) => {
         answer = value;
