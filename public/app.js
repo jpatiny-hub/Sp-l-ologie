@@ -384,7 +384,7 @@
     // Forage sans cadre (galerie vivante) : la coupe remplit tout l'écran, derrière l'interface.
     const frameless = galerieOn() && (app.view === 'game' || app.view === 'results' || app.view === 'compare');
     document.documentElement.toggleAttribute('data-frameless', frameless);
-    scene.focus = frameless ? 0.62 : 0.6;
+    scene.focus = frameless ? (app.view === 'game' ? 0.3 : 0.5) : 0.6; // en forage, la foreuse reste dans le haut : question et chrono sont en bas
     if (frameless) {
       const scale = window.innerWidth / Pixel.WIDTH;
       scene.setViewHeight(window.innerHeight / scale, 480);
@@ -701,6 +701,66 @@
     return node;
   }
 
+  // ---- Minerais : chaque rareté a sa matière (grain du gravier, cristaux de soufre, veines de cuivre, facettes du rubis, éclat de la pépite). ----
+  const oreCache = new Map();
+  const shade = (hex, f) => {
+    const n = parseInt(hex.slice(1), 16);
+    const ch = [n >> 16, (n >> 8) & 255, n & 255].map((v) => Math.max(0, Math.min(255, Math.round(f >= 0 ? v + (255 - v) * f : v * (1 + f)))));
+    return `rgb(${ch[0]},${ch[1]},${ch[2]})`;
+  };
+  function oreUrl(tierId) {
+    const base = Pixel.TIER_COLORS[tierId] || '#888888';
+    const key = `${tierId}${base}`;
+    if (oreCache.has(key)) return oreCache.get(key);
+    const c = document.createElement('canvas');
+    c.width = 16;
+    c.height = 16;
+    const g = c.getContext('2d');
+    const R = (x, y, w, h, col) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
+    let seed = 7;
+    for (const ch of tierId) seed = Math.imul(seed, 31) + ch.charCodeAt(0);
+    const rnd = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) | 0) >>> 0) / 4294967296;
+    const hi = shade(base, 0.4), lo = shade(base, -0.35), mid = shade(base, 0.18);
+    R(0, 0, 16, 16, base);
+    if (tierId === 'evident') {
+      for (let i = 0; i < 16; i++) R(Math.floor(rnd() * 15), Math.floor(rnd() * 15), 1, 1, i % 2 ? hi : lo); // grain
+      for (const [x, y] of [[2, 3], [9, 2], [5, 9], [11, 11]]) { R(x, y, 3, 2, mid); R(x, y, 3, 1, hi); R(x, y + 1, 3, 1, lo); } // cailloux
+    } else if (tierId === 'courant') {
+      for (let i = 0; i < 10; i++) R(Math.floor(rnd() * 15), Math.floor(rnd() * 15), 1, 1, lo);
+      for (const [x, y, h] of [[3, 9, 6], [8, 6, 8], [12, 10, 5]]) { // aiguilles de soufre
+        for (let k = 0; k < h; k++) { const w = Math.max(1, 3 - Math.floor(k / 2)); R(x + Math.floor((3 - w) / 2), y + h - k - 1, w, 1, k > h - 3 ? '#fffbd0' : k % 2 ? hi : mid); }
+        R(x + 2, y + 1, 1, h - 2, lo);
+      }
+    } else if (tierId === 'original') {
+      for (let i = 0; i < 8; i++) R(Math.floor(rnd() * 15), Math.floor(rnd() * 15), 1, 1, lo);
+      for (let i = 0; i < 16; i++) { R(i, Math.round(4 + Math.sin(i * 0.7) * 2 + i * 0.35), 1, 1, hi); } // veine de cuivre
+      for (const [x, y] of [[2, 10], [10, 11], [6, 1]]) { R(x, y, 3, 2, '#3f9a86'); R(x, y, 2, 1, '#8ff0d6'); } // vert-de-gris
+    } else if (tierId === 'rare') {
+      R(0, 0, 16, 16, lo);
+      g.fillStyle = base; g.beginPath(); g.moveTo(8, 0); g.lineTo(15, 8); g.lineTo(8, 15); g.lineTo(1, 8); g.fill();
+      g.fillStyle = hi; g.beginPath(); g.moveTo(8, 0); g.lineTo(1, 8); g.lineTo(8, 8); g.fill();
+      g.fillStyle = shade(base, -0.2); g.beginPath(); g.moveTo(8, 8); g.lineTo(15, 8); g.lineTo(8, 15); g.fill();
+      R(5, 4, 2, 2, '#ffffff'); R(6, 3, 1, 1, '#ffffff'); // éclat des facettes
+    } else {
+      for (let i = 0; i < 6; i++) R(Math.floor(rnd() * 15), Math.floor(rnd() * 15), 1, 1, lo);
+      R(2, 2, 6, 3, hi); R(3, 2, 4, 1, '#ffffff'); R(2, 5, 2, 2, hi);
+      R(11, 9, 1, 5, '#ffffff'); R(9, 11, 5, 1, '#ffffff'); R(10, 10, 3, 3, hi); R(11, 11, 1, 1, '#ffffff'); // étincelle
+    }
+    R(0, 0, 16, 1, shade(base, 0.25)); R(0, 0, 1, 16, shade(base, 0.2)); R(0, 15, 16, 1, shade(base, -0.45)); R(15, 0, 1, 16, shade(base, -0.4)); // relief du bord
+    const url = c.toDataURL();
+    oreCache.set(key, url);
+    return url;
+  }
+  /** Colore une pastille de rareté ; avec la refonte, elle prend la matière du minerai. */
+  function ore(node, tierId, fallback = '#666') {
+    node.style.background = Pixel.TIER_COLORS[tierId] || fallback;
+    if (galerieOn() && ['evident', 'courant', 'original', 'rare', 'pepite'].includes(tierId)) {
+      node.style.backgroundImage = `url(${oreUrl(tierId)})`;
+      node.style.backgroundSize = '100% 100%';
+      node.style.imageRendering = 'pixelated';
+    }
+  }
+
   function setTimerSeconds(seconds) {
     document.querySelectorAll('.timer-seconds').forEach((n) => (n.textContent = seconds));
   }
@@ -815,7 +875,7 @@
       title: 'Trouve la réponse la moins probable',
       art: () => el('div', { class: 'tuto-ladder' }, ...TIERS_TUTO.map(([id, label, points, hint]) => {
         const chip = el('span', { class: 'tuto-chip' });
-        chip.style.background = Pixel.TIER_COLORS[id];
+        ore(chip, id);
         return el('div', { class: 'tuto-rung' }, chip, el('strong', {}, label), el('span', { class: 'tuto-points' }, points), el('span', { class: 'muted small' }, hint));
       })),
       body: () => [
@@ -859,10 +919,52 @@
   ];
   const tuto = { index: 0, first: false };
 
+  /** Vignettes du tutoriel dans la refonte : un vrai décor de grotte et les vrais éléments du jeu (thème, paliers, chrono, wagonnet, réponse). */
+  function tutoVignette(index) {
+    const bg = el('canvas', { class: 'tuto-bg', width: '160', height: '88', 'aria-hidden': 'true' });
+    Galerie.snapshot(bg, [1, 2, 3, 4, 5][index] || 1);
+    const inner = el('div', { class: 'tuto-vig-in' });
+    const tier = (id) => Pixel.TIER_COLORS[id] || '#888';
+    const oreSw = (id) => { const n = el('span', { class: 'sw' }); ore(n, id); return n; };
+    const chip = (id, answer, label, pts) => el('div', { class: 'tuto-chip' }, oreSw(id), el('strong', {}, answer), el('span', { class: 'muted' }, `${label} · ${pts}`));
+    if (index === 0) {
+      const mole = el('canvas', { class: 'tuto-mole', width: '24', height: '16', 'aria-hidden': 'true' });
+      drawMascot(mole, 'happy');
+      const wagon = el('canvas', { class: 'tuto-wagon', 'aria-hidden': 'true' });
+      Galerie.mountWagon(wagon);
+      inner.append(el('div', { class: 'tuto-art-row' }, mole, wagon));
+    } else if (index === 1) {
+      inner.append(
+        el('h2', { class: 'theme-title' }, 'Un fruit rouge'),
+        chip('evident', 'Fraise', 'Gravier', '10-20 pts'),
+        chip('courant', 'Cerise', 'Soufre', '20-40 pts'),
+        chip('original', 'Groseille', 'Cuivre', '40-60 pts'),
+        chip('rare', 'Airelle', 'Rubis', '60-90 pts'),
+        chip('pepite', 'Physalis', 'Pépite', '100 pts'),
+      );
+    } else if (index === 2) {
+      const pips = el('div', { class: 'pips' }, ...['evident', 'original', 'courant', null, null, null, null].map((id, i) => { const n = el('span', { class: `pip${i === 3 ? ' now' : ''}` }); if (id) ore(n, id); return n; }));
+      const timer = el('canvas', { width: '96', height: '20', 'aria-hidden': 'true' });
+      Timers.draw(timer, (app.skin && app.skin.timer) || 'batterie', 21, 30, performance.now(), settings.colors, true);
+      inner.append(el('p', { class: 'muted small' }, 'Forage du jour · 4/7'), pips, el('div', { class: 'timer tuto-timer-real' }, timer, el('span', { class: 'timer-count' }, '21')));
+    } else if (index === 3) {
+      const sw = el('canvas', { class: 'tuto-switch', 'aria-hidden': 'true' });
+      Galerie.mountWagon(sw, 'switch');
+      inner.append(sw, el('div', { class: 'tuto-voies' }, el('span', {}, '← Duel · Illimité'), el('span', {}, 'Forage du jour →')));
+    } else {
+      inner.append(
+        el('p', { class: 'feedback-points' }, '+80'),
+        el('p', { class: 'feedback-tier', style: { color: tier('rare') } }, 'Rubis'),
+        el('input', { class: 'tuto-input', value: 'Airelle', readonly: '', 'aria-hidden': 'true', tabindex: '-1' }),
+      );
+    }
+    return el('div', { class: 'tuto-vig' }, bg, inner);
+  }
+
   function renderTutorial() {
     const slide = SLIDES[tuto.index];
     $('tuto-title').textContent = slide.title;
-    $('tuto-art').replaceChildren(slide.art());
+    $('tuto-art').replaceChildren(galerieOn() ? tutoVignette(tuto.index) : slide.art());
     $('tuto-body').replaceChildren(...slide.body());
     if (galerieOn()) {
       // Refonte : le mode « Infini » s'appelle « Illimité » et le wagonnet de « Jouer » indique la voie.
@@ -2317,7 +2419,7 @@
         const pip = el('span', { class: `pip${i === active ? ' now' : ''}` });
         if (r.status === 'done' && !r.tier && state.mode === 'duel') pip.style.background = '#8aa0b8';
         if (r.status === 'done' && r.tier) {
-          pip.style.background = Pixel.TIER_COLORS[r.tier.id] || '#4a4a4a';
+          ore(pip, r.tier.id, '#4a4a4a');
           if (settings.colors !== 'normal') pip.textContent = Pixel.TIER_SYMBOLS[r.tier.id] || '';
           pip.title = r.tier.label;
         }
@@ -2680,8 +2782,7 @@
   function askGallery() {
     return new Promise((resolve) => {
       const dialog = $('gallery-dialog');
-      if (galerieOn()) Galerie.drawRescue($('gallery-icon'));
-      else Icons.drawIcon($('gallery-icon'), 'galerie');
+      if (!galerieOn()) Icons.drawIcon($('gallery-icon'), 'galerie');
       let answer = false;
       const done = (value) => {
         answer = value;
@@ -2706,6 +2807,7 @@
         { once: true },
       );
       dialog.showModal();
+      if (galerieOn()) Galerie.playRescue($('gallery-icon'), dialog);
       $('gallery-yes').focus();
     });
   }
@@ -2931,6 +3033,85 @@
     $('results-percentile').textContent = `Mieux que ${pct}\u00a0% des joueurs du jour (${plural(n, 'forage', 'forages')} aujourd'hui)`;
   }
 
+  /**
+   * Carnet de forage de la refonte : de vraies strates (trame, fossiles, racines, cristaux, pépites) à la place des aplats,
+   * un tunnel creusé par thème et un cristal à la couleur de la rareté au bout.
+   */
+  function renderDiveLog16(state, chart, { left, right, top, bottom, core, y }) {
+    const defs = svg('defs');
+    const rng = (seed) => () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296);
+    const px = (x, yy, w, h, fill, extra = {}) => svg('rect', { x: Math.round(x), y: Math.round(yy), width: w, height: h, fill, 'shape-rendering': 'crispEdges', ...extra });
+    const gem = (cx, cy, sz, light, mid, dark) => {
+      const g = svg('g', { 'shape-rendering': 'crispEdges' });
+      g.append(
+        svg('polygon', { points: `${cx},${cy - sz} ${cx + sz * 0.7},${cy} ${cx},${cy + sz} ${cx - sz * 0.7},${cy}`, fill: mid }),
+        svg('polygon', { points: `${cx},${cy - sz} ${cx - sz * 0.7},${cy} ${cx},${cy}`, fill: light }),
+        svg('polygon', { points: `${cx},${cy} ${cx + sz * 0.7},${cy} ${cx},${cy + sz}`, fill: dark }),
+      );
+      return g;
+    };
+    // Une trame par couche : fond, grains plus clairs et plus sombres.
+    const TIERS = {
+      evident: { y0: top, y1: y(20), base: '#4a2f1a', hi: '#5f3d22', lo: '#34200f', id: 'evident' },
+      courant: { y0: y(20), y1: y(40), base: '#8e5f31', hi: '#a87340', lo: '#6c4522', id: 'courant' },
+      original: { y0: y(40), y1: y(60), base: '#64717e', hi: '#7d8b99', lo: '#4a5560', id: 'original' },
+      rare: { y0: y(60), y1: bottom, base: '#5e2013', hi: '#7a2e1c', lo: '#43150c', id: 'rare' },
+      pepite: { y0: bottom, y1: core, base: '#b5561a', hi: '#d97a2a', lo: '#8a3d0e', id: 'pepite' },
+    };
+    for (const t of Object.values(TIERS)) {
+      const pat = svg('pattern', { id: `strate-${t.id}`, width: 12, height: 12, patternUnits: 'userSpaceOnUse' });
+      pat.append(px(0, 0, 12, 12, t.base), px(1, 2, 3, 2, t.hi), px(7, 7, 4, 2, t.lo), px(5, 0, 2, 2, t.lo), px(9, 4, 2, 2, t.hi), px(2, 9, 3, 2, t.lo));
+      defs.append(pat);
+    }
+    chart.append(defs);
+    for (const t of Object.values(TIERS)) {
+      chart.append(
+        svg('rect', { x: left, y: t.y0, width: right - left, height: t.y1 - t.y0, fill: `url(#strate-${t.id})` }),
+        svg('rect', { x: left, y: t.y0, width: right - left, height: 2, fill: 'rgba(255,255,255,0.18)' }), // arête claire en haut de chaque couche
+        svg('rect', { x: left, y: t.y1 - 2, width: right - left, height: 2, fill: 'rgba(0,0,0,0.35)' }),
+        svg('text', { x: left - 6, y: (t.y0 + t.y1) / 2 + 4, class: 'band-label' }, TIER_LABELS[t.id]),
+      );
+    }
+    const inBand = (t, r, w, h) => [left + 4 + r() * (right - left - 8 - w), t.y0 + 4 + r() * Math.max(1, t.y1 - t.y0 - 8 - h)];
+    const decor = svg('g');
+    // Gravier : cailloux, racines pendantes, un ver.
+    let r = rng(11);
+    for (let i = 0; i < 9; i++) { const [x, yy] = inBand(TIERS.evident, r, 5, 4); decor.append(px(x, yy, 5, 3, '#7a7068'), px(x, yy, 5, 1, '#a89e94')); }
+    for (let i = 0; i < 5; i++) { const x = left + 10 + r() * (right - left - 20), len = 8 + r() * 12; for (let k = 0; k < len; k += 2) decor.append(px(x + (k % 4 === 0 ? 0 : 1), top + k, 1, 2, '#8a5a2b')); }
+    decor.append(px(left + 150, top + 28, 8, 2, '#e08a9a'), px(left + 156, top + 26, 2, 2, '#e08a9a'));
+    // Soufre : cristaux jaunes, un os.
+    r = rng(23);
+    for (let i = 0; i < 4; i++) { const [x, yy] = inBand(TIERS.courant, r, 8, 8); decor.append(gem(x + 4, yy + 4, 5, '#fff2b0', '#ffd36a', '#c8841c')); }
+    { const [x, yy] = inBand(TIERS.courant, r, 22, 5); decor.append(px(x, yy + 1, 22, 3, '#efe6cf'), px(x - 2, yy, 3, 5, '#efe6cf'), px(x + 21, yy, 3, 5, '#efe6cf'), px(x, yy + 3, 22, 1, '#b8ab8c')); }
+    // Cuivre : fossile en spirale, plaques de vert-de-gris, pépites de cuivre.
+    r = rng(37);
+    { const [x, yy] = inBand(TIERS.original, r, 16, 16); const c = x + 8, d = yy + 8; for (const [rad, col] of [[8, '#3a4048'], [7, '#d9d0b8'], [5, '#9a917a'], [4, '#d9d0b8'], [2, '#6a6252']]) decor.append(svg('circle', { cx: c, cy: d, r: rad, fill: col, 'shape-rendering': 'crispEdges' })); }
+    for (let i = 0; i < 6; i++) { const [x, yy] = inBand(TIERS.original, r, 7, 3); decor.append(px(x, yy, 7, 3, '#3f9a86'), px(x + 1, yy, 4, 1, '#7fe0c8')); }
+    for (let i = 0; i < 3; i++) { const [x, yy] = inBand(TIERS.original, r, 6, 5); decor.append(px(x, yy, 6, 4, '#c26a2c'), px(x, yy, 6, 1, '#e8964a')); }
+    // Rubis : cristaux rouges et une géode bleutée.
+    r = rng(51);
+    for (let i = 0; i < 5; i++) { const [x, yy] = inBand(TIERS.rare, r, 10, 12); decor.append(gem(x + 5, yy + 6, 7, '#ffb0b0', '#e0342b', '#8f1f19')); }
+    { const [x, yy] = inBand(TIERS.rare, r, 18, 14); decor.append(svg('ellipse', { cx: x + 9, cy: yy + 7, rx: 9, ry: 7, fill: '#2a1a3a' }), svg('ellipse', { cx: x + 9, cy: yy + 7, rx: 6, ry: 4, fill: '#7fe0ff' }), px(x + 6, yy + 5, 3, 2, '#ffffff')); }
+    // Pépite : pépites d'or et étincelles.
+    r = rng(67);
+    for (let i = 0; i < 7; i++) { const [x, yy] = inBand(TIERS.pepite, r, 8, 6); decor.append(px(x, yy + 1, 7, 4, '#ffd36a'), px(x + 1, yy, 5, 1, '#fff2b0'), px(x, yy + 4, 7, 1, '#c8841c')); }
+    chart.append(decor);
+    // Tunnels et cristaux d'arrivée.
+    const step = (right - left) / state.rounds.length;
+    state.rounds.forEach((rd, i) => {
+      const cx = left + step * (i + 0.5);
+      chart.append(svg('text', { x: cx, y: core + 16, class: 'tick' }, i + 1));
+      if (rd.status !== 'done') return;
+      const tierId = rd.tier ? rd.tier.id : 'skip';
+      const color = Pixel.TIER_COLORS[tierId];
+      const depth = rd.outcome === 'answer' ? rd.points : 0;
+      const end = depth >= 100 ? (bottom + core) / 2 : y(depth);
+      chart.append(svg('rect', { x: cx - 3, y: top, width: 6, height: Math.max(2, end - top), fill: '#0b0806', opacity: 0.92 }), svg('rect', { x: cx - 1, y: top, width: 2, height: Math.max(2, end - top), fill: color, opacity: 0.55 }));
+      chart.append(svg('circle', { cx, cy: end, r: 11, fill: color, opacity: 0.28 }), gem(cx, end, 9, '#ffffff', color, '#00000066'));
+      if (settings.colors !== 'normal' && Pixel.TIER_SYMBOLS[tierId]) chart.append(svg('text', { x: cx, y: end + 4, class: 'glyph' }, Pixel.TIER_SYMBOLS[tierId]));
+    });
+  }
+
   /** Carnet de forage : une colonne par thème, d'autant plus profonde que la réponse est rare. */
   function renderDiveLog(state) {
     const chart = $('divelog-chart');
@@ -2941,6 +3122,7 @@
     const bottom = 172;
     const core = bottom + 14;
     const y = (p) => top + (Math.max(0, Math.min(100, p)) / 100) * (bottom - top);
+    if (galerieOn()) return renderDiveLog16(state, chart, { left, right, top, bottom, core, y });
     // Bandes de rareté, colorées comme des couches de plus en plus profondes ; la pépite tout au fond.
     const bands = [
       [top, y(20), 'evident', '#4a2f1a'],
@@ -2971,7 +3153,8 @@
   }
 
   function swatch(tierId) {
-    const node = el('span', { class: 'swatch', style: { background: Pixel.TIER_COLORS[tierId] } });
+    const node = el('span', { class: 'swatch' });
+    ore(node, tierId);
     if (settings.colors !== 'normal') node.textContent = Pixel.TIER_SYMBOLS[tierId] || '';
     return node;
   }
@@ -2986,7 +3169,7 @@
     $('results-best').hidden = !best;
     if (best) {
       const bestSw = $('results-best-sw');
-      bestSw.style.background = Pixel.TIER_COLORS[best.tier.id];
+      ore(bestSw, best.tier.id);
       bestSw.textContent = settings.colors !== 'normal' ? Pixel.TIER_SYMBOLS[best.tier.id] || '' : '';
       $('results-best-answer').textContent = best.answer;
       $('results-best-theme').textContent = `${best.title} · ${best.tier.label.toLowerCase()} · ${pts(best.points)}`;
@@ -6698,7 +6881,7 @@
               el(
                 'li',
                 { class: `${p.me ? 'me' : ''}${mark}${r.outcome === 'joker' ? ' joker' : ''}${r.spare ? ' spare' : ''}` },
-                el('span', { class: 'swatch', style: { background: Pixel.TIER_COLORS[r.tier] || '#666' } }),
+                (() => { const n = el('span', { class: 'swatch' }); ore(n, r.tier); return n; })(),
                 el('span', { class: 'who' }, avatarEl(p.avatar, 'head', 2), el('span', { class: 'who-text' }, p.username, titleChip(p.title))),
                 el('span', { class: 'what' }, what),
                 el('span', { class: 'pts' }, r.outcome === 'joker' ? '—' : pts(r.points || 0)),
@@ -6718,7 +6901,7 @@
             ? el(
                 'span',
                 { class: 'compare-mine' },
-                el('span', { class: 'swatch', style: { background: Pixel.TIER_COLORS[mine.r.tier] || '#666' } }),
+                (() => { const n = el('span', { class: 'swatch' }); ore(n, mine.r.tier); return n; })(),
                 el('span', { class: 'what' }, mineWhat),
                 el('span', { class: 'pts' }, mine.r.outcome === 'joker' ? '—' : pts(mine.r.points || 0)),
               )

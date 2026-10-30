@@ -1891,3 +1891,75 @@ html[data-galerie] .gallery-post, html[data-galerie] .gallery-beam, html[data-ga
 html[data-galerie] .gallery-body canvas#gallery-icon { width: 100%; max-width: 288px; height: auto; aspect-ratio: 96 / 40; filter: none; }
 html[data-galerie] .gallery-body h2 { color: var(--lamp); font-size: calc(11px * var(--fs)); }
 .recap-names .who-name, .recap-names .score { text-shadow: 1px 1px 0 #000, 0 0 6px #000; }
+
+/* Tutoriel (refonte) : même gabarit à chaque étape, vignette tirée du vrai jeu sur un vrai décor de grotte. */
+html[data-galerie] #tutorial[open] { display: flex; flex-direction: column; height: min(570px, 92dvh); padding: 14px; gap: 0; }
+html[data-galerie] .tuto-art { display: block; flex: none; min-height: 0; height: 176px; margin: 0 0 10px; padding: 0; overflow: hidden; position: relative; }
+html[data-galerie] #tutorial h2 { flex: none; display: flex; align-items: center; justify-content: center; min-height: 2.6em; margin: 0 0 8px; text-align: center; line-height: 1.4; }
+html[data-galerie] .tuto-body { flex: 1; min-height: 0; overflow: auto; text-align: center; }
+html[data-galerie] .tuto-body p { margin: 0 0 8px; }
+html[data-galerie] .tuto-dots { flex: none; margin: 6px 0; }
+html[data-galerie] .tuto-nav { flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+html[data-galerie] .tuto-nav .btn { margin: 0; width: 100%; }
+html[data-galerie] #tuto-prev[hidden] { display: block !important; visibility: hidden; }
+html[data-galerie] .tuto-skip { flex: none; }
+html[data-galerie] .tuto-vig { position: absolute; inset: 0; }
+html[data-galerie] .tuto-bg { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; filter: brightness(0.7); }
+html[data-galerie] .tuto-vig::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 50%, rgba(6, 4, 10, 0.55), rgba(6, 4, 10, 0.1) 80%); pointer-events: none; }
+html[data-galerie] .tuto-vig-in { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; text-shadow: 0 2px 0 #000, 0 0 8px rgba(0, 0, 0, 0.9); text-align: center; }
+html[data-galerie] .tuto-vig-in p { margin: 0; }
+html[data-galerie] .tuto-vig .tuto-mole { height: 72px; width: auto; aspect-ratio: 3 / 2; }
+html[data-galerie] .tuto-wagon { width: 150px; height: auto; aspect-ratio: 160 / 64; image-rendering: pixelated; }
+html[data-galerie] .tuto-vig .theme-title { font-size: calc(13px * var(--fs)); line-height: 1.4; margin: 0; color: var(--lamp); }
+html[data-galerie] .tuto-chip { display: flex; align-items: center; gap: 8px; min-width: 76%; padding: 5px 10px; border-radius: 10px; background: var(--glass); border: 1px solid var(--edge); font-size: calc(16px * var(--fs)); text-shadow: none; }
+html[data-galerie] .tuto-chip .sw { width: 14px; height: 14px; flex: none; box-shadow: 0 0 0 2px #000; }
+html[data-galerie] .tuto-chip .muted { margin-left: auto; font-size: calc(14px * var(--fs)); }
+html[data-galerie] .tuto-vig .pips { padding: 0; }
+html[data-galerie] .tuto-vig .timer { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 10px; background: var(--glass); border: 1px solid var(--edge); }
+html[data-galerie] .tuto-vig .timer canvas { width: 160px; height: auto; image-rendering: pixelated; }
+html[data-galerie] .tuto-switch { width: 190px; height: auto; aspect-ratio: 160 / 64; image-rendering: pixelated; display: block; }
+html[data-galerie] .tuto-voies { display: flex; justify-content: space-between; gap: 10px; width: 100%; font-size: calc(15px * var(--fs)); }
+html[data-galerie] .tuto-voies span { padding: 3px 8px; border-radius: 8px; background: var(--glass); border: 1px solid var(--edge); text-shadow: none; }
+html[data-galerie] .tuto-vig .feedback-points { font-size: 1.8em; color: var(--lamp); }
+html[data-galerie] .tuto-vig .feedback-tier { font-size: 0.9em; }
+html[data-galerie] .tuto-input { width: 78%; text-align: center; padding: 8px 10px; border-radius: 999px; background: rgba(12, 10, 16, 0.78); border: 2px solid var(--lamp); color: var(--ink); pointer-events: none; }
+
+/* Forage sans cadre : question, chrono et détails regroupés en bas, plus légers ; la foreuse garde le haut de l'écran. */
+html[data-frameless] #pane-prompt:not([hidden]), html[data-frameless] #pane-feedback:not([hidden]), html[data-frameless] #pane-ready:not([hidden]) { flex: none; margin-top: auto; gap: 6px; }
+html[data-frameless] #pane-prompt .game-mole { margin: 0 0 2px; justify-content: center; gap: 8px; }
+html[data-frameless] #pane-prompt .game-mole canvas { width: 54px; height: 36px; }
+html[data-frameless] #pane-prompt .game-mole .bubble { padding: 5px 8px; font-size: calc(14px * var(--fs)); background: rgba(10, 8, 16, 0.55); box-shadow: 0 0 0 1px var(--edge); border-radius: 8px; }
+html[data-frameless] #pane-prompt .game-mole .bubble::before { border-right-color: rgba(10, 8, 16, 0.55); }
+html[data-frameless] #prompt-index { margin: 0; font-size: calc(13px * var(--fs)); opacity: 0.8; }
+html[data-frameless] #pane-prompt .theme-title { font-size: calc(13px * var(--fs)); line-height: 1.45; }
+html[data-frameless] #pane-prompt .timer {
+  width: min(250px, 72%); margin: 0 auto; padding: 2px 10px 2px 8px; border-radius: 999px; overflow: hidden;
+  background: rgba(8, 6, 12, 0.5); box-shadow: inset 0 0 0 1px var(--edge);
+}
+html[data-frameless] #pane-prompt .timer-count { width: 2.2em; font-size: 11px; }
+html[data-frameless] #pane-prompt .timer.last .timer-count { font-size: 13px; }
+html[data-frameless] #form-answer { margin-top: 2px; gap: 6px; }
+html[data-frameless] #form-answer input { padding: 10px 14px; border: 2px solid var(--lamp); }
+html[data-frameless] #pane-prompt .joker-note, html[data-frameless] #pane-prompt .notimer-note { font-size: calc(13px * var(--fs)); margin: 0; opacity: 0.85; }
+html[data-frameless] #pane-feedback { font-size: 0.92em; }
+html[data-frameless] #pane-feedback .feedback-points { font-size: 1.4em; margin: 0; }
+html[data-frameless] #pane-feedback .feedback-tier { margin: 0; }
+html[data-frameless] #pane-feedback > p:not(.feedback-points):not(.feedback-tier) { margin: 0; padding: 3px 8px; font-size: calc(15px * var(--fs)); line-height: 1.25; }
+html[data-frameless] #pane-ready h2, html[data-frameless] #pane-ready p { margin: 0; }
+
+/* Tutoriel : texte lisible et gabarit identique à chaque étape (même quand « Passer » disparaît). */
+html[data-galerie] .tuto-body p { color: var(--ink); }
+html[data-galerie] .tuto-body p.muted { color: #cdbfa6; }
+html[data-galerie] .tuto-skip[hidden] { display: block !important; visibility: hidden; }
+
+/* Fin de forage : lisibilité (fond plus sombre derrière la courbe et le carnet, rien sous la barre du bas). */
+html[data-frameless] #view-results { padding-bottom: 96px; }
+html[data-frameless] #view-results .card, html[data-frameless] #view-results .theme-card { background: rgba(8, 6, 12, 0.74) !important; }
+html[data-frameless] #results-distribution { background: rgba(8, 6, 12, 0.74); border: 1px solid rgba(255, 211, 106, 0.18); border-radius: 12px; padding: 8px 6px; }
+html[data-galerie] .divelog { shape-rendering: crispEdges; }
+html[data-galerie] .divelog text { shape-rendering: auto; text-shadow: 0 1px 0 #000; }
+html[data-galerie] #divelog-chart text.band-label { fill: #fff2d0; font-size: 12px; paint-order: stroke; stroke: #000; stroke-width: 3px; }
+html[data-galerie] .tuto-vig-in .tuto-chip { padding: 2px 8px; min-width: 82%; font-size: calc(14px * var(--fs)); }
+html[data-galerie] .tuto-vig-in .tuto-chip .sw { width: 16px; height: 16px; }
+html[data-galerie] .tuto-vig-in { gap: 3px; }
+html[data-galerie] .swatch, html[data-galerie] .best .sw, html[data-galerie] .pip { image-rendering: pixelated; }
