@@ -3151,7 +3151,7 @@
     peau: { clair: '#f1c9a5', mat: '#d9a066', brun: '#9c6a43', fonce: '#6b4328' },
     couleur: { brun: '#4a2f1a', noir: '#1b1410', blond: '#e8c547', roux: '#c4562a', gris: '#b8b8c0', rose: '#e86aa8', bleu: '#4a86e8' },
   };
-  const AVATAR_ORDER = ['espece', 'modele', 'forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'accessoire', 'aura', 'dos', 'chapeau', 'tenue', 'objet', 'compagnon', 'lieu'];
+  const AVATAR_ORDER = ['espece', 'modele', 'forme', 'corpulence', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'accessoire', 'aura', 'dos', 'chapeau', 'tenue', 'objet', 'compagnon', 'lieu'];
   // Selon le type de personnage : catégories sans effet (masquées) et noms/couleurs adaptés.
   const SPECIES_UI = {
     humain: { hide: ['modele'] },
@@ -3160,9 +3160,9 @@
     taupe: { hide: ['cheveux', 'couleur', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage', 'iris', 'modele'], labels: { peau: 'Pelage' }, swatch: { peau: 'taupe' } },
     citrouille: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'iris', 'modele'], labels: { peau: 'Citrouille' }, swatch: { peau: 'citrouille' } },
     squelette: { hide: ['cheveux', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage', 'iris', 'modele'], labels: { peau: 'Os', couleur: 'Lueur des orbites' }, swatch: { peau: 'squelette', couleur: 'lentilles' } },
-    fantome: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'tenue', 'iris', 'modele'], labels: { peau: 'Drap' }, swatch: { peau: 'fantome' } },
+    fantome: { hide: ['forme', 'corpulence', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'tenue', 'iris', 'modele'], labels: { peau: 'Drap' }, swatch: { peau: 'fantome' } },
     champignon: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'chapeau', 'modele'], labels: { peau: 'Chapeau du champignon' }, swatch: { peau: 'champignon' } },
-    'ver-luisant': { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'tenue', 'modele'], labels: { peau: 'Corps' }, swatch: { peau: 'ver-luisant' } },
+    'ver-luisant': { hide: ['forme', 'corpulence', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'tenue', 'modele'], labels: { peau: 'Corps' }, swatch: { peau: 'ver-luisant' } },
     diablotin: { hide: ['forme', 'trait', 'yeux', 'iris', 'bouche', 'modele'], labels: { peau: 'Peau' }, swatch: { peau: 'diablotin' } },
     grenouille: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'modele'], labels: { peau: 'Peau' }, swatch: { peau: 'grenouille' } },
     golem: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'tenue', 'iris', 'modele'], labels: { peau: 'Cristaux' }, swatch: { peau: 'golem' } },
@@ -3237,11 +3237,11 @@
         ['Type', ['espece', 'modele', 'aura']],
         ['Tête', ['cheveux', 'couleur', 'chapeau']],
         ['Visage', ['peau', 'yeux', 'iris', 'bouche', 'barbe', 'trait', 'piercing']],
-        ['Corps', ['forme', 'tenue', 'accessoire', 'dos', 'tatouage']],
+        ['Corps', ['forme', 'corpulence', 'tenue', 'accessoire', 'dos', 'tatouage']],
         ['Outil', ['objet', 'compagnon', 'lieu']],
       ];
-      const FULL = new Set(['espece', 'modele', 'aura', 'dos', 'forme', 'tenue', 'objet', 'tatouage']);
-      const THUMBS = new Set(['espece', 'modele', 'aura', 'dos', 'iris', 'forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage', 'accessoire', 'chapeau', 'tenue', 'objet', 'compagnon']);
+      const FULL = new Set(['espece', 'modele', 'aura', 'dos', 'forme', 'corpulence', 'tenue', 'objet', 'tatouage']);
+      const THUMBS = new Set(['espece', 'modele', 'aura', 'dos', 'iris', 'forme', 'corpulence', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage', 'accessoire', 'chapeau', 'tenue', 'objet', 'compagnon']);
       let current = 0;
       const tabs = el('div', { class: 'wr-tabs', role: 'tablist' });
       const panel = el('div', { class: 'wr-panel' });
@@ -3291,6 +3291,8 @@
     }
 
     $('avatar-options').replaceChildren(...(betaOn('betaProfil') ? [wardrobe()] : buildRows()));
+    // Refonte en bêta : l'anniversaire n'est proposé qu'au responsable.
+    if (betaOn('betaProfil') && app.me && app.me.isAdmin) $('avatar-options').append(birthdayBlock(profile.birthday));
     preview();
     let timer = null;
     function commit() {
@@ -3312,6 +3314,32 @@
         }
       }, 500);
     }
+  }
+
+  /** Anniversaire facultatif : jour et mois, jamais montrés aux autres joueurs. */
+  function birthdayBlock(current) {
+    const MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+    const [m0, d0] = current ? current.split('-').map(Number) : [0, 0];
+    const day = el('select', { 'aria-label': 'Jour' }, el('option', { value: '' }, 'Jour'), ...Array.from({ length: 31 }, (_, i) => el('option', { value: String(i + 1) }, String(i + 1))));
+    const month = el('select', { 'aria-label': 'Mois' }, el('option', { value: '' }, 'Mois'), ...MONTHS.map((n, i) => el('option', { value: String(i + 1) }, n)));
+    day.value = d0 ? String(d0) : '';
+    month.value = m0 ? String(m0) : '';
+    const status = el('span', { class: 'muted small', role: 'status' });
+    const save = el('button', { class: 'btn ghost', type: 'button' }, 'Enregistrer');
+    save.addEventListener('click', async () => {
+      const blank = !day.value && !month.value;
+      if (!blank && (!day.value || !month.value)) { status.textContent = 'Choisis le jour et le mois.'; return; }
+      const value = blank ? null : `${month.value.padStart(2, '0')}-${day.value.padStart(2, '0')}`;
+      try {
+        await api('/api/profile/birthday', { birthday: value });
+        status.textContent = value ? 'Anniversaire enregistré.' : 'Anniversaire effacé.';
+      } catch (err) {
+        status.textContent = err.message;
+      }
+    });
+    return el('div', { class: 'wr-slot' }, el('h4', {}, 'Ton anniversaire (facultatif)'),
+      el('p', { class: 'muted small' }, 'Les autres joueurs ne le voient pas. Si tu fores ce jour-là, tu reçois un cadeau pour ton personnage.'),
+      el('div', { class: 'row' }, day, month, save), status);
   }
 
   $('btn-rename').addEventListener('click', () => {

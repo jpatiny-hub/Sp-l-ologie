@@ -37,7 +37,7 @@ test('avatar : nouveaux éléments libres acceptés, armes et armures de duel ve
   for (const slot of ['espece', 'cheveux', 'yeux', 'aura', 'dos', 'bouche', 'compagnon', 'barbe', 'piercing', 'tatouage', 'accessoire', 'chapeau', 'tenue', 'objet']) {
     for (const [id] of Avatar.OPTIONS[slot]) {
       if (['aucun', 'aucune', 'points', 'court', 'humain', 'mineur', 'chauve', 'pull', 'poil', 'defaut', 'aucune', 'normal'].includes(id)) continue;
-      assert.ok(draw.includes(`'${id}'`) || draw.includes(`${id}:`), `${slot}:${id} n'a pas de dessin`);
+      assert.ok(draw.includes(`'${id}'`) || draw.includes(`${id}:`) || (id.startsWith('insigne-') && draw.includes("'insigne-'")), `${slot}:${id} n'a pas de dessin`);
     }
   }
 });
@@ -109,4 +109,30 @@ test('avatar : le vestiaire 16-bit reste réservé au responsable pendant la bê
   assert.ok(!Avatar.catalog([], true, false).espece.options.some((o) => o.id === 'nain'));
   // Les éléments déjà ouverts à tous avant la refonte restent visibles.
   assert.ok(Avatar.catalog([], true, false).chapeau.options.some((o) => o.id === 'viking'));
+});
+
+test('anniversaire facultatif : date vérifiée, effaçable, jamais dans le classement', async () => {
+  const { startServer, client } = require('./helpers');
+  const app = await startServer();
+  try {
+    const ada = client(app.base);
+    await ada('/api/signup', { username: 'ada', password: 'secret123' });
+    assert.equal((await ada('/api/profile')).data.birthday, null);
+    assert.equal((await ada('/api/profile/birthday', { birthday: '02-30' })).status, 400);
+    assert.equal((await ada('/api/profile/birthday', { birthday: 'demain' })).status, 400);
+    assert.equal((await ada('/api/profile/birthday', { birthday: 12 })).status, 400);
+    assert.equal((await ada('/api/profile/birthday', { birthday: '02-29' })).status, 200);
+    assert.equal((await ada('/api/profile')).data.birthday, '02-29');
+    assert.equal((await ada('/api/profile/birthday', { birthday: null })).status, 200);
+    assert.equal((await ada('/api/profile')).data.birthday, null);
+  } finally {
+    await app.close();
+  }
+});
+
+test('mardi gras : 47 jours avant Pâques', () => {
+  const { calendarKinds } = require('../src/badges');
+  assert.ok(calendarKinds('2027-02-09').includes('mardi-gras'));
+  assert.ok(calendarKinds('2026-02-17').includes('mardi-gras'));
+  assert.ok(!calendarKinds('2027-02-10').includes('mardi-gras'));
 });

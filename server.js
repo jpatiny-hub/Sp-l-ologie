@@ -629,6 +629,15 @@ function createApp({
       json(res, 200, { avatar: saved });
     },
 
+    // Anniversaire facultatif : sert seulement à débloquer la panoplie du gâteau, jamais montré aux autres.
+    'POST /api/profile/birthday': async (req, res) => {
+      const user = requireUser(req, res);
+      const { birthday } = await readJson(req);
+      if (birthday !== null && typeof birthday !== 'string') throw new HttpError(400, 'Date inconnue.');
+      if (!game.badges.setBirthday(user.id, birthday)) throw new HttpError(400, "Cette date n'existe pas.");
+      json(res, 200, { birthday });
+    },
+
     // Changement de pseudo : mot de passe demandé, un changement par semaine, pas de doublon.
     'POST /api/profile/rename': async (req, res) => {
       const user = requireUser(req, res);

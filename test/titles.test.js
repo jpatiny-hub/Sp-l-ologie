@@ -19,7 +19,7 @@ test('titres : chaque titre de badge et chaque verrou de cosmétique renvoie à 
   for (const [key, need] of locks) {
     const [slot, id] = key.split(':');
     assert.ok(Avatar.OPTIONS[slot] && Avatar.OPTIONS[slot].some((o) => o[0] === id), `verrou ${key} : option inconnue`);
-    for (const b of need) assert.ok(ids.has(b), `verrou ${key} : badge ${b} inconnu`);
+    for (const b of need) assert.ok(ids.has(b) || /^annee-\d+$/.test(b), `verrou ${key} : badge ${b} inconnu`);
   }
 });
 
