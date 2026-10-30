@@ -1698,19 +1698,29 @@ html[data-galerie] .panel-area, html[data-galerie] .view { gap: 12px; }
 html[data-galerie] .topbar { padding: 8px 12px; }
 html[data-galerie] .logo { font-size: calc(11px * var(--fs)); color: #ffe7b0; text-shadow: 2px 2px 0 #000, 0 0 12px rgba(255, 170, 60, 0.6); }
 html[data-galerie] .card, html[data-galerie] dialog.card {
-  background: rgba(24, 22, 28, 0.5) !important; -webkit-backdrop-filter: blur(1.5px); backdrop-filter: blur(1.5px);
-  border: 3px solid rgba(10, 9, 12, 0.9) !important; margin: 3px; padding: 9px 12px;
-  box-shadow: inset 0 0 0 2px rgba(150, 140, 160, 0.5), 0 6px 14px rgba(0, 0, 0, 0.4);
+  position: relative; margin: 3px; padding: 10px 12px;
+  background: linear-gradient(180deg, rgba(28, 34, 76, 0.84), rgba(20, 18, 30, 0.9)) !important; -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+  border: 3px solid #06050a !important;
+  box-shadow: inset 0 0 0 2px rgba(216, 189, 122, 0.7), inset 0 14px 22px -12px rgba(255, 180, 90, 0.28), 0 8px 18px rgba(0, 0, 0, 0.5);
 }
-html[data-galerie] .card h2 { font-size: calc(10px * var(--fs)); line-height: 1.5; margin: 0 0 6px; color: #ffd98a; text-shadow: 2px 2px 0 #000; }
+/* Coins entaillés dorés en haut de chaque panneau (ton « entre les deux univers »). */
+html[data-galerie] .view > .card::before, html[data-galerie] .view > .card::after { content: ''; position: absolute; top: -3px; width: 6px; height: 6px; background: #d8bd7a; pointer-events: none; }
+html[data-galerie] .view > .card::before { left: -3px; }
+html[data-galerie] .view > .card::after { right: -3px; }
+html[data-galerie] .card h2 { font-size: calc(10px * var(--fs)); line-height: 1.5; margin: 0 0 6px; color: #f7e4b0; text-shadow: 2px 2px 0 #000; letter-spacing: 0.5px; }
 html[data-galerie] .card p { margin: 0 0 6px; font-size: calc(19px * var(--fs)); line-height: 1.15; }
 html[data-galerie] .beta-greet { font-size: calc(11px * var(--fs)); margin: 0 0 4px; text-shadow: 2px 2px 0 #000; }
 html[data-galerie] .beta-sub { font-size: calc(19px * var(--fs)); margin: 2px 0 6px; }
 html[data-galerie] .beta-mascot { width: 84px; height: 56px; }
 html[data-galerie] .beta-mascot canvas { width: 84px; height: 56px; }
 html[data-galerie] .hero-row { margin-bottom: 4px; }
-html[data-galerie] .btn { padding: 9px 8px; font-size: calc(10px * var(--fs)); box-shadow: inset 3px 3px 0 rgba(255, 230, 168, 0.8), inset -3px -3px 0 rgba(120, 70, 10, 0.7), 0 0 14px rgba(255, 170, 50, 0.35); }
-html[data-galerie] .bottom-nav { background: rgba(14, 13, 17, 0.9); border-top: 3px solid rgba(150, 140, 160, 0.6); }
+html[data-galerie] .btn { padding: 10px 8px; font-size: calc(10px * var(--fs)); color: #2a1a04; background: linear-gradient(180deg, #ffe9ac, #e8b04a); border: 3px solid #1a0f02; box-shadow: inset 0 0 0 1px #fff3cc, 0 0 16px rgba(255, 190, 90, 0.4); }
+html[data-galerie] .btn.secondary, html[data-galerie] .btn.ghost { color: #e8ecff; background: linear-gradient(180deg, #2c3a7a, #1a2250); box-shadow: inset 0 0 0 1px rgba(216, 189, 122, 0.7); }
+html[data-galerie] .tab { background: #141a3c; color: #aab4d8; box-shadow: inset 0 0 0 2px rgba(216, 189, 122, 0.4); }
+html[data-galerie] .tab.active { background: linear-gradient(180deg, #ffe9ac, #e8b04a); color: #2a1a04; box-shadow: inset 0 0 0 1px #fff3cc; }
+html[data-galerie] .bottom-nav { background: rgba(10, 10, 20, 0.94); border-top: 3px solid #d8bd7a; box-shadow: none; }
+html[data-galerie] .bottom-nav button.active .nav-lab { color: #f2c566; }
+html[data-galerie] .podium .empty .block { background: #141a3c; box-shadow: inset 0 0 0 2px rgba(216, 189, 122, 0.4); }
 
 /* Accueil « Camp de base » : une scène et peu de blocs. Les défis passent dans la barre du bas, le podium reste sur l'accueil ; badges, profil en double et décompte bruyant disparaissent. */
 html:not([data-galerie]) #bottom-nav [data-nav='defis'] { display: none; }
@@ -1721,9 +1731,10 @@ html[data-galerie] #next-reset { font-size: calc(15px * var(--fs)); color: var(-
 html[data-galerie] .profile-card .home-chips { margin: 0; }
 html[data-galerie] .bottom-nav button { padding-left: 0; padding-right: 0; }
 html[data-galerie] .nav-lab { font-size: 7px; }
-html[data-galerie] dialog.drawer .drawer-frame { background: rgba(24, 22, 28, 0.92); }
+html[data-galerie] dialog.drawer .drawer-frame { background: linear-gradient(180deg, #161c40, #121019); }
 html[data-galerie] #defis-sheet-body canvas { max-width: 100%; height: auto !important; }
 html[data-galerie] .profile-card .streak-lantern { width: 40px; height: 40px; image-rendering: pixelated; }
 html[data-galerie] .profile-card .freeze-icon { width: 24px; height: 24px; }
 html[data-galerie] .profile-card .home-chips { gap: 18px; align-items: center; }
 html[data-galerie] #today-status:empty { display: none; }
+html[data-galerie] .icon-btn { background: #141a3c; border: 3px solid #06050a; box-shadow: inset 0 0 0 2px rgba(216, 189, 122, 0.7); color: #f7e4b0; }
