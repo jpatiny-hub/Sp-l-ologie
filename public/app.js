@@ -108,7 +108,8 @@
 
   /** Décor de saison (Halloween…) : interface et scène de forage, sauf en lecture facile et en thème clair. */
   function applySeason() {
-    const id = app.me && app.me.season && settings.season !== false ? app.me.season : null;
+    // La refonte 16-bit n'a pas de décor de saison (Halloween, Noël…) : il était fait pour l'ancien style.
+    const id = app.me && app.me.season && settings.season !== false && !REFONTE_FLAGS.some(refonteOn) ? app.me.season : null;
     const plain = isLight();
     const root = document.documentElement;
     if (id && !plain) root.dataset.season = id;

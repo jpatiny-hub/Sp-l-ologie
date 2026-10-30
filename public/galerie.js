@@ -56,7 +56,8 @@
     const scene = Math.floor((calm ? 0 : el) / SCENE_MS);
     const tier = global.Caves.TIERS[FIRST + (scene % tierCount())];
     const since = calm ? 0 : (el % SCENE_MS) / 1000;
-    const cam = Math.min(dims.WORLD_H - h, Math.round(dims.SKY + tier.from * dims.PPP - h / 3 + since * DRIFT));
+    // Toujours sous la surface (pas de ciel au-dessus de l'ossuaire).
+    const cam = Math.max(dims.SKY + 4, Math.min(dims.WORLD_H - h, Math.round(dims.SKY + tier.from * dims.PPP - h / 3 + since * DRIFT)));
     const g = canvas.getContext('2d');
     g.imageSmoothingEnabled = false;
     g.fillStyle = tier.dark;
