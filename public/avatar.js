@@ -268,6 +268,15 @@
     const eyes = o.yeux || 'points';
     const iris = o.iris || 'defaut';
     const ic = iris === 'vairons' ? [IRIS.bleu, IRIS.vert] : [IRIS[iris], IRIS[iris]];
+    if (o._blink && eyes !== 'cache-oeil') {
+      // Clignement : paupières closes (les lunettes restent en place).
+      if (eyes === 'lunettes') P(5, oy + 4, 6, 1, K);
+      else {
+        P(5, oy + 4, 2, 1, K);
+        P(9, oy + 4, 2, 1, K);
+      }
+      return;
+    }
     if (eyes === 'points') {
       P(6, oy + 3, 1, 1, ic[0] || K);
       P(9, oy + 3, 1, 1, ic[1] || K);
@@ -706,6 +715,10 @@
       P(6, oy + 5, 1, 1, lip);
       P(7, oy + 6, 2, 1, lip);
       P(9, oy + 5, 1, 1, lip);
+    } else if (m === 'grimace') {
+      P(6, oy + 6, 1, 1, '#7a3a30');
+      P(7, oy + 5, 2, 1, '#7a3a30');
+      P(9, oy + 6, 1, 1, '#7a3a30');
     } else if (m === 'serieux') {
       P(6, oy + 5, 4, 1, '#7a3a30');
     } else if (m === 'ouvert') {
@@ -1332,24 +1345,172 @@
     else paintHuman(P, o);
   }
 
+  /**
+   * Panoplies : un ensemble complet porté d'un coup donne un petit bonus visuel (particules).
+   * `drill` = nom de la foreuse assortie (voir le fil des foreuses de fête).
+   */
+  const SETS = [
+    { id: 'chaudron', name: 'Sorcière du chaudron', theme: 'halloween', drill: 'Chaudron', pieces: { chapeau: 'chapeau-sorciere', tenue: 'robe-sorciere', objet: 'balai', compagnon: 'chat-noir' }, fx: { kind: 'monte', colors: ['#ff8a2a', '#b46aff', '#7fff5a'] } },
+    { id: 'citrouille', name: 'Gardien citrouille', theme: 'halloween', drill: 'Citrouille', pieces: { espece: 'citrouille', tenue: 'epouvantail', chapeau: 'chapeau-paille', objet: 'torche' }, fx: { kind: 'monte', colors: ['#7fff5a', '#c8ff8a', '#ff8a2a'] } },
+    { id: 'pere-noel', name: 'Père Noël', theme: 'noel', drill: 'Père Noël', pieces: { chapeau: 'bonnet-noel', tenue: 'manteau-noel', dos: 'hotte', objet: 'cadeau' }, fx: { kind: 'tombe', colors: ['#ffffff', '#cfe8ff'] } },
+    { id: 'sapin', name: 'Lutin du sapin', theme: 'noel', drill: 'Sapin', pieces: { chapeau: 'bonnet-noel', objet: 'canne-sucre', compagnon: 'lucioles', aura: 'givre' }, fx: { kind: 'scintille', colors: ['#ff5a5a', '#ffe84a', '#5aff8a', '#5ac8ff'] } },
+    { id: 'cupidon', name: 'Cupidon', theme: 'saint-valentin', drill: 'Cupidon', pieces: { chapeau: 'aureole', tenue: 'costume-cupidon', dos: 'ailes-cupidon', objet: 'arc-coeur' }, fx: { kind: 'coeurs', colors: ['#ff4a7a', '#ff9ab8'] } },
+    { id: 'grand-saint', name: 'Grand Saint', theme: 'saint-nicolas', drill: 'Grand Saint', pieces: { chapeau: 'mitre', tenue: 'chape-eveque', objet: 'crosse' }, fx: { kind: 'scintille', colors: ['#ffe84a', '#fff8c0'] } },
+    { id: 'lapin', name: 'Lapin de Pâques', theme: 'paques', drill: 'Lapin', pieces: { chapeau: 'oreilles-lapin', objet: 'panier-paques', accessoire: 'noeud-papillon' }, fx: { kind: 'monte', colors: ['#ff9ad8', '#9ae8ff', '#ffe89a', '#b8ff9a'] } },
+    { id: 'minuit', name: 'Minuit', theme: 'nouvel-an', drill: 'Minuit', pieces: { chapeau: 'cotillon', objet: 'coupe', accessoire: 'serpentin' }, fx: { kind: 'tombe', colors: ['#ff5a8a', '#ffe84a', '#5ac8ff', '#8aff5a'] } },
+    { id: 'pi', name: 'Mathématicien du 14 mars', theme: 'pi-day', drill: 'Pi', pieces: { accessoire: 'pin-pi', objet: 'tarte', tenue: 'blouse' }, fx: { kind: 'monte', colors: ['#5ac8ff', '#ffffff'] } },
+    { id: 'poisson', name: 'Farceur du 1er avril', theme: 'poisson-avril', drill: 'Poisson', pieces: { dos: 'poisson-papier', objet: 'poisson' }, fx: { kind: 'bulles', colors: ['#cfeaff', '#8ad0ff'] } },
+    { id: 'nain', name: 'Pionnier nain', theme: 'mineur', drill: 'Pionnier', pieces: { espece: 'nain', tenue: 'mineur-nain', chapeau: 'casque-nain', objet: 'hache' }, fx: { kind: 'scintille', colors: ['#ffd84a', '#ffb02a'] } },
+    { id: 'steampunk', name: 'Horloger à vapeur', theme: 'mineur', drill: 'Horloger', pieces: { espece: 'robot', chapeau: 'chapeau-metal', dos: 'reservoir-vapeur', objet: 'pipe' }, fx: { kind: 'monte', colors: ['#e8e8f0', '#b8b8c8'] } },
+    { id: 'chevalier', name: 'Chevalier', theme: 'mineur', drill: 'Chevalier', pieces: { tenue: 'armure', chapeau: 'heaume', objet: 'bouclier' }, fx: { kind: 'scintille', colors: ['#ffffff', '#9ad0ff'] } },
+    { id: 'pirate', name: 'Pirate', theme: 'mineur', drill: 'Pirate', pieces: { tenue: 'pirate', chapeau: 'bandana', yeux: 'cache-oeil', accessoire: 'medaille' }, fx: { kind: 'tombe', colors: ['#ffd84a', '#ffb02a'] } },
+  ];
+
+  /** Panoplie complète portée par cet avatar, ou null. */
+  function activeSet(av) {
+    return SETS.find((st) => Object.entries(st.pieces).every(([slot, id]) => (av || {})[slot] === id)) || null;
+  }
+
+  /** Particules du bonus de panoplie, dessinées derrière le personnage (image `f` de l'animation). */
+  function paintSetBonus(P, fx, f) {
+    const n = 7;
+    for (let i = 0; i < n; i++) {
+      const col = fx.colors[i % fx.colors.length];
+      const x = (i * 5 + 1) % W;
+      const phase = (f * 2 + i * 4) % H;
+      if (fx.kind === 'monte') P(x, H - 1 - phase, 1, 1, col);
+      else if (fx.kind === 'tombe') P(x, phase, 1, 1, col);
+      else if (fx.kind === 'bulles') {
+        P(x, H - 1 - phase, 1, 1, col);
+        if (i % 3 === 0) P(x + 1, H - 2 - phase, 1, 1, fx.colors[1]);
+      } else if (fx.kind === 'coeurs') {
+        const y = H - 1 - phase;
+        if (i % 2 === 0) {
+          P(x, y, 1, 1, col);
+          P(x + 2, y, 1, 1, col);
+          P(x, y + 1, 3, 1, col);
+          P(x + 1, y + 2, 1, 1, col);
+        } else P(x, y, 1, 1, col);
+      } else if ((f + i) % 3 !== 0) {
+        // scintille : croix de quatre pixels qui clignote
+        const y = (i * 7 + 2) % (H - 4) + 1;
+        P(x, y, 1, 1, col);
+        if ((f + i) % 3 === 1) {
+          P(x - 1, y, 1, 1, col);
+          P(x + 1, y, 1, 1, col);
+          P(x, y - 1, 1, 1, col);
+          P(x, y + 1, 1, 1, col);
+        }
+      }
+    }
+  }
+
+  /** Retouches après dessin : corpulence, pose, secousse du robot. `t` = canevas W x H. */
+  function reshape(t, o) {
+    const g = t.getContext('2d');
+    const copy = () => {
+      const k = document.createElement('canvas');
+      k.width = W;
+      k.height = H;
+      k.getContext('2d').drawImage(t, 0, 0);
+      return k;
+    };
+    const y0 = OY + 8;
+    const h = 8;
+    const corp = o.corpulence || 'normale';
+    const n = { costaud: 1, imposant: 2 }[corp] || 0;
+    if (n) {
+      const k = copy();
+      g.clearRect(0, y0, W, h);
+      g.drawImage(k, 0, y0, 8, h, -n, y0, 8, h);
+      g.drawImage(k, 8, y0, 8, h, n, y0, 8, h);
+      for (let x = 8 - n; x < 8 + n; x++) g.drawImage(k, x < 8 ? 7 : 8, y0, 1, h, x, y0, 1, h);
+    } else if (corp === 'mince') {
+      const k = copy();
+      g.clearRect(0, y0, W, h);
+      g.drawImage(k, 0, y0, 8, h, 1, y0, 8, h);
+      g.drawImage(k, 8, y0, 8, h, 7, y0, 8, h);
+    }
+    const pose = o.pose || 'debout';
+    const px = (x, y) => {
+      const d = g.getImageData(x, y, 1, 1).data;
+      return d[3] ? `rgb(${d[0]},${d[1]},${d[2]})` : null;
+    };
+    if (pose === 'victoire') {
+      const sleeve = px(3, y0 + 2) || px(4, y0 + 2) || '#d9772b';
+      const hand = px(3, y0 + 7) || px(4, y0 + 7) || '#f0c9a0';
+      g.clearRect(0, y0, 4, h);
+      g.clearRect(12, y0, 4, h);
+      for (const x of [2, 13]) {
+        g.fillStyle = sleeve;
+        g.fillRect(x, y0 - 4, 1, 7);
+        g.fillStyle = hand;
+        g.fillRect(x, y0 - 6, 1, 2);
+      }
+      for (const x of [3, 12]) {
+        g.fillStyle = sleeve;
+        g.fillRect(x, y0 + 1, 1, 2);
+      }
+    } else if (pose === 'bras-croises') {
+      const sleeve = px(3, y0 + 2) || px(4, y0 + 2) || '#d9772b';
+      const hand = px(3, y0 + 7) || '#f0c9a0';
+      g.clearRect(0, y0 + 3, 4, 5);
+      g.clearRect(12, y0 + 3, 4, 5);
+      g.fillStyle = sleeve;
+      g.fillRect(4, y0 + 3, 8, 2);
+      g.fillStyle = hand;
+      g.fillRect(4, y0 + 3, 2, 1);
+      g.fillRect(10, y0 + 4, 2, 1);
+    } else if (pose === 'assis') {
+      // Jambes pliées : on retire quatre lignes de jambes et on pose un tabouret.
+      const k = copy();
+      g.clearRect(0, 0, W, H);
+      g.drawImage(k, 0, 0, W, OY + 18, 0, 4, W, OY + 18);
+      g.drawImage(k, 0, OY + 20, W, H - OY - 20, 0, OY + 22, W, H - OY - 20);
+      g.fillStyle = '#7a5230';
+      g.fillRect(2, OY + 21, 12, 2);
+      g.fillStyle = '#4a2f1a';
+      g.fillRect(3, OY + 23, 1, 4);
+      g.fillRect(12, OY + 23, 1, 4);
+    }
+    if (o._jolt) {
+      // Secousse du robot : tout le corps tremble d'un pixel.
+      const k = copy();
+      g.clearRect(0, 0, W, H);
+      g.drawImage(k, o._jolt, 0);
+    }
+  }
+
   function paint(c, o) {
     const species = o.espece || 'humain';
-    const draw = (P) => {
-      paintAura(P, o);
-      paintBack(P, o);
-      paintSpecies(P, o, species);
-    };
+    const f = o._f || 0;
+    const set = o._bonus ? activeSet(o) : null;
+    const o2 = { ...o };
+    if (o._mood === 'content') o2.bouche = 'sourire';
+    else if (o._mood === 'grimace') o2.bouche = 'grimace';
+    if (o._f !== undefined) {
+      if (f === 3) o2._blink = true;
+      if (species === 'robot' && (f === 1 || f === 2)) o2._jolt = f === 1 ? 1 : -1;
+    }
+    const t = document.createElement('canvas');
+    t.width = W;
+    t.height = H;
+    const P = painter(t.getContext('2d'));
+    paintAura(P, o2);
+    paintBack(P, o2);
+    paintSpecies(P, o2, species);
+    reshape(t, o2);
     if (species === 'nain') {
       // Même dessin que l'humain, mais les jambes raccourcies de quatre pixels : le nain est trapu.
-      const t = document.createElement('canvas');
-      t.width = W;
-      t.height = H;
-      draw(painter(t.getContext('2d')));
       c.drawImage(t, 0, 0, W, OY + 16, 0, 4, W, OY + 16);
       c.drawImage(t, 0, OY + 18, W, 4, 0, OY + 18, W, 4);
-      return;
+    } else c.drawImage(t, 0, 0);
+    if (set) {
+      // Particules derrière le personnage (n'écrasent aucun pixel déjà dessiné).
+      c.globalCompositeOperation = 'destination-over';
+      paintSetBonus(painter(c), set.fx, f);
+      c.globalCompositeOperation = 'source-over';
     }
-    draw(painter(c));
   }
 
   /**
@@ -1490,5 +1651,30 @@
     return c;
   }
 
-  global.Avatar = { canvas, sprite, finished, STORIES, MODELS, thumb, W, H, OY, SWATCHES: { robot: METAL, taupe: FUR, citrouille: GOURD, squelette: BONE, fantome: GHOST, golem: CRYSTAL, champignon: CAP, 'ver-luisant': WORM, diablotin: IMP, grenouille: FROG, lentilles: LENS } };
+  /**
+   * Anime un canevas déjà inséré dans la page : clignement, secousse du robot, particules de panoplie.
+   * S'arrête tout seul quand le canevas quitte la page. Renvoie une fonction d'arrêt.
+   */
+  function animate(el, av, opts) {
+    const o = opts || {};
+    let f = 0;
+    const draw = () => {
+      if (!el.isConnected) return stop();
+      const next = canvas({ ...av, _f: f % 4, _bonus: true }, { scale: o.scale || 3, view: o.view || 'full', finish: !!o.finish });
+      const g = el.getContext('2d');
+      g.imageSmoothingEnabled = false;
+      el.width = next.width;
+      el.height = next.height;
+      g.drawImage(next, 0, 0);
+      f++;
+    };
+    const timer = setInterval(draw, o.interval || 280);
+    function stop() {
+      clearInterval(timer);
+    }
+    draw();
+    return stop;
+  }
+
+  global.Avatar = { canvas, animate, SETS, activeSet, sprite, finished, STORIES, MODELS, thumb, W, H, OY, SWATCHES: { robot: METAL, taupe: FUR, citrouille: GOURD, squelette: BONE, fantome: GHOST, golem: CRYSTAL, champignon: CAP, 'ver-luisant': WORM, diablotin: IMP, grenouille: FROG, lentilles: LENS } };
 })(window);
