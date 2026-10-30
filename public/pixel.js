@@ -1149,6 +1149,8 @@
       this.world = buildWorld();
       this.layers = [];
       this.skin = { body: 'classique', bit: 'standard' };
+      this.drill16 = null; // foreuse 16-bit à l'essai (refonte, responsable seulement)
+      this.drill16At = null; // sa position dans l'image en cours, dessinée par `present`
       this.avatar = null;
       this.depth = 0;
       this.target = 0;
@@ -1176,13 +1178,29 @@
 
     /** Recopie l'image du jeu à l'écran (voir le constructeur). */
     present() {
+      // Foreuse 16-bit : écran au double de définition, la foreuse a 2 pixels de sprite par pixel du jeu.
+      const k = this.drill16At ? 2 : 1;
       const d = this.display;
-      if (d.width !== W || d.height !== this.h) {
-        d.width = W;
-        d.height = this.h;
+      if (d.width !== W * k || d.height !== this.h * k) {
+        d.width = W * k;
+        d.height = this.h * k;
       }
       this.dctx.imageSmoothingEnabled = false;
-      this.dctx.drawImage(this.canvas, 0, 0);
+      this.dctx.drawImage(this.canvas, 0, 0, W * k, this.h * k);
+      if (this.drill16At) this.drawDrill16(this.dctx, this.drill16At);
+    }
+
+    /** Foreuse 16-bit (essai du responsable) : visage du joueur dans le hublot. */
+    drawDrill16(ctx, d) {
+      const hub = global.Drills16.draw(ctx, d.id, { tipX: (d.x0 + 8) * 2, tipY: d.tip * 2, px: 1, time: d.time, drilling: d.drilling, view: { w: W * 2, h: this.h * 2 }, calm: reducedMotion() });
+      if (!hub || !d.face) return;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(hub.cx, hub.cy, hub.r, 0, 7);
+      ctx.clip();
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(d.face, 5, global.Avatar.OY + 1, 6, 5, hub.cx - hub.r, hub.cy - hub.r * 0.85, hub.r * 2, hub.r * 1.7);
+      ctx.restore();
     }
 
     /** Forage en cours (identifiant) : dans les galeries 16-bit, chaque forage a son propre décor. */
@@ -1474,6 +1492,7 @@
     }
 
     draw(time) {
+      this.drill16At = null;
       if (this.mode === 'overview') {
         this.drawOverview(time);
         return;
@@ -1573,8 +1592,13 @@
       const bodyTop = tip - frames[0].length - rows.length;
       ctx.fillStyle = '#26262c';
       ctx.fillRect(W / 2, SKY - 38, 1, Math.max(0, bodyTop - (SKY - 38)));
-      drawDrill(ctx, this.skin, x0, tip, time, this.drilling);
-      this.drawAvatarHublot(ctx, x0, bodyTop);
+      if (this.drill16 && global.Drills16) {
+        const face = this.avatar && this.avatar.lieu === 'hublot' && global.Avatar ? global.Avatar.sprite(this.avatar) : null;
+        this.drill16At = { id: this.drill16, x0, tip: tip - cam, time, drilling: this.drilling, face };
+      } else {
+        drawDrill(ctx, this.skin, x0, tip, time, this.drilling);
+        this.drawAvatarHublot(ctx, x0, bodyTop);
+      }
 
       for (const p of this.particles) {
         ctx.fillStyle = p.color;

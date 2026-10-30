@@ -44,6 +44,7 @@
   // Refonte 16-bit : réservée au responsable, désactivée au départ. `betaRefonte` active tout d'un coup ; les autres cases, un morceau à la fois pour comparer.
   const REFONTE_FLAGS = ['betaRefonte', 'betaCaves', 'betaMole16', 'betaGalerie'];
   for (const flag of REFONTE_FLAGS) settings[flag] = false;
+  settings.betaDrill16 = ''; // foreuse 16-bit à l'essai (refonte, responsable seulement)
   // Ambiance sonore : coups de pioche, grondement, musiques d'accueil, bruits de boutons et chrono sonore, au choix de chaque joueur : coups de pioche, grondement et musique « Galerie » activés au départ, le reste non.
   const AMBIENT_FLAGS = ['labTaps', 'labRumble'];
   const LAB_FLAGS = [...AMBIENT_FLAGS, 'labTabs', 'labClicks', 'labTimer'];
@@ -134,6 +135,7 @@
     root.toggleAttribute('data-mole16', mole16On());
     root.toggleAttribute('data-galerie', galerieOn());
     Galerie.setOn(galerieOn(), reducedMotion());
+    if (typeof scene !== 'undefined') scene.drill16 = app.me && app.me.isAdmin && settings.betaDrill16 ? settings.betaDrill16 : null;
     placeChallenge();
     root.classList.toggle('colorblind', settings.colors !== 'normal');
     if (settings.colors === 'normal') delete root.dataset.colors;
@@ -283,6 +285,11 @@
     $('beta-box').hidden = !(app.me && app.me.isAdmin);
     $('refonte-box').hidden = $('beta-box').hidden;
     for (const name of REFONTE_FLAGS) settingsForm.elements[name].checked = !!settings[name];
+    const drillBox = $('refonte-drill16');
+    if (drillBox.children.length === 1) {
+      for (const m of Drills16.MODELS) drillBox.append(el('label', {}, el('input', { type: 'radio', name: 'betaDrill16', value: m.id }), ` ${m.nom}${m.quand ? ` (${m.quand})` : ''}`));
+    }
+    settingsForm.elements.betaDrill16.value = settings.betaDrill16 || '';
     renderVersions();
     for (const name of BETA_FLAGS) settingsForm.elements[name].checked = !!settings[name];
     $('lab-box').hidden = !app.me;
@@ -330,6 +337,7 @@
     settings.season = settingsForm.elements.season.checked;
     for (const name of BETA_FLAGS) settings[name] = settingsForm.elements[name].checked;
     for (const name of REFONTE_FLAGS) settings[name] = settingsForm.elements[name].checked;
+    settings.betaDrill16 = settingsForm.elements.betaDrill16.value || '';
     for (const name of LAB_FLAGS) settings[name] = settingsForm.elements[name].checked;
     settings.labMusic = settingsForm.elements.labMusic.value || '';
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
