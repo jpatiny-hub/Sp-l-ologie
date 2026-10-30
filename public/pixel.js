@@ -113,8 +113,41 @@
 
   function zoneName(points) {
     if (points >= MAX_POINTS) return 'Centre de la Terre';
+    if (caves) return global.Caves.TIERS[global.Caves.tierIndex(points)].name;
     return ZONES[zoneIndex(points)].name;
   }
+
+  // Essai « galeries 16-bit » (réservé au responsable) : grottes mystérieuses à la place de la coupe géologique (voir caves.js).
+  let caves = false;
+  // Graine du forage en cours : paysage de surface, ambiance de chaque palier et trouvailles (0 = décor d'origine).
+  let exploreSeed = 0;
+  let skyOverride = null;
+  const SKIES = {
+    jour: ['#4f9fd3', '#5eaedb', '#70bde2', '#86cbe8', '#a0d8ee', '#bfe6f3'],
+    aube: ['#3a3c6e', '#5e4a88', '#9a5a8c', '#d8788a', '#f4a682', '#ffd2a0'],
+    couchant: ['#2a2858', '#4a3a7a', '#86487a', '#cc5e5a', '#ee8a4a', '#ffc070'],
+    nuit: ['#05071a', '#090f28', '#0e1836', '#152244', '#1c2e52', '#263a60'],
+    gris: ['#66748a', '#748296', '#8290a0', '#909eaa', '#a0acb6', '#b0bcc4'],
+  };
+  const LANDS = ['village', 'foret', 'montagne', 'cote', 'campagne', 'chateau'];
+  /** Paysage de surface tiré de la graine (ciel et décor), ou null pour le décor d'origine. */
+  function landscape() {
+    if (!exploreSeed) return null;
+    const r = (k) => hash(exploreSeed, k, 8800);
+    const kind = LANDS[Math.floor(r(1) * LANDS.length)];
+    const sky = ['jour', 'jour', 'aube', 'couchant', 'nuit', 'gris'][Math.floor(r(2) * 6)];
+    return { kind, sky, night: sky === 'nuit', soil: kind === 'cote' ? 'sable' : kind === 'montagne' ? 'eboulis' : null, r };
+  }
+  let caveAnim = [];
+  let caveShaft = null;
+  let caveBack = null;
+  let caveFront = null;
+  function setCaves(on) {
+    caves = !!on && !!global.Caves;
+  }
+  /** Bandes du puits et des débris : paliers des grottes ou couches géologiques. */
+  const bands = () => (caves ? global.Caves.TIERS : ZONES);
+  const bandIndex = (points) => (caves ? global.Caves.tierIndex(points) : zoneIndex(points));
 
   function hash(x, y, s) {
     let h = Math.imul(x | 0, 374761393) ^ Math.imul(y | 0, 668265263) ^ Math.imul((s | 0) + 1, 2246822519);
@@ -210,11 +243,11 @@
   const SKULL5 = ['.###.', '#####', '#.#.#', '.###.', '.#.#.'];
 
   function skyColor(x, y) {
-    const bands = season === 'halloween'
+    const bands = skyOverride || (season === 'halloween'
       ? ['#0f0820', '#170d33', '#22123f', '#34174d', '#5a2a5a', '#a0442e']
       : season === 'toussaint'
         ? ['#262e3c', '#303a4c', '#3c485c', '#4d5c71', '#6a7a8d', '#97a2b0']
-        : ['#4f9fd3', '#5eaedb', '#70bde2', '#86cbe8', '#a0d8ee', '#bfe6f3'];
+        : ['#4f9fd3', '#5eaedb', '#70bde2', '#86cbe8', '#a0d8ee', '#bfe6f3']);
     const h = (SKY - 6) / bands.length;
     const b = Math.min(bands.length - 1, Math.floor(y / h));
     const within = y - b * h;
@@ -269,6 +302,160 @@
     });
   }
 
+  /** Assombrit une couleur pour les paysages de nuit. */
+  function dim(hex) {
+    const [r, g, b] = c(hex);
+    const f = (v, n) => Math.round(v * 0.38 + n);
+    return '#' + [f(r, 6), f(g, 10), f(b, 26)].map((v) => Math.min(255, v).toString(16).padStart(2, '0')).join('');
+  }
+
+  /** Ciel et paysage de surface d'un forage (galeries 16-bit) : le chevalement reste au centre. */
+  function drawLand(rawSet, land) {
+    const { kind, sky, night, r } = land;
+    const set = (x, y, col) => rawSet(x, y, night ? dim(col) : col);
+    const lit = rawSet; // fenêtres et lampes : non assombries la nuit
+    const disc = (cx, cy, rad, col, put = rawSet) => {
+      for (let y = -rad; y <= rad; y++) for (let x = -rad; x <= rad; x++) if (x * x + y * y <= rad * rad + rad) put(cx + x, cy + y, col);
+    };
+    const cloud = (cx, cy, w, col, shade) => {
+      for (let x = 0; x < w; x++) {
+        rawSet(cx + x, cy, col);
+        rawSet(cx + x, cy + 1, shade);
+        if (x > 3 && x < w - 3) rawSet(cx + x, cy - 1, col);
+        if (x > 6 && x < w - 5) rawSet(cx + x, cy - 2, col);
+      }
+    };
+    // Astre et nuages selon le ciel.
+    if (night) {
+      for (let i = 0; i < 40; i++) rawSet(Math.floor(hash(i, 5, exploreSeed) * W), Math.floor(hash(i, 9, exploreSeed) * (SKY - 14)), hash(i, 3, 73) > 0.6 ? '#ffffff' : '#8a9ac4');
+      disc(30 + Math.floor(r(3) * 100), 12, 5, '#f4f0d8');
+      for (let i = 0; i < 4; i++) twinkles.push({ x: Math.floor(hash(i, 5, exploreSeed) * W), y: Math.floor(hash(i, 9, exploreSeed) * (SKY - 14)), color: '#ffffff' });
+    } else if (sky === 'aube') {
+      disc(24, SKY - 16, 8, '#ffd8a0');
+      disc(24, SKY - 16, 6, '#fff0c8');
+      cloud(70, 14, 22, '#f4b0a0', '#d08890');
+    } else if (sky === 'couchant') {
+      disc(W - 28, SKY - 14, 9, '#ff9a4a');
+      disc(W - 28, SKY - 14, 6, '#ffd070');
+      cloud(16, 18, 24, '#e07a6a', '#a8506a');
+      cloud(96, 10, 18, '#e07a6a', '#a8506a');
+    } else if (sky === 'gris') {
+      [[6, 10, 34], [52, 16, 40], [104, 8, 36], [26, 26, 28], [120, 24, 30]].forEach(([x, y, w]) => cloud(x, y, w, '#c4ccd4', '#98a2ae'));
+    } else {
+      disc(W - 26, 14, 5, '#ffe27a');
+      cloud(18, 10, 18, '#ffffff', '#e6f4fa');
+      cloud(92, 18, 14, '#ffffff', '#e6f4fa');
+    }
+
+    const pine = (x, h, col = '#2e5a32', dark = '#1e4224') => {
+      for (let y = 0; y < h; y++) {
+        const half = Math.floor((y * 0.45) + 0.5);
+        for (let k = -half; k <= half; k++) set(x + k, SKY - h - 1 + y + (y % 4 === 3 ? 0 : 0), k < 0 ? col : dark);
+      }
+      set(x, SKY - 1, '#5a3a20');
+      set(x, SKY - 2, '#5a3a20');
+    };
+    const free = (x, w = 0) => x + w < 62 || x - w > 98;
+    if (kind === 'village') {
+      for (let y = 0; y < 24; y++) {
+        const half = Math.floor(y * 1.3);
+        for (let x = -half; x <= half; x++) {
+          const px = 30 + x;
+          const py = SKY - 24 + y;
+          set(px, py, y < 14 && hash(px, py, 3) < 0.35 - y * 0.02 ? '#4c7a34' : hash(px, py, 4) < 0.5 ? '#2b2b2f' : '#38363b');
+        }
+      }
+      [[106, 9, '#b5523b'], [117, 12, '#9c4632'], [131, 10, '#b5523b'], [143, 11, '#9c4632']].forEach(([hx, hw, roof], i) => {
+        for (let y = 0; y < 8; y++) for (let x = 0; x < hw; x++) set(hx + x, SKY - 8 + y, (x + y) % 5 === 0 ? '#8f4a35' : '#a85a40');
+        for (let y = 0; y < 5; y++) for (let x = y; x < hw - y; x++) set(hx + x, SKY - 9 - (4 - y), roof);
+        const win = night && r(10 + i) < 0.7 ? lit : set;
+        win(hx + 3, SKY - 5, '#ffe9a0');
+        win(hx + 3, SKY - 4, '#ffe9a0');
+      });
+    } else if (kind === 'foret') {
+      for (let x = 0; x < W; x++) {
+        const hh = Math.round(6 + Math.sin(x * 0.05 + r(4) * 6) * 4);
+        for (let y = 0; y < hh; y++) set(x, SKY - 1 - y, '#3c6e34');
+      }
+      for (let i = 0; i < 16; i++) {
+        const x = 4 + Math.floor(hash(i, 1, exploreSeed) * 152);
+        if (!free(x, 5)) continue;
+        pine(x, 10 + Math.floor(hash(i, 2, exploreSeed) * 12), i % 2 ? '#2e5a32' : '#3a6a3a', '#1e4224');
+      }
+    } else if (kind === 'montagne') {
+      [[34, 34, 46], [120, 40, 52], [78, 26, 40]].forEach(([px, ph, pw]) => {
+        for (let y = 0; y < ph; y++) {
+          const half = Math.floor((y / ph) * pw / 2);
+          for (let k = -half; k <= half; k++) {
+            const snow = y < ph * 0.3 && hash(px + k, y, 61) < 0.9 - y / ph;
+            set(px + k, SKY - ph + y, snow ? '#f2f6fa' : k < 0 ? '#7a8aa0' : '#5e6c82');
+          }
+        }
+      });
+      [12, 22, 50, 104, 114, 142, 150].forEach((x, i) => pine(x, 8 + (i % 3) * 3));
+    } else if (kind === 'cote') {
+      for (let y = SKY - 9; y < SKY - 1; y++) for (let x = 0; x < W; x++) set(x, y, (x + y * 3) % 11 === 0 ? '#9ad0ff' : y < SKY - 6 ? '#2a6aa8' : '#3a82c0');
+      for (let i = 0; i < 6; i++) twinkles.push({ x: Math.floor(hash(i, 4, exploreSeed) * W), y: SKY - 8 + (i % 3) * 2, color: '#ffffff' });
+      for (let x = 0; x < 56; x++) {
+        const hh = Math.round(5 + Math.sin(x * 0.12) * 3);
+        for (let y = 0; y < hh; y++) set(x, SKY - 1 - y, y === hh - 1 ? '#f2e2b0' : '#e0c890');
+        if (x % 5 === 2) set(x, SKY - 1 - hh, '#7a9a4a');
+      }
+      // Phare.
+      for (let y = 0; y < 30; y++) {
+        const half = 3 - Math.floor(y / 12);
+        for (let k = -half; k <= half; k++) set(132 + k, SKY - 1 - y, Math.floor(y / 5) % 2 ? '#d83a3a' : '#f4f0e8');
+      }
+      for (let k = -3; k <= 3; k++) set(132 + k, SKY - 31, '#3a3a44');
+      lit(131, SKY - 33, '#ffe27a');
+      lit(132, SKY - 33, '#fff6c0');
+      lit(133, SKY - 33, '#ffe27a');
+      for (let k = -2; k <= 2; k++) set(132 + k, SKY - 35, '#3a3a44');
+      if (night) for (let k = 1; k < 26; k++) lit(133 + k, SKY - 33 + Math.floor(k / 6), k % 2 ? '#fff6c0' : '#ffe27a');
+    } else if (kind === 'campagne') {
+      for (let y = SKY - 7; y < SKY - 1; y++) for (let x = 98; x < W; x++) set(x, y, Math.floor((y + x * 0.15) / 2) % 2 ? '#d8b84a' : '#8ab040');
+      // Moulin à vent.
+      for (let y = 0; y < 20; y++) {
+        const half = 2 + Math.floor(y / 5);
+        for (let k = -half; k <= half; k++) set(28 + k, SKY - 20 + y, k < 0 ? '#e8dcc0' : '#c4b494');
+      }
+      for (let k = -3; k <= 3; k++) set(28 + k, SKY - 21, '#8a3a2a');
+      const hub = [28, SKY - 22];
+      [[1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(([dx, dy]) => {
+        for (let k = 1; k < 11; k++) {
+          set(hub[0] + dx * k, hub[1] + dy * k, '#5a3a20');
+          if (k > 3) set(hub[0] + dx * k + dx, hub[1] + dy * k, '#e8e0d0');
+        }
+      });
+      lit(28, SKY - 8, night ? '#ffe9a0' : '#3a2a1a');
+      [[112, 4], [130, 5], [146, 4]].forEach(([hx, hw]) => {
+        for (let y = 0; y < 4; y++) for (let k = -hw + y; k <= hw - y; k++) set(hx + k, SKY - 2 - y, y === 3 ? '#e8c860' : '#c8a040');
+      });
+    } else {
+      // Ruines de château.
+      for (let x = 0; x < 50; x++) {
+        const hh = Math.round(8 - Math.abs(x - 22) * 0.3);
+        for (let y = 0; y < Math.max(0, hh); y++) set(x, SKY - 1 - y, '#4c7a34');
+      }
+      for (let y = 0; y < 12; y++) set(22, SKY - 9 - y, '#5a3a20');
+      disc(22, SKY - 24, 6, '#3c6e34', set);
+      const tower = (tx, th, tw) => {
+        for (let y = 0; y < th; y++) for (let k = 0; k < tw; k++) set(tx + k, SKY - 1 - y, (k + Math.floor(y / 3)) % 4 === 0 ? '#6a6a74' : k < tw / 2 ? '#9a9aa4' : '#7e7e88');
+        for (let k = 0; k < tw; k += 2) set(tx + k, SKY - 1 - th, '#9a9aa4');
+        const win = night ? lit : set;
+        win(tx + Math.floor(tw / 2), SKY - th + 5, night ? '#ffd36b' : '#1a1a20');
+      };
+      tower(106, 28, 8);
+      for (let y = 0; y < 12; y++) for (let x = 114; x < 136; x++) set(x, SKY - 1 - y, (x + Math.floor(y / 3) * 2) % 6 === 0 ? '#6a6a74' : '#8a8a94');
+      for (let x = 114; x < 136; x += 3) set(x, SKY - 13, '#8a8a94');
+      tower(136, 22, 7);
+      set(124, SKY - 2, '#1a1a20');
+      set(125, SKY - 2, '#1a1a20');
+      set(124, SKY - 3, '#1a1a20');
+      set(125, SKY - 3, '#1a1a20');
+    }
+  }
+
   function buildWorld() {
     const canvas = document.createElement('canvas');
     canvas.width = W;
@@ -285,9 +472,19 @@
       img.data[i + 3] = 255;
     };
 
+    const land = caves && !season ? landscape() : null;
+    if (caves) global.Caves.setSeed(exploreSeed, land && land.soil);
+    skyOverride = land ? SKIES[land.sky] : null;
+    twinkles.length = 0;
+    bubbles.length = 0;
+    caveAnim = [];
+    caveShaft = null;
+    caveBack = null;
+    caveFront = null;
     for (let y = 0; y < WORLD_H; y++) {
       for (let x = 0; x < W; x++) {
         if (y < SKY) set(x, y, skyColor(x, y));
+        else if (caves) break;
         else {
           const d = y - SKY;
           set(x, y, groundColor(zoneAtPixel(x, d), x, d));
@@ -320,6 +517,8 @@
           if (x > 7 && x < w - 6) set(cx + x, cy - 2, '#97a2b0');
         }
       });
+    } else if (land) {
+      drawLand(set, land);
     } else {
     // Soleil et nuages.
     for (let y = -6; y <= 6; y++) for (let x = -6; x <= 6; x++) if (x * x + y * y <= 30) set(W - 26 + x, 14 + y, '#ffe27a');
@@ -334,7 +533,7 @@
     }
 
     // Terril à gauche (clin d'œil aux anciens charbonnages wallons).
-    for (let y = 0; y < 24; y++) {
+    if (!land) for (let y = 0; y < 24; y++) {
       const half = Math.floor(y * 1.3);
       for (let x = -half; x <= half; x++) {
         const px = 30 + x;
@@ -345,7 +544,7 @@
     }
 
     // Maisons à droite.
-    [[112, 10, '#b5523b'], [124, 12, '#9c4632'], [138, 9, '#b5523b']].forEach(([hx, hw, roof]) => {
+    if (!land) [[112, 10, '#b5523b'], [124, 12, '#9c4632'], [138, 9, '#b5523b']].forEach(([hx, hw, roof]) => {
       for (let y = 0; y < 8; y++) for (let x = 0; x < hw; x++) set(hx + x, SKY - 8 + y, (x + y) % 5 === 0 ? '#8f4a35' : '#a85a40');
       for (let y = 0; y < 5; y++) for (let x = y; x < hw - y; x++) set(hx + x, SKY - 9 - (4 - y), roof);
       set(hx + 3, SKY - 5, '#ffe9a0');
@@ -367,7 +566,15 @@
     set(cx, SKY - 38, '#5c5c6a');
 
     // Herbe.
-    for (let x = 0; x < W; x++) {
+    if (land) {
+      const g = land.kind === 'cote' ? ['#e8d49a', '#d4bc7c', '#f2e2b0'] : land.kind === 'montagne' ? ['#4f8a3a', '#3e7230', '#5e9a46'] : ['#5fa83a', '#4b8c2c', '#6dbb45'];
+      const tint = (c) => (land.night ? dim(c) : c);
+      for (let x = 0; x < W; x++) {
+        set(x, SKY - 1, tint(g[0]));
+        set(x, SKY, tint(g[1]));
+        if (hash(x, 1, 9) > 0.65) set(x, SKY - 2, tint(g[2]));
+      }
+    } else for (let x = 0; x < W; x++) {
       set(x, SKY - 1, season === 'halloween' ? '#3d6b2a' : season === 'toussaint' ? '#566b3c' : '#5fa83a');
       set(x, SKY, season === 'halloween' ? '#2f5a20' : season === 'toussaint' ? '#465a30' : '#4b8c2c');
       if (hash(x, 1, 9) > 0.65) set(x, SKY - 2, season === 'halloween' ? '#4a7d32' : season === 'toussaint' ? '#62784a' : '#6dbb45');
@@ -399,7 +606,15 @@
       });
     }
 
-    decorate(set);
+    if (caves) {
+      const built = global.Caves.build({ W, SKY, PPP, WORLD_H, set });
+      caveAnim = built.anim;
+      caveShaft = built.shaftOpen;
+      for (let i = 0; i < built.alpha.length; i++) img.data[i * 4 + 3] = built.alpha[i];
+      const dims = { W, SKY, PPP, WORLD_H };
+      caveBack = global.Caves.backdrop(dims);
+      caveFront = global.Caves.foreground(dims);
+    } else decorate(set);
     if (season === 'halloween') haunt(set);
     ctx.putImageData(img, 0, 0);
     return canvas;
@@ -905,6 +1120,20 @@
     rows.forEach((r, dy) => [...r].forEach((b, dx) => b === '1' && ctx.fillRect(x + dx, y + dy, 1, 1)));
   }
 
+  /** Nombre en gros chiffres pixel (×scale) avec une ombre portée, centré sur x : « +12 ». */
+  function drawScore(ctx, text, cx, y, color, scale) {
+    const glyphs = [...text].map((ch) => (ch === '+' ? ['000', '010', '111', '010', '000'] : DIGITS[ch])).filter(Boolean);
+    const w = glyphs.length * 4 * scale - scale;
+    let x = Math.round(cx - w / 2);
+    for (const rows of glyphs) {
+      for (const [dx0, dy0, col] of [[scale, scale, '#000'], [0, 0, color]]) {
+        ctx.fillStyle = col;
+        rows.forEach((r, dy) => [...r].forEach((b, dx) => b === '1' && ctx.fillRect(x + dx * scale + dx0, y + dy * scale + dy0, scale, scale)));
+      }
+      x += 4 * scale;
+    }
+  }
+
   // ===== Style HD-2D (essai réservé au responsable) : relief, lumière de lampe, bloom, poussière =====
   const HDK = 4;
   let hd = false;
@@ -1264,6 +1493,8 @@
     return c;
   }
 
+  const reducedMotion = () => (global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches) || global.document.documentElement.hasAttribute('data-calm');
+
   class DrillScene {
     constructor(canvas) {
       // Le jeu est dessiné dans un canevas hors écran à 1 pixel de jeu = 1 pixel ; `present` le recopie à l'écran
@@ -1292,6 +1523,7 @@
       this.onOverview = null;
       this.camY = 0;
       this.particles = [];
+      this.floaters = [];
       this.mode = 'follow';
       this.tourDir = 1;
       this.tourPause = 0;
@@ -1334,9 +1566,10 @@
       // Ambiance selon la profondeur : jour en surface, puis galerie sombre qui vire au rouge près du noyau.
       const dp = this.depth;
       const dark = smooth(0, 26, dp);
-      let amb = [lerp3(255, 120, dark), lerp3(255, 132, dark), lerp3(255, 168, dark)];
-      if (dp > 200) amb = [lerp3(amb[0], 170, smooth(200, 330, dp)), lerp3(amb[1], 96, smooth(200, 330, dp)), lerp3(amb[2], 84, smooth(200, 330, dp))];
-      if (dp > 420) amb = [lerp3(amb[0], 205, smooth(420, 520, dp)), lerp3(amb[1], 140, smooth(420, 520, dp)), lerp3(amb[2], 70, smooth(420, 520, dp))];
+      // Galeries 16-bit : les grottes ont leur propre lumière colorée, l'ambiance reste donc légère et neutre.
+      let amb = caves ? [lerp3(255, 228, dark), lerp3(255, 228, dark), lerp3(255, 240, dark)] : [lerp3(255, 120, dark), lerp3(255, 132, dark), lerp3(255, 168, dark)];
+      if (!caves && dp > 200) amb = [lerp3(amb[0], 170, smooth(200, 330, dp)), lerp3(amb[1], 96, smooth(200, 330, dp)), lerp3(amb[2], 84, smooth(200, 330, dp))];
+      if (!caves && dp > 420) amb = [lerp3(amb[0], 205, smooth(420, 520, dp)), lerp3(amb[1], 140, smooth(420, 520, dp)), lerp3(amb[2], 70, smooth(420, 520, dp))];
       const surfY = (SKY - cam) * k;
       const g = ctx.createLinearGradient(0, surfY - 6 * k, 0, surfY + 34 * k);
       g.addColorStop(0, 'rgb(255,255,255)');
@@ -1356,8 +1589,9 @@
         // Lampe de la foreuse : cône de lumière chaude autour de la fraise.
         const lx = (W / 2) * k;
         const ly = (this.tipY() - cam - 6) * k;
-        const flick = 0.36 + Math.sin(time * 9.3) * 0.015 + Math.sin(time * 23) * 0.01;
-        const lg = ctx.createRadialGradient(lx, ly, 2 * k, lx, ly, 56 * k);
+        // Dans les galeries 16-bit, la lampe reste discrète : ce sont les grottes qui éclairent la scène.
+        const flick = (caves ? 0.12 : 0.36) + Math.sin(time * 9.3) * 0.015 + Math.sin(time * 23) * 0.01;
+        const lg = ctx.createRadialGradient(lx, ly, 2 * k, lx, ly, (caves ? 34 : 56) * k);
         lg.addColorStop(0, `rgba(255,205,130,${flick + 0.1})`);
         lg.addColorStop(0.45, `rgba(255,170,90,${flick * 0.5})`);
         lg.addColorStop(1, 'rgba(255,150,70,0)');
@@ -1387,7 +1621,7 @@
       b.drawImage(this.smallA, 0, 0);
       ctx.imageSmoothingEnabled = true;
       ctx.globalCompositeOperation = 'lighter';
-      ctx.globalAlpha = 0.5;
+      ctx.globalAlpha = caves ? 0.32 : 0.5;
       ctx.drawImage(this.smallB, 0, 0, w, h);
       ctx.globalAlpha = 1;
 
@@ -1412,6 +1646,17 @@
       ctx.fillRect(0, 0, w, h);
     }
 
+    /** Forage en cours (identifiant) : dans les galeries 16-bit, chaque forage a son propre décor. */
+    setSeed(id) {
+      let seed = 0;
+      for (const ch of String(id == null ? '' : id)) seed = (Math.imul(seed, 31) + ch.charCodeAt(0)) | 0;
+      seed = Math.imul(seed ^ (seed >>> 15), 0x2c1b3c6d);
+      seed = (seed ^ (seed >>> 12)) & 0xfffffff;
+      if (seed === exploreSeed) return;
+      exploreSeed = seed;
+      if (caves) this.rebuild();
+    }
+
     /** Reconstruit le décor (changement de saison). */
     rebuild() {
       this.world = buildWorld();
@@ -1420,6 +1665,11 @@
 
     /** layers : [{ points, tier }] dans l'ordre des thèmes. */
     setLayers(layers, animate) {
+      // Galeries 16-bit : le score de la nouvelle réponse s'envole au-dessus de la foreuse pendant qu'elle s'enfonce.
+      const added = layers[layers.length - 1];
+      if (caves && animate && layers.length > this.layers.length && added && added.points > 0) {
+        this.floaters.push({ text: `+${added.points}`, color: TIER_COLORS[added.tier] || '#fff', t0: null });
+      }
       this.layers = layers.slice();
       this.target = Math.min(MAX_POINTS, layers.reduce((s, l) => s + (l.points || 0), 0));
       this.mode = 'follow';
@@ -1522,7 +1772,8 @@
       if (this.drilling) {
         this.depth = Math.min(this.target, this.depth + this.speed * dt);
         this.emitDepth();
-        const colors = ZONES[zoneIndex(this.depth)].colors;
+        const band = bands()[bandIndex(this.depth)];
+        const colors = band.colors || band.rock.slice(1);
         for (let i = 0; i < 3; i++) {
           this.particles.push({
             x: W / 2 + (Math.random() * 10 - 5),
@@ -1587,17 +1838,24 @@
       const sy = this.h / srcH;
       const Y = (y) => (y - srcY) * sy;
       ctx.imageSmoothingEnabled = false;
+      if (caves) {
+        ctx.fillStyle = '#07060c';
+        ctx.fillRect(0, 0, W, this.h);
+      }
       ctx.drawImage(this.worldSrc(), 0, srcY, W, srcH, 0, 0, W, this.h);
 
       const tip = this.tipY();
-      for (let zi = 0; zi < ZONES.length; zi++) {
-        const top = SKY + ZONES[zi].from * PPP;
-        const bottom = zi + 1 < ZONES.length ? SKY + ZONES[zi + 1].from * PPP : WORLD_H;
+      const zones = bands();
+      for (let zi = 0; zi < zones.length; zi++) {
+        const top = SKY + zones[zi].from * PPP;
+        const bottom = zi + 1 < zones.length ? SKY + zones[zi + 1].from * PPP : WORLD_H;
         const y0 = Math.max(top, SKY + 1);
         const y1 = Math.min(bottom, tip);
         if (y1 <= y0) continue;
-        ctx.fillStyle = ZONES[zi].dark;
-        ctx.fillRect(SHAFT_X, Math.round(Y(y0)), SHAFT_W, Math.max(1, Math.round(Y(y1)) - Math.round(Y(y0))));
+        ctx.fillStyle = zones[zi].dark;
+        if (caveShaft) {
+          for (let y = y0; y < y1; y++) if (!caveShaft[y]) ctx.fillRect(SHAFT_X, Math.round(Y(y)), SHAFT_W, Math.max(1, Math.round(Y(y + 1)) - Math.round(Y(y))));
+        } else ctx.fillRect(SHAFT_X, Math.round(Y(y0)), SHAFT_W, Math.max(1, Math.round(Y(y1)) - Math.round(Y(y0))));
       }
       // Fin de chaque thème : un trait de la couleur de la rareté.
       let cumulative = 0;
@@ -1643,6 +1901,21 @@
         ctx.fillRect(W / 2 - 1, yCore - 1, 3, 3);
         ctx.restore();
       }
+    }
+
+    /** Scores qui s'envolent depuis la foreuse (2 s), en coordonnées écran. */
+    drawFloaters(ctx, time, cam) {
+      if (!this.floaters.length) return;
+      const start = this.tipY() - cam - 36;
+      this.floaters = this.floaters.filter((f) => {
+        if (f.t0 === null) f.t0 = time;
+        const p = (time - f.t0) / 2;
+        if (p >= 1) return false;
+        ctx.globalAlpha = p < 0.7 ? 1 : (1 - p) / 0.3;
+        drawScore(ctx, f.text, W / 2, Math.round(Math.min(start, this.h * 0.55) - p * 46), f.color, 2);
+        ctx.globalAlpha = 1;
+        return true;
+      });
     }
 
     /** Halloween : des fantômes translucides survolent l'écran pendant que la foreuse creuse. */
@@ -1698,6 +1971,7 @@
       const ctx = this.ctx;
       const cam = Math.round(this.camY);
       ctx.imageSmoothingEnabled = false;
+      if (caveBack) global.Caves.drawBack(ctx, caveBack, cam, this.h, { SKY, PPP });
       ctx.drawImage(this.worldSrc(), 0, cam, W, this.h, 0, 0, W, this.h);
       ctx.save();
       ctx.translate(0, -cam);
@@ -1715,6 +1989,7 @@
         ctx.fillStyle = tw.color;
         ctx.fillRect(tw.x, tw.y, 1, 1);
       });
+      if (caves) global.Caves.drawAnim(ctx, caveAnim, time, cam, this.h, reducedMotion());
       bubbles.forEach((b, i) => {
         if (!inView(b.y)) return;
         const span = Math.ceil(b.r / 2) * 2;
@@ -1727,13 +2002,28 @@
 
       // Puits creusé, coloré selon la roche traversée.
       const tip = Math.round(this.tipY());
-      for (let zi = 0; zi < ZONES.length; zi++) {
-        const top = SKY + ZONES[zi].from * PPP;
-        const bottom = zi + 1 < ZONES.length ? SKY + ZONES[zi + 1].from * PPP : WORLD_H;
+      const zones = bands();
+      for (let zi = 0; zi < zones.length; zi++) {
+        const top = SKY + zones[zi].from * PPP;
+        const bottom = zi + 1 < zones.length ? SKY + zones[zi + 1].from * PPP : WORLD_H;
         const y0 = Math.max(top, SKY + 1);
         const y1 = Math.min(bottom, tip);
         if (y1 <= y0) continue;
-        ctx.fillStyle = ZONES[zi].dark;
+        if (caveShaft) {
+          // Grottes : le puits n'est creusé que dans la roche ; dans le vide d'une grotte, la foreuse pend à son câble.
+          for (let y = Math.max(y0, cam); y < Math.min(y1, cam + this.h); y++) {
+            if (caveShaft[y]) continue;
+            ctx.fillStyle = zones[zi].dark;
+            ctx.fillRect(SHAFT_X, y, SHAFT_W, 1);
+            ctx.fillStyle = 'rgba(0,0,0,0.45)';
+            ctx.fillRect(SHAFT_X, y, 2, 1);
+            ctx.fillRect(SHAFT_X + SHAFT_W - 2, y, 2, 1);
+            ctx.fillStyle = 'rgba(255,255,255,0.12)';
+            if (caveShaft[y - 1] || caveShaft[y + 1]) ctx.fillRect(SHAFT_X, y, SHAFT_W, 1);
+          }
+          continue;
+        }
+        ctx.fillStyle = zones[zi].dark;
         ctx.fillRect(SHAFT_X, y0, SHAFT_W, y1 - y0);
         ctx.fillStyle = 'rgba(0,0,0,0.45)';
         ctx.fillRect(SHAFT_X, y0, 2, y1 - y0);
@@ -1746,14 +2036,18 @@
       let stagger = 0;
       this.layers.forEach((layer, i) => {
         cumulative += layer.points || 0;
-        if (cumulative > this.depth + 0.01) return;
+        // Galeries 16-bit : aucun repère dans le puits, la foreuse s'enfonce simplement (le score s'envole, voir drawFloaters).
+        if (caves || cumulative > this.depth + 0.01) return;
         const y = SKY + Math.round(Math.min(cumulative, MAX_POINTS) * PPP);
         stagger = y - previousY < 7 ? stagger + 1 : 0;
         previousY = y;
-        ctx.fillStyle = '#c99a5b';
-        ctx.fillRect(SHAFT_X - 2, y - 1, SHAFT_W + 4, 2);
-        ctx.fillStyle = '#7a5530';
-        ctx.fillRect(SHAFT_X - 2, y + 1, SHAFT_W + 4, 1);
+        if (!caves) {
+          // Galeries 16-bit : pas de planche en travers du puits (seuls la couleur de la rareté et le numéro restent).
+          ctx.fillStyle = '#c99a5b';
+          ctx.fillRect(SHAFT_X - 2, y - 1, SHAFT_W + 4, 2);
+          ctx.fillStyle = '#7a5530';
+          ctx.fillRect(SHAFT_X - 2, y + 1, SHAFT_W + 4, 1);
+        }
         const fx = SHAFT_X - 10 - stagger * 7;
         ctx.fillStyle = '#000';
         ctx.fillRect(fx - 1, y - 4, 7, 7);
@@ -1793,10 +2087,15 @@
         }
       }
       ctx.restore();
+      this.drawFloaters(ctx, time, cam);
+      if (caveFront) {
+        global.Caves.drawFront(ctx, caveFront, cam, this.h, time);
+        global.Caves.drawAir(ctx, { W, SKY, PPP }, cam, this.h, time, reducedMotion(), hd);
+      }
       this.drawGhosts(ctx, time);
 
       // Ambiance chaude dans les profondeurs.
-      const heat = Math.max(0, Math.min(1, (this.depth - 220) / 380));
+      const heat = caves ? 0 : Math.max(0, Math.min(1, (this.depth - 220) / 380));
       if (heat > 0) {
         ctx.fillStyle = `rgba(255, 90, 20, ${0.08 * heat + Math.sin(time * 3) * 0.02 * heat})`;
         ctx.fillRect(0, 0, W, this.h);
@@ -1805,6 +2104,6 @@
   }
 
   global.Pixel = {
-    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, formatRemaining, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, setSeason, setSkullMode, setHd, isHd: () => hd, hdUpgrade, drawDrill, WIDTH: W, HEIGHT: H,
+    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, formatRemaining, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, setSeason, setSkullMode, setHd, setCaves, isCaves: () => caves, isHd: () => hd, hdUpgrade, drawDrill, WIDTH: W, HEIGHT: H,
   };
 })(window);
