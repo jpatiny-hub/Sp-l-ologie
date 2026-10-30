@@ -1429,6 +1429,7 @@
       renderCollective();
       renderWeekly();
       $('defis-sheet').showModal();
+      if (galerieOn()) flip($('defis-sheet'), button, false);
       return markDefisSeen();
     }
     if (go === 'profile') return $('btn-carnet').click();
@@ -1453,8 +1454,66 @@
     if (go === 'play') document.querySelector('.play-card').scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
     else window.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' });
   });
-  $('btn-defis-close').addEventListener('click', () => $('defis-sheet').close());
-  $('defis-sheet').addEventListener('click', (event) => event.target === $('defis-sheet') && $('defis-sheet').close());
+  $('btn-defis-close').addEventListener('click', () => closeCentre($('defis-sheet')));
+  $('defis-sheet').addEventListener('click', (event) => event.target === $('defis-sheet') && closeCentre($('defis-sheet')));
+
+  /*
+   * Accueil sans cadre (essai galerie vivante) : le podium et la vie de la mine sont des lignes du fil ; touchées, elles s'ouvrent au centre
+   * de l'écran en grandissant depuis leur place, puis y retournent à la fermeture. Le bloc d'origine est déplacé dans la fenêtre, puis remis.
+   */
+  const CENTRE = { podium: { title: 'Podium', node: () => document.querySelector('.podium-card') }, social: { title: 'Dans la mine', node: () => $('beta-social') } };
+  let centreSource = null;
+  let centreBack = null;
+  function flip(dialog, from, reverse) {
+    if (!from || reducedMotion() || !dialog.animate) return null;
+    const a = from.getBoundingClientRect();
+    const b = dialog.getBoundingClientRect();
+    if (!b.width || !b.height) return null;
+    const start = { transform: `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.width / b.width}, ${a.height / b.height})`, opacity: 0.2, transformOrigin: 'top left' };
+    const end = { transform: 'none', opacity: 1, transformOrigin: 'top left' };
+    return dialog.animate(reverse ? [end, { ...start, opacity: 0 }] : [start, end], { duration: reverse ? 260 : 380, easing: reverse ? 'cubic-bezier(.4,0,.6,1)' : 'cubic-bezier(.2,.8,.2,1)' });
+  }
+  function openCentre(kind, from) {
+    const spec = CENTRE[kind];
+    const node = spec && spec.node();
+    if (!node) return;
+    centreBack = { node, parent: node.parentNode, next: node.nextSibling, hidden: node.hidden };
+    node.hidden = false;
+    $('centre-title').textContent = spec.title;
+    $('centre-body').replaceChildren(node);
+    centreSource = from;
+    $('centre-sheet').showModal();
+    flip($('centre-sheet'), from, false);
+  }
+  function closeCentre(dialog) {
+    if (!dialog.open) return;
+    const from = dialog === $('centre-sheet') ? centreSource : document.querySelector('#bottom-nav [data-nav="defis"]');
+    const anim = galerieOn() ? flip(dialog, from, true) : null;
+    if (anim) anim.onfinish = () => dialog.close();
+    else dialog.close();
+  }
+  $('centre-sheet').addEventListener('close', () => {
+    if (centreBack) {
+      centreBack.node.hidden = centreBack.hidden;
+      centreBack.parent.insertBefore(centreBack.node, centreBack.next);
+      centreBack = null;
+    }
+    if (centreSource) centreSource.focus();
+  });
+  $('btn-centre-close').addEventListener('click', () => closeCentre($('centre-sheet')));
+  $('centre-sheet').addEventListener('click', (event) => event.target === $('centre-sheet') && closeCentre($('centre-sheet')));
+  $('home-feed').addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-centre]');
+    if (button) openCentre(button.dataset.centre, button);
+  });
+  // Descente : la lanterne illumine l'écran au lancement du forage.
+  $('btn-daily').addEventListener('click', () => {
+    if (!galerieOn() || reducedMotion()) return;
+    const flash = $('dive-flash');
+    flash.classList.remove('go');
+    void flash.offsetWidth;
+    flash.classList.add('go');
+  });
   $('btn-sheet-close').addEventListener('click', () => $('play-sheet').close());
   $('play-sheet').addEventListener('click', (event) => {
     if (event.target === $('play-sheet')) return $('play-sheet').close();
@@ -1466,9 +1525,12 @@
   async function renderBetaSocial() {
     const card = $('beta-social');
     card.hidden = !((betaOn('betaSocial') || betaOn('betaHome')) && app.me && app.me.today);
+    const feedRow = document.querySelector('#home-feed [data-centre="social"]');
+    feedRow.hidden = card.hidden;
     if (card.hidden) return;
     try {
       const mine = await api('/api/mine-today');
+      $('feed-social-text').textContent = mine.started ? `${plural(mine.started, 'mineur', 'mineurs')} aujourd'hui` : 'encore calme';
       const text = $('beta-social-text');
       if (!mine.started) text.textContent = 'La mine est encore silencieuse : tu pourrais être le premier à descendre aujourd\'hui !';
       else text.textContent = `${plural(mine.started, 'mineur est descendu', 'mineurs sont descendus')} aujourd'hui, ${mine.finished} ${mine.finished > 1 ? 'ont fini' : 'a fini'} leur forage.`;
@@ -1482,6 +1544,7 @@
       );
     } catch {
       card.hidden = true;
+      feedRow.hidden = true;
     }
   }
 
