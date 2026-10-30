@@ -1,5 +1,4 @@
 titre: Un cadeau de naissance
-actif: non
 # Liste ouverte : tout objet pour bébé ou toute attention peut être offert ; la frontière est subjective. Séparé du mariage (cadeaux-mariage.txt).
 # Pour réactiver : resserrer (ex. « Un cadeau traditionnel de naissance en Belgique »). Entrées = cadeaux classiques en Belgique/France.
 # Sources : en.wikipedia « Baby shower » (cadeaux traditionnels : cuillères en argent, couvertures, vêtements, jouets) et listes de naissance courantes ; recoupement partiel.

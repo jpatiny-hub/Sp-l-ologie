@@ -1,5 +1,4 @@
 titre: Un zoo ou parc animalier de Belgique
-actif: non
 # Actif: non. Moins de 20 réponses sûres et vérifiées (les pages Wikipédia de listes de zoos belges n'ont pas pu être consultées). Les musées sont abandonnés. Pour activer : compléter avec une liste de référence (p. ex. Wikipédia FR « Parc zoologique » en Belgique, ou la liste de la Royal Zoological Society / Beaps) puis retirer cette ligne.
 # Périmètre : zoos, parcs animaliers, parcs à gibier et aquariums-parcs ouverts au public en Belgique.
 # Complété le 30/10/2026 : whichmuseum.co.uk (zoos de Belgique), gezinopreis.nl (parcs animaliers de Belgique) et insidebrussels.be. Le zoo d'Olmen s'appelle maintenant Pakawi Park (Balen). Toujours inactif : 20 réponses mais périmètre ouvert (zoos privés, fermes pédagogiques...) ; à réactiver seulement si Jonas accepte cette liste comme fermée. Écarté : Mont Mosan (une seule source, non vérifié).

@@ -1,5 +1,5 @@
-titre: Une ville ou un pays traversé par le sentier de grande randonnée GR 5
-actif: non
+titre: Une ville ou un pays traversé par le GR 5
+# Ancien titre : Une ville ou un pays traversé par le sentier de grande randonnée GR 5
 # Interprétation du thème « Grands Raids / Grand Ravel » : ni « Grand Raid » (course) ni « Grand RAVeL » (réseau belge de voies lentes, qui n'a pas de nom unique) ne forment une liste claire ; on retient le plus célèbre sentier GR (Grande Randonnée) passant en Belgique, le GR 5 (Hoek van Holland - Nice), via Wikipédia (étapes) et les descriptions de l'itinéraire belge.
 # Pourquoi inactif : liste ouverte (des dizaines de villages traversés, tracé et variantes qui bougent). Pour resserrer : « Un pays traversé par le GR 5 » (5 réponses) ou « Une ville belge traversée par le GR 5 ».
 # Sources : Wikipédia en « GR 5 » (étapes principales Hook of Holland, Bergen op Zoom, Hasselt, Maastricht, Liège, Spa, Ouren, Diekirch, Dudelange, Nancy, Donon, Ballon d'Alsace, Les Rousses, Lac Léman, Chamonix, Modane, Briançon, Nice) ; description de la section belge (Kalmthout, Herentals, Diest, Hasselt, Liège, Spa, Stavelot, Vielsalm, Burg-Reuland, Ouren).

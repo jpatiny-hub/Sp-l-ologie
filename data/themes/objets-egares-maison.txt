@@ -1,5 +1,4 @@
 titre: Un objet qu'on égare dans sa maison
-actif: non
 # Liste ouverte : n'importe quel petit objet peut s'égarer ; la frontière avec « Quelque chose qu'on peut perdre » (déjà existant, quelque-chose-qu-on-perd.txt, qui mélange objets et abstractions) est floue.
 # Pour réactiver : resserrer (ex. « Un petit objet qu'on cherche souvent dans la maison », ou « Un accessoire personnel qu'on égare ») ; liste ci-dessous = objets matériels courants, recoupés avec des sondages/listes « objets les plus perdus à la maison » (non vérifiés en ligne faute d'accès fiable).
 1: Clés = Clefs = Trousseau de clés; Lunettes; Télécommande = Télécommande de télé; Téléphone = GSM = Portable; Portefeuille; Chaussette; Chargeur; Stylo; Ciseaux; Papiers = Papiers d'identité

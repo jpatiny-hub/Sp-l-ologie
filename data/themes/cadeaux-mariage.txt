@@ -1,5 +1,4 @@
 titre: Un cadeau de mariage
-actif: non
 # Liste ouverte : n'importe quel objet de la maison, une somme d'argent ou une expérience peut être offert ; frontière subjective. Séparé de la naissance (cadeaux-naissance.txt).
 # Pour réactiver : resserrer (ex. « Un objet d'une liste de mariage classique »). Entrées = cadeaux classiques en Belgique/France.
 # Sources : en.wikipedia « Wedding gift » (liste de mariage / registry, cadeaux de maison), « Wedding » ; recoupement partiel.
