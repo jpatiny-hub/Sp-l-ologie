@@ -12,8 +12,8 @@
 (function (global) {
   const SIZE = { weekly: [160, 200], collective: [160, 200] };
   const drillOff = document.createElement('canvas');
-  drillOff.width = 34;
-  drillOff.height = 54;
+  drillOff.width = 68;
+  drillOff.height = 108;
   const hash = (n) => Math.abs(Math.sin(n * 12.9898) * 43758.5453) % 1;
   const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
   const bay = (x, y) => BAYER[(y & 3) * 4 + (x & 3)];
@@ -278,15 +278,15 @@
   function gameDrill(x, tipX, cy, t, drilling) {
     if (global.Drills16) {
       const o = drillOff.getContext('2d');
-      o.clearRect(0, 0, 34, 54);
-      const hub = global.Drills16.draw(o, global.Defis16.drillId || 'bourdon', { tipX: 17, tipY: 51, px: 1, time: t, drilling, view: { w: 34, h: 54 }, calm: t === 0 });
+      o.clearRect(0, 0, 68, 108);
+      const hub = global.Drills16.draw(o, global.Defis16.drillId || 'bourdon', { tipX: 34, tipY: 102, px: 2, time: t, drilling, view: { w: 34, h: 54 }, calm: t === 0 });
       x.save();
       x.translate(tipX, cy);
       x.rotate(-Math.PI / 2);
-      x.translate(-17, -51);
+      x.translate(-34, -102);
       x.drawImage(drillOff, 0, 0);
       x.restore();
-      glow(x, tipX - 24, cy, 34, '#ffd070', 0.2);
+      glow(x, tipX - 40, cy, 50, '#ffd070', 0.2);
       return hub;
     }
     return null;
@@ -437,7 +437,7 @@
     const f = Math.min(1, data.total / Math.max(1, data.goal));
     const ly = 140;
     const by = 112;
-    const tip = Math.round(14 + 102 * f);
+    const tip = Math.round(48 + 70 * f);
     cathedral(x, W, H, 'ccat', 'c', t, { seed: 4, lake: ly, water: ['#0e3a44', '#04141a'], pillars: [[20, 120, 2.4, false], [54, 86, 1.4, false], [128, 110, 2.8, false]] });
     farCart(x, W, 50, t + 12, 46);
     waterfall(x, 36, 22, ly, t);
@@ -457,7 +457,7 @@
     x.globalAlpha = 1;
     // Fanions à 25, 50 et 75 %
     [0.25, 0.5, 0.75].forEach((q) => {
-      const fx = Math.round(14 + 102 * q);
+      const fx = Math.round(48 + 70 * q);
       x.fillStyle = '#5a3a1e';
       x.fillRect(fx, by - 18, 1, 15);
       x.fillStyle = f >= q ? '#ffd84a' : '#4a3a20';
@@ -465,8 +465,12 @@
       x.fillRect(fx + 1, by - 14, 4, 1);
     });
     // Foreuse du jeu, couchée vers la droite, posée sur le pont
-    tracks(x, tip - 46, by - 9, 48, t, !data.reached);
-    const hubbed = gameDrill(x, tip + 2, by - 17 - 9, t, !data.reached);
+    x.save();
+    x.translate(tip - 94, by - 20);
+    x.scale(2, 2);
+    tracks(x, 0, 0, 48, t, !data.reached);
+    x.restore();
+    const hubbed = gameDrill(x, tip, by - 54, t, !data.reached);
     if (!hubbed) {
       x.fillStyle = '#f0a81c';
       x.fillRect(tip - 30, by - 28, 30, 22);
