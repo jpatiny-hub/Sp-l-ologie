@@ -136,3 +136,12 @@ test('mardi gras : 47 jours avant Pâques', () => {
   assert.ok(calendarKinds('2026-02-17').includes('mardi-gras'));
   assert.ok(!calendarKinds('2027-02-10').includes('mardi-gras'));
 });
+
+test('personnage standard : le même, au teint clair, pour tous les joueurs', () => {
+  const a = Avatar.defaultAvatar(1);
+  assert.deepEqual(Avatar.defaultAvatar(2), a);
+  assert.deepEqual(Avatar.defaultAvatar(987), a);
+  assert.equal(a.peau, 'clair');
+  assert.equal(a.espece, 'humain');
+  assert.deepEqual(Avatar.normalize(null, 42), a);
+});

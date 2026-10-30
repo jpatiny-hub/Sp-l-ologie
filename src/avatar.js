@@ -131,21 +131,16 @@ const LOCKS = {
   'accessoire:noeud-arc-en-ciel': ['fierte'],
 };
 
-function defaultAvatar(userId) {
-  const n = Math.abs(Number(userId) || 1);
-  const pick = (slot, k, pool) => {
-    const ids = pool || OPTIONS[slot].map((o) => o[0]);
-    return ids[(n * (k + 3) + k * 7) % ids.length];
-  };
-  const forme = pick('forme', 1);
+function defaultAvatar() {
+  // Personnage standard : le même pour tous les joueurs, à personnaliser ensuite dans le vestiaire.
   return {
     espece: 'humain',
-    forme,
-    peau: pick('peau', 2),
-    cheveux: pick('cheveux', 3, ['court', 'long', 'chignon', 'crete', 'afro', 'tresses', 'chauve']),
-    couleur: pick('couleur', 4),
-    yeux: pick('yeux', 5, ['points', 'grands', 'lunettes', 'heureux']),
-    barbe: forme === 'm' ? pick('barbe', 6, ['aucune', 'barbe', 'moustache', 'bouc']) : 'aucune',
+    forme: 'm',
+    peau: 'clair',
+    cheveux: 'court',
+    couleur: 'brun',
+    yeux: 'points',
+    barbe: 'aucune',
     trait: 'aucun',
     corpulence: 'normale',
     modele: 'classique',
