@@ -2217,8 +2217,8 @@
     app.game = state;
     sceneLayers(state, false);
     if (state.finished) return showResults(state);
-    // Sons 16-bit : le wagonnet part à gauche pour un duel, à droite pour un forage (déjà joué au départ depuis l'accueil).
-    if (son16On() && !departing && !state.rounds.some((r) => r.status === 'done')) Sound.wagon(state.duel ? -1 : 1);
+    // Sons 16-bit : le wagonnet part à droite pour le forage du jour (déjà joué au départ depuis l'accueil), à gauche pour un duel ou l'infini.
+    if (son16On() && !departing && !state.rounds.some((r) => r.status === 'done')) Sound.wagon(state.mode === 'daily' ? 1 : -1);
     show('game');
     renderGame();
   }
