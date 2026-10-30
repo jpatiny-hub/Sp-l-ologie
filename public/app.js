@@ -6405,7 +6405,7 @@
       renderRecap(data);
       show('recap');
       window.scrollTo(0, 0);
-      if (fetesOn() && (data.kind === 'week' || data.kind === 'month')) startFete(data);
+      if (fetesOn()) startFete(data);
       else startFireworks(data);
     } catch {
       /* les podiums sont un bonus : s'ils échouent, on reste sur l'accueil */

@@ -616,8 +616,17 @@
         fanfare(6, [[392, 0.15], [523, 0.15], [659, 0.15], [784, 0.4], [659, 0.15], [784, 0.6]]);
         return;
       }
-      fanfare(0, [[523, 0.12], [659, 0.12], [784, 0.3]]);
-      for (let i = 0; i < 3; i++) firework(0.4 + i * 0.7, Math.random() * 1.6 - 0.8);
+      // « day » : veillée dans la galerie (3,4 s). Lanternes qui s'allument (0,3 / 0,6 / 0,9), pas tranquilles des trois premiers
+      // (0,5 → 1,9), petits sauts sur les caisses (2,0), étincelles et taupe qui applaudit (2,4), fanfare courte.
+      [0.3, 0.6, 0.9].forEach((at, i) => {
+        burst({ at, dur: 0.03, freq: 2200, type: 'bandpass', q: 4, gain: 0.1, bright: true, pan: -0.6 + i * 0.6 });
+        tone(660 + i * 110, { at: at + 0.02, dur: 0.1, type: 'triangle', gain: 0.05, wet: 0.4 });
+      });
+      for (let at = 0.5; at < 1.9; at += 0.28) burst({ at, dur: 0.05, freq: 260, gain: 0.07, pan: 0.6 - (at - 0.5) * 0.5 });
+      [0, 0.12, 0.24].forEach((d, i) => tone(330 + i * 110, { at: 2 + d, dur: 0.1, type: 'square', gain: 0.045, to: 600 + i * 120 }));
+      for (let i = 0; i < 3; i++) firework(2.4 + i * 0.5 + Math.random() * 0.1, Math.random() * 1.6 - 0.8);
+      tone(440, { at: 2.4, dur: 0.3, type: 'triangle', gain: 0.08, to: 700 });
+      fanfare(2.5, [[523, 0.12], [659, 0.12], [784, 0.4]]);
     },
 
     /** Gazette : papier qu'on déplie (ou qu'on feuillette, `flip`). */
