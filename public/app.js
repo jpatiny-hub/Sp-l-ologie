@@ -42,6 +42,7 @@
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
   for (const flag of BETA_FLAGS) settings[flag] = true;
   settings.betaHd = false; // essai du style HD-2D : réservé au responsable, désactivé au départ
+  settings.labDrill16 = ''; // foreuse de fête 16-bit à l'essai (avec le style HD-2D)
   // Ambiance sonore : coups de pioche, grondement, musiques d'accueil, bruits de boutons et chrono sonore, au choix de chaque joueur : coups de pioche, grondement et musique « Galerie » activés au départ, le reste non.
   const AMBIENT_FLAGS = ['labTaps', 'labRumble'];
   const LAB_FLAGS = [...AMBIENT_FLAGS, 'labTabs', 'labClicks', 'labTimer'];
@@ -124,6 +125,7 @@
     applySeason();
     root.toggleAttribute('data-hd', hdOn());
     Pixel.setHd(hdOn());
+    if (typeof scene !== 'undefined') scene.drill16 = hdOn() && settings.labDrill16 ? settings.labDrill16 : null;
     root.classList.toggle('colorblind', settings.colors !== 'normal');
     if (settings.colors === 'normal') delete root.dataset.colors;
     else root.dataset.colors = settings.colors;
@@ -271,6 +273,11 @@
     $('beta-box').hidden = !(app.me && app.me.isAdmin);
     $('hd-box').hidden = $('beta-box').hidden;
     settingsForm.elements.betaHd.checked = !!settings.betaHd;
+    const drillBox = $('lab-drill16');
+    if (drillBox.children.length === 1) {
+      for (const m of Drills16.MODELS) drillBox.append(el('label', {}, el('input', { type: 'radio', name: 'labDrill16', value: m.id }), ` ${m.nom}${m.quand ? ` (${m.quand})` : ''}`));
+    }
+    settingsForm.elements.labDrill16.value = settings.labDrill16 || '';
     renderVersions();
     for (const name of BETA_FLAGS) settingsForm.elements[name].checked = !!settings[name];
     $('lab-box').hidden = !app.me;
@@ -318,6 +325,7 @@
     settings.season = settingsForm.elements.season.checked;
     for (const name of BETA_FLAGS) settings[name] = settingsForm.elements[name].checked;
     settings.betaHd = settingsForm.elements.betaHd.checked;
+    settings.labDrill16 = settingsForm.elements.labDrill16.value || '';
     for (const name of LAB_FLAGS) settings[name] = settingsForm.elements[name].checked;
     settings.labMusic = settingsForm.elements.labMusic.value || '';
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));

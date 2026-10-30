@@ -1283,6 +1283,7 @@
       this.world = buildWorld();
       this.layers = [];
       this.skin = { body: 'classique', bit: 'standard' };
+      this.drill16 = null; // foreuse 16-bit à l'essai (mode HD-2D, responsable seulement)
       this.avatar = null;
       this.depth = 0;
       this.target = 0;
@@ -1348,7 +1349,8 @@
       // Foreuse et personnages : ajoutés après l'ambiance pour rester lisibles dans la galerie sombre (ils reçoivent la lampe et la lueur).
       ctx.globalCompositeOperation = 'source-over';
       for (const sp of this.hdSprites) {
-        if (sp.drill) drawDrillHd(ctx, k, sp.drill.x0, sp.drill.bodyTop, sp.drill.tip, sp.drill.time, sp.drill.drilling, sp.drill.face);
+        if (sp.drill16) this.drawDrill16(ctx, k, sp.drill16);
+        else if (sp.drill) drawDrillHd(ctx, k, sp.drill.x0, sp.drill.bodyTop, sp.drill.tip, sp.drill.time, sp.drill.drilling, sp.drill.face);
         else ctx.drawImage(sp.img, Math.round(sp.x * k), Math.round(sp.y * k));
       }
 
@@ -1668,9 +1670,31 @@
       this.hdSprites.push({ img: up.canvas, x: x - up.pad, y: y - up.pad });
     }
 
+    /** Foreuse 16-bit (essai du responsable) : 2 pixels du sprite par pixel du jeu, visage du joueur dans le hublot. */
+    drawDrill16(ctx, k, d) {
+      const calm = (global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches) || global.document.documentElement.hasAttribute('data-calm');
+      const hub = global.Drills16.draw(ctx, d.id, { tipX: (d.x0 + 8) * k, tipY: d.tip * k, px: k / 2, time: d.time, drilling: d.drilling, view: { w: W * 2, h: this.h * 2 }, calm });
+      if (!hub || !d.face) return;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(hub.cx, hub.cy, hub.r, 0, 7);
+      ctx.clip();
+      ctx.imageSmoothingEnabled = true;
+      const oy = global.Avatar ? global.Avatar.OY : 6;
+      ctx.drawImage(d.face.canvas, (5 + d.face.pad) * 4, (oy + 1 + d.face.pad) * 4, 24, 20, hub.cx - hub.r, hub.cy - hub.r * 0.85, hub.r * 2, hub.r * 1.7);
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.fillRect(hub.cx - hub.r * 0.6, hub.cy - hub.r * 0.6, k / 2, k / 2);
+      ctx.restore();
+    }
+
     /** Foreuse (et visage au hublot) dessinées à part pour être redessinées en haute définition. */
     queueDrill(x0, tip, bodyTop, time, cam) {
       const sk = this.skin || {};
+      if (this.drill16 && global.Drills16) {
+        const face = this.avatar && this.avatar.lieu === 'hublot' && global.Avatar ? hdFace(global.Avatar.sprite(this.avatar)) : null;
+        this.hdSprites.push({ drill16: { id: this.drill16, x0, tip: tip - cam, time, drilling: this.drilling, face } });
+        return;
+      }
       if ((!sk.body || sk.body === 'classique') && (!sk.bit || sk.bit === 'standard')) {
         const av = this.avatar && this.avatar.lieu === 'hublot' && global.Avatar ? hdFace(global.Avatar.sprite(this.avatar)) : null;
         this.hdSprites.push({ drill: { x0, bodyTop: bodyTop - cam, tip: tip - cam, time, drilling: this.drilling, face: av } });
