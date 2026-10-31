@@ -92,8 +92,8 @@
   /** Nouveautés à l'essai : réservées au responsable du jeu, une par une. */
   const labOn = (name) => !!(app.me && settings[name]);
   // Nouveau look : pour tous les joueurs ; le responsable peut en retirer des morceaux dans les réglages pour comparer.
-  /** Un morceau de la refonte 16-bit : uniquement pour le responsable, s'il active toute la refonte ou ce morceau. */
-  const refonteOn = (name) => !!(app.me && app.me.isAdmin && (settings.betaRefonte || settings[name]));
+  /** Un morceau de la refonte 16-bit : pour tous une fois la refonte ouverte (me.refonte), avant cela pour le responsable s'il active toute la refonte ou ce morceau. */
+  const refonteOn = (name) => !!(app.me && (app.me.refonte || (app.me.isAdmin && (settings.betaRefonte || settings[name]))));
   /** Galeries 16-bit : grottes mystérieuses par paliers sous la surface. */
   const cavesOn = () => refonteOn('betaCaves');
   /** Taupe en 16 bits. */
@@ -3627,7 +3627,7 @@
 
     $('avatar-options').replaceChildren(...(betaOn('betaProfil') ? [wardrobe()] : buildRows()));
     // Refonte en bêta : l'anniversaire n'est proposé qu'au responsable.
-    if (betaOn('betaProfil') && app.me && app.me.isAdmin) $('avatar-options').append(birthdayBlock(profile.birthday));
+    if (betaOn('betaProfil') && app.me && (app.me.isAdmin || app.me.refonte)) $('avatar-options').append(birthdayBlock(profile.birthday));
     preview();
     let timer = null;
     function commit() {
