@@ -1,4 +1,5 @@
-titre: Une plante de la famille des Cucurbitacées (légume, fruit, variété connue ou espèce sauvage)
+titre: Une plante de la famille des Cucurbitacées
+# Ancien titre, qui précise le périmètre exact : Une plante de la famille des Cucurbitacées (légume, fruit, variété connue ou espèce sauvage)
 # Pièges exclus : pepino (Solanacées), gombo (Malvacées), papaye, aubergine.
 1: Courgette = Zucchini; Concombre; Melon; Pastèque = Melon d'eau; Citrouille; Potiron; Courge; Cornichon
 2: Potimarron = Courge Hokkaido = Hokkaido; Butternut = Courge butternut = Doubeurre; Pâtisson = Bonnet d'électeur = Artichaut de Jérusalem; Courge spaghetti = Spaghetti squash; Courge musquée = Courge de Provence = Musquée de Provence; Chayote = Christophine = Chouchou = Chayotte = Sechium edule; Calebasse = Gourde = Lagenaria = Lagenaria siceraria = Courge bouteille; Luffa = Loofah = Éponge végétale = Courge éponge; Margose = Melon amer = Concombre amer = Momordica charantia; Kiwano = Concombre cornu = Melon à cornes = Concombre africain; Giraumon = Turban turc = Bonnet turc; Cantaloup = Melon cantaloup; Melon charentais = Charentais

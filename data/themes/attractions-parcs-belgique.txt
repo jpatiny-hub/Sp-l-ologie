@@ -1,4 +1,5 @@
-titre: Une attraction de grand parc d'attractions belge (montagnes russes et attractions emblématiques)
+titre: Une attraction des grands parcs belges
+# Ancien titre, qui précise le périmètre exact : Une attraction de grand parc d'attractions belge (montagnes russes et attractions emblématiques)
 # Périmètre : attractions actuelles ou récentes de Walibi Belgium, Bobbejaanland, Plopsaland De Panne (Plopsaland Belgium) et Bellewaerde. Noms vérifiés sur les pages Wikipédia FR/EN des parcs (listes d'attractions) ; attractions démontées depuis longtemps exclues.
 1: Dalton Terror; Cobra; Vampire; Calamity Mine; Kondaa; Anubis The Ride = Anubis; Heidi The Ride = Heidi
 2: Turbine = Psyké Underground = Psyke Underground = Sirocco; Pulsar; Tiki-Waka; Loup Garou; Mecalodon; Fury; Typhoon; Revolution = Mount Mara; Wakala; Huracan; Boomerang; Draconis; SuperSplash; The Ride to Happiness = Ride to Happiness

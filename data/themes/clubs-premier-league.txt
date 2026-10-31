@@ -1,4 +1,5 @@
-titre: Un club ayant joué au moins une saison en Premier League anglaise (depuis 1992)
+titre: Un club de Premier League depuis 1992
+# Ancien titre, qui précise le périmètre exact : Un club ayant joué au moins une saison en Premier League anglaise (depuis 1992)
 # Vérifié le 2026-10-21 sur en.wikipedia (List of Premier League clubs) : 51 clubs, liste identique à la source (saison 2025-26 incluse).
 # 51 clubs. Les clubs gallois (Cardiff, Swansea) comptent.
 1: Manchester United = Man United = Man Utd; Liverpool; Arsenal; Chelsea; Manchester City = Man City; Tottenham Hotspur = Tottenham = Spurs

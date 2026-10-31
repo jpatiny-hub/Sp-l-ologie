@@ -1,4 +1,5 @@
-titre: Un État souverain d'une superficie supérieure à 1 million de km²
+titre: Un pays de plus d'un million de km²
+# Ancien titre, qui précise le périmètre exact : Un État souverain d'une superficie supérieure à 1 million de km²
 # 29 pays, du plus grand (Russie, 17,1 M km²) à la Mauritanie (1,03 M km²). Le Groenland n'est pas un État souverain.
 1: Russie; Canada; Chine; États-Unis = USA; Brésil; Australie; Inde; Argentine
 2: Kazakhstan; Algérie; République démocratique du Congo = RDC = Congo-Kinshasa; Arabie saoudite; Mexique; Indonésie; Soudan; Libye; Iran; Mongolie; Pérou; Tchad; Niger; Angola; Mali; Afrique du Sud; Colombie; Éthiopie

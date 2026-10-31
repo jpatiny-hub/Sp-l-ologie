@@ -1,4 +1,5 @@
-titre: Une série lauréate de l'Emmy Award de la meilleure série dramatique ou comique (1980-2026)
+titre: Une série lauréate de l'Emmy de la meilleure série
+# Ancien titre, qui précise le périmètre exact : Une série lauréate de l'Emmy Award de la meilleure série dramatique ou comique (1980-2026)
 # Vérifié sur en.wikipedia jusqu'à la 78e cérémonie (2026 : The Pitt en drame, Widow's Bay en comédie).
 1: Friends; Game of Thrones = Le Trône de fer; Breaking Bad; The Crown; Seinfeld; Les Soprano = The Sopranos; Urgences = ER; Lost = Lost : Les Disparus; Modern Family; Mad Men
 2: The Office; Ted Lasso; Succession; Homeland; 24 heures chrono = 24; À la Maison-Blanche = The West Wing; Frasier; Sex and the City; Ally McBeal; The Handmaid's Tale = La Servante écarlate; Fleabag; Cheers; The Cosby Show = Cosby Show; Les Craquantes = The Golden Girls; Will & Grace; New York, police judiciaire = Law & Order; The Bear; Shōgun = Shogun; Les Années coup de cœur = The Wonder Years; 30 Rock; Arrested Development; Tout le monde aime Raymond = Everybody Loves Raymond

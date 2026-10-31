@@ -1,4 +1,5 @@
-titre: Une céréale ou une pseudo-céréale (plante cultivée pour ses grains : espèce ou forme cultivée)
+titre: Une céréale ou pseudo-céréale
+# Ancien titre, qui précise le périmètre exact : Une céréale ou une pseudo-céréale (plante cultivée pour ses grains : espèce ou forme cultivée)
 # Céréales : Poacées à grains ; pseudo-céréales : sarrasin, quinoa, amarante, chia, kañiwa. Exclus : produits (boulgour, semoule, polenta), légumineuses.
 1: Blé = Froment; Riz; Maïs; Orge; Avoine; Seigle; Épeautre = Grand épeautre = Triticum spelta; Quinoa = Quinoa des Andes; Sarrasin = Blé noir
 2: Millet; Sorgho = Sorgho commun = Gros mil; Blé dur = Triticum durum; Blé tendre = Triticum aestivum; Triticale; Amarante = Amaranthe; Petit épeautre = Engrain = Blé engrain = Triticum monococcum; Kamut = Blé de Khorasan = Khorasan = Triticum turanicum; Teff = Tef = Eragrostis tef; Fonio = Fonio blanc = Digitaria exilis; Riz sauvage = Zizanie = Riz indien = Zizania

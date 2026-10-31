@@ -1,4 +1,5 @@
-titre: Une pièce, un personnage, une arme ou un pion d'un jeu d'échecs, de Cluedo ou de Monopoly
+titre: Un élément des échecs, du Cluedo ou du Monopoly
+# Ancien titre, qui précise le périmètre exact : Une pièce, un personnage, une arme ou un pion d'un jeu d'échecs, de Cluedo ou de Monopoly
 # Vérifié sur Wikipédia FR (Cluedo, Monopoly). Échecs : les 6 types de pièces. Cluedo (édition française) : les 6 suspects et les 6 armes. Monopoly : les pions classiques et récents, maisons et hôtels. Armes et personnages supplémentaires de certaines éditions récentes (Docteur Orchidée, Madame Chose, hache, trophée, etc.) en niveaux 4-5. Les pièces (lieux) du Cluedo et les cases du Monopoly sont exclues.
 1: Roi; Dame = Reine; Tour; Cavalier; Fou; Pion = Pions; Colonel Moutarde = Moutarde; Mademoiselle Rose = Mlle Rose; Madame Pervenche = Mme Pervenche = Pervenche; Chandelier; Corde; Revolver; Poignard; Maison; Hôtel
 2: Chapeau haut-de-forme = Haut-de-forme; Voiture; Chien = Scottish terrier; Bateau = Cuirassé; Fer à repasser = Fer; Dé à coudre; Brouette; Botte; Clé anglaise; Tuyau de plomb = Barre de fer = Matraque

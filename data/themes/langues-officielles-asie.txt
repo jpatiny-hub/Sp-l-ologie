@@ -1,4 +1,5 @@
-titre: Une langue officielle (au niveau national) d'au moins un État d'Asie
+titre: Une langue officielle en Asie
+# Ancien titre, qui précise le périmètre exact : Une langue officielle (au niveau national) d'au moins un État d'Asie
 # Langues d'État : chinois, japonais, coréen, hindi, bengali, ourdou, népalais, dzongkha, cingalais, tamoul, divehi, thaï, lao, khmer, birman, vietnamien, malais, indonésien, filipino, mongol, langues d'Asie centrale, persan, pachto, dari, arabe, hébreu, turc, kurde, tétoum… Les langues indiennes régionales ne comptent pas.
 1: Chinois = Mandarin; Japonais; Coréen; Hindi; Anglais; Arabe
 2: Russe; Turc; Persan = Farsi; Hébreu; Ourdou; Bengali; Thaï; Vietnamien; Indonésien; Malais; Tamoul

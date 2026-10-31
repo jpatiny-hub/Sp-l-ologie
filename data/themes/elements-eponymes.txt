@@ -1,4 +1,5 @@
-titre: Un élément chimique nommé d'après un lieu, une personne, un astre ou une figure mythologique
+titre: Un élément chimique nommé d'après un lieu, une personne ou un mythe
+# Ancien titre, qui précise le périmètre exact : Un élément chimique nommé d'après un lieu, une personne, un astre ou une figure mythologique
 # Lieux (Polonium, Ytterbium…), scientifiques (Curium…), astres (Uranium, Hélium = Soleil, Sélénium = Lune, Tellure = Terre, Cérium = Cérès, Palladium = Pallas), mythologie et folklore (Titane, Thorium, Cobalt = kobold…).
 # Ajouts : Mercure (planète et dieu), Iridium (Iris, déesse de l’arc-en-ciel), Manganèse (Magnésie, comme le magnésium).
 1: Polonium; Francium; Einsteinium; Curium; Germanium; Américium

@@ -1,4 +1,5 @@
-titre: Une langue officielle (au niveau national) d'au moins un État souverain
+titre: Une langue officielle d'un pays
+# Ancien titre, qui précise le périmètre exact : Une langue officielle (au niveau national) d'au moins un État souverain
 # D'après « List of official languages by country and territory » (Wikipédia en, colonne « Official language(s) », statut de facto compris). Les langues seulement « nationales » ou régionales (lingala, wolof, basque, breton, gallois, langues indiennes autres que le hindi…) ne comptent pas.
 1: Français; Anglais; Néerlandais = Flamand; Allemand; Espagnol = Castillan; Italien; Chinois = Mandarin = Chinois standard; Arabe; Portugais; Russe
 2: Japonais; Turc; Grec; Polonais; Latin; Hindi; Coréen; Suédois; Norvégien = Bokmål = Nynorsk; Danois; Roumain = Moldave; Hébreu; Luxembourgeois; Swahili = Kiswahili; Finnois; Hongrois; Tchèque; Croate; Serbe; Ukrainien; Persan = Farsi; Irlandais = Gaélique irlandais; Catalan; Albanais; Bulgare; Islandais; Malais; Indonésien; Thaï; Vietnamien; Ourdou = Urdu; Bengali; Romanche; Maltais; Slovaque; Slovène; Estonien; Letton; Lituanien; Biélorusse; Berbère = Amazighe = Tamazight; Kurde

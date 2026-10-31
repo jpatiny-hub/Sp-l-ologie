@@ -1,4 +1,5 @@
-titre: Un pays ou territoire dont le drapeau comporte un soleil, une lune ou un croissant
+titre: Un drapeau avec un soleil, une lune ou un croissant
+# Ancien titre, qui précise le périmètre exact : Un pays ou territoire dont le drapeau comporte un soleil, une lune ou un croissant
 # Les étoiles seules ne comptent pas (voir le thème des drapeaux à étoile). Laos : disque blanc interprété comme la lune ; Mongolie : emblème Soyombo.
 1: Japon; Turquie; Argentine; Pakistan; Algérie; Tunisie; Malaisie; Singapour; Taïwan = Taiwan; Bangladesh; Philippines
 2: Uruguay; Kazakhstan; Libye; Mauritanie; Maldives; Azerbaïdjan; Ouzbékistan; Turkménistan; Comores; Brunei; Népal; Namibie; Kirghizistan; Macédoine du Nord = Macédoine

@@ -1,4 +1,5 @@
-titre: Un pays qui compte au moins trois langues officielles (niveau national)
+titre: Un pays avec au moins trois langues officielles
+# Ancien titre, qui précise le périmètre exact : Un pays qui compte au moins trois langues officielles (niveau national)
 # Pays où trois langues ou plus ont un statut officiel au niveau national (y compris de fait), d'après la liste des langues officielles de Wikipédia. Seuls dix pays en comptent strictement plus de trois.
 1: Suisse; Belgique; Afrique du Sud; Singapour; Luxembourg
 2: Zimbabwe; Bolivie; Rwanda; Nouvelle-Zélande; Bosnie-Herzégovine = Bosnie; Burundi; Comores; Seychelles; Vanuatu; Fidji

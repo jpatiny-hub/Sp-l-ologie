@@ -1,0 +1,6 @@
+titre: Une chose qui sonne ou qui vibre
+actif: non
+# Thème non bornable : « sonner » et « vibrer » sont très larges et ambigus (alarme, instrument, téléphone, cloche, corde, diapason, moteur, haut-parleur, cordes vocales, séisme... sonner = émettre un son ? un signal ? vibrer = mécanique ou ressenti ?). Presque tout objet peut être défendu.
+# Pour le resserrer : « Un objet de la maison qui sonne » (sonnette, réveil, minuteur, téléphone, four...), « Un appareil qui vibre » ou « Un instrument qui sonne grâce à une corde qui vibre ». Voir aussi les thèmes « objets-qui-font-du-bruit-secoues » et « bruits-maison ».
+# Aucune réponse listée volontairement.
+1: Téléphone; Réveil; Sonnette; Cloche

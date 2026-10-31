@@ -1,0 +1,8 @@
+titre: Une capitale d'État américain
+# Liste fermée : les 50 capitales des États fédérés des États-Unis (une par État). Washington D.C. est exclue (capitale fédérale, pas capitale d'un État) ; les capitales de pays sont dans capitales.txt.
+# Revérifié le 30/10/2026 : les 50 capitales ci-dessous correspondent une à une aux 50 États (AL Montgomery ... WY Cheyenne) ; aucune erreur. Ajout de variantes courantes.
+# Sources : liste des capitales d'État (Wikipédia fr/en) ; recoupée avec la liste des 50 États (etats-unis.txt) : 50 États, 50 capitales. Peu de pages ont pu être récupérées en ligne (tableau vide), liste vérifiée de mémoire contre les 50 États.
+1: Boston; Atlanta; Denver; Phoenix; Sacramento; Austin; Honolulu; Salt Lake City = Salt Lake = SLC; Nashville
+2: Indianapolis; Columbus; Oklahoma City = Oklahoma; Santa Fe; Albany; Richmond; Baton Rouge; Juneau; Providence; Hartford; Olympia; Salem; Madison; Saint Paul = St Paul = St. Paul = Saint-Paul
+3: Montgomery; Little Rock; Jackson; Raleigh; Columbia; Tallahassee; Lincoln; Boise; Springfield; Annapolis; Trenton; Harrisburg; Topeka; Des Moines; Cheyenne
+4: Lansing; Carson City = Carson; Helena; Bismarck; Pierre; Frankfort; Charleston; Concord; Augusta; Jefferson City = Jefferson; Dover; Montpelier

@@ -1,4 +1,5 @@
-titre: Une étoile de première magnitude (magnitude apparente 1,5 ou plus brillante, Soleil exclu)
+titre: Une étoile de première magnitude
+# Ancien titre, qui précise le périmètre exact : Une étoile de première magnitude (magnitude apparente 1,5 ou plus brillante, Soleil exclu)
 # Les 21 étoiles de première magnitude classiques, plus Adhara (1,50) et Toliman (α Centauri B, 1,33).
 1: Sirius = Alpha Canis Majoris; Véga = Vega = Wega; Bételgeuse = Betelgeuse; Rigel; Aldébaran = Aldebaran; Antarès = Antares; Arcturus
 2: Altaïr = Altair; Deneb; Capella = la Chèvre; Procyon; Régulus = Regulus; Spica = l'Épi = Épi de la Vierge; Pollux; Canopus = Canope; Rigil Kentaurus = Alpha Centauri = Alpha du Centaure = Rigel Kentaurus = Rigil Kent

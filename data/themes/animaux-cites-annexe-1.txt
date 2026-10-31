@@ -1,4 +1,5 @@
-titre: Un animal strictement protégé : espèce ou groupe inscrit à l'Annexe I de la CITES (convention de Washington)
+titre: Un animal strictement protégé (CITES, annexe I)
+# Ancien titre, qui précise le périmètre exact : Un animal strictement protégé : espèce ou groupe inscrit à l'Annexe I de la CITES (convention de Washington)
 # Périmètre : animaux dont l'espèce (ou, pour les noms de groupe, toutes ou la quasi-totalité des espèces) figure à l'Annexe I de la CITES : espèces menacées d'extinction dont le commerce international est interdit. Liste non exhaustive de l'annexe (plusieurs centaines d'espèces) : on ne retient ici que des animaux dont l'inscription est certaine. Le lion, l'ours brun, l'ours polaire, l'hippopotame ou le loup (selon population) ne sont volontairement pas retenus.
 1: Tigre = Tigre de Sibérie; Panda géant = Grand panda; Gorille; Chimpanzé; Orang-outan; Éléphant d'Asie = Éléphant asiatique; Baleine bleue; Rhinocéros noir; Léopard des neiges = Once; Guépard; Jaguar; Tortue luth
 2: Bonobo = Chimpanzé nain; Gibbon; Siamang; Baleine à bosse = Mégaptère; Baleine franche; Baleine grise; Rorqual commun; Cachalot; Tortue verte; Tortue imbriquée; Tortue caouanne; Tortue olivâtre; Léopard = Panthère = Léopard de Perse; Éléphant d'Afrique; Panda roux; Pangolin; Condor des Andes; Faucon pèlerin; Ara hyacinthe; Loutre géante; Dugong

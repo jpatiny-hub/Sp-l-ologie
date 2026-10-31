@@ -1,4 +1,5 @@
-titre: Une sonde spatiale ayant survolé une autre planète que la Terre, tourné autour ou s'y étant posée
+titre: Une sonde spatiale qui a visité une autre planète
+# Ancien titre, qui précise le périmètre exact : Une sonde spatiale ayant survolé une autre planète que la Terre, tourné autour ou s'y étant posée
 # De Mercure à Neptune, jusqu'à fin 2025, échecs compris dès lors que l'engin a atteint les abords de la planète (Mars Climate Orbiter, Beagle 2…).
 # Atterrisseurs et rovers comptent à part. La Lune, Titan et les astéroïdes ne sont pas des planètes, mais les engins qui ont aussi croisé une planète en route comptent.
 1: Curiosity; Perseverance = Mars 2020; Voyager 1; Voyager 2; Cassini = Cassini-Huygens; Juno; Opportunity; Spirit

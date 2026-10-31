@@ -1,0 +1,9 @@
+titre: Un village classé parmi « Les plus beaux villages de Wallonie »
+# Périmètre : les 33 villages membres de l'association « Les Plus Beaux Villages de Wallonie » (label créé en 1994), situation de juin 2024 (Redu = 33e village). Les noms sont ceux des villages (sections de commune), pas des communes.
+# Sources : beauxvillages.be (liste des villages et dossier de presse « 30 ans » 2024) ; Wikipédia EN « Les Plus Beaux Villages de Wallonie » (29 villages, version plus ancienne) ; Wikipédia FR (33 villages, citant les départs de Deigné en 2013 et Fagnolle en 2020) ; RTBF 13/06/2024 (Redu, 33e village).
+# Revérifié le 30/10/2026 : beauxvillages.be affiche 32 cartes (sans Redu) + Redu = 33 ; les 32 noms correspondent exactement au fichier. Aucun changement.
+# Écartés (sortis de l'association) : Deigné (Aywaille) et Fagnolle (Philippeville). À revérifier si de nouveaux villages sont labellisés.
+1: Torgny; Olne; Limbourg; Mozet; Crupet; Celles; Lompret; Wéris = Weris
+2: Falaën = Falaen; Soulme; Barbençon; Chardeneux; Chassepierre; Mirwart; Aubechies; Vierves-sur-Viroin = Vierves; Laforêt = Laforet; Redu; Soiron; Clermont-sur-Berwinne = Clermont; Thon-Samson = Thon
+3: Gros-Fays = Gros Fays; Sosoye; Montignies-sur-Roc; Ragnies; Mélin = Melin; Nobressart; Ny; Our; Sohier; Saint-Remy-Geest = Saint Remy Geest = Geest
+4: Guirsch; My

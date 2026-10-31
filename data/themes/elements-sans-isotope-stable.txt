@@ -1,4 +1,5 @@
-titre: Un élément chimique sans aucun isotope stable (tous ses isotopes sont radioactifs)
+titre: Un élément chimique sans isotope stable
+# Ancien titre, qui précise le périmètre exact : Un élément chimique sans aucun isotope stable (tous ses isotopes sont radioactifs)
 # Technétium (43), prométhium (61) et tous les éléments de numéro atomique ≥ 83.
 # Le bismuth (Bi-209, demi-vie ~2×10^19 ans) est accepté : il n'a, à strictement parler, aucun isotope stable.
 1: Uranium = U; Plutonium = Pu; Radium = Ra; Radon = Rn; Polonium = Po

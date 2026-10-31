@@ -1,4 +1,5 @@
-titre: Un artiste ou groupe choisi pour représenter la France au concours Eurovision de la chanson (1956-2026)
+titre: Un représentant de la France à l'Eurovision
+# Ancien titre, qui précise le périmètre exact : Un artiste ou groupe choisi pour représenter la France au concours Eurovision de la chanson (1956-2026)
 # Vérifié sur en.wikipedia « France in the Eurovision Song Contest » (dernière édition : 2026, Monroe).
 1: Patricia Kaas = Kaas; Marie Myriam; Barbara Pravi; Amir; Slimane; Louane; Natasha St-Pier = Natasha Saint-Pier; Anggun; Patrick Fiori = Fiori
 2: Monroe; Isabelle Aubret; Frida Boccara; Jacqueline Boyer; André Claveau; Serge Lama; La Zarra; Bilal Hassani; Madame Monsieur; Alma; Sébastien Tellier = Tellier; Les Fatals Picards = Fatals Picards; Gérard Lenorman = Lenorman; Joëlle Ursull; Amina; Jessy Matador; Amaury Vassili; Lisa Angell; Twin Twin; Alvan & Ahez = Alvan et Ahez; Anne-Marie David; Jonatan Cerrada

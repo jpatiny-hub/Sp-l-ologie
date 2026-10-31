@@ -1,4 +1,5 @@
-titre: Un joueur ou une joueuse ayant gagné un tournoi du Grand Chelem en simple depuis 1968 (ère Open, jusqu'en 2026)
+titre: Un vainqueur de Grand Chelem depuis 1968
+# Ancien titre, qui précise le périmètre exact : Un joueur ou une joueuse ayant gagné un tournoi du Grand Chelem en simple depuis 1968 (ère Open, jusqu'en 2026)
 # Vérifié le 2026-10-21 sur en.wikipedia (listes des vainqueurs en simple) : exhaustif jusqu'à l'US Open 2026.
 # Open d'Australie, Roland-Garros, Wimbledon, US Open, simple messieurs et simple dames, de 1968 à 2026 inclus.
 1: Roger Federer = Federer; Rafael Nadal = Nadal; Novak Djokovic = Djokovic; Justine Henin = Henin; Kim Clijsters = Clijsters; Serena Williams = Serena; Björn Borg = Borg; Yannick Noah = Noah; Carlos Alcaraz = Alcaraz; Jannik Sinner = Sinner
