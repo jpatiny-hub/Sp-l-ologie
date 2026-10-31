@@ -9,17 +9,17 @@ test('avatar : types de personnage, valeurs par défaut et anciens enregistremen
   for (const slot of ['espece', 'piercing', 'tatouage', 'accessoire']) assert.ok(base[slot], slot);
   assert.equal(base.espece, 'humain');
   // Un avatar enregistré avant l'arrivée des types reste valide.
-  const old = { ...base };
+  const old = { ...base, v: Avatar.AVATAR_VERSION };
   delete old.espece;
   assert.equal(Avatar.normalize(old, 5).espece, 'humain');
-  assert.equal(Avatar.normalize({ ...base, espece: 'dragon' }, 5).espece, 'humain');
-  assert.equal(Avatar.normalize({ ...base, espece: 'robot', tatouage: 'ancre' }, 5).espece, 'robot');
+  assert.equal(Avatar.normalize({ ...base, v: 2, espece: 'dragon' }, 5).espece, 'humain');
+  assert.equal(Avatar.normalize({ ...base, v: 2, espece: 'robot', tatouage: 'ancre' }, 5).espece, 'robot');
 });
 
 test('avatar : « juste le poil » est réservé à la taupe', () => {
   const base = Avatar.defaultAvatar(5);
-  assert.equal(Avatar.normalize({ ...base, tenue: 'poil' }, 5).tenue, base.tenue);
-  assert.equal(Avatar.normalize({ ...base, espece: 'taupe', tenue: 'poil' }, 5).tenue, 'poil');
+  assert.equal(Avatar.normalize({ ...base, v: 2, tenue: 'poil' }, 5).tenue, base.tenue);
+  assert.equal(Avatar.normalize({ ...base, v: 2, espece: 'taupe', tenue: 'poil' }, 5).tenue, 'poil');
   assert.equal(Avatar.validate({ ...base, tenue: 'poil' }, 5, []), null);
   assert.ok(Avatar.validate({ ...base, espece: 'taupe', tenue: 'poil' }, 5, []));
 });
@@ -137,11 +137,11 @@ test('mardi gras : 47 jours avant Pâques', () => {
   assert.ok(!calendarKinds('2027-02-10').includes('mardi-gras'));
 });
 
-test('personnage standard : le même, au teint clair, pour tous les joueurs', () => {
+test('personnage standard : le même, à la peau mat, pour tous les joueurs', () => {
   const a = Avatar.defaultAvatar(1);
   assert.deepEqual(Avatar.defaultAvatar(2), a);
   assert.deepEqual(Avatar.defaultAvatar(987), a);
-  assert.equal(a.peau, 'clair');
+  assert.equal(a.peau, 'mat');
   assert.equal(a.espece, 'humain');
   assert.deepEqual(Avatar.normalize(null, 42), a);
 });
@@ -167,4 +167,14 @@ test('remise à zéro des avatars : confirmation, réservée au responsable, une
   } finally {
     await app.close();
   }
+});
+
+test('refonte : les anciens avatars (sans marque de version) sont ignorés, les nouveaux conservés', () => {
+  const std = Avatar.defaultAvatar(1);
+  const ancien = { ...std, peau: 'brun', cheveux: 'long' };
+  assert.deepEqual(Avatar.normalize(ancien, 1), std, 'ancien avatar : personnage standard');
+  assert.deepEqual(Avatar.normalize(JSON.stringify(ancien), 1), std);
+  const neuf = { ...ancien, v: Avatar.AVATAR_VERSION };
+  assert.equal(Avatar.normalize(neuf, 1).peau, 'brun');
+  assert.equal(Avatar.normalize(neuf, 1).v, undefined, 'la marque n\'est pas renvoyée au navigateur');
 });

@@ -131,12 +131,18 @@ const LOCKS = {
   'accessoire:noeud-arc-en-ciel': ['fierte'],
 };
 
+/**
+ * Version de l'éditeur d'avatar. Un avatar enregistré avec le vestiaire de la refonte porte `v: AVATAR_VERSION` ; ceux d'avant
+ * (sans cette marque) sont ignorés à l'affichage : le joueur retrouve le personnage standard, sans rien effacer en base.
+ */
+const AVATAR_VERSION = 2;
+
 function defaultAvatar() {
   // Personnage standard : le même pour tous les joueurs, à personnaliser ensuite dans le vestiaire.
   return {
     espece: 'humain',
     forme: 'm',
-    peau: 'clair',
+    peau: 'mat',
     cheveux: 'court',
     couleur: 'brun',
     yeux: 'points',
@@ -170,7 +176,7 @@ function normalize(raw, userId) {
     }
   }
   const base = defaultAvatar(userId);
-  if (!saved || typeof saved !== 'object') return base;
+  if (!saved || typeof saved !== 'object' || saved.v !== AVATAR_VERSION) return base;
   const out = {};
   for (const slot of SLOTS) {
     const ids = OPTIONS[slot].map((o) => o[0]);
@@ -260,4 +266,4 @@ function validate(candidate, userId, badges, beta = true, refonte = true) {
   return out;
 }
 
-module.exports = { OPTIONS, LOCKS, BETA, REFONTE, defaultAvatar, normalize, catalog, validate };
+module.exports = { AVATAR_VERSION, OPTIONS, LOCKS, BETA, REFONTE, defaultAvatar, normalize, catalog, validate };

@@ -861,7 +861,7 @@ class BadgeService {
     const user = this.db.prepare('SELECT created_at FROM users WHERE id = ?').get(userId);
     const clean = Avatar.validate(candidate, userId, this.profile(userId, today, beta, refonte).badges.concat(this.anniversaries(user, today)), beta, refonte);
     if (!clean) return null;
-    this.db.prepare('UPDATE users SET avatar = ? WHERE id = ?').run(JSON.stringify(clean), userId);
+    this.db.prepare('UPDATE users SET avatar = ? WHERE id = ?').run(JSON.stringify({ ...clean, v: Avatar.AVATAR_VERSION }), userId);
     return clean;
   }
 

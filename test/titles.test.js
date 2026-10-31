@@ -51,8 +51,8 @@ test('foreuses de duel : épées, blindage et catapulte se gagnent par badges de
 test('avatar : nouveaux traits, tenues et accessoires sont valides mais verrouillés', () => {
   const base = Avatar.defaultAvatar(1);
   assert.equal(base.trait, 'aucun');
-  assert.equal(Avatar.normalize({ ...base, trait: 'cicatrice' }, 1).trait, 'cicatrice');
-  assert.equal(Avatar.normalize({ ...base, trait: 'nimporte' }, 1).trait, 'aucun');
+  assert.equal(Avatar.normalize({ ...base, v: 2, trait: 'cicatrice' }, 1).trait, 'cicatrice');
+  assert.equal(Avatar.normalize({ ...base, v: 2, trait: 'nimporte' }, 1).trait, 'aucun');
   const cat = Avatar.catalog([], true);
   assert.ok(cat.trait, 'nouveau groupe « trait »');
   assert.equal(cat.tenue.options.find((o) => o.id === 'armure').unlocked, false);
