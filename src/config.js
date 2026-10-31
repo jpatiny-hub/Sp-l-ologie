@@ -20,6 +20,8 @@ module.exports = {
   SESSION_DAYS: 90,
   // Étais de galerie (gels de série) : un jour manqué n'est pardonné que s'il tombe à cette date ou après.
   FREEZE_FROM: process.env.FREEZE_FROM || '2026-10-21',
+  // Refonte 16-bit : ouverte à tous les joueurs à partir de ce jour de jeu (2 h, heure de Bruxelles). Avant, réservée au responsable.
+  REFONTE_FROM: process.env.REFONTE_FROM || '2026-11-01',
   // Décors de saison (interface et scène de forage) : actifs du jour de jeu `from` au jour `to` inclus (le jour change à 2 h).
   // Halloween : dès le nouveau jour du 24 octobre (2 h) jusqu'au changement de jour du 31 octobre au 1er novembre ; Toussaint : le 1er novembre.
   SEASONS: [

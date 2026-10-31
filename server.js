@@ -80,6 +80,7 @@ function createApp({
   seasons = config.SEASONS,
   autoValidateDuels = false,
   errors = new ErrorLog(db, now),
+  refonteFrom = config.REFONTE_FROM,
 }) {
   const startedAt = now();
   const game = new GameService(db, themes, now, specialDays);
@@ -91,6 +92,24 @@ function createApp({
   // Validation des duels le lendemain à 2 h 30, rappels et forfaits : vérifiés toutes les 5 minutes, même sans visite.
   if (autoValidateDuels) setInterval(() => { try { game.duels.expire(); } catch (err) { console.error('Suivi des duels impossible :', err.message); } }, 5 * 60 * 1000).unref();
   const announcements = new AnnouncementService(db, now);
+  /**
+   * Refonte 16-bit ouverte à tous (à partir de `refonteFrom`). Le premier passage après l'ouverture remet les avatars au
+   * personnage standard, une seule fois, après une copie de sauvegarde de la base (les anciens restent dans avatar_backup).
+   */
+  function refonteLive() {
+    if (!refonteFrom || game.today() < refonteFrom) return false;
+    if (!db.prepare("SELECT 1 FROM settings WHERE key = 'avatars_reset_at'").get()) {
+      try {
+        backupNow(db, { now });
+        game.badges.resetAvatars();
+      } catch (err) {
+        errors.record('processus', `Remise à zéro des avatars à l'ouverture de la refonte impossible : ${err.message}`);
+      }
+    }
+    return true;
+  }
+  /** Vestiaire 16-bit : le responsable pendant la bêta, tout le monde une fois la refonte ouverte. */
+  const refonteFor = (user) => isAdmin(user) || refonteLive();
   game.badges.backfill();
   const loginLimiter = new auth.RateLimiter(10, 15 * 60 * 1000);
   const signupLimiter = new auth.RateLimiter(10, 60 * 60 * 1000);
@@ -393,6 +412,22 @@ function createApp({
       }
     },
 
+    // Remise à zéro unique des avatars (refonte). Jamais automatique : le responsable doit taper la confirmation.
+    'POST /api/admin/avatars/reset': async (req, res) => {
+      requireAdmin(req, res);
+      const { confirm } = await readJson(req);
+      if (confirm !== 'REMISE A ZERO') throw new HttpError(400, 'Confirmation manquante : tape REMISE A ZERO.');
+      try {
+        backupNow(db, { now });
+      } catch (err) {
+        errors.record('processus', `Sauvegarde avant remise à zéro des avatars impossible : ${err.message}`);
+        throw new HttpError(500, 'La sauvegarde a échoué, rien n\'a été effacé.');
+      }
+      const count = game.badges.resetAvatars();
+      if (count === null) throw new HttpError(409, 'La remise à zéro des avatars a déjà eu lieu.');
+      json(res, 200, { ok: true, count });
+    },
+
     'POST /api/admin/errors/clear': async (req, res) => {
       requireAdmin(req, res);
       await readJson(req);
@@ -410,10 +445,12 @@ function createApp({
       const user = currentUser(req, res);
       if (!user) return json(res, 200, { user: null });
       game.badges.awardPodiums(game.today());
+      const refonte = refonteLive();
       const row = db.prepare('SELECT skin_body, skin_bit, skin_timer, news_seen, avatar, tutorial_seen FROM users WHERE id = ?').get(user.id);
       json(res, 200, {
         user: userView(user),
         isAdmin: isAdmin(user),
+        refonte,
         skin: game.badges.skinOf(row),
         avatar: Avatar.normalize(row.avatar, user.id),
         unseenBadges: game.badges.unseenCount(user.id),
@@ -439,7 +476,7 @@ function createApp({
     'GET /api/profile': async (req, res) => {
       const user = requireUser(req, res);
       const joined = db.prepare('SELECT created_at FROM users WHERE id = ?').get(user.id);
-      json(res, 200, { ...game.badges.profile(user.id, game.today()), joinedAt: joined ? joined.created_at : null, playerStats: game.playerStats(user.id), skulls: { ...game.skulls.collection(user.id), active: game.skulls.isSkullDay(game.today()) } });
+      json(res, 200, { ...game.badges.profile(user.id, game.today(), true, refonteFor(user)), joinedAt: joined ? joined.created_at : null, playerStats: game.playerStats(user.id), skulls: { ...game.skulls.collection(user.id), active: game.skulls.isSkullDay(game.today()) } });
     },
 
     // Titre de mineur affiché à côté du pseudo : un titre débloqué, ou null pour n'en afficher aucun.
@@ -624,9 +661,18 @@ function createApp({
     'POST /api/profile/avatar': async (req, res) => {
       const user = requireUser(req, res);
       const { avatar } = await readJson(req);
-      const saved = game.badges.setAvatar(user.id, game.today(), avatar);
+      const saved = game.badges.setAvatar(user.id, game.today(), avatar, true, refonteFor(user));
       if (!saved) throw new HttpError(403, "Cet avatar contient un élément pas encore débloqué.");
       json(res, 200, { avatar: saved });
+    },
+
+    // Anniversaire facultatif : sert seulement à débloquer la panoplie du gâteau, jamais montré aux autres.
+    'POST /api/profile/birthday': async (req, res) => {
+      const user = requireUser(req, res);
+      const { birthday } = await readJson(req);
+      if (birthday !== null && typeof birthday !== 'string') throw new HttpError(400, 'Date inconnue.');
+      if (!game.badges.setBirthday(user.id, birthday)) throw new HttpError(400, "Cette date n'existe pas.");
+      json(res, 200, { birthday });
     },
 
     // Changement de pseudo : mot de passe demandé, un changement par semaine, pas de doublon.

@@ -188,6 +188,15 @@ que le service : `DATA_DIR=… npm run answers:report`, `DATA_DIR=… npm run pa
 `DATA_DIR=… npm run backup:check` vérifie la dernière sauvegarde automatique (dossier `backups`, 7 jours conservés) ; pour restaurer, arrêter le service, remplacer `speleologie.sqlite` par la sauvegarde choisie, puis redémarrer.
 La mesure d'audience Matomo (`public/analytics.js`) n'envoie que les pages vues, sans donnée de compte.
 
+### Bac à sable de la bêta (Render)
+
+Pour essayer la refonte sans qu'aucun joueur ne la voie : un faux jeu à part, sur Render (offre gratuite),
+décrit dans [`render.yaml`](render.yaml). Il part de la branche bêta, démarre avec une base neuve et
+`npm run demo` la remplit (`scripts/demo-seed.js`) : le compte `DEMO_USER` (responsable, mot de passe
+`DEMO_PASSWORD`), neuf faux mineurs, 45 jours de forages, des duels et les podiums qui en découlent.
+L'inscription est fermée par un code d'invitation tiré au hasard. Le disque de l'offre gratuite n'est pas
+permanent : après une mise en veille ou un nouveau déploiement, le bac à sable repart de zéro.
+
 Le `Dockerfile` reste disponible pour un hébergement en conteneur (volume monté sur `/data`).
 
 Le site n'est pas référencé par les moteurs de recherche, et il faut se connecter pour jouer.
