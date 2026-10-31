@@ -60,6 +60,17 @@
     </div>
   </dialog>
 
+  <dialog class="poster-dialog" id="poster-dialog" aria-labelledby="poster-title">
+    <canvas class="poster-art" id="poster-canvas" width="200" height="120" role="img" aria-label="Un épouvantail à tête de citrouille aux flammes vertes, entouré de bougies fondues"></canvas>
+    <div class="poster-info">
+      <p class="poster-date">31 OCTOBRE</p>
+      <h2 id="poster-title">Les crânes sortent de terre</h2>
+      <p>Aujourd'hui, chaque réponse valide te rapporte un crâne. Plus elle est rare, plus le crâne est précieux.</p>
+      <p class="muted small">Réunis les cinq qualités pour l'apparence « Jack-o'-lantern ».</p>
+      <div class="poster-skulls" data-poster-skulls></div>
+      <button class="btn" id="poster-close" type="button">Compris !</button>
+    </div>
+  </dialog>
   <dialog class="card info-dialog title-dialog" id="title-dialog" aria-labelledby="title-dialog-h">
     <h2 id="title-dialog-h">Mon titre</h2>
     <p class="muted small">Le titre choisi s'affiche à côté de ton pseudo, dans le classement et dans les récapitulatifs des réponses.</p>
@@ -881,6 +892,16 @@
       <!-- Musée des pépites -->
       <div class="view" id="view-museum" hidden>
         <button class="btn ghost back-btn" id="btn-museum-home" type="button">◀ Retour à l'accueil</button>
+        <div class="card poster-card" id="poster-card" hidden>
+          <canvas class="poster-art" id="poster-card-canvas" width="200" height="120" role="img" aria-label="Un épouvantail à tête de citrouille aux flammes vertes, entouré de bougies fondues"></canvas>
+          <div class="poster-info">
+            <p class="poster-date">31 OCTOBRE</p>
+            <h2>Les crânes sortent de terre</h2>
+            <p>Aujourd'hui, chaque réponse valide te rapporte un crâne. Plus elle est rare, plus le crâne est précieux.</p>
+            <p class="muted small">Réunis les cinq qualités pour l'apparence « Jack-o'-lantern ».</p>
+            <div class="poster-skulls" data-poster-skulls></div>
+          </div>
+        </div>
         <div class="card jack-card" id="jack-card" hidden>
           <div class="jack-figure" aria-hidden="true"><canvas id="jack-base" width="32" height="48"></canvas><canvas id="jack-glow" width="32" height="48"></canvas></div>
           <div class="jack-text"><h2 id="jack-title"></h2><p class="muted" id="jack-sub"></p></div>
@@ -1089,6 +1110,7 @@
   <script src="galerie.js"></script>
   <script src="drills16.js"></script>
   <script src="icons.js"></script>
+  <script src="poster.js"></script>
   <script src="timers.js"></script>
   <script src="avatar.js"></script>
   <script src="mole16.js"></script>
