@@ -596,9 +596,16 @@
     }
   }
 
-  /** Ambiance sonore de l'accueil (labo du responsable) : seulement sur l'accueil, onglet visible, son activé. */
+  /**
+   * Ambiance sonore : onglet visible, son activé. Avec la refonte, elle continue sans coupure d'un onglet à l'autre (Camp, Défis,
+   * Filons, Mineur et son vestiaire…) et ne s'arrête qu'en partie, dans les résultats, les duels et la Gazette ; sinon, accueil seulement.
+   */
+  const AMBIENT_QUIET_VIEWS = new Set(['game', 'results', 'duel', 'recap', 'auth', 'recovery']);
+  function ambientView() {
+    return son16On() ? !!app.view && !AMBIENT_QUIET_VIEWS.has(app.view) : app.view === 'home';
+  }
   function syncAmbient() {
-    const on = !!(app.me && app.view === 'home' && !document.hidden && settings.sound && (AMBIENT_FLAGS.some((f) => settings[f]) || settings.labMusic));
+    const on = !!(app.me && ambientView() && !document.hidden && settings.sound && (AMBIENT_FLAGS.some((f) => settings[f]) || settings.labMusic));
     const key = on ? [...AMBIENT_FLAGS.map((f) => settings[f]), settings.labMusic].join() : '';
     if (key === ambientKey) return;
     ambientKey = key;
@@ -3597,6 +3604,7 @@
               const content = THUMBS.has(slot) ? avatarEl(slot === 'espece' ? window.Avatar.thumb(opt.id) : { ...draft, [slot]: opt.id }, FULL.has(slot) ? 'full' : 'bust', 2) : null;
               const b = el('button', { class: `wr-opt${selected ? ' sel' : ''}${opt.unlocked ? '' : ' locked'}`, type: 'button', title: opt.unlocked ? opt.label : opt.hint || opt.label, 'aria-pressed': String(selected) }, content, el('span', { class: 'wr-lab' }, `${opt.unlocked ? '' : '🔒 '}${opt.label}`));
               b.addEventListener('click', () => {
+                if (son16On() && opt.unlocked && !selected) Sound.equip(); // on enfile la pièce, sur le fond de l'ambiance
                 onChoice(slot, opt.id);
                 preview();
                 commit();
