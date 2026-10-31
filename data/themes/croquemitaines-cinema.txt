@@ -3,6 +3,6 @@ actif: non
 # Thème d'Halloween (31 octobre). Tueurs de slashers, poupées maléfiques, entités et démons emblématiques de films d'horreur ; les monstres classiques (Dracula, Frankenstein, loup-garou) et les extraterrestres (Alien, Predator) ne comptent pas.
 1: Freddy Krueger = Freddy; Jason Voorhees = Jason; Michael Myers = La Forme = The Shape; Chucky = Charles Lee Ray; Ghostface; Leatherface; Pennywise = Grippe-Sou
 2: Norman Bates; Hannibal Lecter = Hannibal; Jigsaw = John Kramer; Pinhead; Candyman = Daniel Robitaille; Damien Thorn = Damien; Annabelle; Samara Morgan = Samara; Pazuzu; Esther; Brahms
-3: Art le Clown = Art the Clown; Valak = La Nonne; Babadook = Mister Babadook; Pamela Voorhees = Mme Voorhees = Madame Voorhees; Tiffany = Tiffany Valentine; Jack Torrance; Carrie White = Carrie; M3GAN; Sadako
+3: Art le Clown = Art the Clown; Valak = La Nonne; Babadook = Mister Babadook; Pamela Voorhees = Mme Voorhees = Madame Voorhees; Tiffany = Tiffany Valentine; Jack Torrance; Carrie White = Carrie; M3GAN; Sadako; Le Cavalier sans tête = Headless Horseman
 4: Pumpkinhead; Victor Crowley; Sam = Sam (Trick 'r Treat); The Creeper = Creeper; Pyramid Head; Leprechaun; Annie Wilkes; Gage Creed; Billy; Kayako
 5: Bughuul; Isaac; He Who Walks Behind the Rows; Angela Baker; Mama
