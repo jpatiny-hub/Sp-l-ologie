@@ -1,0 +1,15 @@
+titre: Un mot belge venu du néerlandais
+# Désactivé : il n'existe aucune liste fermée et officielle des belgicismes d'origine néerlandaise ou flamande ; l'étymologie est souvent discutée (ket, zinneke, drache, kot) et des dizaines de mots régionaux (bruxellois, wallon, picard) s'y ajouteraient. De bonnes réponses seraient refusées.
+# Recherche du 2026-10-29 : aucune liste fermée sourcée des belgicismes d'origine néerlandaise n'a été trouvée (la catégorie « belgicismes » du Wiktionnaire est une liste générale, non limitée au néerlandais, et ne donne pas l'étymologie de façon homogène ; Wikipédia fr/en et Goosse (ARLLFB) n'en donnent que des exemples). « Un belgicisme » existe déjà (belgicismes.txt, inactif). Thème laissé inactif.
+# Pour resserrer : « Un mot du français de Belgique emprunté au néerlandais, cité dans le Wiktionnaire fr (catégorie « flandricismes »)» avec la liste copiée telle quelle, ou limiter à un domaine (« un nom de pâtisserie ou de plat belge d'origine néerlandaise »).
+# Périmètre retenu : mots et locutions du français de Belgique dont l'origine néerlandaise ou flamande est indiquée par au moins une source. Hors belgicismes sans lien avec le néerlandais (septante, nonante, savoir pour pouvoir, etc.) : voir belgicismes.
+# Sources : Wikipédia fr « Belgicisme » (liste des emprunts au néerlandais et calques) ; Wikipédia en « Belgicism (French) » (kot, bourgmestre) ; Goosse, Académie royale de langue et de littérature françaises (arllfb.be, communication sur les flandricismes : kern, mauclair, bourgmestre, drève, kot, fritkot). Écartés car étymologie non confirmée par deux sources : ket / ketje (origine obscure), mannequin, drôle, willecomme, stoumeling.
+1: Kot = Koter = Kot étudiant; Bourgmestre; Dikkenek; Zinneke; Tof; Fritkot; Drache = Dracher
+2: Drève; Clenche; Crollé = Crolle; Dringuelle; Ring; Couque; Blinquer; Slache; Stoeffer; Spiter = Spitant; Schief; Mandaye; Snul; Zieverèèr = Zieverer; Douf = Doufe; Pei
+3: Kern; Mauclair; En stoemelings = Stoemelings; Au vogelpik = Vogelpik; Klet = Klette; Kette
+4: Tirer son plan; Avoir quelque chose de bon; Ne pas savoir de chemin avec quelqu'un; Tu peux là-contre
+# retiré : « Trop is te veel » (phrase néerlandaise, pas un mot du français de Belgique).
+# Vérifié le 2026-10-30 : Wikipédia fr « Belgicisme » confirme l'essentiel de la liste (ajouts ci-dessous tirés de cette page). Le thème RESTE INACTIF : périmètre toujours ouvert et étymologies discutées (ket/ketje volontairement exclus, comme l'avait noté la première recherche).
+# Ajouts : Wikipédia fr « Belgicisme » ; Wiktionnaire (stoemp, waterzooi, cramique, kriek, lambic : étymons néerlandais).
+2: Pintje; Stoemp; Waterzooi; Cramique; Kriek; Lambic; Stuut
+3: Scherp; Schieve lavabo = Schieve; Volle gaz; Volle petrol; Une fois; Ma femme sa sœur; S'il vous plaît (en tendant quelque chose)

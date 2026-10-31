@@ -1,0 +1,8 @@
+titre: Un personnage ou une skin de Fortnite
+actif: non
+# Désactivé : liste ouverte et en croissance continue (plus de 1 500 skins, collaborations Marvel, DC, Star Wars, Dragon Ball, etc. et personnages d'histoire), sans source officielle unique figée ; trop de bonnes réponses seraient refusées.
+# Pour resserrer : « Un personnage de l'histoire du Chapitre 1 de Fortnite », « Une skin Fortnite de rareté légendaire au lancement », ou « Un personnage Marvel disponible en skin Fortnite » avec liste datée.
+# Liste non recoupée, volontairement vide de réponses fiables.
+1: Jonesy; Peely
+2: Midas; Drift; Raven; Skull Trooper
+3: Renegade Raider; Black Knight

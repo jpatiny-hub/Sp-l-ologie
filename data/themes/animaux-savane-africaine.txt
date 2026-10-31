@@ -1,4 +1,5 @@
-titre: Un animal vivant à l'état sauvage dans la savane africaine (espèce ou groupe)
+titre: Un animal de la savane africaine
+# Ancien titre, qui précise le périmètre exact : Un animal vivant à l'état sauvage dans la savane africaine (espèce ou groupe)
 # Faune des savanes et prairies arborées d'Afrique (Serengeti, Kruger, Tsavo, etc.) : mammifères, oiseaux, reptiles, quelques invertébrés emblématiques. Exclus : faune de la forêt tropicale (gorille, okapi, bongo) et du désert.
 1: Lion; Éléphant = Éléphant d'Afrique; Girafe; Zèbre; Hyène = Hyène tachetée; Guépard; Rhinocéros = Rhinocéros blanc = Rhinocéros noir; Hippopotame; Buffle = Buffle d'Afrique = Buffle du Cap; Gnou = Gnou bleu; Phacochère; Antilope; Autruche; Léopard
 2: Gazelle = Gazelle de Thomson; Impala; Crocodile = Crocodile du Nil; Suricate; Babouin; Vautour; Mangouste; Chacal; Lycaon = Chien sauvage d'Afrique = Chien peint; Oryctérope; Pangolin; Serval; Caracal; Mamba noir; Secrétaire = Serpentaire; Calao; Marabout; Pintade = Pintade de Numidie; Oryx; Springbok; Éland; Koudou = Grand koudou; Topi; Cobe; Hippotrague; Damalisque

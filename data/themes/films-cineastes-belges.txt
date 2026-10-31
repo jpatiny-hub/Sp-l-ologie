@@ -1,4 +1,5 @@
-titre: Un long métrage de fiction réalisé par les frères Dardenne, Jaco Van Dormael, Bouli Lanners ou Lukas Dhont (jusqu'en 2026)
+titre: Un film d'un grand cinéaste belge
+# Ancien titre, qui précise le périmètre exact : Un long métrage de fiction réalisé par les frères Dardenne, Jaco Van Dormael, Bouli Lanners ou Lukas Dhont (jusqu'en 2026)
 # Vérifié sur en.wikipedia (filmographies Dardenne, Van Dormael, Lanners, Dhont) : dernier film connu Coward (Dhont, 2026).
 1: Rosetta; L'Enfant; Le Gamin au vélo; Deux jours, une nuit; Toto le héros; Le Huitième Jour; Mr. Nobody = Mister Nobody; Girl
 2: La Promesse; Le Fils; Le Silence de Lorna; La Fille inconnue; Le Jeune Ahmed; Tori et Lokita; Le Tout Nouveau Testament = The Brand New Testament; Close; Eldorado; Les Géants

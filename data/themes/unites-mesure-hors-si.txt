@@ -1,4 +1,5 @@
-titre: Une unité de mesure qui ne fait pas partie du Système international (SI)
+titre: Une unité de mesure hors Système international
+# Ancien titre, qui précise le périmètre exact : Une unité de mesure qui ne fait pas partie du Système international (SI)
 # Unités usuelles, anciennes, anglo-saxonnes, de navigation, de physique atomique, etc. Les unités SI et leurs multiples sont exclues.
 1: Pouce = Inch; Pied = Foot; Yard; Mile = Mille terrestre; Livre = Pound; Once = Ounce; Gallon; Litre; Heure; Minute; Jour; Degré Celsius = Celsius; Degré Fahrenheit = Fahrenheit; Tonne; Calorie; Bar; Atmosphère; Millimètre de mercure = mmHg; Hectare; Nœud = Noeud; Mille marin = Mille nautique; Pinte = Pint; Chevaux = Cheval-vapeur = Cheval = CV; Carat; Kilowattheure = kWh
 2: Année-lumière; Parsec; Unité astronomique = UA; Angström = Angstrom; Fermi = Femtomètre; Électronvolt = eV; Dalton = Unité de masse atomique = uma; Gauss; Oersted; Maxwell; Poise; Stokes; Dyne; Erg; Torr; Psi = Livre par pouce carré; Gill; Quart; Boisseau = Bushel; Baril = Barrel; Pied cube; Pouce cube; Acre; Rood; Perche; Chaîne; Furlong; Coudée; Empan; Pied romain; Toise; Lieue; Arpent; Brasse; Fathom; Cable; Stone; Grain; Pennyweight; Dram; Drachme; Scrupule; Tonne courte = Short ton; Tonne longue = Long ton; Hundredweight; Quintal; Livre troy; Once troy; Mark; Karat

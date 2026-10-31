@@ -1,4 +1,5 @@
-titre: Un amphibien ou un reptile vivant à l'état sauvage en Belgique (indigène ou établi)
+titre: Un amphibien ou reptile sauvage de Belgique
+# Ancien titre, qui précise le périmètre exact : Un amphibien ou un reptile vivant à l'état sauvage en Belgique (indigène ou établi)
 # Liste fermée : herpétofaune de Belgique (atlas des amphibiens et reptiles de Wallonie et de Flandre), espèces introduites établies comprises ; noms de groupes usuels acceptés.
 1: Grenouille; Crapaud; Crapaud commun = Bufo bufo; Grenouille rousse = Rana temporaria; Salamandre = Salamandre tachetée = Salamandre terrestre = Salamandra salamandra; Triton; Lézard; Orvet = Orvet fragile = Anguis fragilis; Couleuvre; Vipère = Vipère péliade = Péliade = Vipera berus
 2: Grenouille verte = Grenouille commune = Pelophylax kl. esculentus = Pelophylax esculentus = Rana esculenta; Rainette = Rainette verte = Rainette arboricole = Hyla arborea; Triton alpestre = Ichthyosaura alpestris = Triturus alpestris; Triton crêté = Triturus cristatus; Triton palmé = Lissotriton helveticus; Triton ponctué = Triton vulgaire = Lissotriton vulgaris; Couleuvre à collier = Couleuvre helvétique = Natrix helvetica = Natrix natrix; Lézard vivipare = Zootoca vivipara; Lézard des murailles = Podarcis muralis; Lézard des souches = Lézard agile = Lacerta agilis; Crapaud calamite = Epidalea calamita = Bufo calamita

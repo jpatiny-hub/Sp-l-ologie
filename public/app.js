@@ -41,7 +41,10 @@
   const settings = { text: 'normal', sound: true, volume: 60, colors: 'normal', theme: 'sombre', lisible: false, btn: 'normal', onehand: false, contrast: false, calm: false, mole: true };
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
   for (const flag of BETA_FLAGS) settings[flag] = true;
-  settings.betaHd = false; // essai du style HD-2D : réservé au responsable, désactivé au départ
+  // Refonte 16-bit : réservée au responsable, désactivée au départ. `betaRefonte` active tout d'un coup ; les autres cases, un morceau à la fois pour comparer.
+  const REFONTE_FLAGS = ['betaRefonte', 'betaCaves', 'betaMole16', 'betaGalerie', 'betaSon16', 'betaFetes', 'betaDefis'];
+  for (const flag of REFONTE_FLAGS) settings[flag] = false;
+  settings.betaDrill16 = ''; // foreuse 16-bit à l'essai (refonte, responsable seulement)
   // Ambiance sonore : coups de pioche, grondement, musiques d'accueil, bruits de boutons et chrono sonore, au choix de chaque joueur : coups de pioche, grondement et musique « Galerie » activés au départ, le reste non.
   const AMBIENT_FLAGS = ['labTaps', 'labRumble'];
   const LAB_FLAGS = [...AMBIENT_FLAGS, 'labTabs', 'labClicks', 'labTimer'];
@@ -89,8 +92,20 @@
   /** Nouveautés à l'essai : réservées au responsable du jeu, une par une. */
   const labOn = (name) => !!(app.me && settings[name]);
   // Nouveau look : pour tous les joueurs ; le responsable peut en retirer des morceaux dans les réglages pour comparer.
-  /** Essai du style HD-2D (lumière, profondeur, nouvelle interface) : uniquement pour le responsable qui l'active. */
-  const hdOn = () => !!(app.me && app.me.isAdmin && settings.betaHd);
+  /** Un morceau de la refonte 16-bit : pour tous une fois la refonte ouverte (me.refonte), avant cela pour le responsable s'il active toute la refonte ou ce morceau. */
+  const refonteOn = (name) => !!(app.me && (app.me.refonte || (app.me.isAdmin && (settings.betaRefonte || settings[name]))));
+  /** Galeries 16-bit : grottes mystérieuses par paliers sous la surface. */
+  const cavesOn = () => refonteOn('betaCaves');
+  /** Taupe en 16 bits. */
+  const mole16On = () => !!(refonteOn('betaMole16') && window.Mole16);
+  /** Galerie vivante : accueil sans cadre devant les grottes animées. */
+  const galerieOn = () => refonteOn('betaGalerie');
+  /** Sons 16-bit : un bruit par minerai, wagonnet, taupe, onglets, foreuses spéciales et célébrations. */
+  const son16On = () => refonteOn('betaSon16');
+  /** Fêtes de podium en 16 bits (semaine, mois) et Gazette sur plan de mine. */
+  /** Défis en galeries de mine 16 bits (« Ton filon », « Galerie commune »). */
+  const defisOn = () => !!(refonteOn('betaDefis') && window.Defis16);
+  const fetesOn = () => !!(refonteOn('betaFetes') && window.Celebrations16);
   const betaOn = (name) => !!(app.me && (!app.me.isAdmin || settings[name]));
 
   const isHalloween = () => document.documentElement.dataset.season === 'halloween';
@@ -99,15 +114,17 @@
 
   /** Décor de saison (Halloween…) : interface et scène de forage, sauf en lecture facile et en thème clair. */
   function applySeason() {
-    const id = app.me && app.me.season && settings.season !== false ? app.me.season : null;
+    // La refonte 16-bit n'a pas de décor de saison (Halloween, Noël…) : il était fait pour l'ancien style.
+    const id = app.me && app.me.season && settings.season !== false && !REFONTE_FLAGS.some(refonteOn) ? app.me.season : null;
     const plain = isLight();
     const root = document.documentElement;
     if (id && !plain) root.dataset.season = id;
     else delete root.dataset.season;
     const wanted = id && !plain ? id : null;
-    if ((Pixel.currentSeason || null) !== wanted) {
+    if ((Pixel.currentSeason || null) !== wanted || Pixel.isCaves() !== cavesOn()) {
       Pixel.currentSeason = wanted;
       Pixel.setSeason(wanted);
+      Pixel.setCaves(cavesOn());
       if (typeof scene !== 'undefined') scene.rebuild();
     }
     hauntSync();
@@ -122,8 +139,33 @@
     Sound.configure({ enabled: settings.sound, volume: settings.volume / 100 });
     Pixel.setColorblind(settings.colors);
     applySeason();
-    root.toggleAttribute('data-hd', hdOn());
-    Pixel.setHd(hdOn());
+    root.toggleAttribute('data-mole16', mole16On());
+    // L'écran de connexion prend l'allure de la refonte sur un appareil où la bêta est activée (réglage local du responsable).
+    const decor = galerieOn() || (!app.me && !!settings.betaRefonte);
+    root.toggleAttribute('data-galerie', decor);
+    Galerie.setOn(decor, reducedMotion());
+    // Libellés de la refonte (courrier de la mine) ; on remet le texte d'origine quand elle est coupée.
+    for (const [selector, label] of [['#msg-list-pane > h2', 'Courrier de la mine'], ['#form-msg-new button[type="submit"]', 'Écrire une lettre'], ['#form-msg-send button[type="submit"]', 'Expédier par wagonnet'], ['#view-admin .card > h2', 'Bureau du contremaître']]) {
+      const node = document.querySelector(selector);
+      if (!node) continue;
+      if (node.dataset.orig === undefined) node.dataset.orig = node.textContent;
+      node.textContent = galerieOn() ? label : node.dataset.orig;
+    }
+    // Noms thématiques de la barre du bas et du podium (refonte).
+    for (const [selector, label] of [['[data-nav="home"]', 'Camp'], ['[data-nav="play"]', 'Forer'], ['[data-nav="mine"]', 'Filons'], ['[data-nav="profile"]', 'Mineur'], ['#home-podium-tabs [data-period="day"]', 'Veille'], ['#home-podium-tabs [data-period="week"]', 'Filon de la semaine'], ['#home-podium-tabs [data-period="month"]', 'Grande veine']]) {
+      const node = document.querySelector(selector);
+      if (!node) continue;
+      const text = node.querySelector('.nav-lab') || node;
+      if (text.dataset.orig === undefined) text.dataset.orig = text.textContent;
+      text.textContent = galerieOn() ? label : text.dataset.orig;
+      if (node.hasAttribute('aria-label')) node.setAttribute('aria-label', text.textContent);
+    }
+    if (!app.me && decor && window.Mole16) {
+      const open = document.querySelector('#auth-mascot .m-open');
+      if (open && !open.dataset.drawn) { open.dataset.drawn = '1'; Mole16.draw(open, 'happy', { x: 0, y: 0 }); }
+    }
+    if (typeof scene !== 'undefined') scene.drill16 = app.me && app.me.isAdmin && settings.betaDrill16 ? settings.betaDrill16 : null;
+    placeChallenge();
     root.classList.toggle('colorblind', settings.colors !== 'normal');
     if (settings.colors === 'normal') delete root.dataset.colors;
     else root.dataset.colors = settings.colors;
@@ -164,7 +206,7 @@
     $('hud-depth').textContent = Pixel.formatDepth(points);
     $('hud-zone').textContent = Pixel.zoneName(points);
   };
-  scene.onDrill = (on, zone) => Sound.drill(on, zone);
+  scene.onDrill = (on, zone) => Sound.drill(on, zone, son16On() ? scene.drill16 : null);
   // Fin du forage : une fois dézoomé, on affiche la distance restante jusqu'au centre de la Terre.
   scene.onOverview = (progress) => {
     const box = $('hud-remaining');
@@ -181,11 +223,12 @@
   });
   scene.onZone = (zone) => {
     Sound.layer(zone);
-    Sound.drill(true, zone);
+    Sound.drill(true, zone, son16On() ? scene.drill16 : null);
   };
   scene.setLayers([], false);
   applySettings();
   initFolds('view-home');
+  initMole16();
   $('challenge-card').addEventListener('toggle', () => {
     if ($('challenge-card').open) {
       renderCollective();
@@ -269,8 +312,13 @@
     settingsForm.elements.season.checked = settings.season !== false;
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
     $('beta-box').hidden = !(app.me && app.me.isAdmin);
-    $('hd-box').hidden = $('beta-box').hidden;
-    settingsForm.elements.betaHd.checked = !!settings.betaHd;
+    $('refonte-box').hidden = $('beta-box').hidden;
+    for (const name of REFONTE_FLAGS) settingsForm.elements[name].checked = !!settings[name];
+    const drillBox = $('refonte-drill16');
+    if (drillBox.children.length === 1) {
+      for (const m of Drills16.MODELS) drillBox.append(el('label', {}, el('input', { type: 'radio', name: 'betaDrill16', value: m.id }), ` ${m.nom}${m.quand ? ` (${m.quand})` : ''}`));
+    }
+    settingsForm.elements.betaDrill16.value = settings.betaDrill16 || '';
     renderVersions();
     for (const name of BETA_FLAGS) settingsForm.elements[name].checked = !!settings[name];
     $('lab-box').hidden = !app.me;
@@ -317,7 +365,8 @@
     settings.lisible = settingsForm.elements.lisible.checked;
     settings.season = settingsForm.elements.season.checked;
     for (const name of BETA_FLAGS) settings[name] = settingsForm.elements[name].checked;
-    settings.betaHd = settingsForm.elements.betaHd.checked;
+    for (const name of REFONTE_FLAGS) settings[name] = settingsForm.elements[name].checked;
+    settings.betaDrill16 = settingsForm.elements.betaDrill16.value || '';
     for (const name of LAB_FLAGS) settings[name] = settingsForm.elements[name].checked;
     settings.labMusic = settingsForm.elements.labMusic.value || '';
     settingsForm.querySelectorAll('input[name=theme]').forEach((i) => (i.disabled = settings.lisible));
@@ -343,6 +392,17 @@
   // et on réduit plutôt la hauteur visible de la coupe.
   function fitCanvas() {
     const canvas = $('scene');
+    // Forage sans cadre (galerie vivante) : la coupe remplit tout l'écran, derrière l'interface.
+    const frameless = galerieOn() && (app.view === 'game' || app.view === 'results' || app.view === 'compare');
+    document.documentElement.toggleAttribute('data-frameless', frameless);
+    scene.focus = frameless ? (app.view === 'game' ? 0.3 : 0.5) : 0.6; // en forage, la foreuse reste dans le haut : question et chrono sont en bas
+    if (frameless) {
+      const scale = window.innerWidth / Pixel.WIDTH;
+      scene.setViewHeight(window.innerHeight / scale, 480);
+      canvas.style.width = '100vw';
+      canvas.style.height = '100vh';
+      return;
+    }
     const wide = window.innerWidth >= 860;
     const maxW = wide ? 520 : Math.min(window.innerWidth - 40, 520);
     const playing = app.game && !app.game.finished && !$('view-game').hidden;
@@ -557,6 +617,10 @@
       if (!app.me || !settings.sound || !event.target.closest) return;
       const target = event.target.closest('button, .tab');
       if (!target || target.disabled) return;
+      if (son16On()) {
+        const nav = target.closest('#bottom-nav button, button[data-centre]');
+        if (nav) return Sound.nav([...nav.parentNode.children].indexOf(nav));
+      }
       if (settings.labTabs) {
         if (target.closest('#bottom-nav')) return Sound.click('tab');
         if (target.matches('.tab, [role="tab"]') || target.closest('.mini-tabs, .pf-tabs, .wr-tabs, #period-tabs')) return Sound.click('subtab');
@@ -569,9 +633,12 @@
   function show(view) {
     trackView(view);
     closeFoldsOfLeftView(view);
+    // Une fenêtre du centre (podium, Dans la mine) se ferme d'elle-même quand on part vers un autre écran.
+    if (view !== 'home' && $('centre-sheet').open) $('centre-sheet').close();
     document.querySelectorAll('.view').forEach((v) => (v.hidden = v.id !== `view-${view}`));
     // Sur téléphone, la scène de forage ne sert qu'en partie et dans les résultats : pas sur l'accueil.
     $('stage').hidden = (view === 'podium' || view === 'profile' || view === 'home' || view === 'recap' || view === 'duel' || view === 'admin' || view === 'museum' || view === 'messages') && window.innerWidth < 860;
+    if ((view === 'auth' || view === 'recovery') && document.documentElement.hasAttribute('data-galerie')) $('stage').hidden = true; // la grotte du fond suffit
     if (view === 'profile') startPreview();
     if (view !== 'game') $('focus-keeper').blur();
     updateBanner();
@@ -591,6 +658,7 @@
     if ($('play-sheet').open) $('play-sheet').close(); // un duel lancé depuis la feuille « Jouer » ouvre le forage : la feuille se referme
     $('settings-account').hidden = !app.me;
     fitCanvas();
+    if (view === 'home') Galerie.resetWagon(); // la boucle des wagonnets s'arrête quand leur toile est cachée : on la relance à l'accueil
     window.scrollTo(0, 0);
   }
 
@@ -619,6 +687,12 @@
     return `${n} pt${n > 1 ? 's' : ''}`;
   }
 
+  /** Couches du forage dans la scène ; dans les galeries 16-bit, chaque forage a aussi son propre décor. */
+  function sceneLayers(state, animate) {
+    scene.setSeed(state && state.id);
+    scene.setLayers(layersOf(state), animate);
+  }
+
   function layersOf(state) {
     return state.rounds.filter((r) => r.status === 'done' && r.tier).map((r) => ({ points: r.points, tier: r.tier.id }));
   }
@@ -640,13 +714,73 @@
     return node;
   }
 
+  // ---- Minerais : chaque rareté a sa matière (grain du gravier, cristaux de soufre, veines de cuivre, facettes du rubis, éclat de la pépite). ----
+  const oreCache = new Map();
+  const shade = (hex, f) => {
+    const n = parseInt(hex.slice(1), 16);
+    const ch = [n >> 16, (n >> 8) & 255, n & 255].map((v) => Math.max(0, Math.min(255, Math.round(f >= 0 ? v + (255 - v) * f : v * (1 + f)))));
+    return `rgb(${ch[0]},${ch[1]},${ch[2]})`;
+  };
+  function oreUrl(tierId) {
+    const base = Pixel.TIER_COLORS[tierId] || '#888888';
+    const key = `${tierId}${base}`;
+    if (oreCache.has(key)) return oreCache.get(key);
+    const c = document.createElement('canvas');
+    c.width = 16;
+    c.height = 16;
+    const g = c.getContext('2d');
+    const R = (x, y, w, h, col) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
+    let seed = 7;
+    for (const ch of tierId) seed = Math.imul(seed, 31) + ch.charCodeAt(0);
+    const rnd = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) | 0) >>> 0) / 4294967296;
+    const hi = shade(base, 0.4), lo = shade(base, -0.35), mid = shade(base, 0.18);
+    R(0, 0, 16, 16, base);
+    if (tierId === 'evident') {
+      for (let i = 0; i < 16; i++) R(Math.floor(rnd() * 15), Math.floor(rnd() * 15), 1, 1, i % 2 ? hi : lo); // grain
+      for (const [x, y] of [[2, 3], [9, 2], [5, 9], [11, 11]]) { R(x, y, 3, 2, mid); R(x, y, 3, 1, hi); R(x, y + 1, 3, 1, lo); } // cailloux
+    } else if (tierId === 'courant') {
+      for (let i = 0; i < 10; i++) R(Math.floor(rnd() * 15), Math.floor(rnd() * 15), 1, 1, lo);
+      for (const [x, y, h] of [[3, 9, 6], [8, 6, 8], [12, 10, 5]]) { // aiguilles de soufre
+        for (let k = 0; k < h; k++) { const w = Math.max(1, 3 - Math.floor(k / 2)); R(x + Math.floor((3 - w) / 2), y + h - k - 1, w, 1, k > h - 3 ? '#fffbd0' : k % 2 ? hi : mid); }
+        R(x + 2, y + 1, 1, h - 2, lo);
+      }
+    } else if (tierId === 'original') {
+      for (let i = 0; i < 8; i++) R(Math.floor(rnd() * 15), Math.floor(rnd() * 15), 1, 1, lo);
+      for (let i = 0; i < 16; i++) { R(i, Math.round(4 + Math.sin(i * 0.7) * 2 + i * 0.35), 1, 1, hi); } // veine de cuivre
+      for (const [x, y] of [[2, 10], [10, 11], [6, 1]]) { R(x, y, 3, 2, '#3f9a86'); R(x, y, 2, 1, '#8ff0d6'); } // vert-de-gris
+    } else if (tierId === 'rare') {
+      R(0, 0, 16, 16, lo);
+      g.fillStyle = base; g.beginPath(); g.moveTo(8, 0); g.lineTo(15, 8); g.lineTo(8, 15); g.lineTo(1, 8); g.fill();
+      g.fillStyle = hi; g.beginPath(); g.moveTo(8, 0); g.lineTo(1, 8); g.lineTo(8, 8); g.fill();
+      g.fillStyle = shade(base, -0.2); g.beginPath(); g.moveTo(8, 8); g.lineTo(15, 8); g.lineTo(8, 15); g.fill();
+      R(5, 4, 2, 2, '#ffffff'); R(6, 3, 1, 1, '#ffffff'); // éclat des facettes
+    } else {
+      for (let i = 0; i < 6; i++) R(Math.floor(rnd() * 15), Math.floor(rnd() * 15), 1, 1, lo);
+      R(2, 2, 6, 3, hi); R(3, 2, 4, 1, '#ffffff'); R(2, 5, 2, 2, hi);
+      R(11, 9, 1, 5, '#ffffff'); R(9, 11, 5, 1, '#ffffff'); R(10, 10, 3, 3, hi); R(11, 11, 1, 1, '#ffffff'); // étincelle
+    }
+    R(0, 0, 16, 1, shade(base, 0.25)); R(0, 0, 1, 16, shade(base, 0.2)); R(0, 15, 16, 1, shade(base, -0.45)); R(15, 0, 1, 16, shade(base, -0.4)); // relief du bord
+    const url = c.toDataURL();
+    oreCache.set(key, url);
+    return url;
+  }
+  /** Colore une pastille de rareté ; avec la refonte, elle prend la matière du minerai. */
+  function ore(node, tierId, fallback = '#666') {
+    node.style.background = Pixel.TIER_COLORS[tierId] || fallback;
+    if (galerieOn() && ['evident', 'courant', 'original', 'rare', 'pepite'].includes(tierId)) {
+      node.style.backgroundImage = `url(${oreUrl(tierId)})`;
+      node.style.backgroundSize = '100% 100%';
+      node.style.imageRendering = 'pixelated';
+    }
+  }
+
   function setTimerSeconds(seconds) {
     document.querySelectorAll('.timer-seconds').forEach((n) => (n.textContent = seconds));
   }
 
   // ---------- Authentification ----------
   function showAuthTab(tab) {
-    document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === tab));
+    document.querySelectorAll('#view-auth .tab').forEach((t) => t.classList.toggle('active', t.dataset.tab === tab));
     document.querySelectorAll('[data-pane]').forEach((f) => (f.hidden = f.dataset.pane !== tab));
     document.querySelectorAll('[data-pane] .error').forEach((e) => (e.textContent = ''));
   }
@@ -657,7 +791,7 @@
       .catch(() => {});
   }
   refreshSignupInfo();
-  document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => showAuthTab(t.dataset.tab)));
+  document.querySelectorAll('#view-auth .tab').forEach((t) => t.addEventListener('click', () => showAuthTab(t.dataset.tab)));
   document.querySelectorAll('[data-tab-link]').forEach((t) => t.addEventListener('click', () => showAuthTab(t.dataset.tabLink)));
 
   function bindForm(id, handler) {
@@ -741,7 +875,7 @@
     {
       title: 'Bienvenue dans la mine !',
       art: () => {
-        const mole = el('canvas', { class: 'tuto-mole', width: '16', height: '16', 'aria-hidden': 'true' });
+        const mole = el('canvas', { class: 'tuto-mole', width: mole16On() ? '24' : '16', height: '16', 'aria-hidden': 'true' });
         drawMascot(mole, 'happy');
         return el('div', { class: 'tuto-art-row' }, mole, tutoIcon('pioche', 64));
       },
@@ -754,7 +888,7 @@
       title: 'Trouve la réponse la moins probable',
       art: () => el('div', { class: 'tuto-ladder' }, ...TIERS_TUTO.map(([id, label, points, hint]) => {
         const chip = el('span', { class: 'tuto-chip' });
-        chip.style.background = Pixel.TIER_COLORS[id];
+        ore(chip, id);
         return el('div', { class: 'tuto-rung' }, chip, el('strong', {}, label), el('span', { class: 'tuto-points' }, points), el('span', { class: 'muted small' }, hint));
       })),
       body: () => [
@@ -785,7 +919,7 @@
     {
       title: 'À toi de jouer !',
       art: () => {
-        const mole = el('canvas', { class: 'tuto-mole', width: '16', height: '16', 'aria-hidden': 'true' });
+        const mole = el('canvas', { class: 'tuto-mole', width: mole16On() ? '24' : '16', height: '16', 'aria-hidden': 'true' });
         drawMascot(mole, 'idle');
         return el('div', { class: 'tuto-art-row' }, mole, tutoIcon('diamant', 64));
       },
@@ -798,11 +932,60 @@
   ];
   const tuto = { index: 0, first: false };
 
+  /** Vignettes du tutoriel dans la refonte : un vrai décor de grotte et les vrais éléments du jeu (thème, paliers, chrono, wagonnet, réponse). */
+  function tutoVignette(index) {
+    const bg = el('canvas', { class: 'tuto-bg', width: '160', height: '88', 'aria-hidden': 'true' });
+    Galerie.snapshot(bg, [1, 2, 3, 4, 5][index] || 1);
+    const inner = el('div', { class: 'tuto-vig-in' });
+    const tier = (id) => Pixel.TIER_COLORS[id] || '#888';
+    const oreSw = (id) => { const n = el('span', { class: 'sw' }); ore(n, id); return n; };
+    const chip = (id, answer, label, pts) => el('div', { class: 'tuto-chip' }, oreSw(id), el('strong', {}, answer), el('span', { class: 'muted' }, `${label} · ${pts}`));
+    if (index === 0) {
+      const mole = el('canvas', { class: 'tuto-mole', width: '24', height: '16', 'aria-hidden': 'true' });
+      drawMascot(mole, 'happy');
+      const wagon = el('canvas', { class: 'tuto-wagon', 'aria-hidden': 'true' });
+      Galerie.mountWagon(wagon);
+      inner.append(el('div', { class: 'tuto-art-row' }, mole, wagon));
+    } else if (index === 1) {
+      inner.append(
+        el('h2', { class: 'theme-title' }, 'Un fruit rouge'),
+        chip('evident', 'Fraise', 'Gravier', '10-20 pts'),
+        chip('courant', 'Cerise', 'Soufre', '20-40 pts'),
+        chip('original', 'Groseille', 'Cuivre', '40-60 pts'),
+        chip('rare', 'Airelle', 'Rubis', '60-90 pts'),
+        chip('pepite', 'Physalis', 'Pépite', '100 pts'),
+      );
+    } else if (index === 2) {
+      const pips = el('div', { class: 'pips' }, ...['evident', 'original', 'courant', null, null, null, null].map((id, i) => { const n = el('span', { class: `pip${i === 3 ? ' now' : ''}` }); if (id) ore(n, id); return n; }));
+      const timer = el('canvas', { width: '96', height: '20', 'aria-hidden': 'true' });
+      Timers.draw(timer, (app.skin && app.skin.timer) || 'batterie', 21, 30, performance.now(), settings.colors, true);
+      inner.append(el('p', { class: 'muted small' }, 'Forage du jour · 4/7'), pips, el('div', { class: 'timer tuto-timer-real' }, timer, el('span', { class: 'timer-count' }, '21')));
+    } else if (index === 3) {
+      const sw = el('canvas', { class: 'tuto-switch', 'aria-hidden': 'true' });
+      Galerie.mountWagon(sw, 'switch');
+      inner.append(sw, el('div', { class: 'tuto-voies' }, el('span', {}, '← Duel · Illimité'), el('span', {}, 'Forage du jour →')));
+    } else {
+      inner.append(
+        el('p', { class: 'feedback-points' }, '+80'),
+        el('p', { class: 'feedback-tier', style: { color: tier('rare') } }, 'Rubis'),
+        el('input', { class: 'tuto-input', value: 'Airelle', readonly: '', 'aria-hidden': 'true', tabindex: '-1' }),
+      );
+    }
+    return el('div', { class: 'tuto-vig' }, bg, inner);
+  }
+
   function renderTutorial() {
     const slide = SLIDES[tuto.index];
     $('tuto-title').textContent = slide.title;
-    $('tuto-art').replaceChildren(slide.art());
+    $('tuto-art').replaceChildren(galerieOn() ? tutoVignette(tuto.index) : slide.art());
     $('tuto-body').replaceChildren(...slide.body());
+    if (galerieOn()) {
+      // Refonte : le mode « Infini » s'appelle « Illimité » et le wagonnet de « Jouer » indique la voie.
+      $('tuto-title').textContent = slide.title.replace('infini', 'illimité');
+      const walker = document.createTreeWalker($('tuto-dialog-text') || document.getElementById('tutorial'), NodeFilter.SHOW_TEXT);
+      for (let n = walker.nextNode(); n; n = walker.nextNode()) n.nodeValue = n.nodeValue.replace('Infini', 'Illimité').replace('infini', 'illimité');
+      if (slide.title.startsWith('Duel')) $('tuto-body').append(el('p', { class: 'muted' }, 'Dans « Jouer », le wagonnet part à droite pour le forage du jour, et à gauche pour le duel et l\'illimité.'));
+    }
     $('tuto-dots').replaceChildren(
       ...SLIDES.map((_, i) => {
         const pip = el('span', { class: `tuto-pip${i === tuto.index ? ' on' : ''}` });
@@ -941,7 +1124,7 @@
     status.replaceChildren();
     const button = $('btn-daily');
     if (!today.gameId) {
-      status.append(el('p', {}, '7 thèmes t\'attendent. Prêt à creuser ?'));
+      if (!galerieOn()) status.append(el('p', {}, '7 thèmes t\'attendent. Prêt à creuser ?'));
       button.textContent = 'Commencer le forage';
       scene.setLayers([], false);
     } else if (!today.finished) {
@@ -956,7 +1139,7 @@
     }
     if (today.gameId) {
       api(`/api/game/${today.gameId}`)
-        .then((state) => scene.setLayers(layersOf(state), false))
+        .then((state) => sceneLayers(state, false))
         .catch(() => {});
     }
     renderStreak();
@@ -993,7 +1176,8 @@
     '................',
   ];
   const OX = 4; // la taupe occupe les colonnes 4 à 19 d'un canevas de 24 × 16 ; les outils dépassent de chaque côté
-  function drawMascot(canvas, mood) {
+  function drawMascot(canvas, mood, gaze, prop) {
+    if (mole16On()) return Mole16.draw(canvas, mood, gaze, prop);
     canvas.width = 24;
     canvas.height = 16;
     const rows = MOLE.map((r) => r.split(''));
@@ -1031,15 +1215,6 @@
       ctx.fillStyle = MOLE_COLORS[ch];
       ctx.fillRect(x + OX, y, 1, 1);
     }));
-    if (Pixel.isHd()) {
-      // Essai HD-2D : la taupe redessinée en haute définition (volume, reflets, contour net).
-      const up = Pixel.hdUpgrade(canvas);
-      canvas.width = 96;
-      canvas.height = 64;
-      const hctx = canvas.getContext('2d');
-      hctx.imageSmoothingEnabled = true;
-      hctx.drawImage(up.canvas, up.pad * 4, up.pad * 4, 96, 64, 0, 0, 96, 64);
-    }
   }
 
   /**
@@ -1054,10 +1229,16 @@
     high: ["Quel filon ! C'est du rare !", 'Waouh, je suis taupe-là !', 'Tu as du flair, mineur !', 'Du rubis, ni plus ni moins !'],
     pepite: ["C'est taupissime !!!", "UNE PÉPITE ! Je n'en reviens pas !", 'Tu es au taupe, mineur !', "Du pur diamant… enfin, de l'or !", 'Je vais en faire des taupes-ries de joie !'],
     skip: ['On passe ? Ça arrive, même aux meilleurs mineurs.', 'Pas grave, un autre thème nous attend !'],
+    hurry: ['Plus que 5 secondes !', 'Vite, vite, vite !', 'Le chrono file, mineur !'],
     timeout: ['Le chrono a eu raison de nous… la prochaine fois !', 'Trop tard ! Même les taupes ont des journées sans.'],
     duel: ["Réponse enregistrée ! Suspense jusqu'au résultat…", 'Bien joué ! Le contremaître garde le secret.', 'Chut… personne ne sait rien avant demain !'],
   };
   const MOLE_MOODS = { start: 'look', wrong: 'sad', confirm: 'look', low: 'idle', mid: 'happy', high: 'happy', pepite: 'stars', skip: 'sad', timeout: 'sad', duel: 'happy' };
+  // Taupe 16 bits : humeur et accessoire propres à chaque situation (la réaction ne dépend jamais de la rareté en duel).
+  const MOLE16_LOOKS = {
+    start: ['look'], wrong: ['confused', 'question'], confirm: ['think', 'loupe'], low: ['idle'], mid: ['happy'], high: ['cheer', 'confetti'],
+    pepite: ['stars', 'confetti'], skip: ['meh'], timeout: ['dizzy', 'dizzy'], duel: ['shh', 'shh'], hurry: ['worry'],
+  };
   const moleLast = {};
   /** Fait parler la taupe dans la zone `where` (« prompt » ou « feedback ») ; coupée par le réglage « Mascotte en forage ». */
   function moleSay(where, event) {
@@ -1073,9 +1254,87 @@
     if (lines.length > 1 && text === moleLast[event]) text = lines[(lines.indexOf(text) + 1) % lines.length];
     moleLast[event] = text;
     box.hidden = false;
-    drawMascot(box.querySelector('canvas'), MOLE_MOODS[event] || 'idle');
+    const look = mole16On() && MOLE16_LOOKS[event];
+    drawMascot(box.querySelector('canvas'), look ? look[0] : MOLE_MOODS[event] || 'idle', null, look ? look[1] : null);
     box.querySelector('.bubble').textContent = text;
     box.dataset.mood = MOLE_MOODS[event] || 'idle';
+    box.dataset.event = event;
+    delete box.dataset.typing;
+    box.dataset.where = where;
+  }
+
+  // ---------- Taupe 16 bits (essai) : le regard suit le doigt, un toucher la fait réagir ----------
+  const moleGaze = { x: 0, y: 0 };
+  const POKE_LINES = ['Hihi, ça chatouille !', 'Aïe ! Mon casque !', 'Oui, mineur ?', 'Tu as trouvé mon point faible…', 'On creuse ou on papote ?', 'Pas touche à la lampe !', 'Je ne suis pas un caillou !', 'Encore ? Là, tu me gênes.', 'Toc toc ! C\'est la taupe.'];
+  const POKE_MOODS = ['happy', 'sad', 'look', 'happy', 'look', 'sad', 'happy', 'sad', 'happy'];
+  /** Relance une animation CSS d'une classe sur l'élément (retire, force le calcul, remet). */
+  function replayClass(node, name) {
+    node.classList.remove(name);
+    void node.offsetWidth;
+    node.classList.add(name);
+  }
+  /** Redessine la taupe d'accueil / de profil avec une humeur et un regard donnés. */
+  function moleRedraw(mascot, mood) {
+    const open = mascot.querySelector('.m-open');
+    if (open) drawMascot(open, mood, moleGaze);
+  }
+  function molePoke(mascot) {
+    if (!mole16On()) return;
+    app.molePokes = (app.molePokes || 0) + 1;
+    const sleeping = mascot.dataset.mood === 'sleep';
+    if (!mascot.dataset.base) mascot.dataset.base = mascot.dataset.mood || 'idle';
+    let i = app.molePokes % POKE_LINES.length;
+    let mood = POKE_MOODS[i];
+    let text = POKE_LINES[i];
+    if (sleeping) { mood = 'look'; text = 'Hein ? Quoi ? Je ne dormais pas !'; }
+    else if (app.molePokes % 10 === 0) { mood = 'stars'; text = 'Tu es mon mineur préféré !'; }
+    mascot.dataset.mood = mood === 'happy' || mood === 'stars' ? 'happy' : mood;
+    moleRedraw(mascot, mood);
+    replayClass(mascot, 'poked');
+    if (son16On()) Sound.mole(sleeping ? 'wake' : mood);
+    else Sound.click('valid');
+    let say = mascot.querySelector('.m-say');
+    if (!say) { say = el('span', { class: 'm-say', 'aria-hidden': 'true' }); mascot.append(say); }
+    say.textContent = text;
+    say.hidden = false;
+    clearTimeout(mascot.pokeTimer);
+    mascot.pokeTimer = setTimeout(() => {
+      say.hidden = true;
+      mascot.dataset.mood = mascot.dataset.base;
+      moleRedraw(mascot, mascot.dataset.base);
+    }, 2400);
+  }
+  function initMole16() {
+    let frame = 0;
+    document.addEventListener('pointermove', (e) => {
+      if (!mole16On() || frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        for (const mascot of document.querySelectorAll('.beta-mascot')) {
+          const rect = mascot.getBoundingClientRect();
+          if (!rect.width || mascot.dataset.mood === 'sleep' || mascot.querySelector('.m-say:not([hidden])')) continue;
+          const dx = e.clientX - (rect.left + rect.width / 2);
+          const dy = e.clientY - (rect.top + rect.height / 2);
+          const gx = dx > 50 ? 1 : dx < -50 ? -1 : 0;
+          const gy = dy > 40 ? 1 : 0;
+          if (gx === moleGaze.x && gy === moleGaze.y) return;
+          moleGaze.x = gx;
+          moleGaze.y = gy;
+          for (const m of document.querySelectorAll('.beta-mascot')) if (m.dataset.mood !== 'sleep') moleRedraw(m, m.dataset.base || m.dataset.mood);
+          return;
+        }
+      });
+    });
+    document.addEventListener('click', (e) => {
+      if (!mole16On()) return;
+      const mascot = e.target.closest && e.target.closest('.beta-mascot');
+      if (mascot) return void molePoke(mascot);
+      const box = e.target.closest && e.target.closest('.game-mole');
+      if (box && box.dataset.event) {
+        replayClass(box, 'poked');
+        moleSay(box.dataset.where, box.dataset.event);
+      }
+    });
   }
   const moleEventFor = (tierId) => ({ evident: 'low', courant: 'low', original: 'mid', rare: 'high', pepite: 'pepite', skip: 'skip', timeout: 'timeout' })[tierId] || 'low';
 
@@ -1187,6 +1446,7 @@
     canvas.width = 24;
     canvas.height = 16;
     ctx.clearRect(0, 0, 24, 16);
+    if (mole16On()) return Mole16.tool(canvas, id);
     ACTIVITIES[id].draw(ctx);
   }
 
@@ -1319,7 +1579,7 @@
   }
 
   /** Icônes en pixel art de la barre du bas (le profil montre la tête du personnage du joueur). */
-  const NAV_ICONS = { home: 'maison', play: 'pioche', messages: 'enveloppe', mine: 'pepite', admin: 'bouclier' };
+  const NAV_ICONS = { home: 'maison', play: 'pioche', defis: 'diamant', messages: 'enveloppe', mine: 'pepite', admin: 'bouclier' };
   function drawNavIcons() {
     document.querySelectorAll('#bottom-nav button').forEach((button) => {
       const kind = button.dataset.nav;
@@ -1330,6 +1590,7 @@
       }
       const canvas = slot.querySelector('canvas') || el('canvas', { width: '16', height: '16', 'aria-hidden': 'true' });
       if (!canvas.parentNode) slot.replaceChildren(canvas);
+      if (galerieOn() && Icons.drawNav16(canvas, kind)) return;
       Icons.drawIcon(canvas, NAV_ICONS[kind] || 'lampe');
     });
   }
@@ -1349,6 +1610,7 @@
     setBubble('messages', me.unreadMessages || 0);
     setBubble('play', me.today && !me.today.finished ? true : !$('duel-dot').hidden);
     setBubble('profile', me.unseenBadges || 0);
+    setBubble('defis', galerieOn() && defisMilestone() > 0);
     // « Mine » : nouvelles pépites au musée, plus les nouvelles du journal (les annonces de pépites y sont déjà comptées au musée).
     // Deux pastilles pour « Mine » : rouge pour les nouvelles du journal, bleue pour les nouvelles pépites du musée.
     setBubble('mine', app.feedNew || 0);
@@ -1358,6 +1620,43 @@
       blue.textContent = app.museumNew > 9 ? '9+' : String(app.museumNew || '');
     }
     setBubble('admin', me.isAdmin ? app.adminPending || 0 : 0);
+  }
+
+  /**
+   * Défis (essai galerie vivante) : onglet du bas avec une pastille quand un défi commence, atteint 50 % ou est réussi.
+   * Palier 0 = rien, 1 = commencé, 2 = à moitié, 3 = réussi (le plus haut des deux défis) ; le palier vu est mémorisé par défi.
+   */
+  function defisState() {
+    const st = app.me && app.me.streak;
+    const ch = st && st.challenge;
+    const col = app.me && app.me.collective;
+    const level = (frac) => (frac >= 1 ? 3 : frac >= 0.5 ? 2 : frac > 0 ? 1 : 0);
+    return [
+      ch ? { key: `week:${ch.id}`, level: level(ch.progress / ch.goal) } : null,
+      col ? { key: `month:${col.month}`, level: level(col.total / col.goal) } : null,
+    ].filter(Boolean);
+  }
+  const DEFIS_KEY = 'speleologie.defisVus';
+  function defisVus() {
+    try { return JSON.parse(localStorage.getItem(DEFIS_KEY)) || {}; } catch { return {}; }
+  }
+  const defisMilestone = () => defisState().reduce((n, d) => n + (d.level > (defisVus()[d.key] || 0) ? 1 : 0), 0);
+  function markDefisSeen() {
+    const seen = defisVus();
+    for (const d of defisState()) seen[d.key] = d.level;
+    try { localStorage.setItem(DEFIS_KEY, JSON.stringify(seen)); } catch { /* sans stockage */ }
+    updateBubbles();
+  }
+  /** En mode galerie vivante, le bloc des défis quitte l'accueil pour la fenêtre « Défis » du bas. */
+  function placeChallenge() {
+    const card = $('challenge-card');
+    const inSheet = card.parentNode === $('defis-sheet-body');
+    if (galerieOn() && !inSheet) {
+      card.open = true;
+      $('defis-sheet-body').append(card);
+    } else if (!galerieOn() && inSheet) {
+      document.querySelector('.podium-card').before(card);
+    }
   }
 
   /** Barre du bas : mêmes destinations que sur l'accueil, plus le musée et le journal. */
@@ -1379,6 +1678,13 @@
     if (!button) return;
     const go = button.dataset.nav;
     if (go === 'messages') return openMessages();
+    if (go === 'defis') {
+      renderCollective();
+      renderWeekly();
+      $('defis-sheet').showModal();
+      if (galerieOn()) flip($('defis-sheet'), button, false);
+      return markDefisSeen();
+    }
     if (go === 'profile') return $('btn-carnet').click();
     if (go === 'admin') return openAdmin();
     if (go === 'mine') {
@@ -1395,26 +1701,155 @@
     if (go === 'play' && betaOn('betaHome')) {
       if (app.view !== 'home') await goHome();
       loadDuels();
-      return $('play-sheet').showModal();
+      setVoie('');
+      $('play-sheet').showModal();
+      document.documentElement.toggleAttribute('data-play-open', galerieOn());
+      return Galerie.resetWagon();
     }
     if (app.view !== 'home') await goHome();
     if (go === 'play') document.querySelector('.play-card').scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
     else window.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' });
   });
+  $('btn-defis-close').addEventListener('click', () => closeCentre($('defis-sheet')));
+  $('defis-sheet').addEventListener('click', (event) => event.target === $('defis-sheet') && closeCentre($('defis-sheet')));
+
+  /*
+   * Accueil sans cadre (essai galerie vivante) : le podium et la vie de la mine sont des lignes du fil ; touchées, elles s'ouvrent au centre
+   * de l'écran en grandissant depuis leur place, puis y retournent à la fermeture. Le bloc d'origine est déplacé dans la fenêtre, puis remis.
+   */
+  const CENTRE = { podium: { title: 'Podium', node: () => document.querySelector('.podium-card') }, social: { title: 'Dans la mine', node: () => $('beta-social') } };
+  let centreSource = null;
+  let centreBack = null;
+  function flip(dialog, from, reverse) {
+    if (!from || reducedMotion() || !dialog.animate) return null;
+    const a = from.getBoundingClientRect();
+    const b = dialog.getBoundingClientRect();
+    if (!b.width || !b.height) return null;
+    const start = { transform: `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.width / b.width}, ${a.height / b.height})`, opacity: 0.2, transformOrigin: 'top left' };
+    const end = { transform: 'none', opacity: 1, transformOrigin: 'top left' };
+    return dialog.animate(reverse ? [end, { ...start, opacity: 0 }] : [start, end], { duration: reverse ? 260 : 380, easing: reverse ? 'cubic-bezier(.4,0,.6,1)' : 'cubic-bezier(.2,.8,.2,1)' });
+  }
+  function openCentre(kind, from) {
+    const spec = CENTRE[kind];
+    const node = spec && spec.node();
+    if (!node) return;
+    centreBack = { node, parent: node.parentNode, next: node.nextSibling, hidden: node.hidden };
+    node.hidden = false;
+    $('centre-title').textContent = spec.title;
+    $('centre-body').replaceChildren(node);
+    centreSource = from;
+    $('centre-sheet').showModal();
+    flip($('centre-sheet'), from, false);
+  }
+  function closeCentre(dialog) {
+    if (!dialog.open) return;
+    const from = dialog === $('centre-sheet') ? centreSource : document.querySelector('#bottom-nav [data-nav="defis"]');
+    const anim = galerieOn() ? flip(dialog, from, true) : null;
+    if (anim) anim.onfinish = () => dialog.close();
+    else dialog.close();
+  }
+  $('centre-sheet').addEventListener('close', () => {
+    if (centreBack) {
+      centreBack.node.hidden = centreBack.hidden;
+      centreBack.parent.insertBefore(centreBack.node, centreBack.next);
+      centreBack = null;
+    }
+    if (centreSource) centreSource.focus();
+  });
+  $('btn-centre-close').addEventListener('click', () => closeCentre($('centre-sheet')));
+  $('centre-sheet').addEventListener('click', (event) => event.target === $('centre-sheet') && closeCentre($('centre-sheet')));
+  $('home-feed').addEventListener('click', (event) => {
+    const button = event.target.closest('button[data-centre]');
+    if (button) openCentre(button.dataset.centre, button);
+  });
+  /*
+   * Départ en wagonnet (essai galerie vivante) : au toucher, le wagonnet file vers la droite, l'accueil glisse avec lui,
+   * puis l'écran de forage arrive par la gauche. Sans animation (réglage ou système), le forage démarre tout de suite.
+   */
+  let departing = false;
+  async function departAndPlay(event) {
+    if (!galerieOn() || reducedMotion() || app.view !== 'home') return;
+    event.stopImmediatePropagation();
+    if (departing) return;
+    departing = true;
+    const home = $('view-home');
+    const slide = home.animate ? home.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateX(60%)', opacity: 0 }], { duration: 520, delay: 180, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' }) : null;
+    if (son16On()) Sound.wagon(1);
+    await Galerie.departWagon();
+    if (slide) await slide.finished.catch(() => {});
+    await startGame('daily');
+    if (slide) slide.cancel();
+    departing = false;
+    Galerie.resetWagon();
+    const layout = document.querySelector('.layout');
+    if (app.view !== 'home' && layout.animate) layout.animate([{ transform: 'translateX(-45%)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 420, easing: 'cubic-bezier(.2,.8,.2,1)' });
+  }
+  $('btn-daily').addEventListener('click', departAndPlay, true);
+  $('wagon').addEventListener('click', () => $('btn-daily').click());
+  Galerie.mountWagon($('wagon'));
+  /*
+   * Aiguillage de « Jouer » (galerie vivante) : le wagonnet part à droite vers le forage du jour, à gauche vers le duel ou l'illimité ;
+   * l'écran glisse dans le même sens, et le bouton de retour ramène à l'aiguillage.
+   */
+  Galerie.mountWagon($('switch'), 'switch');
+  /** '' : l'aiguillage ; 'duel' ou 'training' : le panneau de ce mode. Hors galerie vivante, la feuille montre les deux modes. */
+  function setVoie(voie) {
+    const on = galerieOn();
+    $('play-sheet').dataset.voie = on ? voie : '';
+    $('aiguillage').hidden = !on || !!voie;
+    $('btn-voie-back').hidden = !on || !voie;
+    $('play-sheet-body').hidden = on && !voie;
+    $('mode-duel').hidden = on && voie !== 'duel';
+    $('mode-training').hidden = on && voie !== 'training';
+    $('voie-duel-dot').hidden = $('duel-dot').hidden;
+    $('play-sheet').querySelector('.drawer-head h2').textContent = { duel: 'Duel', training: 'Illimité' }[on && voie] || 'Jouer';
+  }
+  const slideIn = (el, from) => el.animate && !reducedMotion() ? el.animate([{ transform: `translateX(${from})`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 380, easing: 'cubic-bezier(.2,.8,.2,1)' }).finished.catch(() => {}) : Promise.resolve();
+  let switching = false;
+  document.querySelectorAll('[data-voie]').forEach((button) =>
+    button.addEventListener('click', async () => {
+      if (switching) return;
+      switching = true;
+      const voie = button.dataset.voie;
+      const calm = reducedMotion();
+      if (voie === 'daily') {
+        if (!calm) await Galerie.departWagon(1, $('switch'));
+        $('play-sheet').close();
+        switching = false;
+        await startGame('daily');
+        if (app.view !== 'home') slideIn(document.querySelector('.layout'), '-45%');
+        return;
+      }
+      if (!calm) await Galerie.departWagon(-1, $('switch'));
+      setVoie(voie);
+      if (voie === 'duel') loadDuels();
+      await slideIn($('play-sheet-body'), '45%');
+      switching = false;
+    }),
+  );
+  $('play-sheet').addEventListener('close', () => document.documentElement.removeAttribute('data-play-open'));
+  $('btn-voie-back').addEventListener('click', async () => {
+    setVoie('');
+    Galerie.resetWagon();
+    await slideIn($('aiguillage'), '-45%');
+  });
   $('btn-sheet-close').addEventListener('click', () => $('play-sheet').close());
   $('play-sheet').addEventListener('click', (event) => {
     if (event.target === $('play-sheet')) return $('play-sheet').close();
     const button = event.target.closest('button.btn');
-    if (button && button.id !== 'btn-duel-new') $('play-sheet').close();
+    if (button && button.id !== 'btn-duel-new' && button.id !== 'btn-voie-back') $('play-sheet').close();
   });
 
   /** La vie de la mine : combien de mineurs ont foré aujourd'hui, les derniers forages terminés et leurs pépites. */
   async function renderBetaSocial() {
     const card = $('beta-social');
     card.hidden = !((betaOn('betaSocial') || betaOn('betaHome')) && app.me && app.me.today);
+    const feedRow = document.querySelector('#home-feed [data-centre="social"]');
+    feedRow.hidden = card.hidden;
     if (card.hidden) return;
     try {
       const mine = await api('/api/mine-today');
+      $('feed-social-text').textContent = mine.started ? `${plural(mine.started, 'mineur', 'mineurs')} aujourd'hui` : 'encore calme';
       const text = $('beta-social-text');
       if (!mine.started) text.textContent = 'La mine est encore silencieuse : tu pourrais être le premier à descendre aujourd\'hui !';
       else text.textContent = `${plural(mine.started, 'mineur est descendu', 'mineurs sont descendus')} aujourd'hui, ${mine.finished} ${mine.finished > 1 ? 'ont fini' : 'a fini'} leur forage.`;
@@ -1428,6 +1863,7 @@
       );
     } catch {
       card.hidden = true;
+      feedRow.hidden = true;
     }
   }
 
@@ -1462,17 +1898,18 @@
     const activity = ACTIVITIES[app.mascotActivity];
     if (withMascot) {
       const mood = activity.mood || (hour < 6 ? 'sleep' : 'idle');
-      drawMascot($('mascot-open'), mood);
-      drawMascot($('mascot-blink'), mood === 'look' ? 'look' : 'blink');
+      drawMascot($('mascot-open'), mood, moleGaze);
+      drawMascot($('mascot-blink'), mood === 'look' ? 'look' : 'blink', moleGaze);
       drawActivity($('mascot-tool'), app.mascotActivity);
       mascot.dataset.mood = mood;
+      mascot.dataset.base = mood;
       mascot.dataset.anim = activity.anim || '';
       mascot.title = activity.say;
     }
     // Phrase de la taupe, suivie de l'avancement du forage.
     const st = app.me.streak;
     let tail;
-    if (!today.gameId) tail = st && st.current > 1 ? `${st.current} jours d'affilée : 7 thèmes t'attendent !` : '7 nouveaux thèmes t\'attendent.';
+    if (!today.gameId) tail = galerieOn() ? (st && st.current > 1 ? `${st.current} jours d'affilée !` : '') : st && st.current > 1 ? `${st.current} jours d'affilée : 7 thèmes t'attendent !` : '7 nouveaux thèmes t\'attendent.';
     else if (!today.finished) tail = `Plus que ${ROUNDS - (today.roundsDone || 0)} thème${ROUNDS - (today.roundsDone || 0) > 1 ? 's' : ''} à creuser.`;
     else tail = `Beau forage : ${pts(today.score)} aujourd'hui !`;
     $('beta-sub').textContent = withMascot ? `« ${activity.say} » ${tail}` : tail;
@@ -1522,6 +1959,9 @@
     const collective = app.me.collective;
     $('challenge-card').hidden = !ch && !collective;
     $('challenge-tab-month').hidden = !collective;
+    // Onglets en habit de mine (refonte)
+    document.querySelector('#challenge-tabs [data-challenge="week"]').textContent = defisOn() ? 'Ton filon' : 'Semaine';
+    $('challenge-tab-month').textContent = defisOn() ? 'Galerie commune' : 'Mois';
     $('challenge-week').hidden = !ch || (challengeTab === 'month' && !!collective);
     $('challenge-month').hidden = !collective || challengeTab !== 'month' && !!ch;
     // Résumé toujours visible quand le bloc des défis est replié.
@@ -1708,6 +2148,7 @@
 
   /** Le personnage du joueur (sans objet en main) avance dans un tunnel, pioche en main, vers un diamant : l'avancée suit le défi. */
   function drawWeekly(canvas, ch, avatar, t) {
+    if (defisOn()) return Defis16.weekly(canvas, ch, avatar, t);
     const ctx = canvas.getContext('2d');
     const ty = 6;
     const th = 34;
@@ -1773,14 +2214,16 @@
     const ch = app.me && app.me.streak && app.me.streak.challenge;
     if (!ch) return;
     const canvas = $('weekly-canvas');
-    const scale = Math.max(1, Math.min(4, Math.floor((canvas.parentElement.clientWidth || 330) / WW)));
-    canvas.style.width = `${WW * scale}px`;
-    canvas.style.height = `${WH * scale}px`;
+    const [cw, chh] = defisOn() ? Defis16.SIZE.weekly : [WW, WH];
+    const scale = Math.max(1, Math.min(4, Math.floor((canvas.parentElement.clientWidth || 330) / cw)));
+    canvas.style.width = `${cw * scale}px`;
+    canvas.style.height = `${chh * scale}px`;
     drawWeekly(canvas, ch, app.me.avatar, 0);
   }
 
   /** Tunnel creusé ensemble : la foreuse avance avec les points du mois, chaque joueur a sa couleur, un tas de diamants au bout. */
   function drawCollective(canvas, data, t) {
+    if (defisOn()) return Defis16.collective(canvas, data, COLLECTIVE_COLORS, t);
     const ctx = canvas.getContext('2d');
     const ty = 8;
     const th = 24;
@@ -1839,19 +2282,35 @@
     const data = app.me && app.me.collective;
     if (!data) return;
     $('collective-title').textContent = data.reached ? 'Le diamant est atteint, bravo à tous !' : `Creusons ensemble ${data.goal.toLocaleString('fr-BE')} points avant la fin du mois.`;
-    $('collective-total').textContent = `${data.total.toLocaleString('fr-BE')} / ${data.goal.toLocaleString('fr-BE')} points`;
+    // Objectif dépassé : total et objectif séparés, sans le faux « 50 758 / 10 000 ».
+    $('collective-total').textContent = data.total > data.goal ? `${data.total.toLocaleString('fr-BE')} points (objectif : ${data.goal.toLocaleString('fr-BE')})` : `${data.total.toLocaleString('fr-BE')} / ${data.goal.toLocaleString('fr-BE')} points`;
     $('collective-left').textContent = data.daysLeft > 0 ? plural(data.daysLeft, 'jour restant', 'jours restants') : '';
     $('collective-legend').replaceChildren(
-      ...data.players.map((p, i) => {
-        const swatch = el('span', { class: 'swatch' });
-        swatch.style.background = COLLECTIVE_COLORS[i % COLLECTIVE_COLORS.length];
-        return el('li', { class: p.me ? 'me' : '' }, swatch, avatarEl(p.avatar, 'head', 2), el('span', { class: 'who-name' }, p.username), el('span', {}, pts(p.points)));
-      }),
+      ...data.players
+        .map((p, i) => ({ p, i }))
+        // Refonte : pas de classement, ordre alphabétique et part de la galerie en %.
+        .sort((a, b) => (defisOn() ? a.p.username.localeCompare(b.p.username, 'fr') : 0))
+        .map(({ p, i }) => {
+          const swatch = el('span', { class: 'swatch' });
+          swatch.style.background = COLLECTIVE_COLORS[i % COLLECTIVE_COLORS.length];
+          const share = defisOn() ? `${Math.round((p.points / Math.max(1, data.total)) * 100)} % du chemin` : pts(p.points);
+          return el('li', { class: p.me ? 'me' : '' }, defisOn() ? null : swatch, avatarEl(p.avatar, 'head', 2), el('span', { class: 'who-name' }, p.username), el('span', {}, share));
+        }),
     );
     const duel = data.duel;
     $('collective-duel-title').hidden = $('collective-duel-bar').hidden = $('collective-duel-note').hidden = !duel;
+    if (!duel) $('collective-duel-cars').hidden = true;
     if (duel) {
       $('collective-duel-title').textContent = duel.reached ? 'Défi duel du mois réussi : bravo à tous les duellistes !' : `Défi duel : terminons ${duel.goal} duels ensemble avant la fin du mois.`;
+      // Refonte : un wagonnet par duel à terminer, plein quand le duel est fait (les tiens en doré plus vif).
+      const cars = $('collective-duel-cars');
+      cars.hidden = !defisOn();
+      $('collective-duel-bar').hidden = defisOn();
+      if (defisOn()) {
+        const n = Math.min(100, duel.goal);
+        cars.setAttribute('aria-label', `${duel.total} wagonnets pleins sur ${duel.goal}`);
+        cars.replaceChildren(...Array.from({ length: n }, (_, i) => el('span', { class: i < duel.total ? (i < duel.mine ? 'on mine' : 'on') : '' })));
+      }
       $('collective-duel-fill').style.width = `${Math.min(100, Math.round((duel.total / duel.goal) * 100))}%`;
       $('collective-duel-bar').setAttribute('aria-valuemax', String(duel.goal));
       $('collective-duel-bar').setAttribute('aria-valuenow', String(Math.min(duel.goal, duel.total)));
@@ -1859,11 +2318,14 @@
     }
     $('collective-note').textContent = data.reached
       ? `Objectif atteint le ${formatDay(data.reachedOn, { day: 'numeric', month: 'long' })}. Continuez à creuser, le tas de diamants brille pour tout le monde !`
-      : 'Chaque point de ton forage du jour fait avancer la foreuse. Chaque couleur est la part de tunnel creusée par un joueur.';
+      : defisOn()
+        ? 'Une seule foreuse pour tout le monde : chaque point de chacun la fait avancer vers les diamants.'
+        : 'Chaque point de ton forage du jour fait avancer la foreuse. Chaque couleur est la part de tunnel creusée par un joueur.';
     const canvas = $('collective-canvas');
-    const scale = Math.max(1, Math.min(4, Math.floor((canvas.parentElement.clientWidth || 330) / CW)));
-    canvas.style.width = `${CW * scale}px`;
-    canvas.style.height = `${CH * scale}px`;
+    const [cw, chh] = defisOn() ? Defis16.SIZE.collective : [CW, CH];
+    const scale = Math.max(1, Math.min(4, Math.floor((canvas.parentElement.clientWidth || 330) / cw)));
+    canvas.style.width = `${cw * scale}px`;
+    canvas.style.height = `${chh * scale}px`;
     drawCollective(canvas, data, 0);
   }
   setInterval(() => {
@@ -1979,8 +2441,10 @@
 
   function enterGame(state) {
     app.game = state;
-    scene.setLayers(layersOf(state), false);
+    sceneLayers(state, false);
     if (state.finished) return showResults(state);
+    // Sons 16-bit : le wagonnet part à droite pour le forage du jour (déjà joué au départ depuis l'accueil), à gauche pour un duel ou l'infini.
+    if (son16On() && !departing && !state.rounds.some((r) => r.status === 'done')) Sound.wagon(state.mode === 'daily' ? 1 : -1);
     show('game');
     renderGame();
   }
@@ -1994,7 +2458,7 @@
         const pip = el('span', { class: `pip${i === active ? ' now' : ''}` });
         if (r.status === 'done' && !r.tier && state.mode === 'duel') pip.style.background = '#8aa0b8';
         if (r.status === 'done' && r.tier) {
-          pip.style.background = Pixel.TIER_COLORS[r.tier.id] || '#4a4a4a';
+          ore(pip, r.tier.id, '#4a4a4a');
           if (settings.colors !== 'normal') pip.textContent = Pixel.TIER_SYMBOLS[r.tier.id] || '';
           pip.title = r.tier.label;
         }
@@ -2056,7 +2520,15 @@
   const inField = (event) => !!(event.target && event.target.closest && event.target.closest('input, textarea'));
   $('answer-input').addEventListener('paste', () => (signals.p += 1));
   $('answer-input').addEventListener('drop', () => (signals.p += 1));
-  $('answer-input').addEventListener('input', () => (signals.e += 1));
+  $('answer-input').addEventListener('input', () => {
+    signals.e += 1;
+    // Taupe 16 bits : pendant que tu écris, elle regarde vers le bas, vers ta réponse.
+    const box = $('mole-prompt');
+    if (mole16On() && !box.hidden && box.dataset.event === 'start' && !box.dataset.typing) {
+      box.dataset.typing = '1';
+      drawMascot(box.querySelector('canvas'), 'look', { x: 0, y: 1 });
+    }
+  });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       if (roundOn()) signals.away = Date.now();
@@ -2116,6 +2588,7 @@
       const second = Math.ceil(left / 1000);
       if (second > 0 && second !== lastSecond) {
         // Labo (responsable) : un tic par seconde, de la couleur du chrono choisi ; sinon le tic habituel des cinq dernières secondes.
+        if (second === 5 && mole16On()) moleSay('prompt', 'hurry');
         if (labOn('labTimer')) Sound.chrono(skin, second, second <= 5);
         else if (second <= 5) Sound.tick(second <= 3);
       }
@@ -2240,7 +2713,7 @@
       if (after === before) return false;
       stopTimer();
       clearPending();
-      scene.setLayers(layersOf(state), true);
+      sceneLayers(state, true);
       if (state.finished) showResults(state);
       else renderGame();
       return true;
@@ -2348,7 +2821,7 @@
   function askGallery() {
     return new Promise((resolve) => {
       const dialog = $('gallery-dialog');
-      Icons.drawIcon($('gallery-icon'), 'galerie');
+      if (!galerieOn()) Icons.drawIcon($('gallery-icon'), 'galerie');
       let answer = false;
       const done = (value) => {
         answer = value;
@@ -2373,6 +2846,7 @@
         { once: true },
       );
       dialog.showModal();
+      if (galerieOn()) Galerie.playRescue($('gallery-icon'), dialog);
       $('gallery-yes').focus();
     });
   }
@@ -2402,7 +2876,7 @@
       // La manche a pu être clôturée côté serveur entre-temps : on resynchronise.
       try {
         app.game = await api(`/api/game/${app.game.id}`);
-        scene.setLayers(layersOf(app.game), false);
+        sceneLayers(app.game, false);
         if (app.game.finished) showResults(app.game);
         else renderGame();
       } catch {
@@ -2418,7 +2892,7 @@
     stopTimer();
     app.game = state;
     holdKeyboard();
-    scene.setLayers(layersOf(state), true);
+    sceneLayers(state, true);
     renderPips(state);
     $('pane-prompt').hidden = true;
     $('pane-ready').hidden = true;
@@ -2442,7 +2916,8 @@
     }
     moleSay('feedback', moleEventFor(round.tier.id));
     rewardShower($('pane-feedback'), round.tier.id);
-    Sound.tier(round.tier.id, pepites);
+    if (son16On()) Sound.ore(round.tier.id, pepites);
+    else Sound.tier(round.tier.id, pepites);
     Sound.buzz(round.tier.id, pepites);
     const answer = $('feedback-answer');
     const odds = $('feedback-odds');
@@ -2511,7 +2986,7 @@
     refreshMine(true);
     app.game = state;
     if (state.mode === 'duel') return afterDuelGame(state);
-    scene.setLayers(layersOf(state), false);
+    sceneLayers(state, false);
     scene.overview();
     renderResults(state);
     $('share-status').textContent = '';
@@ -2597,6 +3072,85 @@
     $('results-percentile').textContent = `Mieux que ${pct}\u00a0% des joueurs du jour (${plural(n, 'forage', 'forages')} aujourd'hui)`;
   }
 
+  /**
+   * Carnet de forage de la refonte : de vraies strates (trame, fossiles, racines, cristaux, pépites) à la place des aplats,
+   * un tunnel creusé par thème et un cristal à la couleur de la rareté au bout.
+   */
+  function renderDiveLog16(state, chart, { left, right, top, bottom, core, y }) {
+    const defs = svg('defs');
+    const rng = (seed) => () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296);
+    const px = (x, yy, w, h, fill, extra = {}) => svg('rect', { x: Math.round(x), y: Math.round(yy), width: w, height: h, fill, 'shape-rendering': 'crispEdges', ...extra });
+    const gem = (cx, cy, sz, light, mid, dark) => {
+      const g = svg('g', { 'shape-rendering': 'crispEdges' });
+      g.append(
+        svg('polygon', { points: `${cx},${cy - sz} ${cx + sz * 0.7},${cy} ${cx},${cy + sz} ${cx - sz * 0.7},${cy}`, fill: mid }),
+        svg('polygon', { points: `${cx},${cy - sz} ${cx - sz * 0.7},${cy} ${cx},${cy}`, fill: light }),
+        svg('polygon', { points: `${cx},${cy} ${cx + sz * 0.7},${cy} ${cx},${cy + sz}`, fill: dark }),
+      );
+      return g;
+    };
+    // Une trame par couche : fond, grains plus clairs et plus sombres.
+    const TIERS = {
+      evident: { y0: top, y1: y(20), base: '#4a2f1a', hi: '#5f3d22', lo: '#34200f', id: 'evident' },
+      courant: { y0: y(20), y1: y(40), base: '#8e5f31', hi: '#a87340', lo: '#6c4522', id: 'courant' },
+      original: { y0: y(40), y1: y(60), base: '#64717e', hi: '#7d8b99', lo: '#4a5560', id: 'original' },
+      rare: { y0: y(60), y1: bottom, base: '#5e2013', hi: '#7a2e1c', lo: '#43150c', id: 'rare' },
+      pepite: { y0: bottom, y1: core, base: '#b5561a', hi: '#d97a2a', lo: '#8a3d0e', id: 'pepite' },
+    };
+    for (const t of Object.values(TIERS)) {
+      const pat = svg('pattern', { id: `strate-${t.id}`, width: 12, height: 12, patternUnits: 'userSpaceOnUse' });
+      pat.append(px(0, 0, 12, 12, t.base), px(1, 2, 3, 2, t.hi), px(7, 7, 4, 2, t.lo), px(5, 0, 2, 2, t.lo), px(9, 4, 2, 2, t.hi), px(2, 9, 3, 2, t.lo));
+      defs.append(pat);
+    }
+    chart.append(defs);
+    for (const t of Object.values(TIERS)) {
+      chart.append(
+        svg('rect', { x: left, y: t.y0, width: right - left, height: t.y1 - t.y0, fill: `url(#strate-${t.id})` }),
+        svg('rect', { x: left, y: t.y0, width: right - left, height: 2, fill: 'rgba(255,255,255,0.18)' }), // arête claire en haut de chaque couche
+        svg('rect', { x: left, y: t.y1 - 2, width: right - left, height: 2, fill: 'rgba(0,0,0,0.35)' }),
+        svg('text', { x: left - 6, y: (t.y0 + t.y1) / 2 + 4, class: 'band-label' }, TIER_LABELS[t.id]),
+      );
+    }
+    const inBand = (t, r, w, h) => [left + 4 + r() * (right - left - 8 - w), t.y0 + 4 + r() * Math.max(1, t.y1 - t.y0 - 8 - h)];
+    const decor = svg('g');
+    // Gravier : cailloux, racines pendantes, un ver.
+    let r = rng(11);
+    for (let i = 0; i < 9; i++) { const [x, yy] = inBand(TIERS.evident, r, 5, 4); decor.append(px(x, yy, 5, 3, '#7a7068'), px(x, yy, 5, 1, '#a89e94')); }
+    for (let i = 0; i < 5; i++) { const x = left + 10 + r() * (right - left - 20), len = 8 + r() * 12; for (let k = 0; k < len; k += 2) decor.append(px(x + (k % 4 === 0 ? 0 : 1), top + k, 1, 2, '#8a5a2b')); }
+    decor.append(px(left + 150, top + 28, 8, 2, '#e08a9a'), px(left + 156, top + 26, 2, 2, '#e08a9a'));
+    // Soufre : cristaux jaunes, un os.
+    r = rng(23);
+    for (let i = 0; i < 4; i++) { const [x, yy] = inBand(TIERS.courant, r, 8, 8); decor.append(gem(x + 4, yy + 4, 5, '#fff2b0', '#ffd36a', '#c8841c')); }
+    { const [x, yy] = inBand(TIERS.courant, r, 22, 5); decor.append(px(x, yy + 1, 22, 3, '#efe6cf'), px(x - 2, yy, 3, 5, '#efe6cf'), px(x + 21, yy, 3, 5, '#efe6cf'), px(x, yy + 3, 22, 1, '#b8ab8c')); }
+    // Cuivre : fossile en spirale, plaques de vert-de-gris, pépites de cuivre.
+    r = rng(37);
+    { const [x, yy] = inBand(TIERS.original, r, 16, 16); const c = x + 8, d = yy + 8; for (const [rad, col] of [[8, '#3a4048'], [7, '#d9d0b8'], [5, '#9a917a'], [4, '#d9d0b8'], [2, '#6a6252']]) decor.append(svg('circle', { cx: c, cy: d, r: rad, fill: col, 'shape-rendering': 'crispEdges' })); }
+    for (let i = 0; i < 6; i++) { const [x, yy] = inBand(TIERS.original, r, 7, 3); decor.append(px(x, yy, 7, 3, '#3f9a86'), px(x + 1, yy, 4, 1, '#7fe0c8')); }
+    for (let i = 0; i < 3; i++) { const [x, yy] = inBand(TIERS.original, r, 6, 5); decor.append(px(x, yy, 6, 4, '#c26a2c'), px(x, yy, 6, 1, '#e8964a')); }
+    // Rubis : cristaux rouges et une géode bleutée.
+    r = rng(51);
+    for (let i = 0; i < 5; i++) { const [x, yy] = inBand(TIERS.rare, r, 10, 12); decor.append(gem(x + 5, yy + 6, 7, '#ffb0b0', '#e0342b', '#8f1f19')); }
+    { const [x, yy] = inBand(TIERS.rare, r, 18, 14); decor.append(svg('ellipse', { cx: x + 9, cy: yy + 7, rx: 9, ry: 7, fill: '#2a1a3a' }), svg('ellipse', { cx: x + 9, cy: yy + 7, rx: 6, ry: 4, fill: '#7fe0ff' }), px(x + 6, yy + 5, 3, 2, '#ffffff')); }
+    // Pépite : pépites d'or et étincelles.
+    r = rng(67);
+    for (let i = 0; i < 7; i++) { const [x, yy] = inBand(TIERS.pepite, r, 8, 6); decor.append(px(x, yy + 1, 7, 4, '#ffd36a'), px(x + 1, yy, 5, 1, '#fff2b0'), px(x, yy + 4, 7, 1, '#c8841c')); }
+    chart.append(decor);
+    // Tunnels et cristaux d'arrivée.
+    const step = (right - left) / state.rounds.length;
+    state.rounds.forEach((rd, i) => {
+      const cx = left + step * (i + 0.5);
+      chart.append(svg('text', { x: cx, y: core + 16, class: 'tick' }, i + 1));
+      if (rd.status !== 'done') return;
+      const tierId = rd.tier ? rd.tier.id : 'skip';
+      const color = Pixel.TIER_COLORS[tierId];
+      const depth = rd.outcome === 'answer' ? rd.points : 0;
+      const end = depth >= 100 ? (bottom + core) / 2 : y(depth);
+      chart.append(svg('rect', { x: cx - 3, y: top, width: 6, height: Math.max(2, end - top), fill: '#0b0806', opacity: 0.92 }), svg('rect', { x: cx - 1, y: top, width: 2, height: Math.max(2, end - top), fill: color, opacity: 0.55 }));
+      chart.append(svg('circle', { cx, cy: end, r: 11, fill: color, opacity: 0.28 }), gem(cx, end, 9, '#ffffff', color, '#00000066'));
+      if (settings.colors !== 'normal' && Pixel.TIER_SYMBOLS[tierId]) chart.append(svg('text', { x: cx, y: end + 4, class: 'glyph' }, Pixel.TIER_SYMBOLS[tierId]));
+    });
+  }
+
   /** Carnet de forage : une colonne par thème, d'autant plus profonde que la réponse est rare. */
   function renderDiveLog(state) {
     const chart = $('divelog-chart');
@@ -2607,6 +3161,7 @@
     const bottom = 172;
     const core = bottom + 14;
     const y = (p) => top + (Math.max(0, Math.min(100, p)) / 100) * (bottom - top);
+    if (galerieOn()) return renderDiveLog16(state, chart, { left, right, top, bottom, core, y });
     // Bandes de rareté, colorées comme des couches de plus en plus profondes ; la pépite tout au fond.
     const bands = [
       [top, y(20), 'evident', '#4a2f1a'],
@@ -2637,7 +3192,8 @@
   }
 
   function swatch(tierId) {
-    const node = el('span', { class: 'swatch', style: { background: Pixel.TIER_COLORS[tierId] } });
+    const node = el('span', { class: 'swatch' });
+    ore(node, tierId);
     if (settings.colors !== 'normal') node.textContent = Pixel.TIER_SYMBOLS[tierId] || '';
     return node;
   }
@@ -2652,7 +3208,7 @@
     $('results-best').hidden = !best;
     if (best) {
       const bestSw = $('results-best-sw');
-      bestSw.style.background = Pixel.TIER_COLORS[best.tier.id];
+      ore(bestSw, best.tier.id);
       bestSw.textContent = settings.colors !== 'normal' ? Pixel.TIER_SYMBOLS[best.tier.id] || '' : '';
       $('results-best-answer').textContent = best.answer;
       $('results-best-theme').textContent = `${best.title} · ${best.tier.label.toLowerCase()} · ${pts(best.points)}`;
@@ -2931,51 +3487,97 @@
     peau: { clair: '#f1c9a5', mat: '#d9a066', brun: '#9c6a43', fonce: '#6b4328' },
     couleur: { brun: '#4a2f1a', noir: '#1b1410', blond: '#e8c547', roux: '#c4562a', gris: '#b8b8c0', rose: '#e86aa8', bleu: '#4a86e8' },
   };
-  const AVATAR_ORDER = ['forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'chapeau', 'tenue', 'objet', 'lieu'];
+  const AVATAR_ORDER = ['espece', 'modele', 'forme', 'corpulence', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'accessoire', 'aura', 'dos', 'chapeau', 'tenue', 'objet', 'compagnon', 'lieu'];
+  // Selon le type de personnage : catégories sans effet (masquées) et noms/couleurs adaptés.
+  const SPECIES_UI = {
+    humain: { hide: ['modele'] },
+    nain: { hide: ['modele'] },
+    robot: { hide: ['forme', 'cheveux', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'tenue', 'iris'], labels: { peau: 'Carrosserie', couleur: 'Lentilles' }, swatch: { peau: 'robot', couleur: 'lentilles' } },
+    taupe: { hide: ['cheveux', 'couleur', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage', 'iris', 'modele'], labels: { peau: 'Pelage' }, swatch: { peau: 'taupe' } },
+    citrouille: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'iris', 'modele'], labels: { peau: 'Citrouille' }, swatch: { peau: 'citrouille' } },
+    squelette: { hide: ['cheveux', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage', 'iris', 'modele'], labels: { peau: 'Os', couleur: 'Lueur des orbites' }, swatch: { peau: 'squelette', couleur: 'lentilles' } },
+    fantome: { hide: ['forme', 'corpulence', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'tenue', 'iris', 'modele'], labels: { peau: 'Drap' }, swatch: { peau: 'fantome' } },
+    champignon: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'chapeau', 'modele'], labels: { peau: 'Chapeau du champignon' }, swatch: { peau: 'champignon' } },
+    'ver-luisant': { hide: ['forme', 'corpulence', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'tenue', 'modele'], labels: { peau: 'Corps' }, swatch: { peau: 'ver-luisant' } },
+    diablotin: { hide: ['forme', 'trait', 'yeux', 'iris', 'bouche', 'modele'], labels: { peau: 'Peau' }, swatch: { peau: 'diablotin' } },
+    grenouille: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'iris', 'bouche', 'piercing', 'tatouage', 'modele'], labels: { peau: 'Peau' }, swatch: { peau: 'grenouille' } },
+    golem: { hide: ['forme', 'cheveux', 'couleur', 'barbe', 'yeux', 'trait', 'bouche', 'piercing', 'tatouage', 'tenue', 'iris', 'modele'], labels: { peau: 'Cristaux' }, swatch: { peau: 'golem' } },
+  };
+  const speciesOf = (draft) => SPECIES_UI[draft.espece] || {};
 
   function renderAvatarEditor(profile) {
     const catalog = profile.avatarCatalog;
     const inCatalog = (slot) => !!catalog[slot] && catalog[slot].options.length > 1; // « traits » n'existe que pour le responsable (bêta)
     const draft = { ...profile.avatar };
+    const shown = (slot) => inCatalog(slot) && !(speciesOf(draft).hide || []).includes(slot);
+    // « Juste le poil » n'existe que pour la taupe ; on en sort dès qu'on change de type.
+    const optionsOf = (slot) => catalog[slot].options.filter((o) => slot !== 'tenue' || o.id !== 'poil' || draft.espece === 'taupe');
+    const labelOf = (slot) => (speciesOf(draft).labels || {})[slot] || catalog[slot].label;
+    const swatchOf = (slot, id) => {
+      const key = (speciesOf(draft).swatch || {})[slot];
+      return key ? (window.Avatar.SWATCHES[key] || {})[id] : (SWATCH[slot] || {})[id];
+    };
+    // Tenue d'origine d'un type : ses réglages, sauf ce qui n'est pas encore débloqué.
+    const applyStory = (species) => {
+      const story = window.Avatar.STORIES[species];
+      if (!story) return;
+      for (const [slot, id] of Object.entries(story.preset)) {
+        const opt = catalog[slot] && catalog[slot].options.find((o) => o.id === id);
+        if (opt && opt.unlocked) draft[slot] = id;
+      }
+      // Le nain se choisit avec sa barbe, sauf si le joueur en a déjà une.
+      const look = story.look || {};
+      if (look.barbe && draft.barbe === 'aucune') draft.barbe = look.barbe;
+    };
+    const onChoice = (slot, id) => {
+      draft[slot] = id;
+      if (slot === 'espece') {
+        applyStory(id);
+        if (draft.tenue === 'poil' && id !== 'taupe') draft.tenue = 'mineur';
+      }
+    };
     const preview = () => {
       $('prof-avatar').replaceChildren(avatarEl(draft, 'full', 6));
       if (betaOn('betaProfil')) $('pf-portrait').replaceChildren(avatarEl(draft, 'full', 6));
     };
     $('prof-name').textContent = app.me.user.username;
-    const rows = AVATAR_ORDER.filter(inCatalog).map((slot) => {
+    const buildRows = () => AVATAR_ORDER.filter(shown).map((slot) => {
       const cat = catalog[slot];
+      const options = optionsOf(slot);
       const label = el('span', { class: 'val' });
       const swatch = el('span', { class: 'swatch' });
       const refresh = () => {
-        const opt = cat.options.find((o) => o.id === draft[slot]) || cat.options[0];
+        const opt = options.find((o) => o.id === draft[slot]) || options[0];
         label.textContent = `${opt.unlocked ? '' : '🔒 '}${opt.label}`;
         label.classList.toggle('locked', !opt.unlocked);
-        if (SWATCH[slot]) swatch.style.background = SWATCH[slot][opt.id] || 'transparent';
+        swatch.style.background = swatchOf(slot, opt.id) || 'transparent';
       };
       const step = (dir) => {
-        const i = cat.options.findIndex((o) => o.id === draft[slot]);
-        draft[slot] = cat.options[(i + dir + cat.options.length) % cat.options.length].id;
-        refresh();
+        const i = options.findIndex((o) => o.id === draft[slot]);
+        onChoice(slot, options[(i + dir + options.length) % options.length].id);
         preview();
         commit();
+        if (slot === 'espece') $('avatar-options').replaceChildren(...buildRows());
+        else refresh();
       };
       const prev = el('button', { class: 'arr', type: 'button', 'aria-label': `${cat.label} précédent` }, '◀');
       const next = el('button', { class: 'arr', type: 'button', 'aria-label': `${cat.label} suivant` }, '▶');
       prev.addEventListener('click', () => step(-1));
       next.addEventListener('click', () => step(1));
       refresh();
-      return el('div', { class: 'opt' }, el('span', { class: 'lab' }, cat.label), prev, el('span', { class: 'val-wrap' }, SWATCH[slot] ? swatch : null, label), next);
+      return el('div', { class: 'opt' }, el('span', { class: 'lab' }, labelOf(slot)), prev, el('span', { class: 'val-wrap' }, swatchOf(slot, draft[slot]) ? swatch : null, label), next);
     });
     // Vestiaire (bêta) : des vignettes à toucher, rangées en quatre onglets, au lieu de dix lignes de flèches.
     function wardrobe() {
       const GROUPS = [
+        ['Type', ['espece', 'modele', 'aura']],
         ['Tête', ['cheveux', 'couleur', 'chapeau']],
-        ['Visage', ['peau', 'yeux', 'barbe', 'trait']],
-        ['Corps', ['forme', 'tenue']],
-        ['Outil', ['objet', 'lieu']],
-      ];
-      const FULL = new Set(['forme', 'tenue', 'objet']);
-      const THUMBS = new Set(['forme', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'chapeau', 'tenue', 'objet']);
+        ['Visage', ['peau', 'yeux', 'iris', 'bouche', 'barbe', 'trait', 'piercing']],
+        ['Corps', ['forme', 'corpulence', 'tenue', 'accessoire', 'dos', 'tatouage']],
+        ['Outil', ['objet', 'compagnon', 'lieu']],
+      ].filter(([, slots]) => slots.some(inCatalog)); // sans le vestiaire 16-bit (joueurs pendant la bêta), pas d'onglet « Type » vide
+      const FULL = new Set(['espece', 'modele', 'aura', 'dos', 'forme', 'corpulence', 'tenue', 'objet', 'tatouage']);
+      const THUMBS = new Set(['espece', 'modele', 'aura', 'dos', 'iris', 'forme', 'corpulence', 'cheveux', 'couleur', 'peau', 'yeux', 'barbe', 'trait', 'bouche', 'piercing', 'tatouage', 'accessoire', 'chapeau', 'tenue', 'objet', 'compagnon']);
       let current = 0;
       const tabs = el('div', { class: 'wr-tabs', role: 'tablist' });
       const panel = el('div', { class: 'wr-panel' });
@@ -2988,30 +3590,33 @@
           }),
         );
         panel.replaceChildren(
-          ...GROUPS[current][1].filter(inCatalog).map((slot) => {
-            const cat = catalog[slot];
+          ...(GROUPS[current][1].some(shown) ? GROUPS[current][1].filter(shown) : []).map((slot) => {
             const grid = el('div', { class: `wr-grid${THUMBS.has(slot) ? '' : ' text'}` });
-            cat.options.forEach((opt) => {
+            optionsOf(slot).forEach((opt) => {
               const selected = draft[slot] === opt.id;
-              const content = THUMBS.has(slot) ? avatarEl({ ...draft, [slot]: opt.id }, FULL.has(slot) ? 'full' : 'bust', 2) : null;
+              const content = THUMBS.has(slot) ? avatarEl(slot === 'espece' ? window.Avatar.thumb(opt.id) : { ...draft, [slot]: opt.id }, FULL.has(slot) ? 'full' : 'bust', 2) : null;
               const b = el('button', { class: `wr-opt${selected ? ' sel' : ''}${opt.unlocked ? '' : ' locked'}`, type: 'button', title: opt.unlocked ? opt.label : opt.hint || opt.label, 'aria-pressed': String(selected) }, content, el('span', { class: 'wr-lab' }, `${opt.unlocked ? '' : '🔒 '}${opt.label}`));
               b.addEventListener('click', () => {
-                draft[slot] = opt.id;
+                onChoice(slot, opt.id);
                 preview();
                 commit();
                 render();
               });
               grid.append(b);
             });
-            return el('div', { class: 'wr-slot' }, el('h4', {}, cat.label), grid);
+            const story = slot === 'espece' ? window.Avatar.STORIES[draft.espece] : slot === 'modele' ? { text: window.Avatar.MODELS[draft.modele] } : null;
+            const again = slot === 'espece' ? el('button', { class: 'btn ghost', type: 'button' }, "Reprendre la tenue d'origine") : null;
+            if (again) again.addEventListener('click', () => { applyStory(draft.espece); preview(); commit(); render(); });
+            return el('div', { class: 'wr-slot' }, el('h4', {}, labelOf(slot)), grid, story ? el('p', { class: 'muted small' }, story.text) : null, again);
           }),
         );
+        if (!panel.children.length) panel.append(el('p', { class: 'muted small' }, 'Rien à régler ici pour ce type de personnage.'));
       };
       const random = el('button', { class: 'btn ghost', type: 'button' }, 'Au hasard');
       random.addEventListener('click', () => {
         for (const slot of AVATAR_ORDER.filter(inCatalog)) {
-          const free = catalog[slot].options.filter((o) => o.unlocked);
-          draft[slot] = free[Math.floor(Math.random() * free.length)].id;
+          const free = optionsOf(slot).filter((o) => o.unlocked);
+          onChoice(slot, free[Math.floor(Math.random() * free.length)].id);
         }
         preview();
         commit();
@@ -3021,7 +3626,9 @@
       return el('div', { class: 'wardrobe' }, tabs, panel, random);
     }
 
-    $('avatar-options').replaceChildren(...(betaOn('betaProfil') ? [wardrobe()] : rows));
+    $('avatar-options').replaceChildren(...(betaOn('betaProfil') ? [wardrobe()] : buildRows()));
+    // Refonte en bêta : l'anniversaire n'est proposé qu'au responsable.
+    if (betaOn('betaProfil') && app.me && (app.me.isAdmin || app.me.refonte)) $('avatar-options').append(birthdayBlock(profile.birthday));
     preview();
     let timer = null;
     function commit() {
@@ -3043,6 +3650,32 @@
         }
       }, 500);
     }
+  }
+
+  /** Anniversaire facultatif : jour et mois, jamais montrés aux autres joueurs. */
+  function birthdayBlock(current) {
+    const MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+    const [m0, d0] = current ? current.split('-').map(Number) : [0, 0];
+    const day = el('select', { 'aria-label': 'Jour' }, el('option', { value: '' }, 'Jour'), ...Array.from({ length: 31 }, (_, i) => el('option', { value: String(i + 1) }, String(i + 1))));
+    const month = el('select', { 'aria-label': 'Mois' }, el('option', { value: '' }, 'Mois'), ...MONTHS.map((n, i) => el('option', { value: String(i + 1) }, n)));
+    day.value = d0 ? String(d0) : '';
+    month.value = m0 ? String(m0) : '';
+    const status = el('span', { class: 'muted small', role: 'status' });
+    const save = el('button', { class: 'btn ghost', type: 'button' }, 'Enregistrer');
+    save.addEventListener('click', async () => {
+      const blank = !day.value && !month.value;
+      if (!blank && (!day.value || !month.value)) { status.textContent = 'Choisis le jour et le mois.'; return; }
+      const value = blank ? null : `${month.value.padStart(2, '0')}-${day.value.padStart(2, '0')}`;
+      try {
+        await api('/api/profile/birthday', { birthday: value });
+        status.textContent = value ? 'Anniversaire enregistré.' : 'Anniversaire effacé.';
+      } catch (err) {
+        status.textContent = err.message;
+      }
+    });
+    return el('div', { class: 'wr-slot' }, el('h4', {}, 'Ton anniversaire (facultatif)'),
+      el('p', { class: 'muted small' }, 'Les autres joueurs ne le voient pas. Si tu fores ce jour-là, tu reçois un cadeau pour ton personnage.'),
+      el('div', { class: 'row' }, day, month, save), status);
   }
 
   $('btn-rename').addEventListener('click', () => {
@@ -3231,10 +3864,11 @@
     const mole = $('pf-mole');
     const [open, blink, tool] = mole.querySelectorAll('canvas');
     const mood = activity.mood || 'idle';
-    drawMascot(open, mood);
-    drawMascot(blink, mood === 'look' ? 'look' : 'blink');
+    drawMascot(open, mood, moleGaze);
+    drawMascot(blink, mood === 'look' ? 'look' : 'blink', moleGaze);
     drawActivity(tool, app.mascotActivity);
     mole.dataset.mood = mood;
+    mole.dataset.base = mood;
     mole.dataset.anim = activity.anim || '';
   }
 
@@ -5732,7 +6366,8 @@
       const mine = mineIsA ? t.a : t.b;
       if (!skipping) {
         const pepites = (mineIsA ? layers[0] : layers[1]).filter((l) => l.tier === 'pepite').length;
-        Sound.tier(mine.tier, pepites);
+        if (son16On()) Sound.ore(mine.tier, pepites);
+        else Sound.tier(mine.tier, pepites);
       }
       await settled();
       $('duel-total-a').textContent = pts(totals[0]);
@@ -5757,6 +6392,7 @@
       $('duel-banner').textContent += ` Résultat révisé après un signalement accepté (avant : ${was}, ${old}).`;
     }
     $('duel-final').hidden = false;
+    if (son16On()) Sound.duelResult(result.winner == null ? 'draw' : (result.winner === 'a') === mineIsA ? 'win' : 'loss');
     // Revanche en un clic : un nouveau duel contre le même joueur, avec les mêmes règles.
     const rematch = $('btn-duel-rematch');
     rematch.disabled = false;
@@ -5846,7 +6482,8 @@
       renderRecap(data);
       show('recap');
       window.scrollTo(0, 0);
-      startFireworks(data);
+      if (fetesOn()) startFete(data);
+      else startFireworks(data);
     } catch {
       /* les podiums sont un bonus : s'ils échouent, on reste sur l'accueil */
       app.celebrationQueue = [];
@@ -5855,6 +6492,10 @@
 
   function startFireworks(data) {
     clearInterval(recapTimer);
+    if (stopFete) stopFete();
+    $('recap-canvas').classList.remove('fete16');
+    $('recap-names').classList.remove('fete-off');
+    $('recap-title').classList.remove('fete-off');
     const conf = CELEBRATION[data.kind] || CELEBRATION.week;
     const canvas = $('recap-canvas');
     const ctx = canvas.getContext('2d');
@@ -5996,6 +6637,47 @@
     }, 80);
   }
 
+  let stopFete = null;
+
+  /** Fête 16 bits (refonte) : voir celebrations16.js ; les temps sont ceux de Sound.celebrate. */
+  function startFete(data) {
+    clearInterval(recapTimer);
+    if (stopFete) stopFete();
+    const canvas = $('recap-canvas');
+    canvas.classList.add('fete16');
+    canvas.style.width = '';
+    canvas.style.height = '';
+    const names = $('recap-names');
+    const title = $('recap-title');
+    names.classList.add('fete-off');
+    if (data.kind === 'month') title.classList.add('fete-off');
+    else title.classList.remove('fete-off');
+    stopFete = Celebrations16.scene(data.kind, data, canvas, {
+      drill: data.champion && data.champion.drill,
+      onTitle: () => title.classList.remove('fete-off'),
+      onNames: () => {
+        names.classList.remove('fete-off');
+        if (son16On() && data.me && data.me.rank <= 3) Sound.tada();
+      },
+    }, reducedMotion());
+  }
+
+  /** « Passer l'animation » : les fêtes en attente comptent comme vues, on file au podium. */
+  async function skipCelebrations() {
+    if (stopFete) stopFete();
+    clearInterval(recapTimer);
+    const pending = [app.recap, ...(app.celebrationQueue || [])].filter(Boolean);
+    app.celebrationQueue = [];
+    app.recap = null;
+    if (app.me) {
+      app.me.celebrations = (app.me.celebrations || []).filter((c) => !pending.some((p) => p.kind === c.kind && p.start === c.start));
+      app.me.recap = null;
+    }
+    pending.forEach((p) => api('/api/celebration/seen', { kind: p.kind, start: p.start }).catch(() => {}));
+    openPodium('week', null);
+  }
+  $('btn-recap-skip').addEventListener('click', skipCelebrations);
+
   function renderRecap(data) {
     const conf = CELEBRATION[data.kind] || CELEBRATION.week;
     const queue = app.celebrationQueue || [];
@@ -6004,6 +6686,8 @@
     $('recap-canvas').setAttribute('aria-label', `${conf.title} sous un feu d'artifice`);
     $('recap-fireworks').hidden = false;
     $('recap-gazette').hidden = true;
+    $('btn-recap-skip').hidden = !fetesOn();
+    if (son16On()) Sound.celebrate(data.kind, { drill: data.champion && data.champion.drill });
     $('recap-names').replaceChildren(
       ...[2, 1, 3].map((place) => {
         const e = data.entries.find((x) => x.rank === place);
@@ -6066,11 +6750,24 @@
       el('button', { class: 'btn', id: 'btn-recap-done', type: 'button' }, nextKind ? `Suite : ${nextKind.title.toLowerCase()}` : 'À la mine !'),
     );
     $('btn-recap-done').addEventListener('click', finishRecap);
+    g.classList.remove('paper16');
+    if (fetesOn()) {
+      // Gazette sur un plan de mine : le fond est peint quand l'article est visible (voir le bouton « Voir la Gazette »).
+      const ink = el('div', { class: 'ink' }, ...Array.from(g.childNodes));
+      g.replaceChildren(el('canvas', { class: 'bg', 'aria-hidden': 'true' }), ink);
+      g.classList.add('paper16');
+      if (queue.length) ink.append(el('button', { class: 'btn ghost', id: 'btn-gazette-skip', type: 'button' }, 'Passer au podium'));
+      const skip = $('btn-gazette-skip');
+      if (skip) skip.addEventListener('click', skipCelebrations);
+    }
   }
 
   $('btn-recap-next').addEventListener('click', () => {
     $('recap-fireworks').hidden = true;
     $('recap-gazette').hidden = false;
+    if (stopFete) stopFete();
+    if ($('recap-gazette').classList.contains('paper16')) Celebrations16.paper($('recap-gazette'));
+    if (son16On()) Sound.paper();
     window.scrollTo(0, 0);
   });
 
@@ -6261,7 +6958,7 @@
               el(
                 'li',
                 { class: `${p.me ? 'me' : ''}${mark}${r.outcome === 'joker' ? ' joker' : ''}${r.spare ? ' spare' : ''}` },
-                el('span', { class: 'swatch', style: { background: Pixel.TIER_COLORS[r.tier] || '#666' } }),
+                (() => { const n = el('span', { class: 'swatch' }); ore(n, r.tier); return n; })(),
                 el('span', { class: 'who' }, avatarEl(p.avatar, 'head', 2), el('span', { class: 'who-text' }, p.username, titleChip(p.title))),
                 el('span', { class: 'what' }, what),
                 el('span', { class: 'pts' }, r.outcome === 'joker' ? '—' : pts(r.points || 0)),
@@ -6281,7 +6978,7 @@
             ? el(
                 'span',
                 { class: 'compare-mine' },
-                el('span', { class: 'swatch', style: { background: Pixel.TIER_COLORS[mine.r.tier] || '#666' } }),
+                (() => { const n = el('span', { class: 'swatch' }); ore(n, mine.r.tier); return n; })(),
                 el('span', { class: 'what' }, mineWhat),
                 el('span', { class: 'pts' }, mine.r.outcome === 'joker' ? '—' : pts(mine.r.points || 0)),
               )

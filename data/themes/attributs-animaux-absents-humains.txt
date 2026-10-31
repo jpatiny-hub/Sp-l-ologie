@@ -1,4 +1,5 @@
-titre: Un organe, une structure anatomique ou un attribut physique que possèdent certains animaux mais pas l'être humain
+titre: Un organe animal que l'humain n'a pas
+# Ancien titre, qui précise le périmètre exact : Un organe, une structure anatomique ou un attribut physique que possèdent certains animaux mais pas l'être humain
 # Parties du corps ou structures propres à certains animaux, absentes chez l'humain adulte (queue, ailes, nageoires, etc.). Exclus : comportements, outils, capacités sensorielles (voir le thème sur les sens inhabituels) et structures que l'humain possède aussi (poils, ongles, dents, cœur, cerveau, langue…).
 1: Queue; Ailes = Aile; Nageoires = Nageoire; Plumes = Plume; Écailles = Écaille; Griffes = Griffe; Cornes = Corne; Bec; Branchies = Branchie; Sabots = Sabot; Défenses = Défense; Carapace; Coquille; Antennes = Antenne; Trompe
 2: Vessie natatoire; Vibrisses = Moustaches de chat = Poils tactiles; Bois = Ramure; Pinces = Pince; Aiguillon = Dard; Crochets à venin; Glande à venin; Évent; Fanons = Fanon; Poche ventrale = Marsupium; Jabot; Gésier; Cloaque; Ventouses = Ventouse; Tentacules = Tentacule; Mandibules = Mandibule; Exosquelette; Crête; Pieds palmés = Palmures; Opercule; Ouïes = Ouïe de poisson; Troisième paupière = Membrane nictitante; Yeux composés = Yeux à facettes

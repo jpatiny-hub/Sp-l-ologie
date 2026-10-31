@@ -1,4 +1,5 @@
-titre: Un acteur ou une actrice ayant incarné James Bond, M, Q, Miss Moneypenny, Felix Leiter ou Blofeld au cinéma
+titre: Un acteur d'un rôle récurrent de James Bond
+# Ancien titre, qui précise le périmètre exact : Un acteur ou une actrice ayant incarné James Bond, M, Q, Miss Moneypenny, Felix Leiter ou Blofeld au cinéma
 # Bond : Connery, Lazenby, Moore, Dalton, Brosnan, Craig ; dans Casino Royale (1967), plusieurs agents sont rebaptisés « James Bond 007 » (Niven, Sellers, Andress, Cooper, Lavi) et Woody Allen joue Jimmy Bond.
 # M : Lee, Brown, Dench, Fiennes, Huston (1967), Fox (1983). Q : Burton (Boothroyd, Dr. No), Llewelyn, Cleese, Whishaw, Bayldon (1967), McCowen (1983).
 # Moneypenny : Maxwell, Bliss, Bond, Harris, Bouchet (1967), Salem (1983). Leiter : Lord, Linder, Van Nutter, Burton, Hedison, Terry, Wright, Casey (1983).

@@ -1,0 +1,13 @@
+titre: Un jeu de rue ancien
+# Jeux d'enfants d'autrefois qu'on jouait dans la rue, sur le trottoir ou en ville (avant les années 1980 environ), souvent avec peu de matériel. Distinct de « jeux-cour-recreation » (cour d'école), mais des recoupements existent.
+# Sources : Wikipédia fr (Jeu d'enfant, jeux traditionnels), fiches pédagogiques de jeux du patrimoine (ac-nancy-metz.fr). Liste de mémoire, recoupée sur ces fiches ; ne pas considérer comme exhaustive.
+1: Marelle; Billes = Jeu de billes = Bille; Cache-cache; Corde à sauter = Saute-corde; Élastique = Jeu de l'élastique; Colin-maillard; Chat perché; Football de rue = Foot de rue = Football; Toupie; Cerf-volant; Gendarmes et voleurs = Policiers et voleurs; Pierre-feuille-ciseaux = Chifoumi; Trottinette; Patins à roulettes = Rollers = Roller
+2: Cerceau = Jeu du cerceau; Yo-yo; Diabolo; Osselets; Balle au mur; Saute-mouton; Jacques a dit; Un, deux, trois, soleil = 1-2-3 soleil; Loup y es-tu; Quatre coins; Pigeon vole; Bâtonnets = Jeu de bâtonnets = Mikado; Mouchoir = Jeu du mouchoir; Béret = Jeu du béret; Course de caisses à savon = Caisse à savon; Balle au prisonnier = Ballon prisonnier; Sardines
+3: Tir à la corde; Course en sac; Chat gelé = Statues; Quilles; Bataille de boules de neige = Boule de neige; Bataille d'eau; Poule renard vipère; Épervier
+4: Bilboquet; Jeu de piste
+5: Jeu du loup glacé = Loup glacé
+# retiré : Pétanque, Chaises musicales (jeux de salle/fête), Pendu, Morpion, Bataille navale (jeux papier-crayon), Pogs (années 1990), Soule, Choule (jeux de village collectifs, pas des jeux d'enfants de rue), Pas de géant (agrès de cour), Palets (confondu avec la bague).
+# Ajouts (Wikipédia fr « Jeu d'enfant », « Jeux traditionnels », fiches de jeux du patrimoine) :
+1: Hula hoop = Hula-hoop; Barres = Jeu de barres = Les barres; Ballon chasseur = Balle au chasseur = Balle chasseur
+2: Ballon au capitaine = Balle au capitaine; Passe à dix; Cheval fondu; Brouette = Course de brouettes; Ronde = Rondes enfantines = Farandole; Le furet = Furet du bois joli; Facteur = Le facteur n'est pas passé; Ni oui ni non; Cache-tampon = Tape-tampon; Ricochets = Lancer de pierres plates; Jeux de ficelle = Berceau de chat = Jeu de la ficelle; Calot = Jeu de calots; Jeu de la bague; Chat et souris = Le chat et la souris; Cow-boys et Indiens; Course d'obstacles; Course de relais
+3: Jeu du bouchon; Lièvre et chiens = Jeu du lièvre et des chiens; Jeu de la marchande; Foot-mur; Bataille de marrons

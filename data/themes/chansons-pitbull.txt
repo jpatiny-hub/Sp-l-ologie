@@ -1,4 +1,5 @@
-titre: Une chanson sur laquelle chante Pitbull (en solo ou en featuring)
+titre: Une chanson avec Pitbull
+# Ancien titre, qui précise le périmètre exact : Une chanson sur laquelle chante Pitbull (en solo ou en featuring)
 # Singles (en solo, en duo ou en featuring), titres promotionnels, chansons classées et apparitions d'invité, d'après la discographie de Wikipédia (relevé d'octobre 2026, recoupé avec « Pitbull discography » sur Wikipédia EN : toutes les réponses y figurent). Les autres titres d'album ne sont pas tous inclus.
 1: I Know You Want Me (Calle Ocho); Bon, Bon; Give Me Everything; Rain Over Me; International Love; Back in Time; Feel This Moment; Timber; We Are One (Ole Ola); Como Yo Le Doy; El Taxi; Options; Dame Tu Cosita
 2: Dime; Hotel Room Service; Hey Baby (Drop It to the Floor); Get It Started; Don't Stop the Party; Wild Wild Love; Fireball; Time of Our Lives; Piensas (Dile la Verdad); Baddest Girl in Town; Hey Ma; Por Favor; No Lo Trates; Me Quedaré Contigo; All Night Long; I Like It; DJ Got Us Fallin' in Love; On the Floor; Rabiosa; I Like How It Feels; Bailando Por El Mundo; Dance Again; There She Goes; I'm All Yours; Live It Up; Can't Believe It; I'm a Freak; Booty; Fresh Out the Oven; Echa Pa'lla (Manos Pa'rriba)

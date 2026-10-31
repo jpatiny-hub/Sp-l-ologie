@@ -1,4 +1,5 @@
-titre: Une langue officielle (au niveau national) d'un État d'Amérique latine ou des Caraïbes (langues autochtones de Bolivie comprises)
+titre: Une langue officielle d'Amérique latine ou des Caraïbes
+# Ancien titre, qui précise le périmètre exact : Une langue officielle (au niveau national) d'un État d'Amérique latine ou des Caraïbes (langues autochtones de Bolivie comprises)
 # Langues d'État : espagnol, portugais, anglais, français, néerlandais, créole haïtien ; langues autochtones officielles : quechua, aymara, guarani (Pérou, Bolivie, Paraguay) et les 36 langues de la Bolivie (constitution de 2009).
 1: Espagnol = Castillan; Portugais
 2: Anglais; Français; Néerlandais

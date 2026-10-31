@@ -180,10 +180,21 @@
         </div>
         <p class="hint">Dans les modes daltoniens, chaque niveau de rareté a aussi son propre symbole : la couleur n'est jamais la seule information.</p>
       </fieldset>
-      <fieldset id="hd-box" hidden>
-        <legend>Essai : style HD-2D (contremaître)</legend>
-        <p class="hint">Lumière de la lampe, relief de la roche, flou de profondeur et interface à fenêtres dorées. Uniquement sur cet appareil : les autres joueurs ne voient rien.</p>
-        <label class="check"><input type="checkbox" name="betaHd"> Activer le style HD-2D</label>
+      <fieldset id="refonte-box" hidden>
+        <legend>Refonte 16-bit (contremaître)</legend>
+        <p class="hint">Le nouveau jeu en bêta : uniquement sur cet appareil, les autres joueurs ne voient rien. Le vestiaire 16-bit (types de personnage, tatouages, accessoires…) est réservé au compte du responsable pendant la bêta.</p>
+        <label class="check"><input type="checkbox" name="betaRefonte"> Activer toute la refonte</label>
+        <p class="hint">Ou un morceau à la fois, pour comparer :</p>
+        <label class="check"><input type="checkbox" name="betaCaves"> Galeries 16-bit : grottes mystérieuses par paliers (ossuaire, fossiles, mine oubliée, gemmes, temple englouti…)</label>
+        <label class="check"><input type="checkbox" name="betaGalerie"> Accueil sans cadre devant les grottes animées</label>
+        <label class="check"><input type="checkbox" name="betaMole16"> Taupe en 16 bits : regard qui suit le doigt, réactions au toucher</label>
+        <label class="check"><input type="checkbox" name="betaSon16"> Sons 16-bit : un bruit par minerai, wagonnet, taupe, onglets, foreuses spéciales et feux d'artifice des podiums</label>
+        <label class="check"><input type="checkbox" name="betaFetes"> Fêtes de podium en 16 bits (semaine, mois) et Gazette sur plan de mine</label>
+        <label class="check"><input type="checkbox" name="betaDefis"> Défis en galeries de mine 16 bits (« Ton filon », « Galerie commune »)</label>
+        <p class="hint">Foreuse 16-bit ; celles de fête ont un effet animé pendant le forage :</p>
+        <div class="choices vertical" id="refonte-drill16">
+          <label><input type="radio" name="betaDrill16" value=""> Ma foreuse habituelle</label>
+        </div>
       </fieldset>
       <fieldset id="beta-box" hidden>
         <legend>Ancienne version (contremaître)</legend>
@@ -266,6 +277,7 @@
   <nav class="bottom-nav" id="bottom-nav" aria-label="Navigation" hidden>
     <button type="button" data-nav="home" aria-label="Accueil"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Accueil</span><span class="nav-bubble" hidden></span></button>
     <button type="button" data-nav="play" aria-label="Jouer"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Jouer</span><span class="nav-bubble" hidden></span></button>
+    <button type="button" data-nav="defis" aria-label="Défis"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Défis</span><span class="nav-bubble" hidden></span></button>
     <button type="button" data-nav="messages" aria-label="Messages"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Messages</span><span class="nav-bubble" hidden></span></button>
     <button type="button" data-nav="mine" aria-label="Mine"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Mine</span><span class="nav-bubble" hidden></span><span class="nav-bubble blue" hidden></span></button>
     <button type="button" data-nav="profile" aria-label="Profil"><span class="nav-ico"><canvas width="16" height="16" aria-hidden="true"></canvas></span><span class="nav-lab">Profil</span><span class="nav-bubble" hidden></span></button>
@@ -278,7 +290,37 @@
         <h2>Jouer</h2>
         <button class="icon-btn" id="btn-sheet-close" type="button" aria-label="Fermer"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h2v2H1zM3 3h2v2H3zM5 5h2v2H5zM7 7h2v2H7zM9 9h2v2H9zM9 1h2v2H9zM7 3h2v2H7zM3 7h2v2H3zM1 9h2v2H1z"/></svg></button>
       </div>
+      <div class="aiguillage" id="aiguillage" hidden>
+        <p class="muted small">Choisis ta voie : à droite le forage du jour, à gauche les autres modes.</p>
+        <canvas class="wagon" id="switch" aria-hidden="true"></canvas>
+        <nav class="voies" aria-label="Modes de jeu">
+          <button type="button" data-voie="daily"><span><strong>Forage du jour</strong><small>7 thèmes, les mêmes pour tous</small></span><b aria-hidden="true">→</b></button>
+          <button type="button" data-voie="duel"><b aria-hidden="true">←</b><span><strong>Duel <span class="tab-dot" id="voie-duel-dot" hidden></span></strong><small>défie un mineur, résultat le lendemain matin</small></span></button>
+          <button type="button" data-voie="training"><b aria-hidden="true">←</b><span><strong>Illimité</strong><small>des thèmes au hasard, sans classement</small></span></button>
+        </nav>
+      </div>
       <div class="drawer-body" id="play-sheet-body"></div>
+      <button class="btn ghost voie-back" id="btn-voie-back" type="button" hidden>Revenir à l'aiguillage →</button>
+    </div>
+  </dialog>
+
+  <dialog class="centre" id="centre-sheet" aria-labelledby="centre-title">
+    <div class="drawer-frame">
+      <div class="drawer-head">
+        <h2 id="centre-title"></h2>
+        <button class="icon-btn" id="btn-centre-close" type="button" aria-label="Fermer"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h2v2H1zM3 3h2v2H3zM5 5h2v2H5zM7 7h2v2H7zM9 9h2v2H9zM9 1h2v2H9zM7 3h2v2H7zM3 7h2v2H3zM1 9h2v2H1z"/></svg></button>
+      </div>
+      <div class="drawer-body" id="centre-body"></div>
+    </div>
+  </dialog>
+
+  <dialog class="drawer play-sheet" id="defis-sheet" aria-label="Défis">
+    <div class="drawer-frame">
+      <div class="drawer-head">
+        <h2>Défis</h2>
+        <button class="icon-btn" id="btn-defis-close" type="button" aria-label="Fermer"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M1 1h2v2H1zM3 3h2v2H3zM5 5h2v2H5zM7 7h2v2H7zM9 9h2v2H9zM9 1h2v2H9zM7 3h2v2H7zM3 7h2v2H3zM1 9h2v2H1z"/></svg></button>
+      </div>
+      <div class="drawer-body" id="defis-sheet-body"></div>
     </div>
   </dialog>
 
@@ -342,6 +384,9 @@
     <section class="panel-area">
       <!-- Connexion / inscription -->
       <div class="view" id="view-auth" hidden>
+        <div class="beta-mascot auth-mascot" id="auth-mascot" aria-hidden="true">
+          <canvas class="m-open" width="24" height="16"></canvas>
+        </div>
         <div class="card">
           <p class="tagline">Creuse jusqu'au noyau de la Terre… avec les réponses les plus improbables.</p>
           <div class="tabs" role="tablist">
@@ -472,6 +517,7 @@
           <div id="mode-daily">
             <p class="muted" id="today-date"></p>
             <div id="today-status"></div>
+            <canvas class="wagon" id="wagon" aria-hidden="true"></canvas>
             <button class="btn" id="btn-daily" type="button">Commencer le forage</button>
             <p class="muted small" id="next-reset"></p>
           </div>
@@ -504,10 +550,15 @@
             <ul class="collective-legend" id="collective-legend"></ul>
             <p id="collective-duel-title"></p>
             <div class="progress" id="collective-duel-bar" role="progressbar" aria-valuemin="0"><div class="progress-fill" id="collective-duel-fill"></div></div>
+            <div class="duel-cars" id="collective-duel-cars" role="img" hidden></div>
             <p class="muted small" id="collective-duel-note"></p>
             <p class="muted small" id="collective-note"></p>
           </div>
         </details>
+        <nav class="home-feed" id="home-feed" aria-label="Le fil de la mine">
+          <button type="button" data-centre="podium"><b>Podium</b></button>
+          <button type="button" data-centre="social"><b>Dans la mine</b><span id="feed-social-text"></span></button>
+        </nav>
         <div class="card podium-card">
           <h2>Podium</h2>
           <div class="mini-tabs" id="home-podium-tabs" role="tablist">
@@ -524,6 +575,7 @@
       <!-- Podiums du jour, de la semaine et du mois -->
       <div class="view" id="view-recap" hidden>
         <div id="recap-fireworks">
+          <button class="btn ghost recap-skip" id="btn-recap-skip" type="button" hidden>Passer l'animation</button>
           <p class="recap-title" id="recap-title">Bravo les mineurs !</p>
           <p class="muted recap-sub" id="recap-sub"></p>
           <canvas class="recap-canvas" id="recap-canvas" width="160" height="190" role="img" aria-label="Le podium sous un feu d'artifice"></canvas>
@@ -1052,11 +1104,18 @@
   <script src="analytics.js"></script>
   <script src="ambience.js"></script>
   <script src="sound.js"></script>
+  <script src="caves.js"></script>
   <script src="pixel.js"></script>
+  <script src="minelife.js"></script>
+  <script src="galerie.js"></script>
+  <script src="drills16.js"></script>
   <script src="icons.js"></script>
   <script src="poster.js"></script>
   <script src="timers.js"></script>
   <script src="avatar.js"></script>
+  <script src="mole16.js"></script>
+  <script src="celebrations16.js"></script>
+  <script src="defis16.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

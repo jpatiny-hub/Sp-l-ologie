@@ -1,4 +1,5 @@
-titre: Un des 27 États membres de l'Union européenne ou un pays candidat à l'adhésion (candidats potentiels et ancien membre compris)
+titre: Un pays de l'UE ou candidat à l'UE
+# Ancien titre, qui précise le périmètre exact : Un des 27 États membres de l'Union européenne ou un pays candidat à l'adhésion (candidats potentiels et ancien membre compris)
 1: Belgique; France; Allemagne; Pays-Bas; Luxembourg; Italie; Espagne; Portugal
 2: Irlande; Danemark; Grèce; Autriche; Suède; Finlande; Pologne; Royaume-Uni = Grande-Bretagne; Ukraine; Turquie
 3: Tchéquie = République tchèque; Hongrie; Slovaquie; Slovénie; Croatie; Roumanie; Bulgarie; Lituanie; Lettonie; Estonie; Malte; Chypre

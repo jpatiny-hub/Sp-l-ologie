@@ -113,8 +113,41 @@
 
   function zoneName(points) {
     if (points >= MAX_POINTS) return 'Centre de la Terre';
+    if (caves) return global.Caves.TIERS[global.Caves.tierIndex(points)].name;
     return ZONES[zoneIndex(points)].name;
   }
+
+  // Essai « galeries 16-bit » (réservé au responsable) : grottes mystérieuses à la place de la coupe géologique (voir caves.js).
+  let caves = false;
+  // Graine du forage en cours : paysage de surface, ambiance de chaque palier et trouvailles (0 = décor d'origine).
+  let exploreSeed = 0;
+  let skyOverride = null;
+  const SKIES = {
+    jour: ['#4f9fd3', '#5eaedb', '#70bde2', '#86cbe8', '#a0d8ee', '#bfe6f3'],
+    aube: ['#3a3c6e', '#5e4a88', '#9a5a8c', '#d8788a', '#f4a682', '#ffd2a0'],
+    couchant: ['#2a2858', '#4a3a7a', '#86487a', '#cc5e5a', '#ee8a4a', '#ffc070'],
+    nuit: ['#05071a', '#090f28', '#0e1836', '#152244', '#1c2e52', '#263a60'],
+    gris: ['#66748a', '#748296', '#8290a0', '#909eaa', '#a0acb6', '#b0bcc4'],
+  };
+  const LANDS = ['village', 'foret', 'montagne', 'cote', 'campagne', 'chateau'];
+  /** Paysage de surface tiré de la graine (ciel et décor), ou null pour le décor d'origine. */
+  function landscape() {
+    if (!exploreSeed) return null;
+    const r = (k) => hash(exploreSeed, k, 8800);
+    const kind = LANDS[Math.floor(r(1) * LANDS.length)];
+    const sky = ['jour', 'jour', 'aube', 'couchant', 'nuit', 'gris'][Math.floor(r(2) * 6)];
+    return { kind, sky, night: sky === 'nuit', soil: kind === 'cote' ? 'sable' : kind === 'montagne' ? 'eboulis' : null, r };
+  }
+  let caveAnim = [];
+  let caveShaft = null;
+  let caveBack = null;
+  let caveFront = null;
+  function setCaves(on) {
+    caves = !!on && !!global.Caves;
+  }
+  /** Bandes du puits et des débris : paliers des grottes ou couches géologiques. */
+  const bands = () => (caves ? global.Caves.TIERS : ZONES);
+  const bandIndex = (points) => (caves ? global.Caves.tierIndex(points) : zoneIndex(points));
 
   function hash(x, y, s) {
     let h = Math.imul(x | 0, 374761393) ^ Math.imul(y | 0, 668265263) ^ Math.imul((s | 0) + 1, 2246822519);
@@ -210,11 +243,11 @@
   const SKULL5 = ['.###.', '#####', '#.#.#', '.###.', '.#.#.'];
 
   function skyColor(x, y) {
-    const bands = season === 'halloween'
+    const bands = skyOverride || (season === 'halloween'
       ? ['#0f0820', '#170d33', '#22123f', '#34174d', '#5a2a5a', '#a0442e']
       : season === 'toussaint'
         ? ['#262e3c', '#303a4c', '#3c485c', '#4d5c71', '#6a7a8d', '#97a2b0']
-        : ['#4f9fd3', '#5eaedb', '#70bde2', '#86cbe8', '#a0d8ee', '#bfe6f3'];
+        : ['#4f9fd3', '#5eaedb', '#70bde2', '#86cbe8', '#a0d8ee', '#bfe6f3']);
     const h = (SKY - 6) / bands.length;
     const b = Math.min(bands.length - 1, Math.floor(y / h));
     const within = y - b * h;
@@ -269,6 +302,160 @@
     });
   }
 
+  /** Assombrit une couleur pour les paysages de nuit. */
+  function dim(hex) {
+    const [r, g, b] = c(hex);
+    const f = (v, n) => Math.round(v * 0.38 + n);
+    return '#' + [f(r, 6), f(g, 10), f(b, 26)].map((v) => Math.min(255, v).toString(16).padStart(2, '0')).join('');
+  }
+
+  /** Ciel et paysage de surface d'un forage (galeries 16-bit) : le chevalement reste au centre. */
+  function drawLand(rawSet, land) {
+    const { kind, sky, night, r } = land;
+    const set = (x, y, col) => rawSet(x, y, night ? dim(col) : col);
+    const lit = rawSet; // fenêtres et lampes : non assombries la nuit
+    const disc = (cx, cy, rad, col, put = rawSet) => {
+      for (let y = -rad; y <= rad; y++) for (let x = -rad; x <= rad; x++) if (x * x + y * y <= rad * rad + rad) put(cx + x, cy + y, col);
+    };
+    const cloud = (cx, cy, w, col, shade) => {
+      for (let x = 0; x < w; x++) {
+        rawSet(cx + x, cy, col);
+        rawSet(cx + x, cy + 1, shade);
+        if (x > 3 && x < w - 3) rawSet(cx + x, cy - 1, col);
+        if (x > 6 && x < w - 5) rawSet(cx + x, cy - 2, col);
+      }
+    };
+    // Astre et nuages selon le ciel.
+    if (night) {
+      for (let i = 0; i < 40; i++) rawSet(Math.floor(hash(i, 5, exploreSeed) * W), Math.floor(hash(i, 9, exploreSeed) * (SKY - 14)), hash(i, 3, 73) > 0.6 ? '#ffffff' : '#8a9ac4');
+      disc(30 + Math.floor(r(3) * 100), 12, 5, '#f4f0d8');
+      for (let i = 0; i < 4; i++) twinkles.push({ x: Math.floor(hash(i, 5, exploreSeed) * W), y: Math.floor(hash(i, 9, exploreSeed) * (SKY - 14)), color: '#ffffff' });
+    } else if (sky === 'aube') {
+      disc(24, SKY - 16, 8, '#ffd8a0');
+      disc(24, SKY - 16, 6, '#fff0c8');
+      cloud(70, 14, 22, '#f4b0a0', '#d08890');
+    } else if (sky === 'couchant') {
+      disc(W - 28, SKY - 14, 9, '#ff9a4a');
+      disc(W - 28, SKY - 14, 6, '#ffd070');
+      cloud(16, 18, 24, '#e07a6a', '#a8506a');
+      cloud(96, 10, 18, '#e07a6a', '#a8506a');
+    } else if (sky === 'gris') {
+      [[6, 10, 34], [52, 16, 40], [104, 8, 36], [26, 26, 28], [120, 24, 30]].forEach(([x, y, w]) => cloud(x, y, w, '#c4ccd4', '#98a2ae'));
+    } else {
+      disc(W - 26, 14, 5, '#ffe27a');
+      cloud(18, 10, 18, '#ffffff', '#e6f4fa');
+      cloud(92, 18, 14, '#ffffff', '#e6f4fa');
+    }
+
+    const pine = (x, h, col = '#2e5a32', dark = '#1e4224') => {
+      for (let y = 0; y < h; y++) {
+        const half = Math.floor((y * 0.45) + 0.5);
+        for (let k = -half; k <= half; k++) set(x + k, SKY - h - 1 + y + (y % 4 === 3 ? 0 : 0), k < 0 ? col : dark);
+      }
+      set(x, SKY - 1, '#5a3a20');
+      set(x, SKY - 2, '#5a3a20');
+    };
+    const free = (x, w = 0) => x + w < 62 || x - w > 98;
+    if (kind === 'village') {
+      for (let y = 0; y < 24; y++) {
+        const half = Math.floor(y * 1.3);
+        for (let x = -half; x <= half; x++) {
+          const px = 30 + x;
+          const py = SKY - 24 + y;
+          set(px, py, y < 14 && hash(px, py, 3) < 0.35 - y * 0.02 ? '#4c7a34' : hash(px, py, 4) < 0.5 ? '#2b2b2f' : '#38363b');
+        }
+      }
+      [[106, 9, '#b5523b'], [117, 12, '#9c4632'], [131, 10, '#b5523b'], [143, 11, '#9c4632']].forEach(([hx, hw, roof], i) => {
+        for (let y = 0; y < 8; y++) for (let x = 0; x < hw; x++) set(hx + x, SKY - 8 + y, (x + y) % 5 === 0 ? '#8f4a35' : '#a85a40');
+        for (let y = 0; y < 5; y++) for (let x = y; x < hw - y; x++) set(hx + x, SKY - 9 - (4 - y), roof);
+        const win = night && r(10 + i) < 0.7 ? lit : set;
+        win(hx + 3, SKY - 5, '#ffe9a0');
+        win(hx + 3, SKY - 4, '#ffe9a0');
+      });
+    } else if (kind === 'foret') {
+      for (let x = 0; x < W; x++) {
+        const hh = Math.round(6 + Math.sin(x * 0.05 + r(4) * 6) * 4);
+        for (let y = 0; y < hh; y++) set(x, SKY - 1 - y, '#3c6e34');
+      }
+      for (let i = 0; i < 16; i++) {
+        const x = 4 + Math.floor(hash(i, 1, exploreSeed) * 152);
+        if (!free(x, 5)) continue;
+        pine(x, 10 + Math.floor(hash(i, 2, exploreSeed) * 12), i % 2 ? '#2e5a32' : '#3a6a3a', '#1e4224');
+      }
+    } else if (kind === 'montagne') {
+      [[34, 34, 46], [120, 40, 52], [78, 26, 40]].forEach(([px, ph, pw]) => {
+        for (let y = 0; y < ph; y++) {
+          const half = Math.floor((y / ph) * pw / 2);
+          for (let k = -half; k <= half; k++) {
+            const snow = y < ph * 0.3 && hash(px + k, y, 61) < 0.9 - y / ph;
+            set(px + k, SKY - ph + y, snow ? '#f2f6fa' : k < 0 ? '#7a8aa0' : '#5e6c82');
+          }
+        }
+      });
+      [12, 22, 50, 104, 114, 142, 150].forEach((x, i) => pine(x, 8 + (i % 3) * 3));
+    } else if (kind === 'cote') {
+      for (let y = SKY - 9; y < SKY - 1; y++) for (let x = 0; x < W; x++) set(x, y, (x + y * 3) % 11 === 0 ? '#9ad0ff' : y < SKY - 6 ? '#2a6aa8' : '#3a82c0');
+      for (let i = 0; i < 6; i++) twinkles.push({ x: Math.floor(hash(i, 4, exploreSeed) * W), y: SKY - 8 + (i % 3) * 2, color: '#ffffff' });
+      for (let x = 0; x < 56; x++) {
+        const hh = Math.round(5 + Math.sin(x * 0.12) * 3);
+        for (let y = 0; y < hh; y++) set(x, SKY - 1 - y, y === hh - 1 ? '#f2e2b0' : '#e0c890');
+        if (x % 5 === 2) set(x, SKY - 1 - hh, '#7a9a4a');
+      }
+      // Phare.
+      for (let y = 0; y < 30; y++) {
+        const half = 3 - Math.floor(y / 12);
+        for (let k = -half; k <= half; k++) set(132 + k, SKY - 1 - y, Math.floor(y / 5) % 2 ? '#d83a3a' : '#f4f0e8');
+      }
+      for (let k = -3; k <= 3; k++) set(132 + k, SKY - 31, '#3a3a44');
+      lit(131, SKY - 33, '#ffe27a');
+      lit(132, SKY - 33, '#fff6c0');
+      lit(133, SKY - 33, '#ffe27a');
+      for (let k = -2; k <= 2; k++) set(132 + k, SKY - 35, '#3a3a44');
+      if (night) for (let k = 1; k < 26; k++) lit(133 + k, SKY - 33 + Math.floor(k / 6), k % 2 ? '#fff6c0' : '#ffe27a');
+    } else if (kind === 'campagne') {
+      for (let y = SKY - 7; y < SKY - 1; y++) for (let x = 98; x < W; x++) set(x, y, Math.floor((y + x * 0.15) / 2) % 2 ? '#d8b84a' : '#8ab040');
+      // Moulin à vent.
+      for (let y = 0; y < 20; y++) {
+        const half = 2 + Math.floor(y / 5);
+        for (let k = -half; k <= half; k++) set(28 + k, SKY - 20 + y, k < 0 ? '#e8dcc0' : '#c4b494');
+      }
+      for (let k = -3; k <= 3; k++) set(28 + k, SKY - 21, '#8a3a2a');
+      const hub = [28, SKY - 22];
+      [[1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(([dx, dy]) => {
+        for (let k = 1; k < 11; k++) {
+          set(hub[0] + dx * k, hub[1] + dy * k, '#5a3a20');
+          if (k > 3) set(hub[0] + dx * k + dx, hub[1] + dy * k, '#e8e0d0');
+        }
+      });
+      lit(28, SKY - 8, night ? '#ffe9a0' : '#3a2a1a');
+      [[112, 4], [130, 5], [146, 4]].forEach(([hx, hw]) => {
+        for (let y = 0; y < 4; y++) for (let k = -hw + y; k <= hw - y; k++) set(hx + k, SKY - 2 - y, y === 3 ? '#e8c860' : '#c8a040');
+      });
+    } else {
+      // Ruines de château.
+      for (let x = 0; x < 50; x++) {
+        const hh = Math.round(8 - Math.abs(x - 22) * 0.3);
+        for (let y = 0; y < Math.max(0, hh); y++) set(x, SKY - 1 - y, '#4c7a34');
+      }
+      for (let y = 0; y < 12; y++) set(22, SKY - 9 - y, '#5a3a20');
+      disc(22, SKY - 24, 6, '#3c6e34', set);
+      const tower = (tx, th, tw) => {
+        for (let y = 0; y < th; y++) for (let k = 0; k < tw; k++) set(tx + k, SKY - 1 - y, (k + Math.floor(y / 3)) % 4 === 0 ? '#6a6a74' : k < tw / 2 ? '#9a9aa4' : '#7e7e88');
+        for (let k = 0; k < tw; k += 2) set(tx + k, SKY - 1 - th, '#9a9aa4');
+        const win = night ? lit : set;
+        win(tx + Math.floor(tw / 2), SKY - th + 5, night ? '#ffd36b' : '#1a1a20');
+      };
+      tower(106, 28, 8);
+      for (let y = 0; y < 12; y++) for (let x = 114; x < 136; x++) set(x, SKY - 1 - y, (x + Math.floor(y / 3) * 2) % 6 === 0 ? '#6a6a74' : '#8a8a94');
+      for (let x = 114; x < 136; x += 3) set(x, SKY - 13, '#8a8a94');
+      tower(136, 22, 7);
+      set(124, SKY - 2, '#1a1a20');
+      set(125, SKY - 2, '#1a1a20');
+      set(124, SKY - 3, '#1a1a20');
+      set(125, SKY - 3, '#1a1a20');
+    }
+  }
+
   function buildWorld() {
     const canvas = document.createElement('canvas');
     canvas.width = W;
@@ -285,9 +472,19 @@
       img.data[i + 3] = 255;
     };
 
+    const land = caves && !season ? landscape() : null;
+    if (caves) global.Caves.setSeed(exploreSeed, land && land.soil);
+    skyOverride = land ? SKIES[land.sky] : null;
+    twinkles.length = 0;
+    bubbles.length = 0;
+    caveAnim = [];
+    caveShaft = null;
+    caveBack = null;
+    caveFront = null;
     for (let y = 0; y < WORLD_H; y++) {
       for (let x = 0; x < W; x++) {
         if (y < SKY) set(x, y, skyColor(x, y));
+        else if (caves) break;
         else {
           const d = y - SKY;
           set(x, y, groundColor(zoneAtPixel(x, d), x, d));
@@ -320,6 +517,8 @@
           if (x > 7 && x < w - 6) set(cx + x, cy - 2, '#97a2b0');
         }
       });
+    } else if (land) {
+      drawLand(set, land);
     } else {
     // Soleil et nuages.
     for (let y = -6; y <= 6; y++) for (let x = -6; x <= 6; x++) if (x * x + y * y <= 30) set(W - 26 + x, 14 + y, '#ffe27a');
@@ -334,7 +533,7 @@
     }
 
     // Terril à gauche (clin d'œil aux anciens charbonnages wallons).
-    for (let y = 0; y < 24; y++) {
+    if (!land) for (let y = 0; y < 24; y++) {
       const half = Math.floor(y * 1.3);
       for (let x = -half; x <= half; x++) {
         const px = 30 + x;
@@ -345,7 +544,7 @@
     }
 
     // Maisons à droite.
-    [[112, 10, '#b5523b'], [124, 12, '#9c4632'], [138, 9, '#b5523b']].forEach(([hx, hw, roof]) => {
+    if (!land) [[112, 10, '#b5523b'], [124, 12, '#9c4632'], [138, 9, '#b5523b']].forEach(([hx, hw, roof]) => {
       for (let y = 0; y < 8; y++) for (let x = 0; x < hw; x++) set(hx + x, SKY - 8 + y, (x + y) % 5 === 0 ? '#8f4a35' : '#a85a40');
       for (let y = 0; y < 5; y++) for (let x = y; x < hw - y; x++) set(hx + x, SKY - 9 - (4 - y), roof);
       set(hx + 3, SKY - 5, '#ffe9a0');
@@ -367,7 +566,15 @@
     set(cx, SKY - 38, '#5c5c6a');
 
     // Herbe.
-    for (let x = 0; x < W; x++) {
+    if (land) {
+      const g = land.kind === 'cote' ? ['#e8d49a', '#d4bc7c', '#f2e2b0'] : land.kind === 'montagne' ? ['#4f8a3a', '#3e7230', '#5e9a46'] : ['#5fa83a', '#4b8c2c', '#6dbb45'];
+      const tint = (c) => (land.night ? dim(c) : c);
+      for (let x = 0; x < W; x++) {
+        set(x, SKY - 1, tint(g[0]));
+        set(x, SKY, tint(g[1]));
+        if (hash(x, 1, 9) > 0.65) set(x, SKY - 2, tint(g[2]));
+      }
+    } else for (let x = 0; x < W; x++) {
       set(x, SKY - 1, season === 'halloween' ? '#3d6b2a' : season === 'toussaint' ? '#566b3c' : '#5fa83a');
       set(x, SKY, season === 'halloween' ? '#2f5a20' : season === 'toussaint' ? '#465a30' : '#4b8c2c');
       if (hash(x, 1, 9) > 0.65) set(x, SKY - 2, season === 'halloween' ? '#4a7d32' : season === 'toussaint' ? '#62784a' : '#6dbb45');
@@ -399,7 +606,15 @@
       });
     }
 
-    decorate(set);
+    if (caves) {
+      const built = global.Caves.build({ W, SKY, PPP, WORLD_H, set });
+      caveAnim = built.anim;
+      caveShaft = built.shaftOpen;
+      for (let i = 0; i < built.alpha.length; i++) img.data[i * 4 + 3] = built.alpha[i];
+      const dims = { W, SKY, PPP, WORLD_H };
+      caveBack = global.Caves.backdrop(dims);
+      caveFront = global.Caves.foreground(dims);
+    } else decorate(set);
     if (season === 'halloween') haunt(set);
     ctx.putImageData(img, 0, 0);
     return canvas;
@@ -905,384 +1120,38 @@
     rows.forEach((r, dy) => [...r].forEach((b, dx) => b === '1' && ctx.fillRect(x + dx, y + dy, 1, 1)));
   }
 
-  // ===== Style HD-2D (essai réservé au responsable) : relief, lumière de lampe, bloom, poussière =====
-  const HDK = 4;
-  let hd = false;
-  const lerp3 = (a, b, t) => a + (b - a) * t;
-  function setHd(on) {
-    hd = !!on;
-  }
-  const smooth = (a, b, x) => {
-    const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
-    return t * t * (3 - 2 * t);
-  };
-
-  /** Copie du monde avec un relief éclairé par le haut à gauche et des creux assombris (calculé une fois). */
-  function bakeRelief(src) {
-    const w = src.width;
-    const h = src.height;
-    const out = document.createElement('canvas');
-    out.width = w;
-    out.height = h;
-    const ctx = out.getContext('2d');
-    ctx.drawImage(src, 0, 0);
-    const img = ctx.getImageData(0, SKY, w, h - SKY);
-    const d = img.data;
-    const hh = h - SKY;
-    const lum = new Float32Array(w * hh);
-    for (let i = 0, j = 0; j < lum.length; i += 4, j++) lum[j] = d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11;
-    const L = (x, y) => lum[Math.max(0, Math.min(hh - 1, y)) * w + Math.max(0, Math.min(w - 1, x))];
-    for (let y = 0; y < hh; y++) {
-      for (let x = 0; x < w; x++) {
-        const bump = Math.max(-34, Math.min(34, (L(x - 1, y - 1) - L(x + 1, y + 1)) * 0.7));
-        const avg = (L(x - 1, y) + L(x + 1, y) + L(x, y - 1) + L(x, y + 1)) / 4;
-        const cavity = Math.min(0, L(x, y) - avg) * 0.7;
-        const i = (y * w + x) * 4;
-        d[i] = Math.max(0, Math.min(255, d[i] + bump + cavity));
-        d[i + 1] = Math.max(0, Math.min(255, d[i + 1] + bump + cavity));
-        d[i + 2] = Math.max(0, Math.min(255, d[i + 2] + bump + cavity));
+  /** Nombre en gros chiffres pixel (×scale) avec une ombre portée, centré sur x : « +12 ». */
+  function drawScore(ctx, text, cx, y, color, scale) {
+    const glyphs = [...text].map((ch) => (ch === '+' ? ['000', '010', '111', '010', '000'] : DIGITS[ch])).filter(Boolean);
+    const w = glyphs.length * 4 * scale - scale;
+    let x = Math.round(cx - w / 2);
+    for (const rows of glyphs) {
+      for (const [dx0, dy0, col] of [[scale, scale, '#000'], [0, 0, color]]) {
+        ctx.fillStyle = col;
+        rows.forEach((r, dy) => [...r].forEach((b, dx) => b === '1' && ctx.fillRect(x + dx * scale + dx0, y + dy * scale + dy0, scale, scale)));
       }
+      x += 4 * scale;
     }
-    ctx.putImageData(img, 0, SKY);
-    return out;
   }
 
-  /** Lissage « Scale2x » : double la définition en arrondissant les diagonales (voir hdUpgrade). */
-  function epx1(src) {
-    const w = src.width;
-    const h = src.height;
-    const sd = src.getContext('2d').getImageData(0, 0, w, h);
-    const out = document.createElement('canvas');
-    out.width = w * 2;
-    out.height = h * 2;
-    const octx = out.getContext('2d');
-    const od = octx.createImageData(w * 2, h * 2);
-    const S = new Uint32Array(sd.data.buffer);
-    const O = new Uint32Array(od.data.buffer);
-    const px = (x, y) => S[Math.max(0, Math.min(h - 1, y)) * w + Math.max(0, Math.min(w - 1, x))];
-    for (let y = 0; y < h; y++) {
-      for (let x = 0; x < w; x++) {
-        const P = S[y * w + x];
-        const A = px(x, y - 1);
-        const B = px(x + 1, y);
-        const C = px(x - 1, y);
-        const D = px(x, y + 1);
-        let p1 = P;
-        let p2 = P;
-        let p3 = P;
-        let p4 = P;
-        if (C === A && C !== D && A !== B) p1 = A;
-        if (A === B && A !== C && B !== D) p2 = B;
-        if (D === C && D !== B && C !== A) p3 = C;
-        if (B === D && B !== A && D !== C) p4 = D;
-        const i = y * 2 * w * 2 + x * 2;
-        O[i] = p1;
-        O[i + 1] = p2;
-        O[i + w * 2] = p3;
-        O[i + w * 2 + 1] = p4;
-      }
-    }
-    octx.putImageData(od, 0, 0);
-    return out;
-  }
-
-  function boxBlur(src, w, h, r) {
-    const tmp = new Float32Array(w * h);
-    const out = new Float32Array(w * h);
-    const k = 1 / (2 * r + 1);
-    for (let y = 0; y < h; y++) {
-      const o = y * w;
-      let acc = 0;
-      for (let x = -r; x <= r; x++) acc += src[o + Math.min(w - 1, Math.max(0, x))];
-      for (let x = 0; x < w; x++) {
-        tmp[o + x] = acc * k;
-        acc += src[o + Math.min(w - 1, x + r + 1)] - src[o + Math.max(0, x - r)];
-      }
-    }
-    for (let x = 0; x < w; x++) {
-      let acc = 0;
-      for (let y = -r; y <= r; y++) acc += tmp[Math.min(h - 1, Math.max(0, y)) * w + x];
-      for (let y = 0; y < h; y++) {
-        out[y * w + x] = acc * k;
-        acc += tmp[Math.min(h - 1, y + r + 1) * w + x] - tmp[Math.max(0, y - r) * w + x];
-      }
-    }
-    return out;
-  }
-
-  /**
-   * Redessine un sprite pixel art en haute définition (4 fois plus fin) : diagonales arrondies, volume (lumière venant d'en haut
-   * à gauche, reflets sur les parties claires), contour sombre net. Le résultat contient une marge `pad` (en pixels du sprite).
-   */
-  function hdUpgrade(src) {
-    const P = 1;
-    const w = src.width + 2 * P;
-    const h = src.height + 2 * P;
-    const padded = document.createElement('canvas');
-    padded.width = w;
-    padded.height = h;
-    padded.getContext('2d').drawImage(src, P, P);
-    const big = epx1(epx1(padded));
-    const bw = w * 4;
-    const bh = h * 4;
-    const bctx = big.getContext('2d');
-    const img = bctx.getImageData(0, 0, bw, bh);
-    const d = img.data;
-    const solid = new Float32Array(bw * bh);
-    for (let j = 0; j < solid.length; j++) solid[j] = d[j * 4 + 3] > 127 ? 1 : 0;
-    const hgt = boxBlur(boxBlur(solid, bw, bh, 4), bw, bh, 3);
-    const lx = -0.45;
-    const ly = -0.55;
-    const lz = 0.7;
-    const ll = Math.hypot(lx, ly, lz);
-    const L = [lx / ll, ly / ll, lz / ll];
-    const hv = [L[0], L[1], L[2] + 1];
-    const hl = Math.hypot(hv[0], hv[1], hv[2]);
-    const H = [hv[0] / hl, hv[1] / hl, hv[2] / hl];
-    const at = (x, y) => hgt[Math.max(0, Math.min(bh - 1, y)) * bw + Math.max(0, Math.min(bw - 1, x))];
-    for (let y = 0; y < bh; y++) {
-      for (let x = 0; x < bw; x++) {
-        const j = y * bw + x;
-        const i = j * 4;
-        if (!solid[j]) continue;
-        const nx = -(at(x + 1, y) - at(x - 1, y)) * 6;
-        const ny = -(at(x, y + 1) - at(x, y - 1)) * 6;
-        const nl = Math.hypot(nx, ny, 1);
-        const n = [nx / nl, ny / nl, 1 / nl];
-        const diff = Math.max(0, n[0] * L[0] + n[1] * L[1] + n[2] * L[2]);
-        let f = 0.66 + 0.55 * diff - 0.06 * (y / bh);
-        if (hgt[j] < 0.55) f *= 0.9;
-        f = Math.round(f * 10) / 10;
-        const lum = d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11;
-        const spec = lum > 140 ? Math.pow(Math.max(0, n[0] * H[0] + n[1] * H[1] + n[2] * H[2]), 24) * 55 : 0;
-        d[i] = Math.max(0, Math.min(255, d[i] * f + spec));
-        d[i + 1] = Math.max(0, Math.min(255, d[i + 1] * f + spec));
-        d[i + 2] = Math.max(0, Math.min(255, d[i + 2] * f + spec));
-      }
-    }
-    // Contour sombre autour de la silhouette.
-    const ring = [[-2, 0], [2, 0], [0, -2], [0, 2], [-1, -1], [1, -1], [-1, 1], [1, 1], [-1, 0], [1, 0], [0, -1], [0, 1]];
-    for (let y = 0; y < bh; y++) {
-      for (let x = 0; x < bw; x++) {
-        const j = y * bw + x;
-        if (solid[j]) continue;
-        for (const [dx, dy] of ring) {
-          const xx = x + dx;
-          const yy = y + dy;
-          if (xx >= 0 && yy >= 0 && xx < bw && yy < bh && solid[yy * bw + xx]) {
-            const i = j * 4;
-            d[i] = 10;
-            d[i + 1] = 8;
-            d[i + 2] = 14;
-            d[i + 3] = 235;
-            break;
-          }
-        }
-      }
-    }
-    bctx.putImageData(img, 0, 0);
-    return { canvas: big, pad: P };
-  }
-
-  /** Visage du joueur redessiné une fois pour le hublot (mis en cache par sprite). */
-  const faceCache = new WeakMap();
-  function hdFace(sprite) {
-    let f = faceCache.get(sprite);
-    if (!f) {
-      f = hdUpgrade(sprite);
-      faceCache.set(sprite, f);
-    }
-    return f;
-  }
-
-  function roundRect(ctx, x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-    ctx.closePath();
-  }
-
-  /**
-   * Foreuse classique redessinée en haute définition (mode HD-2D) : carrosserie dégradée à rivets, hublot en verre avec le visage du joueur,
-   * jupe d'acier et foret à spirale animé. (x0, bodyTop, tip) en pixels du jeu, k = facteur d'agrandissement.
-   */
-  function drawDrillHd(ctx, k, x0, bodyTop, tip, time, drilling, face) {
-    const X = (v) => (x0 + v) * k;
-    const Y = (v) => (bodyTop + v) * k;
-    const ink = '#15121a';
-    ctx.save();
-    ctx.lineJoin = 'round';
-    ctx.lineWidth = 0.9 * k;
-    ctx.strokeStyle = ink;
-
-    // Mât et feu orange clignotant.
-    ctx.fillStyle = '#8d96a6';
-    ctx.fillRect(X(7.4), Y(0.6), 1.2 * k, 2 * k);
-    ctx.strokeRect(X(7.4), Y(0.6), 1.2 * k, 2 * k);
-    const blink = Math.floor(time * 3) % 2 === 0;
-    ctx.fillStyle = blink ? '#ffb347' : '#a8631c';
-    ctx.beginPath();
-    ctx.arc(X(8), Y(0.6), 1.1 * k, 0, 7);
-    ctx.fill();
-    ctx.stroke();
-
-    // Jupe d'acier.
-    let g = ctx.createLinearGradient(0, Y(11), 0, Y(14));
-    g.addColorStop(0, '#c9d0da');
-    g.addColorStop(1, '#6c7480');
-    ctx.fillStyle = g;
-    roundRect(ctx, X(2.6), Y(11), 10.8 * k, 3 * k, 0.8 * k);
-    ctx.fill();
-    ctx.stroke();
-
-    // Carrosserie.
-    g = ctx.createLinearGradient(0, Y(2), 0, Y(12));
-    g.addColorStop(0, '#ffe27a');
-    g.addColorStop(0.35, '#f6bd2a');
-    g.addColorStop(1, '#b97c14');
-    ctx.fillStyle = g;
-    roundRect(ctx, X(0.6), Y(2), 14.8 * k, 9.6 * k, 2.2 * k);
-    ctx.fill();
-    ctx.stroke();
-    // Reflet sur le dessus, bande de sécurité et rivets.
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
-    roundRect(ctx, X(2), Y(2.6), 12 * k, 1 * k, 0.5 * k);
-    ctx.fill();
-    ctx.save();
-    roundRect(ctx, X(0.6), Y(9.3), 14.8 * k, 2.3 * k, 1 * k);
-    ctx.clip();
-    ctx.fillStyle = '#15121a';
-    ctx.fillRect(X(0.6), Y(9.3), 14.8 * k, 2.3 * k);
-    ctx.fillStyle = '#f2c230';
-    for (let i = -2; i < 9; i++) {
-      ctx.beginPath();
-      ctx.moveTo(X(0.6 + i * 2), Y(11.6));
-      ctx.lineTo(X(0.6 + i * 2 + 1.1), Y(11.6));
-      ctx.lineTo(X(0.6 + i * 2 + 2.3), Y(9.3));
-      ctx.lineTo(X(0.6 + i * 2 + 1.2), Y(9.3));
-      ctx.fill();
-    }
-    ctx.restore();
-    ctx.fillStyle = 'rgba(40,24,6,0.7)';
-    for (const rx of [2, 13.6]) for (const ry of [4, 8]) ctx.fillRect(X(rx), Y(ry), 0.5 * k, 0.5 * k);
-
-    // Hublot : anneau d'acier, verre, visage, reflet.
-    const cx = X(8);
-    const cy = Y(6.2);
-    g = ctx.createLinearGradient(cx - 5 * k, cy - 5 * k, cx + 5 * k, cy + 5 * k);
-    g.addColorStop(0, '#eef2f8');
-    g.addColorStop(1, '#68717e');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(cx, cy, 4.4 * k, 0, 7);
-    ctx.fill();
-    ctx.stroke();
-    g = ctx.createLinearGradient(cx, cy - 3.4 * k, cx, cy + 3.4 * k);
-    g.addColorStop(0, '#7fdcff');
-    g.addColorStop(1, '#1d6fa3');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(cx, cy, 3.4 * k, 0, 7);
-    ctx.fill();
-    if (face) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, 3.4 * k, 0, 7);
-      ctx.clip();
-      ctx.imageSmoothingEnabled = true;
-      // Zone du visage dans le sprite (colonnes 5 à 10, lignes OY+1 à OY+5), en pixels du sprite redessiné (4 par pixel).
-      const oy = global.Avatar ? global.Avatar.OY : 6;
-      ctx.drawImage(face.canvas, (5 + face.pad) * 4, (oy + 1 + face.pad) * 4, 24, 20, cx - 3.4 * k, cy - 2.9 * k, 6.8 * k, 5.7 * k);
-      ctx.restore();
-    }
-    ctx.fillStyle = 'rgba(255,255,255,0.55)';
-    ctx.beginPath();
-    ctx.ellipse(cx - 1.4 * k, cy - 1.6 * k, 1.3 * k, 0.6 * k, -0.6, 0, 7);
-    ctx.fill();
-    ctx.lineWidth = 0.5 * k;
-    ctx.beginPath();
-    ctx.arc(cx, cy, 3.4 * k, 0, 7);
-    ctx.stroke();
-    ctx.lineWidth = 0.9 * k;
-
-    // Foret conique avec spirale animée.
-    const top = bodyTop + 14;
-    const tl = X(3.2);
-    const tr = X(12.8);
-    ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(tl, top * k);
-    ctx.lineTo(tr, top * k);
-    ctx.lineTo(X(8.5), tip * k);
-    ctx.lineTo(X(7.5), tip * k);
-    ctx.closePath();
-    g = ctx.createLinearGradient(tl, 0, tr, 0);
-    g.addColorStop(0, '#f4f7fb');
-    g.addColorStop(0.5, '#a9b2c0');
-    g.addColorStop(1, '#5b6370');
-    ctx.fillStyle = g;
-    ctx.fill();
-    ctx.clip();
-    const phase = drilling ? (time * 14) % 2 : 0;
-    ctx.strokeStyle = 'rgba(21,18,26,0.75)';
-    ctx.lineWidth = 0.7 * k;
-    for (let i = -2; i < (tip - top) + 2; i += 2) {
-      const y = (top + i + phase) * k;
-      ctx.beginPath();
-      ctx.moveTo(tl - k, y);
-      ctx.lineTo(tr + k, y + 2.2 * k);
-      ctx.stroke();
-    }
-    ctx.restore();
-    ctx.lineWidth = 0.9 * k;
-    ctx.strokeStyle = ink;
-    ctx.beginPath();
-    ctx.moveTo(tl, top * k);
-    ctx.lineTo(X(7.5), tip * k);
-    ctx.lineTo(X(8.5), tip * k);
-    ctx.lineTo(tr, top * k);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  let moteSprite = null;
-  function mote() {
-    if (moteSprite) return moteSprite;
-    const c = document.createElement('canvas');
-    c.width = c.height = 32;
-    const x = c.getContext('2d');
-    const g = x.createRadialGradient(16, 16, 0, 16, 16, 16);
-    g.addColorStop(0, 'rgba(255,236,200,1)');
-    g.addColorStop(0.3, 'rgba(255,220,160,0.35)');
-    g.addColorStop(1, 'rgba(255,220,160,0)');
-    x.fillStyle = g;
-    x.fillRect(0, 0, 32, 32);
-    moteSprite = c;
-    return c;
-  }
+  const reducedMotion = () => (global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches) || global.document.documentElement.hasAttribute('data-calm');
 
   class DrillScene {
     constructor(canvas) {
-      // Le jeu est dessiné dans un canevas hors écran à 1 pixel de jeu = 1 pixel ; `present` le recopie à l'écran
-      // (tel quel, ou en haute définition avec lumière et profondeur dans l'essai HD-2D).
+      // Le jeu est dessiné dans un canevas hors écran à 1 pixel de jeu = 1 pixel ; `present` le recopie à l'écran.
       this.display = canvas;
       this.dctx = canvas.getContext('2d');
       this.canvas = document.createElement('canvas');
       this.ctx = this.canvas.getContext('2d');
       this.canvas.width = W;
       this.canvas.height = H;
-      this.worldHd = null;
-      this.hdSprites = [];
-      this.sprTmp = null;
-      this.smallA = null;
-      this.smallB = null;
       this.h = H;
+      this.focus = 0.6; // hauteur de la pointe dans la vue (0 = en haut)
       this.world = buildWorld();
       this.layers = [];
       this.skin = { body: 'classique', bit: 'standard' };
+      this.drill16 = null; // foreuse 16-bit à l'essai (refonte, responsable seulement)
+      this.drill16At = null; // sa position dans l'image en cours, dessinée par `present`
       this.avatar = null;
       this.depth = 0;
       this.target = 0;
@@ -1292,6 +1161,7 @@
       this.onOverview = null;
       this.camY = 0;
       this.particles = [];
+      this.floaters = [];
       this.mode = 'follow';
       this.tourDir = 1;
       this.tourPause = 0;
@@ -1307,119 +1177,56 @@
     }
 
 
-    /** Le monde dessiné une fois ; en mode HD-2D, sa version avec relief. */
-    worldSrc() {
-      if (!hd) return this.world;
-      if (!this.worldHd) this.worldHd = bakeRelief(this.world);
-      return this.worldHd;
+    /** Recopie l'image du jeu à l'écran (voir le constructeur). */
+    present() {
+      // Foreuse 16-bit : écran au double de définition, la foreuse a 2 pixels de sprite par pixel du jeu.
+      const k = this.drill16At ? 2 : 1;
+      const d = this.display;
+      if (d.width !== W * k || d.height !== this.h * k) {
+        d.width = W * k;
+        d.height = this.h * k;
+      }
+      this.dctx.imageSmoothingEnabled = false;
+      this.dctx.drawImage(this.canvas, 0, 0, W * k, this.h * k);
+      if (this.drill16At) this.drawDrill16(this.dctx, this.drill16At);
     }
 
-    /** Recopie l'image du jeu à l'écran (voir le constructeur). */
-    present(time) {
-      const k = hd ? HDK : 1;
-      const w = W * k;
-      const h = this.h * k;
-      const d = this.display;
-      if (d.width !== w || d.height !== h) {
-        d.width = w;
-        d.height = h;
-      }
-      const ctx = this.dctx;
-      ctx.globalCompositeOperation = 'source-over';
+    /** Foreuse 16-bit (essai du responsable) : visage du joueur dans le hublot. */
+    drawDrill16(ctx, d) {
+      const hub = global.Drills16.draw(ctx, d.id, { tipX: (d.x0 + 8) * 2, tipY: d.tip * 2, px: 1, time: d.time, drilling: d.drilling, view: { w: W * 2, h: this.h * 2 }, calm: reducedMotion() });
+      if (!hub || !d.face) return;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(hub.cx, hub.cy, hub.r, 0, 7);
+      ctx.clip();
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(this.canvas, 0, 0, w, h);
-      if (!hd) return;
-      const cam = Math.round(this.camY);
-      const overview = this.mode === 'overview';
-      // Ambiance selon la profondeur : jour en surface, puis galerie sombre qui vire au rouge près du noyau.
-      const dp = this.depth;
-      const dark = smooth(0, 26, dp);
-      let amb = [lerp3(255, 120, dark), lerp3(255, 132, dark), lerp3(255, 168, dark)];
-      if (dp > 200) amb = [lerp3(amb[0], 170, smooth(200, 330, dp)), lerp3(amb[1], 96, smooth(200, 330, dp)), lerp3(amb[2], 84, smooth(200, 330, dp))];
-      if (dp > 420) amb = [lerp3(amb[0], 205, smooth(420, 520, dp)), lerp3(amb[1], 140, smooth(420, 520, dp)), lerp3(amb[2], 70, smooth(420, 520, dp))];
-      const surfY = (SKY - cam) * k;
-      const g = ctx.createLinearGradient(0, surfY - 6 * k, 0, surfY + 34 * k);
-      g.addColorStop(0, 'rgb(255,255,255)');
-      g.addColorStop(1, `rgb(${amb[0] | 0},${amb[1] | 0},${amb[2] | 0})`);
-      ctx.globalCompositeOperation = 'multiply';
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(d.face, 5, global.Avatar.OY + 1, 6, 5, hub.cx - hub.r, hub.cy - hub.r * 0.85, hub.r * 2, hub.r * 1.7);
+      ctx.restore();
+    }
 
-      // Foreuse et personnages : ajoutés après l'ambiance pour rester lisibles dans la galerie sombre (ils reçoivent la lampe et la lueur).
-      ctx.globalCompositeOperation = 'source-over';
-      for (const sp of this.hdSprites) {
-        if (sp.drill) drawDrillHd(ctx, k, sp.drill.x0, sp.drill.bodyTop, sp.drill.tip, sp.drill.time, sp.drill.drilling, sp.drill.face);
-        else ctx.drawImage(sp.img, Math.round(sp.x * k), Math.round(sp.y * k));
-      }
-
-      if (!overview) {
-        // Lampe de la foreuse : cône de lumière chaude autour de la fraise.
-        const lx = (W / 2) * k;
-        const ly = (this.tipY() - cam - 6) * k;
-        const flick = 0.36 + Math.sin(time * 9.3) * 0.015 + Math.sin(time * 23) * 0.01;
-        const lg = ctx.createRadialGradient(lx, ly, 2 * k, lx, ly, 56 * k);
-        lg.addColorStop(0, `rgba(255,205,130,${flick + 0.1})`);
-        lg.addColorStop(0.45, `rgba(255,170,90,${flick * 0.5})`);
-        lg.addColorStop(1, 'rgba(255,150,70,0)');
-        ctx.globalCompositeOperation = 'lighter';
-        ctx.fillStyle = lg;
-        ctx.fillRect(0, 0, w, h);
-      }
-
-      // Lueur (bloom) : une copie réduite et floue des zones claires, ajoutée par-dessus.
-      const sw = Math.max(8, w >> 4);
-      const sh = Math.max(8, h >> 4);
-      if (!this.smallA || this.smallA.width !== sw || this.smallA.height !== sh) {
-        this.smallA = document.createElement('canvas');
-        this.smallB = document.createElement('canvas');
-        this.smallA.width = this.smallB.width = sw;
-        this.smallA.height = this.smallB.height = sh;
-      }
-      const a = this.smallA.getContext('2d');
-      const b = this.smallB.getContext('2d');
-      a.imageSmoothingEnabled = true;
-      a.globalCompositeOperation = 'source-over';
-      a.drawImage(d, 0, 0, sw, sh);
-      b.globalCompositeOperation = 'source-over';
-      b.drawImage(this.smallA, 0, 0);
-      b.globalCompositeOperation = 'multiply'; // élève au carré : seules les zones claires restent
-      b.drawImage(this.smallA, 0, 0);
-      b.drawImage(this.smallA, 0, 0);
-      ctx.imageSmoothingEnabled = true;
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.globalAlpha = 0.5;
-      ctx.drawImage(this.smallB, 0, 0, w, h);
-      ctx.globalAlpha = 1;
-
-      // Poussière en suspension.
-      const m = mote();
-      for (let i = 0; i < 22; i++) {
-        const sp = 0.6 + hash(i, 1, 880) * 1.4;
-        const x = ((hash(i, 2, 880) * W + time * sp * 2 + Math.sin(time * 0.7 + i) * 3) % W) * k;
-        const y = ((hash(i, 3, 880) * this.h - time * sp * 1.2) % this.h + this.h) % this.h * k;
-        const r = (1.2 + hash(i, 4, 880) * 2.2) * k;
-        ctx.globalAlpha = 0.25 + hash(i, 5, 880) * 0.45;
-        ctx.drawImage(m, x - r, y - r, r * 2, r * 2);
-      }
-      ctx.globalAlpha = 1;
-
-      // Vignette.
-      const vg = ctx.createRadialGradient(w / 2, h * 0.5, h * 0.3, w / 2, h * 0.5, h * 0.78);
-      vg.addColorStop(0, 'rgba(0,0,0,0)');
-      vg.addColorStop(1, 'rgba(0,0,0,0.5)');
-      ctx.globalCompositeOperation = 'source-over';
-      ctx.fillStyle = vg;
-      ctx.fillRect(0, 0, w, h);
+    /** Forage en cours (identifiant) : dans les galeries 16-bit, chaque forage a son propre décor. */
+    setSeed(id) {
+      let seed = 0;
+      for (const ch of String(id == null ? '' : id)) seed = (Math.imul(seed, 31) + ch.charCodeAt(0)) | 0;
+      seed = Math.imul(seed ^ (seed >>> 15), 0x2c1b3c6d);
+      seed = (seed ^ (seed >>> 12)) & 0xfffffff;
+      if (seed === exploreSeed) return;
+      exploreSeed = seed;
+      if (caves) this.rebuild();
     }
 
     /** Reconstruit le décor (changement de saison). */
     rebuild() {
       this.world = buildWorld();
-      this.worldHd = null;
     }
 
     /** layers : [{ points, tier }] dans l'ordre des thèmes. */
     setLayers(layers, animate) {
+      // Galeries 16-bit : le score de la nouvelle réponse s'envole au-dessus de la foreuse pendant qu'elle s'enfonce.
+      const added = layers[layers.length - 1];
+      if (caves && animate && layers.length > this.layers.length && added && added.points > 0) {
+        this.floaters.push({ text: `+${added.points}`, color: TIER_COLORS[added.tier] || '#fff', t0: null });
+      }
       this.layers = layers.slice();
       this.target = Math.min(MAX_POINTS, layers.reduce((s, l) => s + (l.points || 0), 0));
       this.mode = 'follow';
@@ -1468,9 +1275,9 @@
       ctx.fillRect(x0 + 11, bodyTop + 9, 1, 1);
     }
 
-    /** Hauteur visible (en pixels du jeu) : réduite sur petit écran pour garder de gros pixels. */
-    setViewHeight(h) {
-      const next = Math.max(100, Math.min(H, Math.round(h)));
+    /** Hauteur visible (en pixels du jeu) : réduite sur petit écran pour garder de gros pixels ; `max` plus grand en plein écran (forage sans cadre). */
+    setViewHeight(h, max = H) {
+      const next = Math.max(100, Math.min(max, Math.round(h)));
       if (next === this.h) return;
       this.h = next;
       this.canvas.height = next;
@@ -1502,7 +1309,7 @@
     }
 
     cameraTarget() {
-      return Math.max(0, Math.min(WORLD_H - this.h, this.tipY() - this.h * 0.6));
+      return Math.max(0, Math.min(WORLD_H - this.h, this.tipY() - this.h * this.focus));
     }
 
     emitDepth() {
@@ -1514,7 +1321,7 @@
       this.last = t;
       this.update(dt);
       this.draw(t / 1000);
-      this.present(t / 1000);
+      this.present();
       requestAnimationFrame(this.frame);
     }
 
@@ -1522,7 +1329,8 @@
       if (this.drilling) {
         this.depth = Math.min(this.target, this.depth + this.speed * dt);
         this.emitDepth();
-        const colors = ZONES[zoneIndex(this.depth)].colors;
+        const band = bands()[bandIndex(this.depth)];
+        const colors = band.colors || band.rock.slice(1);
         for (let i = 0; i < 3; i++) {
           this.particles.push({
             x: W / 2 + (Math.random() * 10 - 5),
@@ -1587,17 +1395,24 @@
       const sy = this.h / srcH;
       const Y = (y) => (y - srcY) * sy;
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(this.worldSrc(), 0, srcY, W, srcH, 0, 0, W, this.h);
+      if (caves) {
+        ctx.fillStyle = '#07060c';
+        ctx.fillRect(0, 0, W, this.h);
+      }
+      ctx.drawImage(this.world, 0, srcY, W, srcH, 0, 0, W, this.h);
 
       const tip = this.tipY();
-      for (let zi = 0; zi < ZONES.length; zi++) {
-        const top = SKY + ZONES[zi].from * PPP;
-        const bottom = zi + 1 < ZONES.length ? SKY + ZONES[zi + 1].from * PPP : WORLD_H;
+      const zones = bands();
+      for (let zi = 0; zi < zones.length; zi++) {
+        const top = SKY + zones[zi].from * PPP;
+        const bottom = zi + 1 < zones.length ? SKY + zones[zi + 1].from * PPP : WORLD_H;
         const y0 = Math.max(top, SKY + 1);
         const y1 = Math.min(bottom, tip);
         if (y1 <= y0) continue;
-        ctx.fillStyle = ZONES[zi].dark;
-        ctx.fillRect(SHAFT_X, Math.round(Y(y0)), SHAFT_W, Math.max(1, Math.round(Y(y1)) - Math.round(Y(y0))));
+        ctx.fillStyle = zones[zi].dark;
+        if (caveShaft) {
+          for (let y = y0; y < y1; y++) if (!caveShaft[y]) ctx.fillRect(SHAFT_X, Math.round(Y(y)), SHAFT_W, Math.max(1, Math.round(Y(y + 1)) - Math.round(Y(y))));
+        } else ctx.fillRect(SHAFT_X, Math.round(Y(y0)), SHAFT_W, Math.max(1, Math.round(Y(y1)) - Math.round(Y(y0))));
       }
       // Fin de chaque thème : un trait de la couleur de la rareté.
       let cumulative = 0;
@@ -1645,6 +1460,21 @@
       }
     }
 
+    /** Scores qui s'envolent depuis la foreuse (2 s), en coordonnées écran. */
+    drawFloaters(ctx, time, cam) {
+      if (!this.floaters.length) return;
+      const start = this.tipY() - cam - 36;
+      this.floaters = this.floaters.filter((f) => {
+        if (f.t0 === null) f.t0 = time;
+        const p = (time - f.t0) / 2;
+        if (p >= 1) return false;
+        ctx.globalAlpha = p < 0.7 ? 1 : (1 - p) / 0.3;
+        drawScore(ctx, f.text, W / 2, Math.round(Math.min(start, this.h * 0.55) - p * 46), f.color, 2);
+        ctx.globalAlpha = 1;
+        return true;
+      });
+    }
+
     /** Halloween : des fantômes translucides survolent l'écran pendant que la foreuse creuse. */
     drawGhosts(ctx, time) {
       if (season !== 'halloween' || !this.drilling) return;
@@ -1662,35 +1492,8 @@
       ctx.restore();
     }
 
-    /** Sprite haute définition (mode HD-2D) : dessiné par `present`, au-dessus du décor, avant la lumière. */
-    queueSprite(source, x, y) {
-      const up = hdUpgrade(source);
-      this.hdSprites.push({ img: up.canvas, x: x - up.pad, y: y - up.pad });
-    }
-
-    /** Foreuse (et visage au hublot) dessinées à part pour être redessinées en haute définition. */
-    queueDrill(x0, tip, bodyTop, time, cam) {
-      const sk = this.skin || {};
-      if ((!sk.body || sk.body === 'classique') && (!sk.bit || sk.bit === 'standard')) {
-        const av = this.avatar && this.avatar.lieu === 'hublot' && global.Avatar ? hdFace(global.Avatar.sprite(this.avatar)) : null;
-        this.hdSprites.push({ drill: { x0, bodyTop: bodyTop - cam, tip: tip - cam, time, drilling: this.drilling, face: av } });
-        return;
-      }
-      if (!this.sprTmp) {
-        this.sprTmp = document.createElement('canvas');
-        this.sprTmp.width = 48;
-        this.sprTmp.height = 96;
-      }
-      const tctx = this.sprTmp.getContext('2d');
-      tctx.clearRect(0, 0, 48, 96);
-      const tipT = 88;
-      drawDrill(tctx, this.skin, 16, tipT, time, this.drilling);
-      this.drawAvatarHublot(tctx, 16, tipT - (tip - bodyTop));
-      this.queueSprite(this.sprTmp, x0 - 16, tip - cam - tipT);
-    }
-
     draw(time) {
-      this.hdSprites = [];
+      this.drill16At = null;
       if (this.mode === 'overview') {
         this.drawOverview(time);
         return;
@@ -1698,13 +1501,11 @@
       const ctx = this.ctx;
       const cam = Math.round(this.camY);
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(this.worldSrc(), 0, cam, W, this.h, 0, 0, W, this.h);
+      if (caveBack) global.Caves.drawBack(ctx, caveBack, cam, this.h, { SKY, PPP });
+      ctx.drawImage(this.world, 0, cam, W, this.h, 0, 0, W, this.h);
       ctx.save();
       ctx.translate(0, -cam);
-      if (hd) {
-        const av = this.avatar;
-        if (av && av.lieu === 'surface' && global.Avatar) this.queueSprite(global.Avatar.sprite(av), 34, SKY - 28 + Math.round(Math.sin(time * 2) * 0.5) - cam);
-      } else this.drawAvatarSurface(ctx, time);
+      this.drawAvatarSurface(ctx, time);
 
       // Décor animé : scintillements et bulles de magma.
       const inView = (y) => y >= cam - 4 && y <= cam + this.h + 4;
@@ -1715,6 +1516,7 @@
         ctx.fillStyle = tw.color;
         ctx.fillRect(tw.x, tw.y, 1, 1);
       });
+      if (caves) global.Caves.drawAnim(ctx, caveAnim, time, cam, this.h, reducedMotion());
       bubbles.forEach((b, i) => {
         if (!inView(b.y)) return;
         const span = Math.ceil(b.r / 2) * 2;
@@ -1727,13 +1529,28 @@
 
       // Puits creusé, coloré selon la roche traversée.
       const tip = Math.round(this.tipY());
-      for (let zi = 0; zi < ZONES.length; zi++) {
-        const top = SKY + ZONES[zi].from * PPP;
-        const bottom = zi + 1 < ZONES.length ? SKY + ZONES[zi + 1].from * PPP : WORLD_H;
+      const zones = bands();
+      for (let zi = 0; zi < zones.length; zi++) {
+        const top = SKY + zones[zi].from * PPP;
+        const bottom = zi + 1 < zones.length ? SKY + zones[zi + 1].from * PPP : WORLD_H;
         const y0 = Math.max(top, SKY + 1);
         const y1 = Math.min(bottom, tip);
         if (y1 <= y0) continue;
-        ctx.fillStyle = ZONES[zi].dark;
+        if (caveShaft) {
+          // Grottes : le puits n'est creusé que dans la roche ; dans le vide d'une grotte, la foreuse pend à son câble.
+          for (let y = Math.max(y0, cam); y < Math.min(y1, cam + this.h); y++) {
+            if (caveShaft[y]) continue;
+            ctx.fillStyle = zones[zi].dark;
+            ctx.fillRect(SHAFT_X, y, SHAFT_W, 1);
+            ctx.fillStyle = 'rgba(0,0,0,0.45)';
+            ctx.fillRect(SHAFT_X, y, 2, 1);
+            ctx.fillRect(SHAFT_X + SHAFT_W - 2, y, 2, 1);
+            ctx.fillStyle = 'rgba(255,255,255,0.12)';
+            if (caveShaft[y - 1] || caveShaft[y + 1]) ctx.fillRect(SHAFT_X, y, SHAFT_W, 1);
+          }
+          continue;
+        }
+        ctx.fillStyle = zones[zi].dark;
         ctx.fillRect(SHAFT_X, y0, SHAFT_W, y1 - y0);
         ctx.fillStyle = 'rgba(0,0,0,0.45)';
         ctx.fillRect(SHAFT_X, y0, 2, y1 - y0);
@@ -1746,14 +1563,18 @@
       let stagger = 0;
       this.layers.forEach((layer, i) => {
         cumulative += layer.points || 0;
-        if (cumulative > this.depth + 0.01) return;
+        // Galeries 16-bit : aucun repère dans le puits, la foreuse s'enfonce simplement (le score s'envole, voir drawFloaters).
+        if (caves || cumulative > this.depth + 0.01) return;
         const y = SKY + Math.round(Math.min(cumulative, MAX_POINTS) * PPP);
         stagger = y - previousY < 7 ? stagger + 1 : 0;
         previousY = y;
-        ctx.fillStyle = '#c99a5b';
-        ctx.fillRect(SHAFT_X - 2, y - 1, SHAFT_W + 4, 2);
-        ctx.fillStyle = '#7a5530';
-        ctx.fillRect(SHAFT_X - 2, y + 1, SHAFT_W + 4, 1);
+        if (!caves) {
+          // Galeries 16-bit : pas de planche en travers du puits (seuls la couleur de la rareté et le numéro restent).
+          ctx.fillStyle = '#c99a5b';
+          ctx.fillRect(SHAFT_X - 2, y - 1, SHAFT_W + 4, 2);
+          ctx.fillStyle = '#7a5530';
+          ctx.fillRect(SHAFT_X - 2, y + 1, SHAFT_W + 4, 1);
+        }
         const fx = SHAFT_X - 10 - stagger * 7;
         ctx.fillStyle = '#000';
         ctx.fillRect(fx - 1, y - 4, 7, 7);
@@ -1772,8 +1593,10 @@
       const bodyTop = tip - frames[0].length - rows.length;
       ctx.fillStyle = '#26262c';
       ctx.fillRect(W / 2, SKY - 38, 1, Math.max(0, bodyTop - (SKY - 38)));
-      if (hd) this.queueDrill(x0, tip, bodyTop, time, cam);
-      else {
+      if (this.drill16 && global.Drills16) {
+        const face = this.avatar && this.avatar.lieu === 'hublot' && global.Avatar ? global.Avatar.sprite(this.avatar) : null;
+        this.drill16At = { id: this.drill16, x0, tip: tip - cam, time, drilling: this.drilling, face };
+      } else {
         drawDrill(ctx, this.skin, x0, tip, time, this.drilling);
         this.drawAvatarHublot(ctx, x0, bodyTop);
       }
@@ -1793,10 +1616,15 @@
         }
       }
       ctx.restore();
+      this.drawFloaters(ctx, time, cam);
+      if (caveFront) {
+        global.Caves.drawFront(ctx, caveFront, cam, this.h, time);
+        global.Caves.drawAir(ctx, { W, SKY, PPP }, cam, this.h, time, reducedMotion());
+      }
       this.drawGhosts(ctx, time);
 
       // Ambiance chaude dans les profondeurs.
-      const heat = Math.max(0, Math.min(1, (this.depth - 220) / 380));
+      const heat = caves ? 0 : Math.max(0, Math.min(1, (this.depth - 220) / 380));
       if (heat > 0) {
         ctx.fillStyle = `rgba(255, 90, 20, ${0.08 * heat + Math.sin(time * 3) * 0.02 * heat})`;
         ctx.fillRect(0, 0, W, this.h);
@@ -1805,6 +1633,6 @@
   }
 
   global.Pixel = {
-    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, formatRemaining, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, setSeason, setSkullMode, setHd, isHd: () => hd, hdUpgrade, drawDrill, WIDTH: W, HEIGHT: H,
+    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, formatRemaining, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, setSeason, setSkullMode, setCaves, isCaves: () => caves, drawDrill, WIDTH: W, HEIGHT: H, SKY, PPP, WORLD_H,
   };
 })(window);

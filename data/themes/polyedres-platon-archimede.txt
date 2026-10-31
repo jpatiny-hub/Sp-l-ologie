@@ -1,4 +1,5 @@
-titre: Un solide de Platon, d'Archimède, de Catalan ou de Kepler-Poinsot (hors prismes et antiprismes)
+titre: Un polyèdre célèbre (Platon, Archimède, Catalan, Kepler-Poinsot)
+# Ancien titre, qui précise le périmètre exact : Un solide de Platon, d'Archimède, de Catalan ou de Kepler-Poinsot (hors prismes et antiprismes)
 # 5 solides de Platon, 13 solides d'Archimède (+ le pseudo-rhombicuboctaèdre de Miller, parfois compté), leurs 13 duaux de Catalan, 4 polyèdres de Kepler-Poinsot.
 1: Cube = hexaèdre = hexaèdre régulier; Tétraèdre = tétraèdre régulier; Octaèdre = octaèdre régulier; Dodécaèdre = dodécaèdre régulier; Icosaèdre = icosaèdre régulier
 2: Icosaèdre tronqué = ballon de football; Cuboctaèdre; Tétraèdre tronqué; Cube tronqué = hexaèdre tronqué; Octaèdre tronqué; Dodécaèdre rhombique = rhombododécaèdre

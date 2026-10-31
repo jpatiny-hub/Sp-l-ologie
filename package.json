@@ -14,6 +14,7 @@
     "themes:check": "node --disable-warning=ExperimentalWarning scripts/check-themes.js",
     "answers:report": "node --disable-warning=ExperimentalWarning scripts/answers-report.js",
     "backup:check": "node --disable-warning=ExperimentalWarning scripts/backup-check.js",
-    "password:reset": "node --disable-warning=ExperimentalWarning scripts/reset-password.js"
+    "password:reset": "node --disable-warning=ExperimentalWarning scripts/reset-password.js",
+    "demo": "node --disable-warning=ExperimentalWarning scripts/demo-seed.js && node --disable-warning=ExperimentalWarning server.js"
   }
 }

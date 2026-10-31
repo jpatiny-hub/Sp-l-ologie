@@ -1,4 +1,5 @@
-titre: Un pays dont une partie du territoire a un climat désertique
+titre: Un pays avec un climat désertique
+# Ancien titre, qui précise le périmètre exact : Un pays dont une partie du territoire a un climat désertique
 # Niveaux repris des points de rareté de la liste fournie.
 1: Australie = Australia; Égypte = Egypt; Arabie saoudite = Saudi Arabia
 2: Afghanistan; Algérie = Algeria; Chili = Chile; Chine = China; Inde = India; Iran; Irak = Iraq; Israël; Jordanie = Jordan; Libye = Libya; Mexique = Mexico; Mongolie = Mongolia; Maroc = Morocco; Namibie = Namibia; Pakistan; Afrique du Sud = South Africa; Soudan = Sudan; Tunisie = Tunisia; Émirats arabes unis = United Arab Emirates
