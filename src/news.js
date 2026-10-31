@@ -200,13 +200,26 @@ const NEWS = [
       "Si tu ouvres le jeu depuis Messenger, Instagram ou une autre application, ouvre d'abord le lien dans Chrome ou Safari : c'est là que l'installation est possible.",
     ],
   },
+  {
+    id: 13,
+    date: '2026-11-01',
+    refonte: true,
+    title: 'La mine fait peau neuve',
+    items: [
+      "Tout le jeu passe en 16 bits : nouvelles grottes à chaque forage, nouvelle foreuse, nouveaux sons et nouvelle taupe.",
+      "Ton personnage repart du mineur standard : à toi de le rhabiller dans le vestiaire.",
+    ],
+  },
 ];
 
-const LATEST_NEWS_ID = NEWS[NEWS.length - 1].id;
+/** Notes visibles : celles de la refonte attendent son ouverture (`refonte`, cf. REFONTE_FROM). */
+const visibleNews = (refonte) => NEWS.filter((n) => !n.refonte || refonte);
+const latestNewsId = (refonte) => Math.max(0, ...visibleNews(refonte).map((n) => n.id));
+const LATEST_NEWS_ID = latestNewsId(true);
 
 /** Notes plus récentes que `seen`. */
-function unseenNews(seen) {
-  return NEWS.filter((n) => n.id > (seen || 0));
+function unseenNews(seen, refonte = true) {
+  return visibleNews(refonte).filter((n) => n.id > (seen || 0));
 }
 
-module.exports = { NEWS, LATEST_NEWS_ID, unseenNews };
+module.exports = { NEWS, LATEST_NEWS_ID, latestNewsId, unseenNews };

@@ -22,7 +22,7 @@ const { seasonFor } = require('./src/specialdays');
 const { ReverseService } = require('./src/reverse');
 const { MessageService } = require('./src/messages');
 const { pendingRecap, markRecapSeen, weeklyRecap, periodRecap, pendingCelebrations, markCelebrationSeen, lastPeriod, periodStart, periodEnd, KINDS } = require('./src/recap');
-const { unseenNews, LATEST_NEWS_ID } = require('./src/news');
+const { unseenNews, latestNewsId } = require('./src/news');
 
 const SESSION_MS = config.SESSION_DAYS * 24 * 3600 * 1000;
 const MAX_BODY = 10 * 1024;
@@ -288,7 +288,7 @@ function createApp({
         throw err;
       }
       // Un nouveau compte n'a pas besoin des notes déjà publiées.
-      db.prepare('UPDATE users SET news_seen = ? WHERE id = ?').run(LATEST_NEWS_ID, userId);
+      db.prepare('UPDATE users SET news_seen = ? WHERE id = ?').run(latestNewsId(refonteLive()), userId);
       signupLimiter.fail(ip, now());
       json(res, 201, { user: userView({ username: display }), recoveryCode }, { 'Set-Cookie': createSession(userId) });
     },
@@ -454,7 +454,7 @@ function createApp({
         skin: game.badges.skinOf(row),
         avatar: Avatar.normalize(row.avatar, user.id),
         unseenBadges: game.badges.unseenCount(user.id),
-        news: unseenNews(row.news_seen),
+        news: unseenNews(row.news_seen, refonte),
         tutorialSeen: !!row.tutorial_seen,
         today: game.todaySummary(user.id),
         streak: game.badges.homeSummary(user.id, game.today()),
@@ -639,7 +639,7 @@ function createApp({
       const user = requireUser(req, res);
       const { id } = await readJson(req);
       if (!Number.isInteger(id)) throw new HttpError(400, 'Note inconnue.');
-      db.prepare('UPDATE users SET news_seen = MAX(news_seen, ?) WHERE id = ?').run(Math.min(id, LATEST_NEWS_ID), user.id);
+      db.prepare('UPDATE users SET news_seen = MAX(news_seen, ?) WHERE id = ?').run(Math.min(id, latestNewsId(refonteLive())), user.id);
       json(res, 200, { ok: true });
     },
 
