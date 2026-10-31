@@ -1,0 +1,10 @@
+titre: Une sauce de frietkot
+# Périmètre : sauces proposées dans les friteries belges (frietkot), froides ou chaudes, au sens de la liste de sauces de Wikipédia EN « Friterie » complétée par les sauces de carte courantes en Belgique. Pas les condiments de cuisine générale (pesto, harissa...).
+# Complété le 30/10/2026 : recoupé avec Wikipédia (Frietkot) et studiesabroad.com (mayonnaise, andalouse, pili-pili, brasil, samouraï, pitta-pitta). Sauce pickles et fritessaus : wikiwand « List of accompaniments to french fries ». Poivre, mammoet : carte courante des friteries, à valider.
+# Sources : Wikipédia EN « Friterie » (ketchup, curry ketchup, mayonnaise, aïoli, tartare, cocktail, américaine, samouraï, andalouse, riche, mexicaine, orientale, brazil, béarnaise, diable) ; Wikipédia FR « Friterie » (mayonnaise, moutarde, sauce lapin à Liège) ; carte courante des friteries : biggy, hannibal, joppie, mammouth, bicky, pili-pili, stoofvlees, archiduc, bali, curry = à valider par Jonas (non recoupés dans deux sources).
+1: Mayonnaise = Mayo = Sauce mayonnaise; Ketchup = Sauce ketchup; Moutarde = Sauce moutarde; Sauce andalouse = Andalouse; Sauce samouraï = Samouraï = Samurai
+2: Sauce américaine = Américaine; Sauce tartare = Tartare; Curry ketchup = Ketchup curry = Sauce curry ketchup; Sauce aïoli = Aïoli = Sauce ail; Sauce brazil = Brazil = Sauce brasil = Brasil; Sauce béarnaise = Béarnaise; Sauce cocktail = Cocktail
+3: Sauce diable = Sauce diablo = Diable = Diablo; Sauce biggy = Biggy; Sauce joppie = Joppiesaus = Joppie; Sauce bicky = Bicky; Sauce curry = Curry; Sauce mexicaine = Mexicaine; Sauce pili-pili = Pili-pili = Piri-piri; Sauce riche = Riche; Sauce orientale = Orientale
+4: Sauce hannibal = Hannibal; Sauce mammouth = Mammouth = Mammoet = Sauce mammoet; Sauce lapin = Lapin; Sauce stoofvlees = Stoofvleessaus = Sauce carbonnade; Sauce bali = Bali; Sauce archiduc = Archiduc
+3: Sauce pickles = Pickles = Sauce pickle = Sauce piccalilli = Piccalilli
+4: Sauce fritessaus = Fritessaus = Sauce pommes-frites = Frietsaus; Sauce pitta-pitta = Pitta-pitta = Sauce pitta; Sauce poivre = Poivre = Pepersaus

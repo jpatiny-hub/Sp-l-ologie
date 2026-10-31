@@ -1,4 +1,5 @@
-titre: Une des 40 gares SNCB les plus fréquentées (montées en semaine, 2025)
+titre: Une des 40 gares SNCB les plus fréquentées
+# Ancien titre, qui précise le périmètre exact : Une des 40 gares SNCB les plus fréquentées (montées en semaine, 2025)
 # Source : SNCB, « Nombre de voyageurs 2025 », colonne des montées un jour de semaine ; classement de 1 (Bruxelles-Nord) à 40 (Zottegem), gares de Bruxelles et de Liège comptées séparément.
 1: Bruxelles-Nord = Brussel-Noord = Gare du Nord; Bruxelles-Midi = Brussel-Zuid = Gare du Midi; Bruxelles-Central = Brussel-Centraal = Gare Centrale; Gand-Saint-Pierre = Gent-Sint-Pieters = Gand; Anvers-Central = Antwerpen-Centraal = Antwerp-Central; Louvain = Leuven; Malines = Mechelen; Liège-Guillemins = Liège
 2: Namur = Namen; Bruges = Brugge; Anvers-Berchem = Antwerpen-Berchem = Berchem; Ottignies; Charleroi-Central = Charleroi-Sud = Charleroi; Aéroport de Bruxelles-National = Brussels Airport-Zaventem = Brussels Airport = Zaventem Airport; Courtrai = Kortrijk; Mons = Bergen

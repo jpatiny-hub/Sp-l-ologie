@@ -1,0 +1,8 @@
+titre: Un objet qu'on égare dans sa maison
+# Liste ouverte : n'importe quel petit objet peut s'égarer ; la frontière avec « Quelque chose qu'on peut perdre » (déjà existant, quelque-chose-qu-on-perd.txt, qui mélange objets et abstractions) est floue.
+# Pour réactiver : resserrer (ex. « Un petit objet qu'on cherche souvent dans la maison », ou « Un accessoire personnel qu'on égare ») ; liste ci-dessous = objets matériels courants, recoupés avec des sondages/listes « objets les plus perdus à la maison » (non vérifiés en ligne faute d'accès fiable).
+1: Clés = Clefs = Trousseau de clés; Lunettes; Télécommande = Télécommande de télé; Téléphone = GSM = Portable; Portefeuille; Chaussette; Chargeur; Stylo; Ciseaux; Papiers = Papiers d'identité
+2: Carte bancaire; Montre; Bague; Boucle d'oreille; Bijou; Écouteurs = Oreillettes = AirPods; Lunettes de soleil; Ouvre-boîte; Pile = Piles; Clé USB; Clé de voiture; Lunettes de lecture; Gant; Écharpe; Jouet; Doudou; Tétine; Peluche; Agenda; Livre; Ticket de caisse; Ticket
+3: Mouchoir; Lacet; Bouton; Vis; Cordon; Aiguille; Dé à coudre; Pince à épiler; Bouchon; Élastique à cheveux = Élastique; Pince à cheveux; Cure-dents; Lentilles de contact = Lentille; Appareil dentaire; Dentier; Manette de jeu = Manette; Souris d'ordinateur = Souris; Câble USB = Câble; Ampoule; Fusible; Mètre ruban = Mètre; Tournevis; Marteau; Ruban adhésif = Scotch; Briquet; Allumettes; Bougie; Calculatrice
+4: Pièce de monnaie = Pièce; Pièce de puzzle; Pièce de Lego; Dé; Pion; Carte à jouer; Embout; Capuchon de stylo; Bouchon de stylo; Piercing; Pince à linge; Patte de table; Rondelle; Écrou; Clip; Trombone; Punaise; Agrafe; Plectre; Archet; Lime à ongles
+5: Anneau de rideau; Aimant; Roulette

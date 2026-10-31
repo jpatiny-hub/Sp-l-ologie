@@ -1,7 +1,8 @@
-titre: Un sens ou une capacité sensorielle que possèdent certains animaux mais qui n'existe pas chez l'être humain
+titre: Un sens animal que l'humain n'a pas
+# Ancien titre, qui précise le périmètre exact : Un sens ou une capacité sensorielle que possèdent certains animaux mais qui n'existe pas chez l'être humain
 # Perceptions absentes de l'espèce humaine (électroréception, magnétoréception, écholocation, etc.), propres à un ou plusieurs groupes animaux. Exclus : les cinq sens classiques tels que l'humain les possède (même s'ils sont plus aiguisés chez l'animal : odorat du chien, vue de l'aigle).
 1: Écholocation = Écholocalisation = Sonar; Électroréception = Sens électrique = Électrolocalisation; Magnétoréception = Sens magnétique = Magnétoception; Vision infrarouge = Détection infrarouge = Vision thermique
-2: Vision ultraviolette = Perception des ultraviolets = Vision des UV; Ultrasons = Perception des ultrasons = Audition des ultrasons; Ligne latérale; Organe de Jacobson = Organe voméronasal; Vision polarisée = Perception de la lumière polarisée; Infrasons = Perception des infrasons
+2: Vision ultraviolette = Perception des ultraviolets = Vision des UV; Ultrasons = Perception des ultrasons = Audition des ultrasons; Ligne latérale; Organe de Jacobson = Organe voméronasal; Vision polarisée = Perception de la lumière polarisée = Polarité de la lumière = Polarisation de la lumière = Lumière polarisée = Vision de la polarisation; Infrasons = Perception des infrasons
 3: Détection des vibrations du sol = Sens sismique = Perception sismique; Ampoules de Lorenzini = Ampoules de Lorenzini des requins; Goût par les pattes = Gustation par les pattes; Oreilles sur les pattes = Tympans des pattes; Perception de la lumière par la peau = Photoréception cutanée; Goût cutané = Gustation cutanée; Détection du dioxyde de carbone = Perception du CO2
 4: Barosensibilité = Perception de la pression atmosphérique; Œil pariétal = Troisième œil = Œil pinéal; Organe de Johnston; Cerques = Détection des courants d'air
 5: Organe de Haller

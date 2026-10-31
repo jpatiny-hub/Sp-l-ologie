@@ -1,4 +1,5 @@
-titre: Un joueur sélectionné par la Belgique pour la Coupe du monde 2014, 2018 ou 2022 (listes officielles de 23 ou 26 joueurs)
+titre: Un Diable rouge à la Coupe du monde 2014, 2018 ou 2022
+# Ancien titre, qui précise le périmètre exact : Un joueur sélectionné par la Belgique pour la Coupe du monde 2014, 2018 ou 2022 (listes officielles de 23 ou 26 joueurs)
 1: Eden Hazard = Hazard; Kevin De Bruyne = De Bruyne = KDB; Romelu Lukaku = Lukaku; Thibaut Courtois = Courtois; Vincent Kompany = Kompany; Axel Witsel = Witsel; Marouane Fellaini = Fellaini; Dries Mertens = Mertens; Jan Vertonghen = Vertonghen; Toby Alderweireld = Alderweireld
 2: Thorgan Hazard; Yannick Carrasco = Carrasco; Thomas Meunier = Meunier; Youri Tielemans = Tielemans; Michy Batshuayi = Batshuayi; Simon Mignolet = Mignolet; Nacer Chadli = Chadli; Mousa Dembélé = Dembélé; Thomas Vermaelen = Vermaelen; Divock Origi = Origi; Jérémy Doku = Doku; Leandro Trossard = Trossard; Adnan Januzaj = Januzaj; Charles De Ketelaere = De Ketelaere
 3: Amadou Onana = Onana; Loïs Openda = Openda; Hans Vanaken = Vanaken; Timothy Castagne = Castagne; Leander Dendoncker = Dendoncker; Dedryck Boyata = Boyata; Kevin Mirallas = Mirallas; Steven Defour = Defour; Daniel Van Buyten = Van Buyten; Koen Casteels = Casteels; Arthur Theate = Theate; Wout Faes = Faes; Zeno Debast = Debast

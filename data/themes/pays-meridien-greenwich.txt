@@ -1,0 +1,10 @@
+actif: non
+# Inactif : seulement 9 réponses, trop peu pour le tirage (minimum 20). À élargir (par exemple « Un pays traversé par un méridien ou un parallèle célèbre ») avant de réactiver.
+titre: Un pays traversé par le méridien de Greenwich (0°)
+# Lecture retenue : le « méridien de Greenwich » = le méridien d'origine 0° (IERS/IRM, tout juste à l'est de l'observatoire), pas l'antiméridien 180° (qui traverserait Russie, Fiji, Kiribati, États-Unis, Nouvelle-Zélande...). Un pays compte si son territoire, outre-mer compris, est coupé par la ligne.
+# Sources : WorldAtlas « Countries on the Prime Meridian » (8 pays) ; thegreenwichmeridian.org (mêmes pays + Antarctique).
+# Aucun territoire d'outre-mer français ou britannique supplémentaire n'est coupé par la ligne. Norvège : revendication antarctique (Terre de la Reine-Maud, 20° O - 45° E) ; le Royaume-Uni revendique aussi une part de l'Antarctique traversée par 0°. Point 5 douteux, à valider par Jonas.
+1: France; Royaume-Uni = Angleterre = Grande-Bretagne; Espagne
+2: Algérie; Mali; Ghana
+3: Burkina Faso = Burkina; Togo
+5: Norvège

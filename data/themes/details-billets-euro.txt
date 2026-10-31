@@ -1,4 +1,5 @@
-titre: Un élément ou un détail visible sur un billet de banque en euros
+titre: Un détail visible sur un billet en euros
+# Ancien titre, qui précise le périmètre exact : Un élément ou un détail visible sur un billet de banque en euros
 # Billets de la première série (2002) et de la série Europe (2013-2019, de 5 à 500 euros) : motifs, textes, éléments de sécurité visibles. Vérifié sur Wikipédia FR « Billets de banque en euro » (sauf mention « émeraude » : non confirmé par cette source).
 1: Pont = Ponts; Fenêtre = Fenêtres; Portail = Portails = Porte = Portes; Étoiles = Étoile = Douze étoiles; Drapeau européen = Drapeau de l'Union européenne = Drapeau de l'UE = Drapeau; Carte de l'Europe = Carte; Signature = Signature du président de la BCE = Signature de la BCE; Chiffre de la valeur = Valeur faciale = Nombre = Valeur
 2: Hologramme = Bande holographique = Bande hologramme; Filigrane; Symbole de l'euro = Symbole € = Signe euro; Sigle BCE = BCE = ECB; Fil de sécurité = Fil de sécurité magnétique; Numéro de série; Style architectural = Architecture; Portrait d'Europe = Visage d'Europe = Europe

@@ -1,4 +1,5 @@
-titre: Un rappeur ou une rappeuse comptant plus de 20 millions d'auditeurs mensuels sur Spotify (relevé d'octobre 2026)
+titre: Un rappeur à plus de 20 M d'auditeurs sur Spotify
+# Ancien titre, qui précise le périmètre exact : Un rappeur ou une rappeuse comptant plus de 20 millions d'auditeurs mensuels sur Spotify (relevé d'octobre 2026)
 # Source : classement Spotify des artistes par auditeurs mensuels (kworb.net, relevé d'octobre 2026). Les niveaux suivent la notoriété : plus l'artiste a d'auditeurs, plus la réponse est évidente. Les artistes non classés par genre, les compositeurs et paroliers de cinéma indien, et les artistes non binaires ne sont pas dans les listes par genre.
 1: Drake; Bad Bunny; Pitbull; Eminem; Kendrick Lamar; Kanye West; Post Malone; Daddy Yankee; Travis Scott
 2: Future; JAŸ-Z = Jay-Z = Jay Z; Anuel AA; Lil Wayne; Swae Lee; Nicki Minaj; Wiz Khalifa; 50 Cent; Don Toliver; Myke Towers; Mac Miller; Flo Rida; 21 Savage; Don Omar; Playboi Carti

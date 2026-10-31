@@ -1,4 +1,5 @@
-titre: Un être vivant (espèce ou groupe) possédant des tentacules à l'âge adulte
+titre: Un être vivant à tentacules
+# Ancien titre, qui précise le périmètre exact : Un être vivant (espèce ou groupe) possédant des tentacules à l'âge adulte
 # Tentacule au sens large : appendices souples et allongés autour de la bouche ou de la tête (bras des céphalopodes et tentacules oculaires des gastéropodes compris). Animaux uniquement, noms courants d'espèces ou de groupes.
 1: Poulpe = Pieuvre = Octopode; Calmar = Encornet; Seiche; Méduse; Anémone de mer = Anémone = Actinie; Escargot = Escargot de Bourgogne = Petit-gris; Limace
 2: Nautile; Corail; Physalie = Galère portugaise = Galère; Calmar géant = Architeuthis; Poulpe géant du Pacifique; Hydre = Hydre d'eau douce; Cyanée = Cyanée chevelue = Méduse à crinière de lion; Nudibranche = Limace de mer; Holothurie = Concombre de mer; Poulpe commun = Octopus vulgaris = Poulpe de roche; Céphalopode; Cnidaire; Gastéropode

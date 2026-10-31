@@ -1,4 +1,5 @@
-titre: Un pays ou territoire dont le drapeau ne comporte que deux couleurs (emblème compris)
+titre: Un drapeau de seulement deux couleurs
+# Ancien titre, qui précise le périmètre exact : Un pays ou territoire dont le drapeau ne comporte que deux couleurs (emblème compris)
 # Exemples volontairement écartés car ambigus : Malte (Croix de Saint-Georges), Pérou (armoiries), Chypre, Bhoutan.
 1: Japon; Pologne; Suisse; Danemark; Canada; Turquie; Chine; Suède; Finlande; Grèce; Israël; Ukraine; Autriche; Monaco; Indonésie
 2: Singapour; Lettonie; Tunisie; Géorgie; Tonga; Bangladesh; Qatar; Bahreïn; Vietnam; Maroc; Albanie; Pakistan; Arabie saoudite; Kazakhstan; Honduras; Micronésie; Somalie; Groenland; Macédoine du Nord = Macédoine

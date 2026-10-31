@@ -1,4 +1,5 @@
-titre: Un animal dont le nom a donné un verbe du français (ou dont le nom est lui-même employé comme verbe)
+titre: Un animal dont le nom a donné un verbe
+# Ancien titre, qui précise le périmètre exact : Un animal dont le nom a donné un verbe du français (ou dont le nom est lui-même employé comme verbe)
 # Animaux dont le nom se retrouve dans un verbe usuel (singer, canarder, cafarder, se pavaner…). Les noms d'animaux et les verbes correspondants sont acceptés.
 1: Singe = Singer; Canard = Canarder; Cafard = Cafarder; Cochon = Cochonner; Cheval = Chevaucher; Paon = Pavaner = Se pavaner
 2: Âne = Ânonner; Chèvre = Chevroter = Cabrer; Veau = Vêler; Agneau = Agneler; Poulain = Pouliner; Pigeon = Pigeonner; Papillon = Papillonner; Zèbre = Zébrer

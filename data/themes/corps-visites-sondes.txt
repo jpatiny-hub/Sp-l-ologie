@@ -1,4 +1,5 @@
-titre: Une planète, une planète naine, un astéroïde ou une comète explorée par une sonde spatiale (hors Terre et satellites naturels, jusqu'en 2026)
+titre: Un astre du Système solaire visité par une sonde
+# Ancien titre, qui précise le périmètre exact : Une planète, une planète naine, un astéroïde ou une comète explorée par une sonde spatiale (hors Terre et satellites naturels, jusqu'en 2026)
 # Planètes, planètes naines, astéroïdes (y compris leurs petites lunes : Dactyl, Dimorphos, Selam) et comètes approchés par une sonde (vérifié sur en.wikipedia « List of minor planets and comets visited by spacecraft », Tianwen-2 et Hayabusa2, état juillet 2026). Exclus : les simples survols incidentaux lointains (Masursky, APL, Siding Spring observée depuis l'orbite de Mars).
 1: Mars; Jupiter; Saturne; Vénus; Pluton; Mercure
 2: Uranus; Neptune; Cérès; Comète de Halley = Halley = 1P/Halley; Tchourioumov-Guérassimenko = Churyumov-Gerasimenko = Tchouri = 67P; Vesta

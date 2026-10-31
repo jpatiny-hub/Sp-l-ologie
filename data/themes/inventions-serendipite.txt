@@ -1,4 +1,5 @@
-titre: Une invention ou une découverte due en grande partie au hasard (sérendipité)
+titre: Une invention due au hasard
+# Ancien titre, qui précise le périmètre exact : Une invention ou une découverte due en grande partie au hasard (sérendipité)
 # Inventions ou découvertes dont l'origine accidentelle ou inattendue est largement admise (certaines anecdotes sont embellies par la légende). Liste de mémoire.
 1: Pénicilline; Four à micro-ondes = Micro-ondes; Post-it = Papier repositionnable; Velcro = Scratch; Téflon = PTFE; LSD; Rayons X = Rayon X; Radioactivité; Viagra = Sildénafil; Dynamite; Amérique = Découverte de l'Amérique
 2: Vulcanisation du caoutchouc = Caoutchouc vulcanisé; Stimulateur cardiaque = Pacemaker; Saccharine; Aspartame; Cellophane; Colle forte = Cyanoacrylate = Super Glue; Corn flakes = Flocons de maïs; Tarte Tatin; Chips = Pommes chips; Mauvéine = Premier colorant synthétique; Daguerréotype; Silly Putty = Pâte rebondissante; Minoxydil; Vaccin = Vaccin vivant atténué; Sucralose

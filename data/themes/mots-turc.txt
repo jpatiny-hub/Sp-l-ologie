@@ -1,0 +1,13 @@
+titre: Un mot français emprunté au turc
+# Périmètre : mots courants ou attestés en français dont l'étymon est le turc (ottoman ou moderne), direct ou via l'italien, le grec ou le persan. Complète mots-arabe (qui avait écarté kebab, divan, kiosque, caftan, baklava, loukoum, babouche, kefta, bulgur parce que leur origine est présentée comme turque). Hors mots d'autres langues turciques seulement (yourte, kéfir, kourgane, etc.) et hors noms propres.
+# Sources : Le Petit Journal Istanbul (« Quelques mots d'origine turque en français » et « Mots nomades »), Wikipédia en « List of English words of Turkic origin » (mots à cognats français, étymon turc), Wiktionnaire fr (yatagan : turc yatağan) ; notes d'écartement de mots-arabe.txt (Wiktionnaire, 2026-10).
+# Écartés car étymologie contestée ou arabe/persane selon le dictionnaire : sofa, sorbet, tarbouche (déjà dans mots-arabe), gilet (turc via espagnol et arabe), caviar (turc ou persan), turquoise (formé sur « turc » en français), cosaque, bazar, café. Liste non exhaustive.
+1: Yaourt = Yoghourt = Yogourt = Yahourt; Kebab = Kébab = Kebap; Kiosque; Tulipe; Turban; Pacha; Horde; Chacal
+2: Pilaf = Pilau = Pilav; Baklava = Baclava; Loukoum = Rahat-loukoum = Rahat loukoum; Bulgur = Boulgour = Boulghour = Bourghoul; Caftan = Kaftan; Divan; Bergamote; Kilim; Bachi-bouzouk = Bachi-bouzouks = Bachibouzouk; Odalisque; Janissaire = Janissaires; Dolma = Dolmas; Döner = Doner = Doner kebab = Döner kebab; Chiche-kebab = Chich kebab = Shish kebab = Shish-kebab
+3: Bey = Beylerbey; Dey; Aga = Agha; Yatagan; Dolman; Caïque = Caique; Kefta = Kefté; Babouche; Colback = Kalpak = Calpack; Chibouque = Chibouk = Tchibouk; Ottomane; Börek = Borek = Boreks; Sarma = Sarmale
+4: Sanjak = Sandjak; Seraskier
+# retiré : Kangal (nom de race de chien), Imam bayildi (nom de plat), Tavla (mot turc non attesté en français).
+# Ajouts (Wiktionnaire fr, TLFi/CNRTL pour l'étymologie « turc » ; non recoupé partout, d'où les niveaux 3-4) :
+2: Narguilé = Narghilé = Nargileh; Raki = Rakı
+3: Spahi = Sipahi; Tzatziki = Cacik; Tarama = Taramas; Padischah = Padichah = Padishah
+4: Effendi = Efendi; Kaïmak = Kaymak

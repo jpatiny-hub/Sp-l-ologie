@@ -1,4 +1,5 @@
-titre: Un animal que l'on ne voudrait surtout pas trouver dans sa baignoire
+titre: Un animal qu'on ne veut pas dans sa baignoire
+# Ancien titre, qui précise le périmètre exact : Un animal que l'on ne voudrait surtout pas trouver dans sa baignoire
 # Animaux (réels, de petite à très grande taille) qui auraient de quoi surprendre dans une salle de bain.
 1: Serpent; Crocodile; Requin; Araignée; Rat; Cafard; Piranha; Anguille; Pieuvre; Crabe; Scorpion; Tigre; Lion; Ours; Crapaud; Grenouille; Cobra; Python; Mygale; Méduse; Hippopotame; Poisson rouge; Canard en plastique; Alligator; Lézard; Moustique; Mouche; Fourmi; Guêpe; Chauve-souris; Sangsue; Cloporte; Limace; Escargot; Ver de terre; Poulpe; Calmar; Baleine; Orque; Dauphin
 2: Tortue; Loutre; Phoque; Otarie; Morse; Manchot; Pingouin; Cygne; Oie; Poule; Chat; Chien; Cochon; Cheval; Vache; Mouton; Chèvre; Âne; Kangourou; Koala; Éléphant; Girafe; Zèbre; Rhinocéros; Gorille; Chimpanzé; Singe; Ours polaire; Loup; Renard; Hérisson; Taupe; Souris; Hamster; Lapin; Cobaye; Furet; Perruche; Perroquet; Aigle; Hibou; Corbeau; Pigeon; Mouette; Pélican; Flamant rose; Hippocampe; Étoile de mer; Oursin; Anémone de mer; Moule; Huître; Homard; Langouste; Crevette

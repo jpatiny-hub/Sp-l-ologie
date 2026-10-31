@@ -1,4 +1,5 @@
-titre: Une lune (satellite naturel nommé) d'une planète ou d'une planète naine du Système solaire
+titre: Une lune du Système solaire
+# Ancien titre, qui précise le périmètre exact : Une lune (satellite naturel nommé) d'une planète ou d'une planète naine du Système solaire
 # Lunes ayant reçu un nom officiel de l'UAI (fin 2025) : Terre, Mars, Jupiter (57), Saturne (63), Uranus (27), Neptune (14), Pluton, Éris, Hauméa.
 # Les lunes d'astéroïdes et des autres objets transneptuniens ne comptent pas.
 1: Lune; Titan; Europe = Europa; Io; Ganymède = Ganymede; Phobos; Deimos = Déimos

@@ -1,4 +1,5 @@
-titre: Un poisson d'eau douce (espèce ou groupe, dans le monde entier, y compris poissons d'aquarium)
+titre: Un poisson d'eau douce
+# Ancien titre, qui précise le périmètre exact : Un poisson d'eau douce (espèce ou groupe, dans le monde entier, y compris poissons d'aquarium)
 # Poissons dont le cycle de vie s'accomplit en eau douce. Exclus : les migrateurs amphihalins qui passent l'essentiel de leur vie adulte en mer (saumon, anguille, esturgeons, alose, etc.). Plus large que « poissons-eau-douce-belgique ».
 1: Truite = Truite fario = Truite brune = Truite arc-en-ciel = Truite commune; Carpe = Carpe commune = Carpe miroir = Carpe koï = Koï = Carpe koï papillon = Koï papillon = Carpe papillon; Brochet; Perche = Perche commune; Poisson rouge = Carassin doré; Piranha
 2: Gardon; Sandre; Tanche; Silure = Silure glane; Brème = Brème commune; Goujon; Barbeau; Vairon; Black-bass = Achigan = Achigan à grande bouche; Tilapia; Guppy = Poisson-million; Néon = Néon bleu = Tétra néon; Combattant = Betta = Poisson combattant; Omble chevalier; Poisson-chat = Barbotte; Épinoche; Chevesne = Chevaine = Chub; Ablette; Perche du Nil; Danio = Poisson-zèbre = Danio zébré

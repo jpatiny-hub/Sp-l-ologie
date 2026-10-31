@@ -1,4 +1,5 @@
-titre: Un ingrédient ou un aliment qui coûte plus de 100 € le kilo
+titre: Un aliment à plus de 100 € le kilo
+# Ancien titre, qui précise le périmètre exact : Un ingrédient ou un aliment qui coûte plus de 100 € le kilo
 # Liste fournie ; les noms français sont ajoutés pour les ingrédients courants.
 1: Caviar; Chair de homard = Homard = Lobster meat; Safran = Saffron; Truffe = Truffle; Bœuf wagyu = Wagyu = Wagyu beef
 2: Thon rouge = Thon rouge de Méditerranée = Bluefin tuna; Feuille d'or alimentaire = Feuille d'or = Or alimentaire = Edible gold leaf; Escargots; Foie gras; Wasabi frais = Wasabi = Fresh wasabi; Jambon ibérique = Jamon ibérico = Jambon pata negra; Pattes de crabe royal = Crabe royal = King crab legs; Bœuf de Kobe = Kobe = Kobe beef; Ailerons de requin = Shark fin; Huile de truffe = Truffle oil; Vanille = Vanilla

@@ -1,0 +1,8 @@
+titre: Un cadeau de naissance
+# Liste ouverte : tout objet pour bébé ou toute attention peut être offert ; la frontière est subjective. Séparé du mariage (cadeaux-mariage.txt).
+# Pour réactiver : resserrer (ex. « Un cadeau traditionnel de naissance en Belgique »). Entrées = cadeaux classiques en Belgique/France.
+# Sources : en.wikipedia « Baby shower » (cadeaux traditionnels : cuillères en argent, couvertures, vêtements, jouets) et listes de naissance courantes ; recoupement partiel.
+1: Peluche; Doudou; Body = Bodys; Vêtements de bébé = Barboteuse = Pyjama; Couverture = Plaid; Hochet; Biberon; Tétine; Livre pour enfant = Livre; Jouet; Bavoir; Chaussons = Chaussons de bébé; Bonnet de naissance = Bonnet; Fleurs = Bouquet
+2: Gigoteuse = Turbulette; Mobile musical = Mobile; Tapis d'éveil; Landau; Poussette; Berceau; Lit de bébé = Lit; Baignoire de bébé; Cape de bain; Lange; Couches; Boîte à musique; Cadre photo; Bavette; Doudou lapin; Couverture tricotée; Lit parapluie; Siège auto; Transat de bébé = Transat; Parc de bébé; Table à langer; Chauffe-biberon
+3: Cuillère en argent; Timbale en argent = Timbale; Bracelet de naissance; Gourmette; Médaille de baptême = Médaille; Livre d'or; Album photo; Livre de naissance; Boîte à souvenirs; Veilleuse; Babyphone; Dragées; Gâteau de couches; Carte de naissance; Bijou de naissance; Collier d'ambre = Collier de dentition; Anneau de dentition; Peluche personnalisée; Arbre généalogique
+4: Compte épargne = Livret d'épargne; Arbre à planter; Moulage de pied; Empreinte de main; Couverture de baptême; Chandelle de baptême = Bougie de baptême; Hochet en argent; Brosse et peigne en argent; Pot de naissance
