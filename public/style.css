@@ -2049,3 +2049,25 @@ html[data-galerie] .who-text .ptitle { white-space: normal; overflow: visible; t
 .showcase-slot.mine { box-shadow: 0 0 0 2px var(--accent) inset; }
 .showcase-slot.current { border-style: dashed; }
 .showcase-slot.future, .showcase-slot.missed { opacity: 0.55; }
+
+/* Carte « Aujourd'hui » et enveloppe du lundi */
+.today-bar { display: flex; gap: 10px; justify-content: flex-end; margin: 0 0 8px; }
+.today-ico { position: relative; width: 44px; height: 44px; display: grid; place-items: center; cursor: pointer; border: 2px solid var(--accent, currentColor); border-radius: 50%; background: transparent; color: inherit; padding: 0; }
+.today-ico canvas { width: 28px; height: 28px; image-rendering: pixelated; }
+.today-dot { position: absolute; top: -3px; right: -3px; width: 14px; height: 14px; border-radius: 50%; background: #e8466a; border: 2px solid #1a1410; }
+.today-list { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 8px; }
+.today-row { display: grid; grid-template-columns: 24px auto 1fr; gap: 8px; align-items: center; }
+.today-row canvas { width: 24px; height: 24px; image-rendering: pixelated; }
+.today-row .today-label { font-weight: bold; }
+.today-row .today-text { text-align: right; min-width: 0; }
+.today-row.go { cursor: pointer; text-decoration: underline; }
+.env-steps { display: flex; gap: 6px; margin: 6px 0 10px; }
+.env-steps i { flex: 1; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.15); }
+.env-steps i.on { background: var(--accent, #ffc24a); }
+.env-theme { border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 8px; padding: 8px; margin: 8px 0; }
+.env-title { margin-bottom: 6px; }
+.env-reacts { display: flex; gap: 6px; }
+.env-react { font: inherit; flex: 1; padding: 4px 0; border-radius: 99px; border: 1px solid rgba(255, 255, 255, 0.3); background: transparent; color: inherit; cursor: pointer; min-height: 36px; }
+.env-react[aria-pressed="true"], .env-prize[aria-pressed="true"] { background: var(--accent, #ffc24a); color: #1a1410; border-color: transparent; }
+.env-prize { display: block; width: 100%; text-align: left; font: inherit; color: inherit; background: transparent; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; padding: 8px; margin: 8px 0; cursor: pointer; }
+.env-prize small { display: block; opacity: 0.8; }

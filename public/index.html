@@ -190,6 +190,8 @@
         <label class="check"><input type="checkbox" name="betaMole16"> Taupe en 16 bits : regard qui suit le doigt, réactions au toucher</label>
         <label class="check"><input type="checkbox" name="betaSon16"> Sons 16-bit : un bruit par minerai, wagonnet, taupe, onglets, foreuses spéciales et feux d'artifice des podiums</label>
         <label class="check"><input type="checkbox" name="betaFetes"> Fêtes de podium en 16 bits (semaine, mois) et Gazette sur plan de mine</label>
+        <label class="check"><input type="checkbox" name="betaAujourdhui"> Carte « Aujourd'hui » : petit logo sur l'accueil avec une pastille qui s'éteint quand on l'a consultée</label>
+        <label class="check"><input type="checkbox" name="simLundi"> Simuler le lundi : l'enveloppe (avis sur les thèmes, prix de l'improbable) avec des exemples, rien n'est enregistré</label>
         <label class="check"><input type="checkbox" name="betaDefis"> Défis en galeries de mine 16 bits (« Ton filon », « Galerie commune »)</label>
         <p class="hint">Foreuse 16-bit ; celles de fête ont un effet animé pendant le forage :</p>
         <div class="choices vertical" id="refonte-drill16">
@@ -437,6 +439,20 @@
 
       <!-- Accueil -->
       <div class="view" id="view-home" hidden>
+        <div class="today-bar" id="today-bar" hidden>
+          <button class="today-ico" id="today-btn" type="button" aria-label="Aujourd'hui"><canvas id="today-icon" width="16" height="16" aria-hidden="true"></canvas><span class="today-dot" id="today-dot" hidden></span></button>
+          <button class="today-ico" id="env-btn" type="button" aria-label="Enveloppe du lundi" hidden><canvas id="env-icon" width="16" height="16" aria-hidden="true"></canvas><span class="today-dot" id="env-dot" hidden></span></button>
+        </div>
+        <div class="card today-card" id="today-card" hidden>
+          <h2>Aujourd'hui</h2>
+          <ul class="today-list" id="today-list"></ul>
+          <button class="btn ghost" id="today-close" type="button">Fermer</button>
+        </div>
+        <div class="card env-card" id="env-card" hidden>
+          <h2>Enveloppe du lundi</h2>
+          <div class="env-steps" aria-hidden="true"><i id="env-step-1"></i><i id="env-step-2"></i></div>
+          <div id="env-body"></div>
+        </div>
         <div class="card announce" id="announce-card" hidden>
           <h2>Message du Contre maître</h2>
           <div id="announce-list"></div>
