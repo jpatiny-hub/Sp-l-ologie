@@ -96,7 +96,10 @@ function createApp({
   const announcements = new AnnouncementService(db, now);
   const votes = new ThemeVoteService(db, () => game.today(), now);
   /** Vote des thèmes : le responsable pendant la bêta, tout le monde une fois ouvert depuis le Contre maître. */
-  const voteFor = (user) => isAdmin(user) || votes.isOpen();
+  const voteFor = (user) => {
+    votes.ensureFirstWeek();
+    return isAdmin(user) || votes.isOpen();
+  };
   /**
    * Refonte 16-bit ouverte à tous (à partir de `refonteFrom`). Le premier passage après l'ouverture remet les avatars au
    * personnage standard, une seule fois, après une copie de sauvegarde de la base (les anciens restent dans avatar_backup).
@@ -963,9 +966,9 @@ function createApp({
     'POST /api/themes/vote': async (req, res) => {
       const user = requireUser(req, res);
       if (!voteFor(user)) throw new HttpError(404, 'Pas de vote en cours.');
-      const { id, on } = await readJson(req);
-      if (!Number.isInteger(id)) throw new HttpError(400, 'Thème inconnu.');
-      json(res, 200, votes.vote(user.id, id, on !== false));
+      const { candidate, reaction } = await readJson(req);
+      if (!Number.isInteger(candidate)) throw new HttpError(400, 'Thème inconnu.');
+      json(res, 200, votes.react(user.id, candidate, reaction == null ? null : String(reaction)));
     },
 
     'GET /api/admin/theme-vote': async (req, res) => {

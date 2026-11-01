@@ -1086,8 +1086,6 @@
   async function loadCarnetSummary() {
     $('carnet-dot').hidden = !app.me.unseenBadges;
     $('report-banner').hidden = !app.me.unreadReports;
-    const vote = app.me.themeVote;
-    $('vote-banner').hidden = !(vote && vote.candidates.length && vote.votesLeft === vote.votesPerWeek);
     try {
       const profile = await api('/api/profile');
       const earned = profile.badges.filter((b) => b.count).length;
@@ -4039,7 +4037,6 @@
       initFolds();
       finishBetaProfile(profile);
       loadSuggestions();
-      loadVote();
       loadMyReports();
       loadBilan(app.bilanMonth || null);
       if (profile.badges.some((b) => b.isNew)) {
@@ -5890,61 +5887,6 @@
   });
 
   // ---------- Vote de la semaine sur les thèmes proposés ----------
-  async function loadVote() {
-    const fold = $('fold-vote');
-    if (!(app.me && app.me.themeVote)) return void (fold.hidden = true);
-    try {
-      renderVote(await api('/api/themes/vote'));
-    } catch {
-      fold.hidden = true;
-    }
-  }
-
-  function renderVote(vote) {
-    if (app.me) app.me.themeVote = vote;
-    $('vote-banner').hidden = !(vote.candidates.length && vote.votesLeft === vote.votesPerWeek);
-    $('fold-vote').hidden = !vote.candidates.length && !vote.lastResult;
-    const until = formatDay(vote.endsOn, { weekday: 'long', day: 'numeric', month: 'long' });
-    $('vote-sub').textContent = vote.candidates.length ? `${plural(vote.votesLeft, 'voix restante', 'voix restantes')} · jusqu'au ${until}` : 'pas de vote cette semaine';
-    $('vote-intro').textContent = vote.candidates.length
-      ? `Quels thèmes aimerais-tu forer bientôt ? Tu as ${vote.votesPerWeek} voix, une par thème. Tu peux changer d'avis jusqu'au ${until} ; le résultat sera dévoilé la semaine prochaine.`
-      : 'Aucun thème au vote cette semaine.';
-    $('vote-list').replaceChildren(
-      ...vote.candidates.map((c) => {
-        const btn = el('button', { class: c.voted ? 'btn' : 'btn secondary', type: 'button', 'aria-pressed': String(c.voted) }, c.voted ? '✓ Ma voix' : 'Voter');
-        btn.disabled = c.own || (!c.voted && vote.votesLeft === 0);
-        btn.addEventListener('click', async () => {
-          $('vote-status').textContent = '';
-          try {
-            renderVote(await api('/api/themes/vote', { id: c.id, on: !c.voted }));
-          } catch (err) {
-            $('vote-status').textContent = err.message;
-          }
-        });
-        return el(
-          'li',
-          { class: `report vote-item${c.voted ? ' voted' : ''}` },
-          el('span', { class: 'what' }, el('strong', {}, c.title), c.details ? el('span', { class: 'muted' }, c.details) : null, c.own ? el('span', { class: 'muted' }, 'Ta proposition') : null),
-          btn,
-        );
-      }),
-    );
-    const last = vote.lastResult;
-    $('vote-last').hidden = !last;
-    if (last) {
-      $('vote-last-title').textContent = `Résultat du vote de la semaine du ${formatDay(last.week, { day: 'numeric', month: 'long' })}`;
-      $('vote-last-list').replaceChildren(...last.ranking.slice(0, 5).map((r) => el('li', {}, el('strong', {}, r.title), ` · ${plural(r.votes, 'voix', 'voix')}`)));
-    }
-  }
-
-  $('vote-banner').addEventListener('click', async () => {
-    await openProfile();
-    setProfileTab('carnet');
-    const fold = $('fold-vote');
-    fold.open = true;
-    fold.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-
   // Responsable : propositions au vote, ouverture à tous, décompte.
   async function loadAdminVote() {
     try {
@@ -5954,21 +5896,24 @@
     }
   }
 
+  const REACTION_ICONS = { adore: '👍', bof: '👎', difficile: '🤔', facile: '😴', 'deja-vu': '🔁' };
+  const reactionLine = (c) => Object.entries(REACTION_ICONS).map(([k, e]) => `${e} ${c.reactions[k]}`).join('  ');
+
   function renderAdminVote(board) {
     app.voteBoard = board;
     $('admin-vote-open').checked = board.open;
-    const until = formatDay(board.endsOn, { day: 'numeric', month: 'long' });
-    $('admin-vote-sub').textContent = `· ${plural(board.candidates.length, 'thème', 'thèmes')}, ${plural(board.voters, 'votant', 'votants')} · jusqu'au ${until}${board.open ? '' : ' · bêta'}`;
+    const until = new Date(board.closesAt).toLocaleString('fr-BE', { weekday: 'long', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Brussels' });
+    $('admin-vote-sub').textContent = `· ${plural(board.candidates.length, 'thème', 'thèmes')}, ${plural(board.voters, 'votant', 'votants')} · clôture ${until}${board.open ? '' : ' · fermé aux joueurs'}`;
     $('admin-vote-list').replaceChildren(
       ...board.candidates.map((c) => {
         const remove = el('button', { class: 'link', type: 'button' }, 'Retirer du vote');
         remove.addEventListener('click', () => setVoteCandidate(c.id, false));
-        return el('li', { class: 'report' }, el('span', { class: 'what' }, el('strong', {}, c.title), el('span', { class: 'muted' }, `${plural(c.votes, 'voix', 'voix')} · proposé par ${c.author}`)), remove);
+        return el('li', { class: 'report' }, el('span', { class: 'what' }, el('strong', {}, c.title), el('span', { class: 'muted' }, `${reactionLine(c)} · proposé par ${c.author}`)), remove);
       }),
     );
     if (!board.candidates.length) $('admin-vote-list').append(el('li', { class: 'muted' }, 'Aucun thème au vote cette semaine.'));
     const last = board.lastResult;
-    $('admin-vote-last').replaceChildren(...(last && last.ranking.length ? last.ranking.map((r) => el('li', {}, el('strong', {}, r.title), ` · ${plural(r.votes, 'voix', 'voix')} · ${r.author}`)) : [el('li', { class: 'muted' }, 'Pas encore de vote terminé.')]));
+    $('admin-vote-last').replaceChildren(...(last && last.ranking.length ? last.ranking.map((r) => el('li', {}, el('strong', {}, r.title), ` · ${reactionLine(r)}`)) : [el('li', { class: 'muted' }, 'Pas encore de vote terminé.')]));
     renderSuggestions();
   }
 

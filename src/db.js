@@ -286,10 +286,11 @@ CREATE TABLE IF NOT EXISTS theme_ballot (
   added_at      INTEGER NOT NULL,
   PRIMARY KEY (week, suggestion_id)
 );
-CREATE TABLE IF NOT EXISTS theme_votes (
+CREATE TABLE IF NOT EXISTS theme_reactions (
   week          TEXT NOT NULL,
   suggestion_id INTEGER NOT NULL REFERENCES theme_suggestions(id) ON DELETE CASCADE,
   user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  reaction      TEXT NOT NULL,
   created_at    INTEGER NOT NULL,
   PRIMARY KEY (week, user_id, suggestion_id)
 );

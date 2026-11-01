@@ -1117,7 +1117,7 @@ class GameService {
       .run(this.now(), themeId, inputKey);
   }
 
-  /** Un joueur propose un thème : titre obligatoire, précisions facultatives (au plus 5 par jour). */
+  /** Un joueur propose un thème : titre obligatoire, précisions facultatives (beaucoup à la fois, mais pas de rafale). */
   suggestTheme(userId, title, details) {
     const t = typeof title === 'string' ? title.trim().replace(/\s+/g, ' ').slice(0, 140) : '';
     const d = typeof details === 'string' ? details.trim().slice(0, 1500) : '';
@@ -1125,7 +1125,7 @@ class GameService {
     const recent = this.db
       .prepare('SELECT COUNT(*) AS n FROM theme_suggestions WHERE user_id = ? AND created_at > ?')
       .get(userId, this.now() - 24 * 3600 * 1000).n;
-    if (recent >= 5) throw new HttpError(429, 'Beaucoup de propositions aujourd\'hui : merci, reviens demain !');
+    if (recent >= 30) throw new HttpError(429, 'Beaucoup de propositions aujourd\'hui : merci, reviens demain !');
     this.db.prepare('INSERT INTO theme_suggestions (user_id, title, details, created_at) VALUES (?, ?, ?, ?)').run(userId, t, d, this.now());
     return { ok: true };
   }

@@ -418,7 +418,7 @@ test('proposition de thèmes : tous les joueurs peuvent proposer, seul le respon
     assert.equal((await eve('/api/themes/suggestions')).data.suggestions[0].handled, true);
 
     // Au plus 5 propositions par jour et par joueur.
-    for (let i = 0; i < 4; i++) await eve('/api/themes/suggest', { title: `Idée numéro ${i}` });
+    for (let i = 0; i < 29; i++) await eve('/api/themes/suggest', { title: `Idée numéro ${i}` });
     assert.equal((await eve('/api/themes/suggest', { title: 'Une de trop' })).status, 429);
   } finally {
     await app.close();
