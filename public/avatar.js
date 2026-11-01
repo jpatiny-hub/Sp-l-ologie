@@ -53,7 +53,7 @@
       P(3, oy + 17, 10, 1, '#a77f12');
     }
     // Jambes.
-    const legs = (o.espece === 'robot' ? shade(METAL[o.peau] || METAL.clair, 0.6) : null) || { smoking: '#222', scaphandre: '#6b7a8c', cape: '#3a4a6b', armure: '#8a8f98', pirate: '#5a3a1a', cuisinier: '#4a4a52', 'mineur-nain': '#5a4a3a', 'armure-naine': '#5a4a3a', 'gilet-vapeur': '#4a3a2a', golem: '#46425a', 'costume-cupidon': '#e8dcc0', 'costume-gille': '#f2c230', 'manteau-noel': '#c8362d', 'chape-eveque': '#c8362d', 'tablier-forge': '#3a3a44', redingote: '#2a2a34', epouvantail: '#6a5a3a', explorateur: '#8a7a4a', herboriste: '#6a5a3a', 'tunique-infernale': '#2a1a2a', 'cire-jaune': '#3a4a6b', poil: fur }[outfit] || '#3a4a6b';
+    const legs = (o.espece === 'robot' ? shade(METAL[o.peau] || METAL.clair, 0.6) : null) || { smoking: '#222', scaphandre: '#6b7a8c', cape: '#3a4a6b', armure: '#8a8f98', pirate: '#5a3a1a', cuisinier: '#4a4a52', 'mineur-nain': '#5a4a3a', 'armure-naine': '#5a4a3a', 'gilet-vapeur': '#4a3a2a', golem: '#46425a', 'costume-cupidon': '#e8dcc0', 'costume-gille': '#f2c230', 'manteau-noel': '#c8362d', 'chape-eveque': '#c8362d', 'tablier-forge': '#3a3a44', redingote: '#2a2a34', epouvantail: '#6a5a3a', explorateur: '#8a7a4a', herboriste: '#6a5a3a', 'tunique-infernale': '#2a1a2a', 'tunique-emeraude': '#23483a', 'cire-jaune': '#3a4a6b', poil: fur }[outfit] || '#3a4a6b';
     if (robe) {
       const hem = { robe: '#b02a6a', 'robe-fleurs': '#e8466a', 'robe-sorciere': '#2a1a3a' }[outfit];
       P(5, oy + 15, 2, 5, skin);
@@ -67,7 +67,7 @@
       P(8, oy + 21, 3, 1, K);
     }
     // Torse et bras.
-    const top = (o.espece === 'robot' ? METAL[o.peau] || METAL.clair : null) || { mineur: '#d9772b', salopette: '#d9772b', robe: '#e86aa8', 'robe-fleurs': '#f3e1c8', smoking: '#222', pull: '#4a86e8', scaphandre: '#8aa0b8', cape: '#4a86e8', armure: '#aeb6c2', pirate: '#f3f3f3', cuisinier: '#ffffff', blouse: '#f3f3f3', chasuble: '#ff8c1a', 'mineur-nain': '#7a4a24', 'armure-naine': '#9a7a3a', 'gilet-vapeur': '#5a2a1a', golem: '#5a5668', 'costume-cupidon': '#f3e9d2', 'costume-gille': '#f2c230', 'manteau-noel': '#c8362d', 'robe-sorciere': '#4a2a6a', 'chape-eveque': '#c8362d', 'tablier-forge': '#8a8f98', redingote: '#3a2a4a', epouvantail: '#b8843a', explorateur: '#c8b078', herboriste: '#4a8a4a', 'tunique-infernale': '#2a1a2a', 'cire-jaune': '#f2c230', poil: fur }[outfit] || '#d9772b';
+    const top = (o.espece === 'robot' ? METAL[o.peau] || METAL.clair : null) || { mineur: '#d9772b', salopette: '#d9772b', robe: '#e86aa8', 'robe-fleurs': '#f3e1c8', smoking: '#222', pull: '#4a86e8', scaphandre: '#8aa0b8', cape: '#4a86e8', armure: '#aeb6c2', pirate: '#f3f3f3', cuisinier: '#ffffff', blouse: '#f3f3f3', chasuble: '#ff8c1a', 'mineur-nain': '#7a4a24', 'armure-naine': '#9a7a3a', 'gilet-vapeur': '#5a2a1a', golem: '#5a5668', 'costume-cupidon': '#f3e9d2', 'costume-gille': '#f2c230', 'manteau-noel': '#c8362d', 'robe-sorciere': '#4a2a6a', 'chape-eveque': '#c8362d', 'tablier-forge': '#8a8f98', redingote: '#3a2a4a', epouvantail: '#b8843a', explorateur: '#c8b078', herboriste: '#4a8a4a', 'tunique-infernale': '#2a1a2a', 'tunique-emeraude': '#1f7a4a', 'cire-jaune': '#f2c230', poil: fur }[outfit] || '#d9772b';
     if (fem) {
       P(5, oy + 7, 6, 4, top);
       if (robe) {
@@ -226,6 +226,15 @@
       P(9, oy + 12, 3, 2, '#8b5a2b');
       P(7, oy + 8, 2, 1, '#8ad87a');
       P(8, oy + 9, 1, 1, '#8ad87a');
+    }
+    if (outfit === 'tunique-emeraude') {
+      P(4, oy + 7, 8, 1, '#e8c547');
+      P(4, oy + 11, 8, 1, '#e8c547');
+      P(7, oy + 8, 2, 2, '#3ee08a');
+      P(7, oy + 8, 1, 1, '#c8ffe0');
+      P(5, oy + 9, 1, 1, '#2fb06a');
+      P(10, oy + 9, 1, 1, '#2fb06a');
+      P(4, oy + 13, 8, 1, '#e8c547');
     }
     if (outfit === 'tunique-infernale') {
       P(5, oy + 7, 6, 1, '#c8362d');
@@ -512,6 +521,13 @@
       P(7, oy - 4, 2, 1, '#f2c230');
       P(11, oy - 4, 1, 1, '#f2c230');
       P(7, oy - 2, 2, 1, '#c8362d');
+    } else if (hat === 'casque-emeraude') {
+      P(4, oy - 2, 8, 3, '#2f6f4a');
+      P(3, oy, 10, 1, '#1f4a32');
+      P(7, oy - 4, 2, 2, '#3ee08a');
+      P(7, oy - 4, 1, 1, '#c8ffe0');
+      P(5, oy - 1, 1, 1, '#e8c547');
+      P(10, oy - 1, 1, 1, '#e8c547');
     } else if (hat === 'casque-nain') {
       P(4, oy - 2, 8, 3, '#8a8f98');
       P(3, oy, 10, 1, '#6b7078');
@@ -605,6 +621,12 @@
       P(12, oy + 4, 4, 1, '#a9b0b8');
       P(12, oy + 5, 1, 1, '#a9b0b8');
       P(15, oy + 5, 1, 1, '#a9b0b8');
+    } else if (it === 'pioche-emeraude') {
+      P(14, oy + 5, 1, 9, '#8b5a2b');
+      P(12, oy + 4, 4, 1, '#3ee08a');
+      P(12, oy + 5, 1, 1, '#2fb06a');
+      P(15, oy + 5, 1, 1, '#2fb06a');
+      P(13, oy + 4, 1, 1, '#c8ffe0');
     } else if (it === 'lanterne') {
       P(13, oy + 11, 3, 1, '#7d7d86');
       P(13, oy + 12, 3, 3, '#f2c230');
@@ -1451,6 +1473,7 @@
     { id: 'minuit', name: 'Minuit', theme: 'nouvel-an', drill: 'Minuit', pieces: { chapeau: 'cotillon', objet: 'coupe', accessoire: 'serpentin' }, fx: { kind: 'tombe', colors: ['#ff5a8a', '#ffe84a', '#5ac8ff', '#8aff5a'] } },
     { id: 'pi', name: 'Mathématicien du 14 mars', theme: 'pi-day', drill: 'Pi', pieces: { accessoire: 'pin-pi', objet: 'tarte', tenue: 'blouse' }, fx: { kind: 'monte', colors: ['#5ac8ff', '#ffffff'] } },
     { id: 'poisson', name: 'Farceur du 1er avril', theme: 'poisson-avril', drill: 'Poisson', pieces: { dos: 'poisson-papier', objet: 'poisson' }, fx: { kind: 'bulles', colors: ['#cfeaff', '#8ad0ff'] } },
+    { id: 'emeraude', name: "Chercheur d'émeraudes", theme: 'filon', drill: 'Gemme émeraude', pieces: { chapeau: 'casque-emeraude', tenue: 'tunique-emeraude', objet: 'pioche-emeraude', aura: 'gem-emeraude' }, fx: { kind: 'scintille', colors: ['#3ee08a', '#c8ffe0', '#e8c547'] } },
     { id: 'nain', name: 'Pionnier nain', theme: 'mineur', drill: 'Pionnier', pieces: { espece: 'nain', tenue: 'mineur-nain', chapeau: 'casque-nain', objet: 'hache' }, fx: { kind: 'scintille', colors: ['#ffd84a', '#ffb02a'] } },
     { id: 'steampunk', name: 'Horloger à vapeur', theme: 'mineur', drill: 'Horloger', pieces: { espece: 'robot', chapeau: 'chapeau-metal', dos: 'reservoir-vapeur', objet: 'pipe' }, fx: { kind: 'monte', colors: ['#e8e8f0', '#b8b8c8'] } },
     { id: 'chevalier', name: 'Chevalier', theme: 'mineur', drill: 'Chevalier', pieces: { tenue: 'armure', chapeau: 'heaume', objet: 'bouclier' }, fx: { kind: 'scintille', colors: ['#ffffff', '#9ad0ff'] } },
