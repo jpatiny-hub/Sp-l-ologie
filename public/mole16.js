@@ -148,6 +148,21 @@
     }));
   }
 
+  // Tenue de saison (essai) : 'automne' = écharpe tricotée et feuille d'érable sur le casque.
+  let season = null;
+  function setSeason(id) {
+    season = id || null;
+  }
+  function autumn(ctx) {
+    const st = ['#c8442a', '#e8a33a'];
+    for (let x = 15; x < 34; x++) { ctx.fillStyle = st[Math.floor(x / 2) % 2]; ctx.fillRect(x, 22, 1, 3); }
+    ctx.fillStyle = '#3a1a0e'; ctx.fillRect(15, 25, 19, 1);
+    for (let y = 25; y < 31; y++) { ctx.fillStyle = st[Math.floor(y / 2) % 2]; ctx.fillRect(30, y, 3, 1); }
+    ctx.fillStyle = '#f2c14e'; ctx.fillRect(30, 31, 1, 1); ctx.fillRect(32, 31, 1, 1);
+    ctx.fillStyle = '#d9622b'; ctx.fillRect(27, 2, 4, 2); ctx.fillRect(28, 1, 2, 1); ctx.fillRect(26, 3, 1, 1); ctx.fillRect(31, 3, 1, 1);
+    ctx.fillStyle = '#8c3a1e'; ctx.fillRect(29, 4, 1, 2);
+  }
+
   /** `prop` : un accessoire posé par-dessus la taupe (voir PROPS) ; sert aux situations de jeu. */
   function draw(canvas, mood, gaze, prop) {
     canvas.width = W;
@@ -155,6 +170,7 @@
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, W, H);
     paint(ctx, sprite(mood || 'idle', gaze), PAL);
+    if (season === 'automne' && mood !== 'sleep') autumn(ctx);
     if (prop && PROPS[prop]) {
       const k = canvasKit();
       PROPS[prop](k);
@@ -344,5 +360,5 @@
     }));
   }
 
-  global.Mole16 = { draw, tool, PROP_IDS: Object.keys(PROPS), WIDTH: W, HEIGHT: H };
+  global.Mole16 = { draw, tool, setSeason, PROP_IDS: Object.keys(PROPS), WIDTH: W, HEIGHT: H };
 })(window);

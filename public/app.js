@@ -45,6 +45,10 @@
   const REFONTE_FLAGS = ['betaRefonte', 'betaCaves', 'betaMole16', 'betaGalerie', 'betaSon16', 'betaFetes', 'betaDefis'];
   for (const flag of REFONTE_FLAGS) settings[flag] = false;
   settings.betaDrill16 = ''; // foreuse 16-bit à l'essai (refonte, responsable seulement)
+  // Essais de novembre (responsable seulement, activés au départ chez lui) : descente continue du décor d'accueil, calque d'automne,
+  // galeries de la vie de mine qui réagissent au passage de la foreuse (avec leurs bruitages).
+  const VIE_FLAGS = ['vieDescente', 'vieAutomne', 'vieReactions'];
+  for (const flag of VIE_FLAGS) settings[flag] = true;
   // Ambiance sonore : coups de pioche, grondement, musiques d'accueil, bruits de boutons et chrono sonore, au choix de chaque joueur : coups de pioche, grondement et musique « Galerie » activés au départ, le reste non.
   const AMBIENT_FLAGS = ['labTaps', 'labRumble'];
   const LAB_FLAGS = [...AMBIENT_FLAGS, 'labTabs', 'labClicks', 'labTimer'];
@@ -105,6 +109,10 @@
   /** Foreuses 16-bit : celle que le joueur compose dans l'Atelier (le responsable peut en essayer une autre dans les réglages). */
   const drill16On = () => !!(refonteOn('betaDrill16') && window.Drills16);
   const myDrill16 = () => (app.me && app.me.isAdmin && settings.betaDrill16) || (drill16On() ? app.drill16 || null : null);
+  /** Essais de novembre : réservés au responsable tant qu'ils ne sont pas ouverts à tous, et seulement avec les galeries 16-bit. */
+  const vieOn = (name) => !!(app.me && app.me.isAdmin && settings[name] && cavesOn());
+  /** Calque d'automne : pendant la saison « automne » du serveur (novembre), si le décor de saison n'est pas coupé dans les réglages. */
+  const autumnOn = () => !!(vieOn('vieAutomne') && app.me.season === 'automne' && settings.season !== false);
   /** Fêtes de podium en 16 bits (semaine, mois) et Gazette sur plan de mine. */
   /** Défis en galeries de mine 16 bits (« Ton filon », « Galerie commune »). */
   const defisOn = () => !!(refonteOn('betaDefis') && window.Defis16);
@@ -118,16 +126,19 @@
   /** Décor de saison (Halloween…) : interface et scène de forage, sauf en lecture facile et en thème clair. */
   function applySeason() {
     // La refonte 16-bit n'a pas de décor de saison (Halloween, Noël…) : il était fait pour l'ancien style.
-    const id = app.me && app.me.season && settings.season !== false && !REFONTE_FLAGS.some(refonteOn) ? app.me.season : null;
+    // L'automne n'existe que dans la refonte (calque de galerie.js) : pas de décor de l'ancien style.
+    const id = app.me && app.me.season && app.me.season !== 'automne' && settings.season !== false && !REFONTE_FLAGS.some(refonteOn) ? app.me.season : null;
     const plain = isLight();
     const root = document.documentElement;
     if (id && !plain) root.dataset.season = id;
     else delete root.dataset.season;
     const wanted = id && !plain ? id : null;
-    if ((Pixel.currentSeason || null) !== wanted || Pixel.isCaves() !== cavesOn()) {
+    const life = vieOn('vieReactions');
+    if ((Pixel.currentSeason || null) !== wanted || Pixel.isCaves() !== cavesOn() || Pixel.hasMineLife() !== life) {
       Pixel.currentSeason = wanted;
       Pixel.setSeason(wanted);
       Pixel.setCaves(cavesOn());
+      Pixel.setMineLife(life);
       if (typeof scene !== 'undefined') scene.rebuild();
     }
     hauntSync();
@@ -147,6 +158,8 @@
     const decor = galerieOn() || (!app.me && !!settings.betaRefonte);
     root.toggleAttribute('data-galerie', decor);
     Galerie.setOn(decor, reducedMotion());
+    Galerie.setOptions({ descente: vieOn('vieDescente'), automne: autumnOn() });
+    if (window.Mole16) Mole16.setSeason(autumnOn() ? 'automne' : null);
     // Libellés de la refonte (courrier de la mine) ; on remet le texte d'origine quand elle est coupée.
     for (const [selector, label] of [['#msg-list-pane > h2', 'Courrier de la mine'], ['#form-msg-new button[type="submit"]', 'Écrire une lettre'], ['#form-msg-send button[type="submit"]', 'Expédier par wagonnet'], ['#view-admin .card > h2', 'Bureau du contremaître']]) {
       const node = document.querySelector(selector);
@@ -209,6 +222,7 @@
     $('hud-depth').textContent = Pixel.formatDepth(points);
     $('hud-zone').textContent = Pixel.zoneName(points);
   };
+  scene.onGallery = (kind, side) => Sound.gallery(kind, side * 0.6);
   scene.onDrill = (on, zone) => Sound.drill(on, zone, son16On() ? scene.drill16 : null);
   // Fin du forage : une fois dézoomé, on affiche la distance restante jusqu'au centre de la Terre.
   scene.onOverview = (progress) => {
@@ -317,6 +331,7 @@
     $('beta-box').hidden = !(app.me && app.me.isAdmin);
     $('refonte-box').hidden = $('beta-box').hidden;
     for (const name of REFONTE_FLAGS) settingsForm.elements[name].checked = !!settings[name];
+    for (const name of VIE_FLAGS) settingsForm.elements[name].checked = !!settings[name];
     const drillBox = $('refonte-drill16');
     if (drillBox.children.length === 1) {
       for (const m of Drills16.MODELS) drillBox.append(el('label', {}, el('input', { type: 'radio', name: 'betaDrill16', value: m.id }), ` ${m.nom}${m.quand ? ` (${m.quand})` : ''}`));
@@ -369,6 +384,7 @@
     settings.season = settingsForm.elements.season.checked;
     for (const name of BETA_FLAGS) settings[name] = settingsForm.elements[name].checked;
     for (const name of REFONTE_FLAGS) settings[name] = settingsForm.elements[name].checked;
+    for (const name of VIE_FLAGS) settings[name] = settingsForm.elements[name].checked;
     settings.betaDrill16 = settingsForm.elements.betaDrill16.value || '';
     for (const name of LAB_FLAGS) settings[name] = settingsForm.elements[name].checked;
     settings.labMusic = settingsForm.elements.labMusic.value || '';

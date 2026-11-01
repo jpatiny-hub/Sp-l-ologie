@@ -277,5 +277,86 @@
     });
   }
 
-  global.MineLife = { build, draw, EVENTS: EV };
+  // ---------- Réactions au forage : la foreuse traverse une galerie ----------
+  // Une seconde et demie au plus, pendant la descente (aucune attente ajoutée). La réaction dépend de la galerie (ses scènes),
+  // jamais de la réponse donnée : en duel, elle ne dit rien de la rareté.
+  const REACT_DUR = 1.4;
+  /** Réaction de la galerie `k` : wagon, canari, goutte, cailloux, taupe, mineur ou chauves (par défaut). */
+  function reactionFor(world, k) {
+    const ids = world.events.filter((e) => e.k === k).map((e) => e.id);
+    const has = (...a) => a.some((id) => ids.includes(id));
+    if (has('convoi', 'chariot')) return 'wagon';
+    if (has('taupe')) return 'taupe';
+    if (has('canari')) return 'canari';
+    if (has('goutte')) return 'goutte';
+    if (has('dynamite', 'eboulement')) return 'cailloux';
+    if (has('table', 'pioche', 'casse', 'arpenteur', 'lift')) return 'mineur';
+    return 'chauves';
+  }
+  function bubble(ctx, x, y, a) {
+    px(ctx, `rgba(255,255,255,${a})`, x - 2, y - 6, 5, 6); px(ctx, `rgba(255,255,255,${a})`, x - 1, y, 1, 1);
+    px(ctx, `rgba(200,60,40,${a})`, x, y - 5, 1, 3); px(ctx, `rgba(200,60,40,${a})`, x, y - 2, 1, 1);
+  }
+  const REACT = {
+    chauves(ctx, r, e, fade, cx, fy) {
+      for (let i = 0; i < 6; i++) {
+        const dir = i % 2 ? 1 : -1, sp = 30 + hash(i, r.ty, 3) * 40, lift = 8 + hash(i, r.ty, 4) * 14;
+        const x = cx + dir * (10 + sp * e), y = r.ty + 4 - lift * e + Math.sin(e * 20 + i) * 1.5, up = Math.floor(e * 24 + i) % 2;
+        px(ctx, `rgba(58,42,74,${fade})`, x - 1, y, 3, 2); px(ctx, `rgba(40,28,52,${fade})`, x - 3, y + (up ? -1 : 1), 2, 1); px(ctx, `rgba(40,28,52,${fade})`, x + 2, y + (up ? -1 : 1), 2, 1);
+      }
+    },
+    wagon(ctx, r, e, fade, cx, fy, t) {
+      // Le wagonnet arrive, freine dans une gerbe d'étincelles et s'arrête au bord du puits.
+      const k = Math.min(1, e / 0.7), stop = cx - r.side * 22, x = stop + r.side * -50 * (1 - k) * (1 - k);
+      wagonMini(ctx, x, fy, t, r.side, 0, false);
+      if (k < 1) for (let s = 0; s < 4; s++) px(ctx, s % 2 ? '#ffd36a' : '#ff7a2a', x - r.side * (4 + s * 2), fy - 1 - (s % 2) - Math.floor(e * 30 + s) % 2);
+    },
+    mineur(ctx, r, e, fade, cx, fy) {
+      const x = cx + r.side * 16 - 2, jump = e < 0.35 ? Math.round(Math.sin((e / 0.35) * Math.PI) * 3) : 0;
+      person(ctx, x, fy - jump, '#8c3a28', 'stand', r.side < 0, 0);
+      if (e > 0.15) bubble(ctx, x + 2, fy - 11 - jump, fade);
+    },
+    taupe(ctx, r, e, fade, cx, fy) {
+      const x = cx + r.side * 16 - 3, hop = Math.floor(e * 8) % 2;
+      const M = ['.yyy..', 'bbbbb.', 'bwbbbp', 'ooooo.', 'b...b.'];
+      const C = { y: '#e9b422', b: '#6b4a32', w: '#fff', p: '#e59aa0', o: '#e8732a' };
+      M.forEach((row, j) => [...row].forEach((ch, i) => { if (C[ch]) px(ctx, C[ch], r.side < 0 ? x + i : x + 5 - i, fy - 5 + j - hop); }));
+      if (e > 0.15) bubble(ctx, x + 3, fy - 8 - hop, fade);
+    },
+    canari(ctx, r, e, fade, cx) {
+      const x = cx + r.side * (6 + e * 45), y = r.ty + 6 - e * 10 + Math.sin(e * 18) * 2, up = Math.floor(e * 20) % 2;
+      px(ctx, '#ffe04a', x, y, 2, 2); px(ctx, '#ff9a3c', x + (r.side > 0 ? 2 : -1), y);
+      px(ctx, '#e8c020', x - 1, y + (up ? -1 : 1)); px(ctx, '#e8c020', x + 2, y + (up ? -1 : 1));
+      px(ctx, `rgba(255,242,176,${fade})`, x - r.side * 4, y - 3);
+    },
+    goutte(ctx, r, e, fade, cx, fy) {
+      for (let i = 0; i < 8; i++) {
+        const dir = i % 2 ? 1 : -1, vx = 14 + hash(i, r.ty, 6) * 22, vy = -26 - hash(i, r.ty, 7) * 18;
+        const x = cx + dir * (9 + vx * e), y = fy - 2 + vy * e + 60 * e * e;
+        if (y < fy) px(ctx, `rgba(150,210,255,${fade})`, x, y);
+      }
+      px(ctx, `rgba(120,180,240,${0.6 * fade})`, cx - 16, fy - 1, 6, 1); px(ctx, `rgba(120,180,240,${0.6 * fade})`, cx + 11, fy - 1, 6, 1);
+    },
+    cailloux(ctx, r, e, fade, cx, fy) {
+      for (let i = 0; i < 6; i++) {
+        const x = cx + (i % 2 ? 1 : -1) * (10 + hash(i, r.ty, 8) * 14), d = Math.max(0, e - i * 0.08);
+        const y = Math.min(fy - 2, r.ty + 2 + 90 * d * d);
+        px(ctx, r.tier ? r.tier.rock[3] : '#8a7a68', x, y, 2, 2);
+      }
+    },
+  };
+  /** Dessine la réaction `r` ({ ty, kind, side, tier }) `e` secondes après le passage ; repère du monde, puits au centre. */
+  function react(ctx, r, e, t) {
+    if (e < 0 || e > REACT_DUR) return;
+    const fade = 1 - e / REACT_DUR, cx = W / 2, fy = r.ty + TH - 3;
+    // Commun à toutes : bouffée de poussière qui sort du puits, lanternes qui vacillent.
+    for (let i = 0; i < 10; i++) {
+      const dir = i % 2 ? 1 : -1, d = 4 + e * (16 + i * 3);
+      px(ctx, `rgba(200,180,150,${0.5 * fade})`, cx + dir * (10 + d), fy - 2 - (i % 4) - e * 3, 2, 2);
+    }
+    glow(ctx, cx, fy - 6, 34, '255,200,110', 0.3 * fade);
+    (REACT[r.kind] || REACT.chauves)(ctx, r, e, fade, cx, fy, t);
+  }
+
+  global.MineLife = { build, draw, EVENTS: EV, reactionFor, react, REACT_DUR, REACTIONS: Object.keys(REACT), TH };
 })(window);

@@ -541,6 +541,37 @@
       }
     },
 
+    /**
+     * La foreuse traverse une galerie (vie de mine) : un bruit court et discret par réaction, placé du côté où elle se joue
+     * (`pan` de -1 à 1), avec l'écho de la grotte. Toujours le même bruit pour une galerie donnée : rien sur la réponse.
+     */
+    gallery(kind, pan = 0) {
+      if (!ready()) return;
+      const p = Math.max(-1, Math.min(1, pan));
+      const out = { pan: p, wet: 0.3 };
+      burst({ dur: 0.35, freq: 380, to: 160, gain: 0.12, ...out }); // souffle de poussière, commun à toutes
+      if (kind === 'chauves') {
+        for (let i = 0; i < 7; i++) burst({ at: 0.05 + i * 0.07, dur: 0.05, freq: 1800 + Math.random() * 900, type: 'bandpass', q: 3, gain: 0.07, bright: true, pan: p * (0.4 + i * 0.09) });
+        tone(5200, { at: 0.12, dur: 0.05, type: 'sine', gain: 0.012, to: 6400, ...out });
+      } else if (kind === 'wagon') {
+        tone(1650, { at: 0.05, dur: 0.5, type: 'sawtooth', gain: 0.018, to: 1250, ...out }); // freins qui crissent
+        burst({ at: 0.05, dur: 0.55, freq: 2600, type: 'bandpass', q: 5, gain: 0.05, bright: true, ...out });
+        ping(330, { at: 0.62, dur: 0.35, gain: 0.05, ...out }); // le wagon cogne la butée
+      } else if (kind === 'mineur') {
+        tone(520, { at: 0.12, dur: 0.1, type: 'triangle', gain: 0.06, to: 760, ...out }); // « oh ! »
+        ping(1200, { at: 0.3, dur: 0.3, gain: 0.03, ...out }); // la lanterne qui tinte
+      } else if (kind === 'taupe') {
+        tone(620, { at: 0.1, dur: 0.08, type: 'triangle', gain: 0.07, to: 700, ...out });
+        tone(740, { at: 0.22, dur: 0.12, type: 'triangle', gain: 0.07, to: 1000, ...out });
+      } else if (kind === 'canari') {
+        [0, 1, 2, 3].forEach((i) => tone(2600 + (i % 2) * 500, { at: 0.08 + i * 0.07, dur: 0.05, type: 'sine', gain: 0.03, to: 3300 + (i % 2) * 400, ...out }));
+      } else if (kind === 'goutte') {
+        [0, 1, 2].forEach((i) => tone(900 + i * 260, { at: 0.06 + i * 0.11, dur: 0.07, type: 'sine', gain: 0.045, to: 1900 + i * 300, ...out }));
+      } else if (kind === 'cailloux') {
+        for (let i = 0; i < 6; i++) burst({ at: 0.1 + i * 0.08 + Math.random() * 0.04, dur: 0.04, freq: 900 + Math.random() * 700, type: 'bandpass', q: 4, gain: 0.12, ...out });
+      }
+    },
+
     /** Un feu d'artifice seul, placé de -1 (gauche) à 1 (droite) : pour l'accorder à une animation. */
     firework(pan = 0, big = false) {
       if (!ready()) return;

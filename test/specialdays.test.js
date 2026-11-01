@@ -46,7 +46,7 @@ test('jours spéciaux : une entrée incomplète est ignorée, une saison se calc
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-test('saisons : Halloween du 24 octobre à 2 h au 31 octobre, Toussaint le 1er novembre', () => {
+test('saisons : Halloween du 24 octobre à 2 h au 31 octobre, Toussaint le 1er novembre, automne ensuite jusqu\'au 30 novembre', () => {
   const { SEASONS } = require('../src/config');
   const { dayKey } = require('../src/dates');
   const at = (...utc) => seasonFor(dayKey(Date.UTC(...utc)), SEASONS);
@@ -55,5 +55,8 @@ test('saisons : Halloween du 24 octobre à 2 h au 31 octobre, Toussaint le 1er n
   assert.equal(at(2026, 9, 31, 12, 0), 'halloween');
   assert.equal(at(2026, 10, 1, 0, 59), 'halloween', '1 h 59 le 1er novembre (UTC+1) : toujours le 31');
   assert.equal(at(2026, 10, 1, 1, 0), 'toussaint', '2 h le 1er novembre : Toussaint');
-  assert.equal(at(2026, 10, 2, 1, 0), null, '2 h le 2 novembre : retour au décor habituel');
+  assert.equal(at(2026, 10, 2, 0, 59), 'toussaint', '1 h 59 le 2 novembre : encore la Toussaint');
+  assert.equal(at(2026, 10, 2, 1, 0), 'automne', '2 h le 2 novembre : l\'automne commence');
+  assert.equal(at(2026, 10, 30, 12, 0), 'automne');
+  assert.equal(at(2026, 11, 1, 1, 0), null, '2 h le 1er décembre : retour au décor habituel');
 });

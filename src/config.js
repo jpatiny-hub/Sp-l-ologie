@@ -27,6 +27,8 @@ module.exports = {
   SEASONS: [
     { id: 'halloween', from: '2026-10-24', to: '2026-10-31' },
     { id: 'toussaint', from: '2026-11-01', to: '2026-11-01' },
+    // Automne : calque de la refonte (feuilles, champignons, écharpe de la taupe), sans décor de l'ancien style.
+    { id: 'automne', from: '2026-11-02', to: '2026-11-30' },
   ],
   // Jours aux thèmes imposés (par exemple Halloween) : voir data/special-days.json.
   // Jours de collection de crânes : les raretés deviennent des crânes et chaque réponse enrichit la collection du joueur.

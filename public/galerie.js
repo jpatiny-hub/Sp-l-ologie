@@ -19,6 +19,8 @@
   let started = 0;
   let raf = 0;
   let cave = null; // monde des grottes, construit pour une graine donnée
+  let descente = false; // essai : descente continue avec haltes aux galeries, au lieu d'un palier toutes les 14 s
+  let automne = false; // essai : calque d'automne (feuilles, champignons, lumière chaude)
 
   /** Construit le monde des grottes avec l'ambiance actuelle de caves.js (sans toucher à la graine du forage). */
   function buildCave() {
@@ -45,7 +47,92 @@
     for (const c of global.Caves.seed()) num = (Math.imul(num, 31) + c.charCodeAt(0)) | 0;
     const life = global.MineLife ? global.MineLife.build({ ...dims, data: img.data, set, seed: num }) : null;
     ctx.putImageData(img, 0, 0);
-    return { seed: global.Caves.seed(), dims, world, life, anim: built.anim, back: global.Caves.backdrop(dims), front: global.Caves.foreground(dims) };
+    return { seed: global.Caves.seed(), dims, world, life, anim: built.anim, back: global.Caves.backdrop(dims), front: global.Caves.foreground(dims), paths: new Map() };
+  }
+
+  // ---------- Descente continue : de l'ossuaire au cœur prismatique, avec un arrêt à chaque galerie habitée ----------
+  const SPEED = 14; // pixels de décor par seconde
+  const HALT = 3; // secondes d'arrêt devant une galerie
+  const FADE = 1.2; // fondu au noir avant de remonter
+  /** Trajet de la caméra pour une hauteur d'écran : étapes { from, to, dur } (descente), { at, dur } (halte) ou { fade, dur }. */
+  function pathFor(h) {
+    if (cave.paths.has(h)) return cave.paths.get(h);
+    const { SKY, WORLD_H } = cave.dims;
+    const top = SKY + 4, bottom = WORLD_H - h;
+    const legs = [];
+    let pos = top;
+    for (const tu of cave.life ? cave.life.tunnels : []) {
+      const at = Math.round(tu.ty - h * 0.42);
+      if (at <= pos || at >= bottom) continue;
+      legs.push({ from: pos, to: at, dur: (at - pos) / SPEED }, { at, dur: HALT });
+      pos = at;
+    }
+    legs.push({ from: pos, to: bottom, dur: Math.max(0, bottom - pos) / SPEED }, { at: bottom, dur: HALT }, { at: bottom, fade: true, dur: FADE });
+    const path = { legs, total: legs.reduce((n, l) => n + l.dur, 0), top };
+    cave.paths.set(h, path);
+    return path;
+  }
+  /** Hauteur de caméra et fondu (0 → 1 → 0) au temps `sec` du trajet. */
+  function descentAt(sec, h) {
+    const path = pathFor(h);
+    let r = sec % path.total;
+    for (const l of path.legs) {
+      if (r < l.dur) {
+        if (l.fade) return { cam: l.at, dark: Math.sin((r / l.dur) * Math.PI) };
+        if (l.at !== undefined) return { cam: l.at, dark: 0 };
+        return { cam: Math.round(l.from + (l.to - l.from) * (r / l.dur)), dark: 0 };
+      }
+      r -= l.dur;
+    }
+    return { cam: path.top, dark: 0 };
+  }
+
+  // ---------- Calque d'automne : posé par-dessus le décor, sans le modifier ----------
+  const LEAF = ['#d9622b', '#e8a33a', '#b8452a', '#c9782c', '#f2c14e', '#8c3a1e'];
+  const hash = (a, b, c) => { let n = Math.imul(a * 374761393 + b * 668265263 + c * 2246822519, 3266489917); n ^= n >>> 15; n = Math.imul(n, 2246822519); n ^= n >>> 13; return ((n >>> 0) % 10000) / 10000; };
+  /** Champignons (un sur trois luit) et feuilles mortes sur le sol des galeries ; repère du monde. */
+  function autumnFloor(g, time, cam, h) {
+    if (!cave.life) return;
+    const TH = global.MineLife.TH || 16;
+    cave.life.tunnels.forEach((tu, k) => {
+      const fy = tu.ty + TH - 4;
+      if (fy < cam - 20 || fy > cam + h + 20) return;
+      for (let x = 0; x < cave.dims.W; x++) if (hash(x, k, 41) > 0.83) { g.fillStyle = LEAF[Math.floor(hash(x, k, 42) * LEAF.length)]; g.fillRect(x, fy, 1, 1); }
+      for (let i = 0; i < 4; i++) {
+        const x0 = 6 + Math.floor(hash(k, i, 31) * (cave.dims.W - 12)), kind = (k + i) % 3, n = 1 + Math.floor(hash(k, i, 32) * 3);
+        for (let j = 0; j < n; j++) {
+          const x = x0 + j * 4 - n * 2, tall = j % 2 ? 2 : 3, y = fy - tall;
+          if (kind === 0) {
+            const a = calm ? 0.3 : 0.25 + 0.15 * Math.sin(time * 1.6 + x);
+            const gl = g.createRadialGradient(x + 1.5, y, 0, x + 1.5, y, 9);
+            gl.addColorStop(0, `rgba(120,255,200,${a})`); gl.addColorStop(1, 'rgba(120,255,200,0)');
+            g.fillStyle = gl; g.fillRect(x - 8, y - 9, 19, 18);
+          }
+          g.fillStyle = '#e8dcc0'; g.fillRect(x + 1, y + 1, 1, tall + 1);
+          const cap = kind === 0 ? ['#7dffcf', '#3fbf96'] : kind === 1 ? ['#e0452a', '#9c2a18'] : ['#d99a4a', '#8c5a2b'];
+          g.fillStyle = cap[1]; g.fillRect(x - 1, y, 5, 2);
+          g.fillStyle = cap[0]; g.fillRect(x, y - 1, 3, 2);
+          if (kind === 1) { g.fillStyle = '#fff4e0'; g.fillRect(x, y, 1, 1); g.fillRect(x + 3, y + 1, 1, 1); }
+        }
+      }
+    });
+  }
+  /** Lumière plus chaude et feuilles qui tombent par les puits d'aération ; repère de l'écran. */
+  function autumnAir(g, time, w, h) {
+    g.save();
+    g.globalCompositeOperation = 'soft-light';
+    g.fillStyle = 'rgba(255,150,60,0.35)';
+    g.fillRect(0, 0, w, h);
+    g.restore();
+    if (calm) return;
+    for (let i = 0; i < 16; i++) {
+      const sp = 9 + hash(i, 5, 6) * 9, ph = hash(i, 7, 8) * 6.28;
+      const y = Math.round(((hash(i, 3, 4) * h + time * sp) % (h + 10)) - 5);
+      const x = Math.round((hash(i, 1, 2) * w + Math.sin(time * 1.3 + ph) * 6 + w) % w);
+      const flip = Math.sin(time * 3 + ph) > 0;
+      g.fillStyle = LEAF[i % LEAF.length];
+      if (i % 3 === 0) { g.fillRect(x, y, flip ? 3 : 2, 2); g.fillRect(x + 1, y + 2, 1, 1); } else g.fillRect(x, y, flip ? 2 : 1, 1);
+    }
   }
 
   const tierCount = () => global.Caves.TIERS.length - FIRST;
@@ -58,11 +145,17 @@
     const h = canvas.height;
     const el = Math.max(0, now - started);
     const time = calm ? 3 : el / 1000;
-    const scene = Math.floor((calm ? 0 : el) / SCENE_MS);
-    const tier = global.Caves.TIERS[FIRST + (scene % tierCount())];
-    const since = calm ? 0 : (el % SCENE_MS) / 1000;
-    // Toujours sous la surface (pas de ciel au-dessus de l'ossuaire).
-    const cam = Math.max(dims.SKY + 4, Math.min(dims.WORLD_H - h, Math.round(dims.SKY + tier.from * dims.PPP - h / 3 + since * DRIFT)));
+    let cam, dark = 0, tier;
+    if (descente) {
+      ({ cam, dark } = descentAt(calm ? 0 : el / 1000, h));
+      tier = global.Caves.TIERS[global.Caves.tierIndex(Math.max(0, (cam + h / 2 - dims.SKY) / dims.PPP))];
+    } else {
+      const scene = Math.floor((calm ? 0 : el) / SCENE_MS);
+      tier = global.Caves.TIERS[FIRST + (scene % tierCount())];
+      const since = calm ? 0 : (el % SCENE_MS) / 1000;
+      // Toujours sous la surface (pas de ciel au-dessus de l'ossuaire).
+      cam = Math.max(dims.SKY + 4, Math.min(dims.WORLD_H - h, Math.round(dims.SKY + tier.from * dims.PPP - h / 3 + since * DRIFT)));
+    }
     const g = canvas.getContext('2d');
     g.imageSmoothingEnabled = false;
     g.fillStyle = tier.dark;
@@ -73,9 +166,12 @@
     g.translate(0, -cam);
     global.Caves.drawAnim(g, cave.anim, time, cam, h, calm);
     if (cave.life) global.MineLife.draw(g, cave.life, time, cam, h, calm);
+    if (automne) autumnFloor(g, time, cam, h);
     g.restore();
     global.Caves.drawFront(g, cave.front, cam, h, time);
     global.Caves.drawAir(g, dims, cam, h, time, calm);
+    if (automne) autumnAir(g, time, canvas.width, h);
+    if (dark > 0) { g.fillStyle = `rgba(0,0,0,${dark})`; g.fillRect(0, 0, canvas.width, h); }
     if (!calm && !document.hidden) raf = requestAnimationFrame(frame);
   }
   function kick() {
@@ -83,6 +179,15 @@
     kickWagons();
   }
   document.addEventListener('visibilitychange', kick);
+
+  /** Essais : `descente` (caméra continue avec haltes) et `automne` (calque de saison). */
+  function setOptions(o = {}) {
+    const next = { descente: !!o.descente, automne: !!o.automne };
+    if (next.descente !== descente) started = performance.now();
+    descente = next.descente;
+    automne = next.automne;
+    if (running && calm && !raf) raf = requestAnimationFrame(frame); // image fixe : la redessiner avec les nouvelles options
+  }
 
   /** Active ou coupe le fond ; `reduced` fige le décor sur une image fixe. */
   function setOn(on, reduced) {
@@ -308,5 +413,5 @@
     started = performance.now() - n * SCENE_MS - 2000;
   }
 
-  global.Galerie = { setOn, showTier, drawRescue, playRescue, snapshot, mountWagon, departWagon, resetWagon, get TIER_COUNT() { return tierCount(); } };
+  global.Galerie = { setOn, setOptions, showTier, drawRescue, playRescue, snapshot, mountWagon, departWagon, resetWagon, get TIER_COUNT() { return tierCount(); } };
 })(window);
