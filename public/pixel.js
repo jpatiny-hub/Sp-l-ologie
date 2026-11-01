@@ -1150,7 +1150,7 @@
       this.world = buildWorld();
       this.layers = [];
       this.skin = { body: 'classique', bit: 'standard' };
-      this.drill16 = null; // foreuse 16-bit à l'essai (refonte, responsable seulement)
+      this.drill16 = null; // foreuse 16-bit du joueur (refonte) : modèle ou « style/blindage/foret », voir drills16.js
       this.drill16At = null; // sa position dans l'image en cours, dessinée par `present`
       this.avatar = null;
       this.depth = 0;
@@ -1191,7 +1191,7 @@
       if (this.drill16At) this.drawDrill16(this.dctx, this.drill16At);
     }
 
-    /** Foreuse 16-bit (essai du responsable) : visage du joueur dans le hublot. */
+    /** Foreuse 16-bit : visage du joueur dans le hublot. */
     drawDrill16(ctx, d) {
       const hub = global.Drills16.draw(ctx, d.id, { tipX: (d.x0 + 8) * 2, tipY: d.tip * 2, px: 1, time: d.time, drilling: d.drilling, view: { w: W * 2, h: this.h * 2 }, calm: reducedMotion() });
       if (!hub || !d.face) return;
@@ -1425,7 +1425,10 @@
 
       const yTip = Math.round(Y(tip));
       const yCore = Math.round(Y(SKY + MAX_POINTS * PPP + 6));
-      if (sy > 0.45) drawDrill(ctx, this.skin, W / 2 - 8, yTip, time, false);
+      if (sy > 0.45) {
+        if (this.drill16 && global.Drills16) this.drill16At = { id: this.drill16, x0: W / 2 - 8, tip: yTip, time, drilling: false, face: null };
+        else drawDrill(ctx, this.skin, W / 2 - 8, yTip, time, false);
+      }
       const show = Math.max(0, Math.min(1, (p - 0.55) / 0.45));
       if (show > 0) {
         ctx.save();

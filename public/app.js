@@ -102,6 +102,9 @@
   const galerieOn = () => refonteOn('betaGalerie');
   /** Sons 16-bit : un bruit par minerai, wagonnet, taupe, onglets, foreuses spéciales et célébrations. */
   const son16On = () => refonteOn('betaSon16');
+  /** Foreuses 16-bit : celle que le joueur compose dans l'Atelier (le responsable peut en essayer une autre dans les réglages). */
+  const drill16On = () => !!(refonteOn('betaDrill16') && window.Drills16);
+  const myDrill16 = () => (app.me && app.me.isAdmin && settings.betaDrill16) || (drill16On() ? app.drill16 || null : null);
   /** Fêtes de podium en 16 bits (semaine, mois) et Gazette sur plan de mine. */
   /** Défis en galeries de mine 16 bits (« Ton filon », « Galerie commune »). */
   const defisOn = () => !!(refonteOn('betaDefis') && window.Defis16);
@@ -164,7 +167,7 @@
       const open = document.querySelector('#auth-mascot .m-open');
       if (open && !open.dataset.drawn) { open.dataset.drawn = '1'; Mole16.draw(open, 'happy', { x: 0, y: 0 }); }
     }
-    if (typeof scene !== 'undefined') scene.drill16 = app.me && app.me.isAdmin && settings.betaDrill16 ? settings.betaDrill16 : null;
+    if (typeof scene !== 'undefined') scene.drill16 = myDrill16();
     placeChallenge();
     root.classList.toggle('colorblind', settings.colors !== 'normal');
     if (settings.colors === 'normal') delete root.dataset.colors;
@@ -1063,7 +1066,9 @@
     applySettings();
     app.game = null;
     app.skin = me.skin;
+    app.drill16 = me.drill16 || null;
     scene.setSkin(me.skin);
+    scene.drill16 = myDrill16();
     showMyAvatar();
     setTimerSeconds(app.me.timerSeconds);
     $('who').textContent = app.me.user.username;
@@ -4026,6 +4031,7 @@
       const profile = await api('/api/profile');
       app.profile = profile;
       app.skin = profile.skin;
+      if (profile.drill16) app.drill16 = profile.drill16;
       renderProfile(profile);
       show('profile');
       initFolds();
@@ -4928,7 +4934,105 @@
     Pixel.drawDrill(ctx, skin, Math.floor(canvas.width / 2) - 8, canvas.height - 2, time, drilling);
   }
 
+  // ---------- Atelier 16-bit : carrosserie, blindage et foret à combiner, ou foreuse de fête toute faite ----------
+  const A16_BASE = 'chantier/aucun/spirale';
+  const isComposed = (spec) => typeof spec === 'string' && spec.split('/').length === 3;
+  /** Pièces de la dernière foreuse composée (on y revient en touchant une pièce après un modèle de fête). */
+  const a16Parts = () => {
+    const spec = isComposed(app.drill16) ? app.drill16 : prof.a16Last || A16_BASE;
+    const [style, armor, bit] = spec.split('/');
+    return { style, armor, bit };
+  };
+  function a16Label(spec) {
+    if (!spec || !window.Drills16) return { name: '', detail: '' };
+    if (isComposed(spec)) {
+      const [style, armor, bit] = spec.split('/');
+      const nom = (list, id) => (list.find((x) => x.id === id) || {}).nom || id;
+      const st = Drills16.PARTS.styles.find((x) => x.id === style) || {};
+      return { name: st.nom || style, detail: `${armor === 'aucun' ? 'Sans blindage' : nom(Drills16.PARTS.armors, armor)} · ${nom(Drills16.PARTS.bits, bit)}` };
+    }
+    const f = Drills16.FETES.find((x) => x.id === spec) || Drills16.MODELS.find((x) => x.id === spec) || {};
+    return { name: f.nom || spec, detail: f.effet || '' };
+  }
+
+  function renderAtelier16() {
+    const cat = app.profile && app.profile.drillCatalog;
+    if (!cat || !window.Drills16) return;
+    const current = app.drill16 || A16_BASE;
+    const parts = a16Parts();
+    const label = a16Label(current);
+    $('a16-name').textContent = label.name;
+    $('a16-detail').textContent = label.detail;
+    const tile = (spec, item, selected, extra, onPick) => {
+      const thumb = el('canvas', { class: 'a16-thumb', width: '36', height: '54', 'aria-hidden': 'true' });
+      Drills16.thumb(thumb, spec);
+      const button = el(
+        'button',
+        { type: 'button', class: `skin${item.unlocked ? '' : ' locked'}${selected ? ' selected' : ''}`, 'aria-pressed': String(selected), title: item.unlocked ? item.name : item.hint || item.name },
+        thumb,
+        el('span', {}, item.unlocked ? item.name : `🔒 ${item.name}`),
+        ...(extra ? [el('span', { class: 'when' }, extra)] : []),
+      );
+      button.addEventListener('click', () => onPick());
+      return button;
+    };
+    const composedNow = isComposed(current);
+    const pieceGrid = (key, list, target) => {
+      target.replaceChildren(
+        ...list.map((item) => {
+          const spec = Object.values({ ...parts, [key]: item.id }).join('/');
+          return tile(spec, item, composedNow && parts[key] === item.id, null, () => chooseDrill16(spec, item));
+        }),
+      );
+    };
+    pieceGrid('style', cat.styles, $('a16-styles'));
+    pieceGrid('armor', cat.armors, $('a16-armors'));
+    pieceGrid('bit', cat.bits, $('a16-bits'));
+    const locked = cat.models.filter((m) => !m.unlocked).length;
+    const models = prof.a16AllModels ? cat.models : cat.models.filter((m) => m.unlocked);
+    $('a16-models').replaceChildren(
+      ...models.map((m) => {
+        const f = Drills16.FETES.find((x) => x.id === m.id) || {};
+        return tile(m.id, m, current === m.id, f.quand || null, () => chooseDrill16(m.id, m));
+      }),
+    );
+    if (!models.length) $('a16-models').append(el('p', { class: 'muted small' }, 'Aucune pour l\'instant : elles se gagnent les jours de fête et avec certains badges.'));
+    const toggle = $('a16-toggle');
+    toggle.hidden = !locked;
+    toggle.textContent = prof.a16AllModels ? 'Masquer les foreuses à gagner' : `Voir les ${locked} foreuses à gagner`;
+  }
+  $('a16-toggle').addEventListener('click', () => {
+    prof.a16AllModels = !prof.a16AllModels;
+    renderAtelier16();
+  });
+
+  async function chooseDrill16(spec, item) {
+    const status = $('a16-status');
+    if (!item.unlocked) {
+      status.textContent = `${item.name} : ${item.hint || 'pas encore débloqué.'}`;
+      return;
+    }
+    try {
+      const res = await api('/api/profile/drill16', { drill: spec });
+      if (isComposed(app.drill16)) prof.a16Last = app.drill16;
+      app.drill16 = res.drill16;
+      app.profile.drill16 = res.drill16;
+      if (isComposed(res.drill16)) prof.a16Last = res.drill16;
+      scene.drill16 = myDrill16();
+      status.textContent = `C'est monté : ${a16Label(res.drill16).name}.`;
+      Sound.reveal();
+      renderAtelier16();
+    } catch (err) {
+      status.textContent = err.message;
+    }
+  }
+
   function renderWorkshop() {
+    const a16 = drill16On() && !!(app.profile && app.profile.drillCatalog);
+    $('atelier16').hidden = !a16;
+    $('workshop-old').hidden = a16;
+    $('skin-status').hidden = a16;
+    if (a16) renderAtelier16();
     const NAMES = { body: 'carrosseries', bit: 'forets', timer: 'chronos' };
     const filtered = (type, list) => (betaOn('betaProfil') && !prof.locked[type] ? list.filter((s) => s.unlocked) : list);
     // Lien « Voir celles à gagner » sous chaque liste (nouveau profil seulement).
@@ -4961,8 +5065,7 @@
     grid('bit', app.profile.bits, $('skin-bits'));
     // Chrono : aperçu du décompte à 18 secondes.
     const current = app.skin.timer || 'batterie';
-    $('skin-timers').replaceChildren(
-      ...filtered('timer', app.profile.timers).map((t) => {
+    const timerButtons = () => filtered('timer', app.profile.timers).map((t) => {
         const thumb = el('canvas', { class: 'skin-thumb timer', width: '96', height: '20' });
         Timers.draw(thumb, t.id, 18, 30, 0, settings.colors, true);
         const selected = t.id === current;
@@ -4974,8 +5077,10 @@
         );
         button.addEventListener('click', () => chooseSkin('timer', t));
         return button;
-      }),
-    );
+      });
+    $('skin-timers').replaceChildren(...timerButtons());
+    // Le chrono garde ses apparences dans l'Atelier 16-bit.
+    $('a16-timers').replaceChildren(...timerButtons());
   }
 
   document.querySelectorAll('.wk-toggle').forEach((b) =>
@@ -4998,11 +5103,31 @@
       app.profile.skin = res.skin;
       scene.setSkin(res.skin);
       status.textContent = `C'est monté : ${s.name}.`;
+      if (type === 'timer') $('a16-status').textContent = status.textContent;
       Sound.reveal();
       renderWorkshop();
     } catch (err) {
       status.textContent = err.message;
     }
+  }
+
+  /** Vitrine de l'Atelier 16-bit : la foreuse tourne, avec son effet, et le visage du joueur dans le hublot. */
+  function draw16(time) {
+    const c = $('a16-preview');
+    const x = c.getContext('2d');
+    x.clearRect(0, 0, c.width, c.height);
+    const spec = app.drill16 || A16_BASE;
+    const shake = reducedMotion() ? 0 : Math.round(Math.sin(time * 60) * 0.6);
+    const hub = Drills16.draw(x, spec, { tipX: c.width / 2 - 1 + shake, tipY: c.height - 2, px: 1, time, drilling: !reducedMotion(), view: { w: c.width, h: c.height }, calm: reducedMotion() });
+    const face = hub && app.me && app.me.avatar && app.me.avatar.lieu === 'hublot' && window.Avatar ? Avatar.sprite(app.me.avatar) : null;
+    if (!face) return;
+    x.save();
+    x.beginPath();
+    x.arc(hub.cx, hub.cy, hub.r, 0, 7);
+    x.clip();
+    x.imageSmoothingEnabled = false;
+    x.drawImage(face, 5, Avatar.OY + 1, 6, 5, hub.cx - hub.r, hub.cy - hub.r * 0.85, hub.r * 2, hub.r * 1.7);
+    x.restore();
   }
 
   // Aperçu animé de la foreuse, tant que le carnet est affiché.
@@ -5018,6 +5143,7 @@
         return;
       }
       const time = t / 1000;
+      if (drill16On() && !$('atelier16').hidden) draw16(time);
       ctx.fillStyle = '#3a2414';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#24160c';
@@ -6334,6 +6460,7 @@
       canvas.style.width = `${Pixel.WIDTH * scale}px`;
       canvas.style.height = `${duelScenes[i].h * scale}px`;
       duelScenes[i].setSkin(i ? result.b.skin : result.a.skin);
+      duelScenes[i].drill16 = drill16On() ? (i ? result.b.drill16 : result.a.drill16) || null : null;
       duelScenes[i].setAvatar(i ? result.b.avatar : result.a.avatar);
       duelScenes[i].setLayers([], false);
     });

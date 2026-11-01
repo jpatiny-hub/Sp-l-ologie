@@ -2,6 +2,7 @@
 
 const { addDays, weekStart, monthStart, addMonths, monthEnd } = require('./dates');
 const { tierFor } = require('./scoring');
+const Drills = require('./drills');
 
 /*
  * Récap du lundi : « La Gazette de la mine ». Le premier jour de la nouvelle semaine, chaque joueur voit le bilan
@@ -79,12 +80,11 @@ function markRecapSeen(db, userId, week) {
 }
 
 /** Bilan d'une période (jour, semaine ou mois) : podium, records, moments forts et statistiques du joueur. */
-/**
- * Premier du classement, avec sa foreuse 16 bits pour la fête du mois. Tant que les joueurs n'ont pas de foreuse à personnaliser,
- * `drill` reste nul et la fête prend la foreuse par défaut ; il suffira de le remplir plus tard.
- */
+/** Premier du classement, avec sa foreuse 16 bits (Atelier) pour la fête du mois. */
 function championOf(db, entry) {
-  return entry ? { ...entry, drill: null } : null;
+  if (!entry) return null;
+  const u = db.prepare('SELECT skin_body, skin_bit, drill16 FROM users WHERE username = ?').get(entry.username);
+  return { ...entry, drill: u ? Drills.drillOf(u) : null };
 }
 
 function periodRecap(game, kind, from, userId) {

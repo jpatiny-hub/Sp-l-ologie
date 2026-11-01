@@ -12,6 +12,7 @@ const { HttpError } = require('./src/errors');
 const { msUntilNextDay, isDay, addDays: addDaysIso, weekStart: weekStartIso } = require('./src/dates');
 const auth = require('./src/auth');
 const Avatar = require('./src/avatar');
+const Drills = require('./src/drills');
 const { collectiveStatus } = require('./src/collective');
 const { scheduleBackups, snapshotBeforeStart, backupNow } = require('./src/backup');
 const { ErrorLog, healthReport } = require('./src/health');
@@ -446,12 +447,13 @@ function createApp({
       if (!user) return json(res, 200, { user: null });
       game.badges.awardPodiums(game.today());
       const refonte = refonteLive();
-      const row = db.prepare('SELECT skin_body, skin_bit, skin_timer, news_seen, avatar, tutorial_seen FROM users WHERE id = ?').get(user.id);
+      const row = db.prepare('SELECT skin_body, skin_bit, skin_timer, drill16, news_seen, avatar, tutorial_seen FROM users WHERE id = ?').get(user.id);
       json(res, 200, {
         user: userView(user),
         isAdmin: isAdmin(user),
         refonte,
         skin: game.badges.skinOf(row),
+        drill16: Drills.drillOf(row),
         avatar: Avatar.normalize(row.avatar, user.id),
         unseenBadges: game.badges.unseenCount(user.id),
         news: unseenNews(row.news_seen, refonte),
@@ -655,6 +657,13 @@ function createApp({
       const { body, bit, timer } = await readJson(req);
       if (!game.badges.setSkin(user.id, game.today(), { body, bit, timer })) throw new HttpError(403, 'Cette apparence n\'est pas encore débloquée.');
       json(res, 200, { skin: game.badges.skinOf(db.prepare('SELECT skin_body, skin_bit, skin_timer FROM users WHERE id = ?').get(user.id)) });
+    },
+
+    'POST /api/profile/drill16': async (req, res) => {
+      const user = requireUser(req, res);
+      const { drill } = await readJson(req);
+      if (!game.badges.setDrill16(user.id, game.today(), drill)) throw new HttpError(403, 'Cette pièce n\'est pas encore débloquée.');
+      json(res, 200, { drill16: drill });
     },
 
     // Avatar : l'enregistrement refuse les éléments pas encore débloqués.

@@ -293,8 +293,8 @@
     const ground = 204;
     const cols = [[2, 46, 38, ['#e6ecf5', '#bcc6d6', '#8592a8'], 1], [1, 100, 62, ['#ffe0ff', '#e59cff', '#b45ee8'], 0], [3, 154, 26, ['#ffd0a8', '#e8925a', '#b85d2c'], 2]];
     const colors = ['#e59cff', '#ffd84a', '#5ee0ff', '#ffffff', '#ff8ad6'];
-    // Foreuse de la gagnante : celle qu'elle a personnalisée (`hooks.drill`, quand elle existera), sinon la foreuse par défaut.
-    const model = global.Drills16 && Drills16.MODELS.some((m) => m.id === hooks.drill) ? hooks.drill : 'bourdon';
+    // Foreuse de la gagnante : celle de son Atelier (`hooks.drill`), sinon la foreuse de base.
+    const model = global.Drills16 && Drills16.has(hooks.drill) ? hooks.drill : 'chantier/aucun/spirale';
     let shown = false;
     return (t) => {
       const light = clamp01(t / 1.2);

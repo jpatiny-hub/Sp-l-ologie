@@ -769,6 +769,7 @@
           <button class="tab active" type="button" role="tab" data-ptab-go="apercu" aria-selected="true">Aperçu</button>
           <button class="tab" type="button" role="tab" data-ptab-go="badges" aria-selected="false">Badges</button>
           <button class="tab" type="button" role="tab" data-ptab-go="vestiaire" aria-selected="false">Vestiaire</button>
+          <button class="tab" type="button" role="tab" data-ptab-go="atelier" aria-selected="false">Atelier</button>
           <button class="tab" type="button" role="tab" data-ptab-go="carnet" aria-selected="false">Carnet</button>
         </div>
         <div class="card pf-tiles" id="pf-tiles" data-ptab="apercu" hidden><ul class="pf-tile-grid" id="pf-tile-grid"></ul></div>
@@ -827,9 +828,31 @@
           </div>
           <div id="badge-sections"></div>
         </details>
-        <details class="card fold" data-ptab="vestiaire" data-fold="atelier">
+        <details class="card fold" data-ptab="atelier" data-fold="atelier">
           <summary><span class="fold-t"><h2>Atelier</h2><span class="sub">l'apparence de ta foreuse, sur tous tes appareils</span></span><span class="pm" aria-hidden="true"></span></summary>
-          <div class="workshop">
+          <div class="atelier16" id="atelier16" hidden>
+            <div class="a16-vitrine">
+              <canvas class="a16-preview" id="a16-preview" width="48" height="64" aria-label="Aperçu de ta foreuse"></canvas>
+              <p class="a16-name" id="a16-name"></p>
+              <p class="muted small" id="a16-detail"></p>
+            </div>
+            <div class="a16-groups">
+              <h3>Carrosserie</h3>
+              <div class="a16-grid" id="a16-styles"></div>
+              <h3>Blindage</h3>
+              <div class="a16-grid" id="a16-armors"></div>
+              <h3>Foret</h3>
+              <div class="a16-grid" id="a16-bits"></div>
+              <h3>Foreuses de fête et de série</h3>
+              <p class="muted small">Un modèle tout fait, avec son effet quand tu fores. Il remplace les trois pièces.</p>
+              <div class="a16-grid" id="a16-models"></div>
+              <button class="link a16-toggle" type="button" id="a16-toggle" hidden></button>
+              <h3>Chrono</h3>
+              <div class="skin-grid" id="a16-timers"></div>
+            </div>
+            <p class="muted small" id="a16-status" role="status"></p>
+          </div>
+          <div class="workshop" id="workshop-old">
             <canvas class="skin-preview" id="skin-preview" width="32" height="40" aria-label="Aperçu de ta foreuse"></canvas>
             <div class="workshop-choices">
               <h3>Carrosserie</h3>

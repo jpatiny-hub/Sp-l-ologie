@@ -7,6 +7,7 @@ const { tierFor } = require('./scoring');
 const { dayKey } = require('./dates');
 const { usernameKey } = require('./auth');
 const Avatar = require('./avatar');
+const Drills = require('./drills');
 
 /*
  * Duels
@@ -111,7 +112,7 @@ class DuelService {
   }
 
   userRow(id) {
-    return this.db.prepare('SELECT id, username, avatar, skin_body, skin_bit, skin_timer FROM users WHERE id = ?').get(id);
+    return this.db.prepare('SELECT id, username, avatar, skin_body, skin_bit, skin_timer, drill16 FROM users WHERE id = ?').get(id);
   }
 
   person(id) {
@@ -423,6 +424,7 @@ class DuelService {
         username: u.username,
         avatar: Avatar.normalize(u.avatar, u.id),
         skin: this.game.badges.skinOf(u),
+        drill16: Drills.drillOf(u),
         me: id === userId,
         score,
         rounds: this.db.prepare('SELECT * FROM rounds WHERE game_id = ? ORDER BY slot').all(gameId),
