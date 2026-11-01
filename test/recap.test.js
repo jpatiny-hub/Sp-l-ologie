@@ -26,7 +26,7 @@ test('récap du lundi : proposé une seule fois, avec le podium de la semaine é
     assert.equal(recap.players, 2);
     assert.equal(recap.entries.length, 2);
     assert.equal(recap.champion.rank, 1);
-    assert.equal(recap.champion.drill, null, 'pas encore de foreuse personnalisée : la fête prend celle par défaut');
+    assert.equal(recap.champion.drill, 'chantier/aucun/spirale', 'sans choix dans l\'Atelier, la fête prend la foreuse 16-bit de base');
     assert.equal(recap.games, 2);
     assert.equal(recap.me.rank, recap.entries.find((e) => e.me).rank);
     assert.ok(recap.best && recap.best.score > 0);

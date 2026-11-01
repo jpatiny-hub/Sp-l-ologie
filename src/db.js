@@ -287,6 +287,8 @@ const MIGRATIONS = [
   ['users', 'skin_body', 'TEXT'],
   ['users', 'skin_bit', 'TEXT'],
   ['users', 'skin_timer', 'TEXT'],
+  // Foreuse 16-bit composée dans l'Atelier (voir src/drills.js) ; vide = déduite de l'ancienne foreuse.
+  ['users', 'drill16', 'TEXT'],
   ['users', 'news_seen', 'INTEGER NOT NULL DEFAULT 0'],
   // Petit tutoriel affiché une fois à chaque joueur : à la première connexion pour les nouveaux comptes, et à la première ouverture après la mise en ligne pour les comptes existants.
   ['users', 'tutorial_seen', 'INTEGER NOT NULL DEFAULT 0'],

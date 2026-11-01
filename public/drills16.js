@@ -988,12 +988,27 @@
       ['pionnier', 'Pionnier', 'prospecteur', 'aucun', 'tariere'],
     ].filter(([id]) => !FETES.some((m) => m.id === id)).map(([id, nom, style, armor, bit]) => ({ id, nom, quand: null, style: STYLES[style], armor, bit, effect: null, hub: armor === 'lourd' ? null : STYLES[style].hub })),
   ];
+  /**
+   * Foreuse à dessiner : identifiant d'un modèle, ou « style/blindage/foret » composé dans l'Atelier.
+   * Renvoie null si une pièce n'existe pas.
+   */
+  const composed = new Map();
+  function resolve(spec) {
+    if (typeof spec !== 'string') return null;
+    const m = MODELS.find((x) => x.id === spec);
+    if (m) return m;
+    if (composed.has(spec)) return composed.get(spec);
+    const [style, armor, bit] = spec.split('/');
+    const out = STYLES[style] && ARMORS[armor] && BITS[bit] ? { id: spec, style: STYLES[style], armor, bit: BITS[bit], effect: null, hub: armor === 'lourd' ? null : STYLES[style].hub } : null;
+    composed.set(spec, out);
+    return out;
+  }
   const sprites = new Map();
   /** Sprite (canevas 34 × 54) d'une foreuse de fête, mis en cache par image d'animation. */
   function sprite(id, fBody, fBit) {
     const key = `${id}:${fBody}:${fBit}`;
     if (sprites.has(key)) return sprites.get(key);
-    const m = MODELS.find((x) => x.id === id);
+    const m = resolve(id);
     const b = build(m.style, m.armor, m.bit, fBody, fBit);
     const mk = () => Object.assign(global.document.createElement('canvas'), { width: BW, height: BH });
     const img = mk(), glow = mk();
@@ -1016,7 +1031,7 @@
    * Renvoie la position du hublot à l'écran (pour y poser le visage du joueur), ou null.
    */
   function draw(ctx, id, o) {
-    const model = MODELS.find((x) => x.id === id);
+    const model = resolve(id);
     if (!model) return null;
     const { tipX, tipY, px, time, drilling, view, calm } = o;
     const t = time * 14;
@@ -1057,9 +1072,23 @@
     return h ? { cx: ox + (h.cx + 1) * px, cy: oy + (h.cy + 5) * px, r: (h.r - 1.9) * px } : null;
   }
 
+  /** Vignette fixe (Atelier) : la foreuse entière, centrée en bas du canevas, `px` pixels d'écran par pixel du sprite. */
+  function thumb(canvas, id, px = 1) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!resolve(id)) return;
+    draw(ctx, id, { tipX: Math.round(canvas.width / 2 - px), tipY: canvas.height - 2 * px, px, time: 0, drilling: false, view: { w: canvas.width / px, h: canvas.height / px }, calm: true });
+  }
+
+  const pieces = (o) => Object.entries(o).map(([id, p]) => ({ id, nom: p.nom, detail: p.detail || '' }));
   global.Drills16 = {
-    /** Liste pour les réglages du responsable. */
+    /** Modèles de fête et de série (réglages du responsable, Atelier). */
     MODELS: MODELS.map((m) => ({ id: m.id, nom: m.nom, quand: m.quand })),
+    /** Pièces à combiner dans l'Atelier. */
+    PARTS: { styles: pieces(STYLES), armors: pieces(ARMORS), bits: pieces(BITS) },
+    FETES: FETES.map((m) => ({ id: m.id || m.style, nom: m.nom, quand: m.quand, effet: m.effet })),
+    has: (id) => !!resolve(id),
     draw,
+    thumb,
   };
 })(window);

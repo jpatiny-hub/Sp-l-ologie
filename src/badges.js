@@ -5,6 +5,7 @@ const { ROUNDS_PER_GAME, TIMER_SECONDS, FREEZE_FROM } = require('./config');
 const { challengeProgress } = require('./challenges');
 const Avatar = require('./avatar');
 const Titles = require('./titles');
+const Drills = require('./drills');
 
 /*
  * Badges
@@ -767,7 +768,7 @@ class BadgeService {
         const hint = hintFor(type, id);
         return { id, name, unlocked: !hint || unlocked.has(`${type}:${id}`), hint };
       });
-    const user = this.db.prepare('SELECT skin_body, skin_bit, skin_timer, avatar, title, created_at, birthday FROM users WHERE id = ?').get(userId);
+    const user = this.db.prepare('SELECT skin_body, skin_bit, skin_timer, drill16, avatar, title, created_at, birthday FROM users WHERE id = ?').get(userId);
     const pepites = this.pepiteCount(userId);
     const bestScore = this.db.prepare("SELECT MAX(score) AS s FROM games WHERE user_id = ? AND mode = 'daily'").get(userId).s || 0;
     const info = BadgeService.streakInfo(days, today);
@@ -788,6 +789,8 @@ class BadgeService {
       bits: skinList(BITS, 'bit').filter((s) => beta || !BETA_BITS.has(s.id)),
       timers: skinList(TIMERS, 'timer'),
       skin: this.skinOf(user),
+      drill16: Drills.drillOf(user),
+      drillCatalog: Drills.catalog(badges),
       avatar: Avatar.normalize(user && user.avatar, userId),
       birthday: (user && user.birthday) || null,
       avatarCatalog: Avatar.catalog(badges.concat(this.anniversaries(user, today)), beta, refonte),
@@ -880,6 +883,14 @@ class BadgeService {
     const chosenTimer = timer === undefined ? profile.skin.timer : timer;
     if (!ok(profile.bodies, body) || !ok(profile.bits, bit) || !ok(profile.timers, chosenTimer)) return false;
     this.db.prepare('UPDATE users SET skin_body = ?, skin_bit = ?, skin_timer = ? WHERE id = ?').run(body, bit, chosenTimer, userId);
+    return true;
+  }
+
+  /** Foreuse 16-bit choisie dans l'Atelier (« style/blindage/foret » ou modèle). Renvoie false si une pièce n'est pas débloquée. */
+  setDrill16(userId, today, value) {
+    const profile = this.profile(userId, today);
+    if (!Drills.allowed(value, profile.drillCatalog)) return false;
+    this.db.prepare('UPDATE users SET drill16 = ? WHERE id = ?').run(value, userId);
     return true;
   }
 
