@@ -1130,6 +1130,7 @@
 
   function renderHome() {
     renderToday();
+    loadThemeVote();
     renderAnnouncements();
     renderInstallNudge();
     renderNews();
@@ -2030,13 +2031,36 @@
   };
   /** Exemples de la simulation du lundi (rien n'est enregistré) : les vrais thèmes viendront du vote, les vraies pépites du musée. */
   const ENV_THEMES = ['Un instrument de musique à vent', 'Un personnage de Zelda', 'Une danse traditionnelle', 'Un os du corps humain', 'Un moyen de transport en commun', 'Une spécialité sucrée belge', 'Un animal de la ferme'];
-  const ENV_REACTIONS = [['👍', "J'adore"], ['👎', 'Bof'], ['🤔', 'Trop difficile'], ['😴', 'Trop facile'], ['🔁', 'Déjà vu']];
+  const ENV_REACTIONS = [['adore', '👍', "J'adore"], ['bof', '👎', 'Bof'], ['difficile', '🤔', 'Trop difficile'], ['facile', '😴', 'Trop facile'], ['deja-vu', '🔁', 'Déjà vu']];
+  /** Vote réel de la semaine (API du fil « vote des thèmes » : GET/POST /api/themes/vote) ; null tant qu'il n'est pas ouvert. */
+  let themeVote = null;
   const ENV_PRIZES = [['Bonobo', 'Un primate'], ['Mastaba', 'Une tombe'], ['Pierogi', 'Un plat polonais']];
   let envStep = 1;
   function envButton(label, cls, onClick) {
     const b = el('button', { class: cls, type: 'button' }, label);
     b.addEventListener('click', onClick);
     return b;
+  }
+
+  const envKey = () => (themeVote && !simLundi() ? `vote:${themeVote.closesAt || ''}` : 'sim');
+  async function loadThemeVote() {
+    themeVote = null;
+    if (!app.me || !aujourdhuiOn()) return;
+    try {
+      const data = await api('/api/themes/vote');
+      if (data && data.open && Array.isArray(data.candidates) && data.candidates.length) themeVote = data;
+    } catch {
+      /* pas de vote ouvert ou pas encore disponible */
+    }
+    if (app.view === 'home') renderToday();
+  }
+
+  async function openProposer() {
+    await openProfile();
+    setProfileTab('carnet');
+    const fold = $('fold-proposer');
+    fold.open = true;
+    fold.scrollIntoView();
   }
 
   function todayLines() {
@@ -2082,9 +2106,9 @@
     $('today-dot').hidden = readLocal(TODAY_SEEN) === todaySignature(lines);
     Icons.drawIcon($('today-icon'), 'calendrier-plein');
     // L'enveloppe n'existe que dans la simulation du lundi (responsable) tant que le vote n'est pas ouvert aux joueurs.
-    const env = simLundi();
+    const env = simLundi() || !!themeVote;
     $('env-btn').hidden = !env;
-    $('env-dot').hidden = !env || readLocal(ENV_SEEN) === 'sim';
+    $('env-dot').hidden = !env || readLocal(ENV_SEEN) === envKey();
     if (env) Icons.drawIcon($('env-icon'), 'enveloppe');
     if (!env) $('env-card').hidden = true;
     if (!$('today-card').hidden) fillTodayCard(lines);
@@ -2125,27 +2149,38 @@
     $('env-step-1').classList.add('on');
     $('env-step-2').classList.toggle('on', envStep === 2);
     if (envStep === 3) {
-      box.append(el('p', { class: 'big' }, 'Merci !'), el('p', { class: 'muted' }, 'Tes avis sont enregistrés. Le gagnant du prix sera annoncé dans la Gazette.'), envButton('Fermer', 'btn secondary', () => ($('env-card').hidden = true)));
+      box.append(el('p', { class: 'big' }, 'Merci !'), el('p', { class: 'muted' }, simLundi() ? 'Tes avis sont enregistrés. Le gagnant du prix sera annoncé dans la Gazette.' : 'Tes avis sont enregistrés. Tu peux encore les changer jusqu\'à la clôture.'), envButton('Proposer mon propre thème', 'btn', () => { $('env-card').hidden = true; openProposer(); }), envButton('Fermer', 'btn secondary', () => ($('env-card').hidden = true)));
       return;
     }
     if (envStep === 1) {
-      box.append(el('p', {}, 'Thèmes proposés la semaine passée. Dis ce que tu en penses : les plus aimés pourront entrer dans le jeu.'), el('p', { class: 'muted small' }, ENV_REACTIONS.map(([emoji, label]) => `${emoji} ${label}`).join(' · ')));
-      for (const name of ENV_THEMES) {
-        const row = el('div', { class: 'env-theme' }, el('div', { class: 'env-title' }, name));
+      box.append(el('p', {}, 'Thèmes proposés la semaine passée. Dis ce que tu en penses : les plus aimés pourront entrer dans le jeu.'), el('p', { class: 'muted small' }, ENV_REACTIONS.map(([, emoji, label]) => `${emoji} ${label}`).join(' · ')));
+      const real = themeVote && !simLundi();
+      const themes = real ? themeVote.candidates : ENV_THEMES.map((title, i) => ({ id: `sim-${i}`, title }));
+      for (const theme of themes) {
+        const row = el('div', { class: 'env-theme' }, el('div', { class: 'env-title' }, theme.title));
         const buttons = el('div', { class: 'env-reacts' });
-        for (const [emoji, label] of ENV_REACTIONS) {
-          const b = el('button', { type: 'button', class: 'env-react', 'aria-pressed': 'false', 'aria-label': label, title: label }, emoji);
-          b.addEventListener('click', () => {
+        for (const [key, emoji, label] of ENV_REACTIONS) {
+          const mine = real && themeVote.mine && themeVote.mine[theme.id] === key;
+          const b = el('button', { type: 'button', class: 'env-react', 'aria-pressed': mine ? 'true' : 'false', 'aria-label': label, title: label }, emoji);
+          b.addEventListener('click', async () => {
             const on = b.getAttribute('aria-pressed') !== 'true';
             buttons.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', 'false'));
             b.setAttribute('aria-pressed', on ? 'true' : 'false');
+            if (!real || !on) return;
+            themeVote.mine = { ...(themeVote.mine || {}), [theme.id]: key };
+            try {
+              await api('/api/themes/vote', { candidate: theme.id, reaction: key });
+            } catch (err) {
+              b.setAttribute('aria-pressed', 'false');
+              row.append(el('p', { class: 'muted small', role: 'alert' }, (err && err.message) || "Ta réaction n'a pas pu être envoyée."));
+            }
           });
           buttons.append(b);
         }
         row.append(buttons);
         box.append(row);
       }
-      box.append(envButton("Suite : le prix de l'improbable", 'btn', () => { envStep = 2; renderEnvelope(); }));
+      box.append(envButton(simLundi() ? "Suite : le prix de l'improbable" : 'Terminé', 'btn', () => { envStep = simLundi() ? 2 : 3; renderEnvelope(); }));
     } else {
       box.append(el('p', {}, "Prix de l'improbable : la réponse la plus audacieuse de la semaine passée. Vote pour celle que tu préfères."));
       for (const [answer, theme] of ENV_PRIZES) {
@@ -2169,7 +2204,7 @@
     $('today-card').hidden = true;
     envStep = 1;
     renderEnvelope();
-    writeLocal(ENV_SEEN, 'sim');
+    writeLocal(ENV_SEEN, envKey());
     $('env-dot').hidden = true;
   });
 
