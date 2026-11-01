@@ -544,9 +544,11 @@
             <p class="muted small" id="challenge-note"></p>
           </div>
           <div id="challenge-month" hidden>
+            <p class="muted small" id="collective-gallery" hidden></p>
             <p id="collective-title"></p>
             <canvas class="collective-canvas" id="collective-canvas" width="110" height="40" role="img" aria-label="Tunnel creusé ensemble jusqu'au diamant"></canvas>
             <div class="stat"><strong id="collective-total"></strong><span id="collective-left"></span></div>
+            <ul class="collective-finds" id="collective-finds" hidden></ul>
             <ul class="collective-legend" id="collective-legend"></ul>
             <p id="collective-duel-title"></p>
             <div class="progress" id="collective-duel-bar" role="progressbar" aria-valuemin="0"><div class="progress-fill" id="collective-duel-fill"></div></div>
@@ -871,6 +873,10 @@
         <details class="card fold" data-ptab="carnet" data-fold="carnet">
           <summary><span class="fold-t"><h2>Ton carnet de spéléo</h2></span><span class="pm" aria-hidden="true"></span></summary>
           <dl class="stats" id="profile-stats"></dl>
+        </details>
+        <details class="card fold" data-ptab="carnet" data-fold="vitrine-pierres">
+          <summary><span class="fold-t"><h2>Vitrine du minéralogiste</h2><span class="sub" id="showcase-sub">les filons trouvés ensemble</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <div id="showcase-body"></div>
         </details>
         <details class="card fold" data-ptab="carnet" data-fold="bilan">
           <summary><span class="fold-t"><h2>Bilan du mois</h2><span class="sub" id="bilan-sub">tes forages, mois par mois</span></span><span class="pm" aria-hidden="true"></span></summary>

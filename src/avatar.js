@@ -5,6 +5,8 @@
  * Certains éléments se débloquent avec des badges (dont ceux des défis de la semaine) ; les autres sont libres.
  */
 
+const Gems = require('./gems');
+
 const OPTIONS = {
   espece: [['humain', 'Humain'], ['nain', 'Nain ou naine'], ['robot', 'Robot à vapeur'], ['taupe', 'Taupe ou taupinette'], ['citrouille', 'Citrouille hantée'], ['squelette', 'Squelette fossile'], ['fantome', 'Fantôme de la mine'], ['golem', 'Golem de cristal'],
     ['champignon', 'Champignon lumineux'], ['ver-luisant', 'Ver luisant géant'], ['diablotin', 'Diablotin des profondeurs'], ['grenouille', 'Grenouille des cascades']],
@@ -18,14 +20,15 @@ const OPTIONS = {
   corpulence: [['normale', 'Normale'], ['mince', 'Mince'], ['costaud', 'Costaud'], ['imposant', 'Imposante']],
   modele: [['classique', 'Automate à vapeur'], ['cyclope', 'Cyclope-lanterne'], ['blinde', 'Sentinelle blindée'], ['chenilles', 'Foreur à chenilles'], ['dandy', 'Automate de salon']],
   iris: [['defaut', 'Naturelle'], ['bleu', 'Bleus'], ['vert', 'Verts'], ['noisette', 'Noisette'], ['gris', 'Gris'], ['violet', 'Violets'], ['dore', 'Dorés'], ['vairons', 'Vairons']],
-  aura: [['aucune', 'Aucune'], ['dore', 'Lueur dorée'], ['feu', 'Braises'], ['givre', 'Givre'], ['etoiles', 'Étoiles'], ['ombre', 'Brume sombre']],
+  aura: [['aucune', 'Aucune'], ['dore', 'Lueur dorée'], ['feu', 'Braises'], ['givre', 'Givre'], ['etoiles', 'Étoiles'], ['ombre', 'Brume sombre'],
+    ...Gems.LIST.map((g) => [`gem-${g.id}`, `Éclat ${/^[aeiouyéèêàâ]/i.test(g.name) ? "d'" : 'de '}${g.name.replace(/s$/, '')}`])],
   dos: [['aucun', 'Rien'], ['sac-a-dos', 'Sac de mineur'], ['cape-rouge', 'Cape rouge'], ['ailes-fee', 'Ailes de fée'], ['ailes-chauve-souris', 'Ailes de chauve-souris'], ['ailes-dragon', 'Ailes de dragon'], ['ailes-cupidon', 'Ailes de cupidon'], ['poisson-papier', "Poisson d'avril"], ['hotte', 'Hotte pleine de cadeaux'], ['reservoir-vapeur', 'Réservoir à vapeur']],
   bouche: [['normal', 'Discrète'], ['sourire', 'Grand sourire'], ['serieux', 'Sérieuse'], ['ouvert', 'Bouche ouverte'], ['langue', 'Tire la langue'], ['rouge', 'Rouge à lèvres'], ['dent-or', 'Dent en or']],
   compagnon: [['aucun', 'Aucun'], ['canari', 'Canari de mine'], ['lucioles', 'Lucioles'], ['chauve-souris', 'Chauve-souris'], ['chat-noir', 'Chat noir']],
   piercing: [['aucun', 'Aucun'], ['nez', 'Au nez'], ['sourcil', 'Au sourcil'], ['levre', 'À la lèvre'], ['oreille', 'Aux oreilles'], ['multiples', 'Plusieurs']],
   tatouage: [['aucun', 'Aucun'], ['ancre', 'Ancre'], ['tribal', 'Bracelets tribaux'], ['serpent', 'Serpent'], ['larme', 'Larme'], ['maori', 'Motif sur la joue']],
   accessoire: [['aucun', 'Aucun'], ['noeud-papillon', 'Nœud papillon'], ['noeud-rose', 'Nœud rose'], ['foulard', 'Foulard'], ['medaille', 'Médaille'], ['perles', 'Collier de perles'], ['coeur', 'Broche en cœur'], ['noeud-arc-en-ciel', 'Nœud arc-en-ciel'], ['chaines', 'Chaînes rouillées'], ['runes', 'Runes lumineuses'],
-    ['serpentin', 'Serpentin'], ['grelots', 'Grelots dorés'], ['pin-pi', 'Pin\'s π'], ['insigne-1an', 'Insigne de 1 an'], ['insigne-2ans', 'Insigne de 2 ans'], ['insigne-3ans', 'Insigne de 3 ans']],
+    ['serpentin', 'Serpentin'], ['grelots', 'Grelots dorés'], ['pin-pi', 'Pin\'s π'], ['pin-diamant', 'Pin\'s diamant'], ['pin-nature', 'Pin\'s naturaliste'], ['pin-cuisine', 'Pin\'s gourmet'], ['pin-cinema', 'Pin\'s cinéphile'], ['pin-musique', 'Pin\'s mélomane'], ['pin-geo', 'Pin\'s globe-trotteur'], ['pin-science', 'Pin\'s savant'], ['pin-sport', 'Pin\'s sportif'], ['pin-universel', 'Pin\'s touche-à-tout'], ['insigne-1an', 'Insigne de 1 an'], ['insigne-2ans', 'Insigne de 2 ans'], ['insigne-3ans', 'Insigne de 3 ans']],
   chapeau: [
     ['aucun', 'Aucun'], ['casque', 'Casque de mineur'], ['haut', 'Haut-de-forme'], ['diademe', 'Diadème'], ['bonnet', 'Bonnet'],
     ['casque-blanc', 'Casque de chef de chantier'], ['casque-or', 'Casque doré'], ['couronne', 'Couronne'],
@@ -125,6 +128,9 @@ const LOCKS = {
   'aura:givre': ['noel'],
   'aura:etoiles': ['public-10'],
   'aura:ombre': ['toussaint'],
+  ...Object.fromEntries(Gems.LIST.map((g) => [`aura:gem-${g.id}`, [`filon-${g.id}`]])),
+  'accessoire:pin-diamant': ['defi-2'], 'accessoire:pin-nature': ['cat-nature'], 'accessoire:pin-cuisine': ['cat-cuisine'], 'accessoire:pin-cinema': ['cat-cinema'], 'accessoire:pin-musique': ['cat-musique'],
+  'accessoire:pin-geo': ['cat-geo'], 'accessoire:pin-science': ['cat-science'], 'accessoire:pin-sport': ['cat-sport'], 'accessoire:pin-universel': ['cat-touche-a-tout'],
   'chapeau:bonnet-noel': ['noel'],
   'chapeau:mitre': ['saint-nicolas'],
   'accessoire:coeur': ['saint-valentin'],
@@ -196,6 +202,8 @@ const REFONTE_ITEMS = [
   'tenue:tablier-forge', 'tenue:redingote', 'tenue:epouvantail', 'tenue:explorateur', 'tenue:herboriste', 'tenue:tunique-infernale', 'tenue:cire-jaune',
   'iris:bleu', 'iris:vert', 'iris:noisette', 'iris:gris', 'iris:violet', 'iris:dore', 'iris:vairons',
   'aura:dore', 'aura:feu', 'aura:givre', 'aura:etoiles', 'aura:ombre',
+  ...Gems.LIST.map((g) => `aura:gem-${g.id}`),
+  'accessoire:pin-diamant', 'accessoire:pin-nature', 'accessoire:pin-cuisine', 'accessoire:pin-cinema', 'accessoire:pin-musique', 'accessoire:pin-geo', 'accessoire:pin-science', 'accessoire:pin-sport', 'accessoire:pin-universel',
   'dos:sac-a-dos', 'dos:cape-rouge', 'dos:ailes-fee', 'dos:ailes-chauve-souris', 'dos:ailes-dragon',
   'bouche:sourire', 'bouche:serieux', 'bouche:ouvert', 'bouche:langue', 'bouche:rouge', 'bouche:dent-or',
   'compagnon:canari', 'compagnon:lucioles', 'compagnon:chauve-souris',

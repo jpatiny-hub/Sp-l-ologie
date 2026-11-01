@@ -8,6 +8,7 @@
   // ---------- Palette (5 tons par matière : reflet, clair, moyen, sombre, ombre) ----------
   const INK = '#16121c';
   const M = {
+    diamant: ['#ffffff', '#e6fbff', '#a8e8ff', '#6ab8e8', '#3a78b0'],
     jaune: ['#fff3a0', '#ffd23f', '#f0a81c', '#b8700f', '#7a430a'],
     acier: ['#f2f6fa', '#c3cbd6', '#8f99a8', '#5f6877', '#3b414d'],
     fonte: ['#b9c0cc', '#7e8796', '#545c6b', '#363c48', '#22262f'],
@@ -300,7 +301,79 @@
       },
       front(b) { hublot(b, 15, 15, 6, M.laiton); },
     },
+    cristal: {
+      nom: 'Cristal', detail: 'Coque en quartz taillé, facettes qui scintillent, éclats sur le dessus',
+      body: { x0: 3, x1: 28, y0: 7, y1: 26 }, hub: { cx: 16, cy: 16, r: 5.5 },
+      back(b, f) {
+        const shards = [
+          [[5, 11], [8, 1], [11, 11], M.turquoise],
+          [[11, 10], [15, -2], [19, 10], M.diamant],
+          [[19, 11], [23, 2], [26, 11], M.turquoise],
+        ];
+        for (const [a, top, c, mat] of shards) part(b, poly([a, top, c]), mat, (x) => (x + 0.5 < top[0] ? 0.7 : 2.4));
+        const gem = poly([[3, 13], [8, 7], [24, 7], [28.5, 13], [28.5, 21], [24, 26], [8, 26], [3, 21]]);
+        part(b, gem, M.turquoise, cyl(3, 28, 7, 26));
+        const facets = [[8, 7, 12, 13], [24, 7, 20, 13], [3, 13, 8, 17], [28, 13, 24, 17], [8, 26, 12, 21], [24, 26, 20, 21]];
+        for (const [x0, y0, x1, y1] of facets) {
+          const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
+          for (let i = 0; i <= n; i++) dot(b, Math.round(x0 + ((x1 - x0) * i) / n), Math.round(y0 + ((y1 - y0) * i) / n), M.turquoise[0]);
+        }
+        part(b, rr(9, 25, 22, 28, 1), M.acier, cyl(9, 22, 25, 28));
+        const tw = [[8, 3], [15, 0], [23, 4], [27, 15]][f];
+        dot(b, tw[0], tw[1], '#ffffff', { glow: true });
+      },
+      front(b) { hublot(b, 16, 16, 5.5, M.diamant, M.turquoise); },
+    },
+    lampiste: {
+      nom: 'Lampiste', detail: 'Lanterne de laiton à barreaux, flamme qui vacille derrière le verre',
+      body: { x0: 4, x1: 27, y0: 6, y1: 25 }, hub: { cx: 15.5, cy: 15, r: 6 },
+      back(b, f) {
+        part(b, rr(11, 0, 20, 2, 1), M.laiton, cyl(11, 20, 0, 2));
+        part(b, rr(13, 2, 18, 6), M.laiton, cyl(13, 18, 2, 6));
+        part(b, rr(4, 6, 27, 25, 3), M.laiton, cyl(4, 27, 6, 25));
+        for (const x of [7, 11, 20, 24]) for (let y = 8; y <= 23; y++) dot(b, x, y, M.laiton[(y + f) % 5 === 0 ? 1 : 4]);
+        part(b, rr(7, 25, 24, 28, 1), M.cuivre, cyl(7, 24, 25, 28));
+        const on = f % 2 === 0;
+        dot(b, 15, 0, on ? M.braise[0] : M.braise[1], { glow: true });
+      },
+      front(b, f) {
+        hublot(b, 15, 15, 6, M.laiton, M.braise);
+        const fl = [[[15, 17], [15, 16], [15, 15], [14, 16], [16, 16]], [[15, 17], [15, 16], [15, 14], [14, 16], [16, 16]], [[15, 17], [15, 16], [15, 15], [14, 17], [16, 16]], [[15, 17], [15, 16], [15, 14], [16, 17], [14, 16]]][f];
+        fl.forEach(([x, y], i) => dot(b, x, y, i < 2 ? M.or[0] : M.braise[1], { glow: true }));
+      },
+    },
   };
+
+  // Une carrosserie par galerie du mois (src/gems.js) : bloc de roche sertie de la pierre du filon, couleurs prises de la pierre.
+  const GEM_DRILLS = [{"id": "topaze", "one": "Topaze", "gem": ["#6a3a06", "#c8801c", "#ffc24a", "#fff0b8"]}, {"id": "rubis", "one": "Rubis", "gem": ["#4a0a14", "#a8142a", "#ff4a64", "#ffd0d8"]}, {"id": "peridot", "one": "Péridot", "gem": ["#1a4a05", "#5aa010", "#a8ee3a", "#eaffc0"]}, {"id": "opale", "one": "Opale", "gem": ["#4a3a8a", "#e0a8e8", "#a8f0e0", "#ffffff"]}, {"id": "aigue-marine", "one": "Aigue-marine", "gem": ["#0a4a5a", "#2aa8b8", "#7ae8e8", "#e0ffff"]}, {"id": "amethyste", "one": "Améthyste", "gem": ["#3a1a6a", "#7a32b0", "#c79bff", "#f3e0ff"]}, {"id": "citrine", "one": "Citrine", "gem": ["#7a4a06", "#d8921c", "#ffd04a", "#fff6c0"]}, {"id": "tourmaline", "one": "Tourmaline", "gem": ["#0a4a2a", "#d83a8a", "#5aeaa0", "#ffe0f0"]}, {"id": "grenat", "one": "Grenat", "gem": ["#3a0a10", "#8a1a24", "#d8383c", "#ffc0b8"]}, {"id": "onyx", "one": "Onyx", "gem": ["#08080e", "#2a2a44", "#6a6a9a", "#e8e8ff"]}, {"id": "emeraude", "one": "Émeraude", "gem": ["#05381c", "#118a45", "#4ade80", "#d4ffe4"]}, {"id": "saphir", "one": "Saphir", "gem": ["#0a1e5a", "#1e50c8", "#5a90ff", "#d8e8ff"]}];
+  const mixHex = (a, b, k) => {
+    const n = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+    const [x, y] = [n(a), n(b)];
+    return `#${x.map((v, i) => Math.round(v + (y[i] - v) * k).toString(16).padStart(2, '0')).join('')}`;
+  };
+  for (const g of GEM_DRILLS) {
+    const mat = [g.gem[3], g.gem[2], g.gem[1], mixHex(g.gem[1], g.gem[0], 0.5), g.gem[0]];
+    STYLES[`gemme-${g.id}`] = {
+      nom: g.one, detail: `Bloc de roche serti de ${g.one.toLowerCase()}s taillées, couleurs de la galerie du mois`,
+      body: { x0: 3, x1: 28, y0: 8, y1: 25 }, hub: { cx: 16, cy: 16, r: 5.8 },
+      back(b, f) {
+        const shards = [
+          [[5, 10], [7.5, 2], [10, 10]],
+          [[10, 9], [13, -1], [16, 9]],
+          [[18, 9], [22, 1], [24, 10]],
+          [[23, 11], [28.5, 4], [28.5, 12]],
+        ];
+        for (const [a, top, c] of shards) part(b, poly([a, top, c]), mat, (x) => (x + 0.5 < top[0] ? 0.5 : 2.2));
+        const bloc = poly([[3, 11], [6, 8], [26, 8], [28.5, 11], [28.5, 22], [26, 26], [6, 26], [3, 23]]);
+        part(b, bloc, M.pierre, cyl(3, 28, 8, 25));
+        paint(b, bloc, (x, y) => { const n = hash(x, y, 5); return n > 0.84 ? mat[3] : n < 0.06 ? mat[1] : null; });
+        part(b, rr(8, 25, 23, 28, 1), M.pierre, cyl(8, 23, 25, 28), { color: (x, y, t) => M.pierre[Math.min(4, t + 1)] });
+        const tw = [[7, 4], [13, 1], [22, 3], [27, 7]][f];
+        dot(b, tw[0], tw[1], '#ffffff', { glow: true });
+      },
+      front(b) { hublot(b, 16, 16, 5.8, M.pierre, mat); },
+    };
+  }
 
   // ---------- Blindages ----------
   const ARMORS = {

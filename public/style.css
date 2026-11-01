@@ -2033,3 +2033,19 @@ html[data-galerie] .who-text .ptitle { white-space: normal; overflow: visible; t
   .pf-tabs { gap: 4px; padding: 8px 2px; margin: 4px 0; }
   html[data-galerie] .pf-tabs .tab { font-size: calc(7.5px * var(--fs)); padding: 12px 1px; }
 }
+
+/* Galerie du mois : découvertes et vitrine du minéralogiste */
+.collective-finds { list-style: none; padding: 0; margin: 6px 0; display: flex; flex-direction: column; gap: 2px; font-size: calc(14px * var(--fs)); }
+.collective-finds li { color: var(--muted); }
+.collective-finds li::before { content: '? '; }
+.collective-finds li.on { color: var(--text); }
+.collective-finds li.on::before { content: '✦ '; color: var(--accent); }
+.showcase-shelf { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 8px; }
+.showcase-slot { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 2px; border: 2px solid var(--line); border-radius: 8px; text-align: center; }
+.showcase-slot canvas { width: 48px; height: 48px; image-rendering: pixelated; }
+.showcase-slot small { color: var(--muted); }
+.showcase-slot strong { font-size: calc(12px * var(--fs)); }
+.showcase-slot.found { border-color: var(--accent); }
+.showcase-slot.mine { box-shadow: 0 0 0 2px var(--accent) inset; }
+.showcase-slot.current { border-style: dashed; }
+.showcase-slot.future, .showcase-slot.missed { opacity: 0.55; }

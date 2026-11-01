@@ -6,6 +6,9 @@ const { challengeProgress } = require('./challenges');
 const Avatar = require('./avatar');
 const Titles = require('./titles');
 const Drills = require('./drills');
+const Gems = require('./gems');
+const Categories = require('./categories');
+const { monthResult } = require('./collective');
 
 /*
  * Badges
@@ -70,10 +73,16 @@ const PUBLIC = [[10, 'Public conquis'], [50, 'Star de la mine']];
 const SUPPORTER = [[20, 'Supporter'], [100, 'Meilleur fan']];
 
 // Défis de la semaine réussis.
+// Chaque défi réussi est un diamant ; certains paliers débloquent des carrosseries de foreuse (Lampiste, Cristal) et un pin's.
 const DEFIS = [
   [1, 'Défi relevé'],
+  [2, 'Chercheur de diamants'],
+  [3, 'Allumeur de lanternes'],
   [5, 'Habitué des défis'],
+  [8, 'Cristallier'],
+  [10, 'Maître du filon'],
   [15, 'Maître des défis'],
+  [20, 'Seigneur des diamants'],
 ];
 
 // Jours particuliers : il suffit de terminer le forage du jour ce jour-là.
@@ -221,6 +230,27 @@ TRAINING.forEach(([n, name]) => {
 DEFIS.forEach(([n, name]) => {
   define(`defi-${n}`, { category: 'defi', name, description: () => (n === 1 ? 'Réussir un défi de la semaine' : `Réussir ${n} défis de la semaine`), icon: 'fanion', label: n > 1 ? String(n) : null });
 });
+// Filons du mois : avoir foré MIN_DAYS jours un mois où le groupe a atteint le filon de pierres précieuses (voir src/gems.js).
+Gems.LIST.forEach((g) => {
+  const de = /^[aeiouyéèêàâ]/i.test(g.name) ? "d'" : 'de ';
+  define(`filon-${g.id}`, { category: 'filon', name: `Filon ${de}${g.name}`, description: () => `Forer ${Gems.MIN_DAYS} jours un mois où le groupe atteint le filon ${de}${g.name}`, icon: 'diamant' });
+});
+// Badges secrets par thématique : réponses valides données dans les thèmes de la catégorie (environ un mois de jeu).
+const THEMATIC = [
+  ['nature', 'Naturaliste', 15, 'coquelicot'],
+  ['cuisine', 'Gourmet', 10, 'feve'],
+  ['cinema', 'Cinéphile', 20, 'etoile-or'],
+  ['musique', 'Mélomane', 10, 'note'],
+  ['geo', 'Globe-trotteur', 25, 'globe'],
+  ['science', 'Esprit curieux', 15, 'oeil'],
+  ['sport', 'Sportif de la mine', 10, 'trophee'],
+];
+THEMATIC.forEach(([cat, name, n, icon]) => {
+  define(`cat-${cat}`, { category: 'thematique', secret: true, name, description: () => `Donner ${n} réponses valides sur le thème « ${Categories.LABELS[cat]} »`, icon });
+});
+const UNIVERSAL = 5;
+define('cat-touche-a-tout', { category: 'thematique', secret: true, name: 'Touche-à-tout', description: () => `Donner au moins ${UNIVERSAL} réponses valides dans chacune des 7 grandes thématiques`, icon: 'diamant' });
+
 // Victoires écrasantes en duel (écart de points et manches gagnées sur 7) et égalités ; l'attaque lance le duel, la défense le relève.
 const CRUSH = [
   { tier: 1, margin: 120, rounds: 5 },
@@ -477,6 +507,30 @@ class BadgeService {
     // Défis de la semaine réussis.
     const done = this.completedChallenges(userId);
     DEFIS.forEach(([n]) => done >= n && this.give(userId, `defi-${n}`, day, day));
+    this.awardThematic(userId, day);
+    this.awardFilons(userId, day);
+  }
+
+  /** Badges secrets par thématique, d'après les réponses valides du joueur (forages du jour et duels). */
+  awardThematic(userId, day) {
+    const rows = this.db
+      .prepare("SELECT r.theme_id AS theme, COUNT(*) AS n FROM rounds r JOIN games g ON g.id = r.game_id WHERE g.user_id = ? AND g.mode IN ('daily', 'duel') AND r.outcome = 'answer' GROUP BY r.theme_id")
+      .all(userId);
+    const count = {};
+    for (const r of rows) {
+      const cat = Categories.categoryOf(r.theme);
+      if (cat) count[cat] = (count[cat] || 0) + r.n;
+    }
+    THEMATIC.forEach(([cat, , n]) => (count[cat] || 0) >= n && this.give(userId, `cat-${cat}`, '1', day));
+    if (THEMATIC.every(([cat]) => (count[cat] || 0) >= UNIVERSAL)) this.give(userId, 'cat-touche-a-tout', '1', day);
+  }
+
+  /** Filons du mois : récompenses de la galerie pour les joueurs qui ont foré assez de jours quand le groupe a atteint le filon. */
+  awardFilons(userId, today) {
+    for (let m = monthStart(Gems.FIRST_MONTH + '-01'); m <= today; m = addMonths(m, 1)) {
+      const res = monthResult(this.db, m, m < monthStart(today));
+      if (res.reached && (res.days.get(userId) || 0) >= Gems.MIN_DAYS) this.give(userId, `filon-${Gems.gemOf(m).id}`, m.slice(0, 7), res.reachedOn || res.end);
+    }
   }
 
   /** Séries de jours consécutifs : [{ start, end, length }] dans l'ordre. */
@@ -725,6 +779,7 @@ class BadgeService {
   /** Carnet du joueur : statistiques, badges (obtenus ou à gagner) et apparences débloquées. */
   profile(userId, today, beta = true, refonte = true) {
     this.awardPodiums(today);
+    this.awardFilons(userId, today);
     const days = this.playedDays(userId);
     const rows = this.db
       .prepare('SELECT kind, instance, earned_on, seen_at FROM badges WHERE user_id = ? ORDER BY earned_on, kind')

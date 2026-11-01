@@ -863,6 +863,45 @@
       P(6, oy + 8, 1, 3, col);
       P(5, oy + 9, 3, 1, col);
       for (let i = 0; i < n; i++) P(5 + i, oy + 11, 1, 1, col);
+    } else if (a === 'pin-diamant') {
+      P(7, oy + 8, 2, 1, '#e6fbff');
+      P(6, oy + 9, 4, 1, '#8fe3ff');
+      P(7, oy + 10, 2, 1, '#3fb3e8');
+      P(7, oy + 9, 1, 1, '#ffffff');
+    } else if (a === 'pin-nature') {
+      P(7, oy + 8, 2, 2, '#4ade80');
+      P(8, oy + 10, 1, 2, '#2a8a4a');
+      P(7, oy + 8, 1, 1, '#d4ffe4');
+    } else if (a === 'pin-cuisine') {
+      P(6, oy + 8, 4, 1, '#f5f0e0');
+      P(7, oy + 9, 2, 2, '#e8466a');
+      P(7, oy + 9, 1, 1, '#ff9ab0');
+    } else if (a === 'pin-cinema') {
+      P(6, oy + 8, 4, 3, '#16121c');
+      P(7, oy + 9, 2, 1, '#ffd84a');
+      P(6, oy + 8, 1, 1, '#ffffff');
+      P(9, oy + 10, 1, 1, '#ffffff');
+    } else if (a === 'pin-musique') {
+      P(8, oy + 8, 1, 3, '#ffd84a');
+      P(7, oy + 10, 1, 1, '#ffd84a');
+      P(9, oy + 8, 1, 1, '#fff3a0');
+    } else if (a === 'pin-geo') {
+      P(6, oy + 8, 4, 3, '#3fb3e8');
+      P(7, oy + 8, 2, 1, '#4ade80');
+      P(8, oy + 10, 2, 1, '#4ade80');
+    } else if (a === 'pin-science') {
+      P(7, oy + 8, 2, 1, '#d8e8ff');
+      P(6, oy + 9, 4, 2, '#7ae8ff');
+      P(7, oy + 9, 1, 1, '#ffffff');
+    } else if (a === 'pin-sport') {
+      P(6, oy + 8, 4, 3, '#ffd84a');
+      P(7, oy + 9, 2, 1, '#c8362d');
+      P(6, oy + 8, 1, 1, '#fff6b0');
+    } else if (a === 'pin-universel') {
+      P(7, oy + 8, 2, 1, '#ff8ad0');
+      P(6, oy + 9, 1, 2, '#5effc0');
+      P(9, oy + 9, 1, 2, '#ffd84a');
+      P(7, oy + 10, 2, 1, '#7ae8ff');
     } else if (a === 'chaines') {
       [[4, 8], [5, 9], [6, 10], [9, 10], [10, 9], [11, 8]].forEach(([x, y], i) => P(x, oy + y, 1, 1, i % 2 ? '#6a6a76' : '#b8b8c0'));
       P(7, oy + 11, 2, 1, '#b8b8c0');
@@ -1278,11 +1317,30 @@
     const a = o.aura || 'aucune';
     if (a === 'aucune') return;
     const oy = OY;
-    const tint = { dore: '255,216,74', feu: '255,120,40', givre: '140,210,255', etoiles: '200,170,255', ombre: '90,40,140' }[a];
+    // Auras des galeries du mois : [teinte du halo, étincelle, reflet].
+    const GEM_AURAS = {
+    'gem-topaze': ['255,194,74', '#ffc24a', '#fff0b8'],
+    'gem-rubis': ['255,74,100', '#ff4a64', '#ffd0d8'],
+    'gem-peridot': ['168,238,58', '#a8ee3a', '#eaffc0'],
+    'gem-opale': ['168,240,224', '#a8f0e0', '#ffffff'],
+    'gem-aigue-marine': ['122,232,232', '#7ae8e8', '#e0ffff'],
+    'gem-amethyste': ['199,155,255', '#c79bff', '#f3e0ff'],
+    'gem-citrine': ['255,208,74', '#ffd04a', '#fff6c0'],
+    'gem-tourmaline': ['90,234,160', '#5aeaa0', '#ffe0f0'],
+    'gem-grenat': ['216,56,60', '#d8383c', '#ffc0b8'],
+    'gem-onyx': ['106,106,154', '#6a6a9a', '#e8e8ff'],
+    'gem-emeraude': ['74,222,128', '#4ade80', '#d4ffe4'],
+    'gem-saphir': ['90,144,255', '#5a90ff', '#d8e8ff'],
+    };
+    const gem = GEM_AURAS[a];
+    const tint = gem ? gem[0] : { dore: '255,216,74', feu: '255,120,40', givre: '140,210,255', etoiles: '200,170,255', ombre: '90,40,140' }[a];
     ellipse(P, 8, oy + 9, 8, 13, `rgba(${tint},0.24)`);
     ellipse(P, 8, oy + 9, 6, 11, `rgba(${tint},0.3)`);
     const dots = (list, col) => list.forEach(([x, y]) => P(x, oy + y, 1, 1, col));
-    if (a === 'feu') {
+    if (gem) {
+      dots([[1, 4], [14, 8], [2, 16], [13, 18], [8, -3]], gem[2]);
+      dots([[0, 11], [15, 14], [4, 21], [11, 21]], gem[1]);
+    } else if (a === 'feu') {
       dots([[3, 18], [12, 16], [5, 21], [11, 20]], '#ffb43a');
       dots([[2, 14], [13, 12]], '#ff5a2a');
     } else if (a === 'givre') {

@@ -13,7 +13,7 @@ const { msUntilNextDay, isDay, addDays: addDaysIso, weekStart: weekStartIso } = 
 const auth = require('./src/auth');
 const Avatar = require('./src/avatar');
 const Drills = require('./src/drills');
-const { collectiveStatus } = require('./src/collective');
+const { collectiveStatus, showcase } = require('./src/collective');
 const { scheduleBackups, snapshotBeforeStart, backupNow } = require('./src/backup');
 const { ErrorLog, healthReport } = require('./src/health');
 const { AnnouncementService } = require('./src/announcements');
@@ -461,6 +461,7 @@ function createApp({
         today: game.todaySummary(user.id),
         streak: game.badges.homeSummary(user.id, game.today()),
         collective: collectiveStatus(db, game.today(), user.id),
+        showcase: showcase(db, game.today(), user.id),
         recap: pendingRecap(db, user.id, game.today()),
         celebrations: pendingCelebrations(db, user.id, game.today()),
         duels: game.duels.summary(user.id),

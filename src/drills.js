@@ -9,6 +9,8 @@
  * le joueur garde ce qu'il avait gagné, en version 16-bit.
  */
 
+const Gems = require('./gems');
+
 // [id, nom, badges qui débloquent (un seul suffit ; liste vide = offert)]
 const STYLES = [
   ['chantier', 'Chantier', []],
@@ -19,6 +21,10 @@ const STYLES = [
   ['prospecteur', 'Prospecteur', ['pepites-1']],
   ['neon', 'Néon', ['pepites-10']],
   ['char', 'Char', ['annihilation', 'coup-de-boutoir']],
+  // Récompenses des défis : diamants de la semaine, puis une carrosserie par filon du mois (src/gems.js).
+  ['lampiste', 'Lampiste', ['defi-3']],
+  ['cristal', 'Cristal', ['defi-8']],
+  ...Gems.LIST.map((g) => [`gemme-${g.id}`, g.one, [`filon-${g.id}`]]),
 ];
 const ARMORS = [
   ['aucun', 'Aucun', []],
