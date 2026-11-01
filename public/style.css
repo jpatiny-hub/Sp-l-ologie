@@ -1442,6 +1442,7 @@ kbd { padding: 0 6px; border: 2px solid var(--line); background: var(--well); fo
 #view-admin [data-atab] { display: none; }
 #view-admin[data-active='contenu'] [data-atab='contenu'],
 #view-admin[data-active='joueurs'] [data-atab='joueurs'],
+#view-admin[data-active='themes'] [data-atab='themes'],
 #view-admin[data-active='jeu'] [data-atab='jeu'] { display: block; }
 .susp { display: flex; flex-direction: column; gap: 4px; }
 .susp-tag { display: inline-block; padding: 0 6px; font-size: calc(14px * var(--fs)); color: #fff; background: #6b6b6b; margin-left: 6px; }
@@ -2049,3 +2050,32 @@ html[data-galerie] .who-text .ptitle { white-space: normal; overflow: visible; t
 .showcase-slot.mine { box-shadow: 0 0 0 2px var(--accent) inset; }
 .showcase-slot.current { border-style: dashed; }
 .showcase-slot.future, .showcase-slot.missed { opacity: 0.55; }
+
+/* Onglet « Thèmes » du Contre maître */
+.ts-row { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; background: var(--panel-2); border: 3px solid var(--line); }
+.ts-row.flou { border-color: var(--danger); }
+.ts-head { all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 4px; min-height: 44px; }
+.ts-head:focus-visible { outline: 2px solid var(--accent); }
+.ts-title { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.ts-tag { font-family: 'Press Start 2P', monospace; font-size: calc(8px * var(--fs)); padding: 3px 4px; color: var(--bg); background: var(--accent); white-space: nowrap; }
+.ts-tag.flou { background: var(--danger); }
+.ts-bar { display: flex; height: 10px; border: 2px solid var(--line); background: var(--well); }
+.ts-bar span { display: block; height: 100%; }
+.ts-bar .found { background: var(--ok); }
+.ts-bar .skip { background: var(--accent); }
+.ts-bar .timeout { background: #6d5a48; }
+.ts-bar .joker { background: #8f7bd1; }
+.ts-legend { display: flex; flex-wrap: wrap; gap: 4px 10px; }
+.ts-legend i { display: inline-block; width: 10px; height: 10px; margin-right: 4px; }
+.ts-bar-found { background: var(--ok); }
+.ts-bar-skip { background: var(--accent); }
+.ts-bar-timeout { background: #6d5a48; }
+.ts-bar-joker { background: #8f7bd1; }
+.ts-boxes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; text-align: center; }
+.ts-boxes div { background: var(--well); padding: 6px 4px; }
+.ts-boxes b { display: block; font-family: 'Press Start 2P', monospace; font-weight: normal; font-size: calc(10px * var(--fs)); color: var(--accent); }
+.ts-detail h3 { margin: 8px 0 4px; font-family: inherit; font-size: calc(20px * var(--fs)); color: var(--accent); font-weight: normal; }
+.ts-detail ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.ts-play { background: var(--well); padding: 4px 8px; }
+.ts-play s { color: var(--muted); }
+.ts-ok { color: var(--ok); }
