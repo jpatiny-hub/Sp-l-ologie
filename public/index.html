@@ -461,6 +461,7 @@
           <button class="btn secondary" id="btn-news-ok" type="button">Compris, merci !</button>
         </div>
         <button class="card report-banner collective-banner" id="collective-banner" type="button" hidden><canvas id="collective-banner-icon" width="7" height="6" aria-hidden="true"></canvas><span><strong>Diamant atteint !</strong><span id="collective-banner-text"></span></span></button>
+        <button class="card report-banner vote-banner" id="vote-banner" type="button" hidden>🗳️ Vote de la semaine : choisis les prochains thèmes</button>
         <button class="card report-banner" id="report-banner" type="button" hidden>📬 Tu as une réponse à un de tes signalements</button>
         <div class="card beta-hello" id="beta-hello" hidden>
           <p class="beta-greet" id="beta-greet"></p>
@@ -893,6 +894,16 @@
           <h3>Ta meilleure profondeur</h3>
           <svg class="chart earth-chart" id="chart-earth" viewBox="0 0 320 150" role="img" aria-label="Coupe de la Terre avec ta meilleure profondeur"></svg>
         </details>
+        <details class="card fold" data-ptab="carnet" data-fold="vote" id="fold-vote" hidden>
+          <summary><span class="fold-t"><h2>Vote des thèmes</h2><span class="sub" id="vote-sub">choisis les prochains thèmes du jeu</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <p class="muted small" id="vote-intro"></p>
+          <ul class="report-list vote-list" id="vote-list"></ul>
+          <p class="muted small" id="vote-status" role="status"></p>
+          <div id="vote-last" hidden>
+            <h3 id="vote-last-title">Résultat du dernier vote</h3>
+            <ol class="vote-ranking" id="vote-last-list"></ol>
+          </div>
+        </details>
         <details class="card fold" data-ptab="carnet" data-fold="proposer" id="fold-proposer">
           <summary><span class="fold-t"><h2>Proposer un thème</h2><span class="sub">une idée de liste à deviner ?</span></span><span class="pm" aria-hidden="true"></span></summary>
           <form id="form-suggest" class="form">
@@ -1014,6 +1025,15 @@
             <button class="tab" data-suggestions="done" type="button" role="tab">Traités <span id="count-sug-done"></span></button>
           </div>
           <button class="btn secondary" id="btn-copy-suggestions" type="button">Copier les propositions à traiter</button>
+          <details class="fold-inner" id="admin-vote">
+            <summary>Vote de la semaine <span class="muted small" id="admin-vote-sub"></span></summary>
+            <label class="check"><input type="checkbox" id="admin-vote-open"> Ouvert à tous les joueurs <span class="muted small">(sinon, toi seul le vois)</span></label>
+            <p class="muted small">Ajoute des propositions au vote avec « Mettre au vote » dans la liste ci-dessous. Chaque joueur a trois voix ; les joueurs ne voient le décompte qu'à la fin de la semaine.</p>
+            <ul class="report-list" id="admin-vote-list"></ul>
+            <h3>Dernier vote terminé</h3>
+            <ol class="vote-ranking" id="admin-vote-last"></ol>
+            <p class="muted small" id="admin-vote-status" role="status"></p>
+          </details>
           <p class="muted small" id="suggestions-status" role="status"></p>
           <ul class="report-list" id="suggestion-list"></ul>
         </details>

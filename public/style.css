@@ -563,6 +563,12 @@ h3 .small { font-family: 'VT323', monospace; font-size: calc(18px * var(--fs)); 
 .report { display: flex; flex-direction: column; padding: 6px 0; border-bottom: 2px dashed rgba(0,0,0,0.35); }
 .report .what { display: flex; flex-direction: column; }
 .report.handled, .report.added { opacity: 0.6; }
+/* Vote de la semaine sur les thèmes proposés */
+.vote-item { flex-direction: row; align-items: center; gap: 10px; }
+.vote-item .what { flex: 1; }
+.vote-item .btn { flex: none; width: auto; margin: 0; padding: 6px 12px; }
+.vote-ranking { margin: 6px 0 0; padding-left: 1.6em; }
+.vote-ranking li { padding: 2px 0; }
 
 .news { border-color: var(--accent); }
 .news-quick { list-style: none; padding: 0; margin: 8px 0; display: flex; flex-direction: column; gap: 6px; }
