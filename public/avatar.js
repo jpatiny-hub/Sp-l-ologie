@@ -7,6 +7,32 @@
  *   Avatar.sprite(av)                   → canevas 16 x 28 à l'échelle 1 (pour la scène de forage)
  */
 (function (global) {
+
+  /** Pierres du filon : les panoplies de chaque mois (décembre → octobre) suivent la même forme que celle d'émeraude, aux couleurs de la pierre. */
+  const GEM_KITS = {
+    'saphir': { name: 'saphirs', c: ['#0a1e5a', '#1e50c8', '#5a90ff', '#d8e8ff'] },
+    'topaze': { name: 'topazes', c: ['#6a3a06', '#c8801c', '#ffc24a', '#fff0b8'] },
+    'rubis': { name: 'rubis', c: ['#4a0a14', '#a8142a', '#ff4a64', '#ffd0d8'] },
+    'peridot': { name: 'péridots', c: ['#1a4a05', '#5aa010', '#a8ee3a', '#eaffc0'] },
+    'opale': { name: 'opales', c: ['#4a3a8a', '#e0a8e8', '#a8f0e0', '#ffffff'] },
+    'aigue-marine': { name: 'aigues-marines', c: ['#0a4a5a', '#2aa8b8', '#7ae8e8', '#e0ffff'] },
+    'amethyste': { name: 'améthystes', c: ['#3a1a6a', '#7a32b0', '#c79bff', '#f3e0ff'] },
+    'citrine': { name: 'citrines', c: ['#7a4a06', '#d8921c', '#ffd04a', '#fff6c0'] },
+    'tourmaline': { name: 'tourmalines', c: ['#0a4a2a', '#d83a8a', '#5aeaa0', '#ffe0f0'] },
+    'grenat': { name: 'grenats', c: ['#3a0a10', '#8a1a24', '#d8383c', '#ffc0b8'] },
+    'onyx': { name: 'onyx', c: ['#08080e', '#2a2a44', '#6a6a9a', '#e8e8ff'] },
+  };
+  const GEM_IDS = Object.keys(GEM_KITS);
+  /** Kit de la pièce `prefix-<pierre>` (ex. casque-saphir), avec son rang pour varier les formes ; null sinon. */
+  function gemKit(id, prefix) {
+    if (typeof id !== 'string' || !id.startsWith(`${prefix}-`)) return null;
+    const gem = id.slice(prefix.length + 1);
+    return GEM_KITS[gem] ? { ...GEM_KITS[gem], n: GEM_IDS.indexOf(gem) } : null;
+  }
+  const gemTone = (outfit, part) => {
+    const k = gemKit(outfit, 'tunique');
+    return k ? (part === 'legs' ? shade(k.c[0], 1.6) : shade(k.c[1], 0.8)) : null;
+  };
   const W = 16;
   const H = 28;
   const OY = 6; // ligne du haut de la tête
@@ -53,7 +79,7 @@
       P(3, oy + 17, 10, 1, '#a77f12');
     }
     // Jambes.
-    const legs = (o.espece === 'robot' ? shade(METAL[o.peau] || METAL.clair, 0.6) : null) || { smoking: '#222', scaphandre: '#6b7a8c', cape: '#3a4a6b', armure: '#8a8f98', pirate: '#5a3a1a', cuisinier: '#4a4a52', 'mineur-nain': '#5a4a3a', 'armure-naine': '#5a4a3a', 'gilet-vapeur': '#4a3a2a', golem: '#46425a', 'costume-cupidon': '#e8dcc0', 'costume-gille': '#f2c230', 'manteau-noel': '#c8362d', 'chape-eveque': '#c8362d', 'tablier-forge': '#3a3a44', redingote: '#2a2a34', epouvantail: '#6a5a3a', explorateur: '#8a7a4a', herboriste: '#6a5a3a', 'tunique-infernale': '#2a1a2a', 'tunique-emeraude': '#23483a', 'cire-jaune': '#3a4a6b', poil: fur }[outfit] || '#3a4a6b';
+    const legs = (o.espece === 'robot' ? shade(METAL[o.peau] || METAL.clair, 0.6) : null) || { smoking: '#222', scaphandre: '#6b7a8c', cape: '#3a4a6b', armure: '#8a8f98', pirate: '#5a3a1a', cuisinier: '#4a4a52', 'mineur-nain': '#5a4a3a', 'armure-naine': '#5a4a3a', 'gilet-vapeur': '#4a3a2a', golem: '#46425a', 'costume-cupidon': '#e8dcc0', 'costume-gille': '#f2c230', 'manteau-noel': '#c8362d', 'chape-eveque': '#c8362d', 'tablier-forge': '#3a3a44', redingote: '#2a2a34', epouvantail: '#6a5a3a', explorateur: '#8a7a4a', herboriste: '#6a5a3a', 'tunique-infernale': '#2a1a2a', 'tunique-emeraude': '#23483a', 'cire-jaune': '#3a4a6b', poil: fur }[outfit] || gemTone(outfit, 'legs') || '#3a4a6b';
     if (robe) {
       const hem = { robe: '#b02a6a', 'robe-fleurs': '#e8466a', 'robe-sorciere': '#2a1a3a' }[outfit];
       P(5, oy + 15, 2, 5, skin);
@@ -67,7 +93,7 @@
       P(8, oy + 21, 3, 1, K);
     }
     // Torse et bras.
-    const top = (o.espece === 'robot' ? METAL[o.peau] || METAL.clair : null) || { mineur: '#d9772b', salopette: '#d9772b', robe: '#e86aa8', 'robe-fleurs': '#f3e1c8', smoking: '#222', pull: '#4a86e8', scaphandre: '#8aa0b8', cape: '#4a86e8', armure: '#aeb6c2', pirate: '#f3f3f3', cuisinier: '#ffffff', blouse: '#f3f3f3', chasuble: '#ff8c1a', 'mineur-nain': '#7a4a24', 'armure-naine': '#9a7a3a', 'gilet-vapeur': '#5a2a1a', golem: '#5a5668', 'costume-cupidon': '#f3e9d2', 'costume-gille': '#f2c230', 'manteau-noel': '#c8362d', 'robe-sorciere': '#4a2a6a', 'chape-eveque': '#c8362d', 'tablier-forge': '#8a8f98', redingote: '#3a2a4a', epouvantail: '#b8843a', explorateur: '#c8b078', herboriste: '#4a8a4a', 'tunique-infernale': '#2a1a2a', 'tunique-emeraude': '#1f7a4a', 'cire-jaune': '#f2c230', poil: fur }[outfit] || '#d9772b';
+    const top = (o.espece === 'robot' ? METAL[o.peau] || METAL.clair : null) || { mineur: '#d9772b', salopette: '#d9772b', robe: '#e86aa8', 'robe-fleurs': '#f3e1c8', smoking: '#222', pull: '#4a86e8', scaphandre: '#8aa0b8', cape: '#4a86e8', armure: '#aeb6c2', pirate: '#f3f3f3', cuisinier: '#ffffff', blouse: '#f3f3f3', chasuble: '#ff8c1a', 'mineur-nain': '#7a4a24', 'armure-naine': '#9a7a3a', 'gilet-vapeur': '#5a2a1a', golem: '#5a5668', 'costume-cupidon': '#f3e9d2', 'costume-gille': '#f2c230', 'manteau-noel': '#c8362d', 'robe-sorciere': '#4a2a6a', 'chape-eveque': '#c8362d', 'tablier-forge': '#8a8f98', redingote: '#3a2a4a', epouvantail: '#b8843a', explorateur: '#c8b078', herboriste: '#4a8a4a', 'tunique-infernale': '#2a1a2a', 'tunique-emeraude': '#1f7a4a', 'cire-jaune': '#f2c230', poil: fur }[outfit] || gemTone(outfit, 'top') || '#d9772b';
     if (fem) {
       P(5, oy + 7, 6, 4, top);
       if (robe) {
@@ -235,6 +261,21 @@
       P(5, oy + 9, 1, 1, '#2fb06a');
       P(10, oy + 9, 1, 1, '#2fb06a');
       P(4, oy + 13, 8, 1, '#e8c547');
+    }
+    const tk = gemKit(outfit, 'tunique');
+    if (tk) {
+      const [, , bright, light] = tk.c;
+      P(4, oy + 7, 8, 1, '#e8c547');
+      P(4, oy + 13, 8, 1, '#e8c547');
+      if (tk.n % 2 === 0) {
+        P(7, oy + 8, 2, 2, bright);
+        P(7, oy + 8, 1, 1, light);
+        P(4, oy + 11, 8, 1, '#e8c547');
+      } else {
+        [[5, 8], [6, 9], [7, 10], [8, 11]].forEach(([x, y]) => P(x, oy + y, 1, 1, bright));
+        P(5, oy + 8, 1, 1, light);
+        P(9, oy + 12, 2, 1, '#e8c547');
+      }
     }
     if (outfit === 'tunique-infernale') {
       P(5, oy + 7, 6, 1, '#c8362d');
@@ -528,6 +569,27 @@
       P(7, oy - 4, 1, 1, '#c8ffe0');
       P(5, oy - 1, 1, 1, '#e8c547');
       P(10, oy - 1, 1, 1, '#e8c547');
+    } else if (gemKit(hat, 'casque')) {
+      const k = gemKit(hat, 'casque');
+      const [, mid, bright, light] = k.c;
+      P(4, oy - 2, 8, 3, shade(mid, 0.75));
+      P(3, oy, 10, 1, shade(mid, 0.45));
+      if (k.n % 3 === 0) {
+        P(7, oy - 4, 2, 2, bright);
+        P(7, oy - 4, 1, 1, light);
+      } else if (k.n % 3 === 1) {
+        P(7, oy - 3, 2, 1, bright);
+        P(4, oy - 1, 1, 1, bright);
+        P(11, oy - 1, 1, 1, bright);
+        P(7, oy - 2, 1, 1, light);
+      } else {
+        P(5, oy - 3, 1, 1, bright);
+        P(7, oy - 4, 2, 2, bright);
+        P(10, oy - 3, 1, 1, bright);
+        P(7, oy - 4, 1, 1, light);
+      }
+      P(5, oy - 1, 1, 1, '#e8c547');
+      P(10, oy - 1, 1, 1, '#e8c547');
     } else if (hat === 'casque-nain') {
       P(4, oy - 2, 8, 3, '#8a8f98');
       P(3, oy, 10, 1, '#6b7078');
@@ -627,6 +689,15 @@
       P(12, oy + 5, 1, 1, '#2fb06a');
       P(15, oy + 5, 1, 1, '#2fb06a');
       P(13, oy + 4, 1, 1, '#c8ffe0');
+    } else if (gemKit(it, 'pioche')) {
+      const k = gemKit(it, 'pioche');
+      const [, mid, bright, light] = k.c;
+      P(14, oy + 5, 1, 9, '#8b5a2b');
+      P(12, oy + 4, 4, 1, bright);
+      P(12, oy + 5, 1, 1, mid);
+      P(15, oy + 5, 1, 1, mid);
+      P(13, oy + 4, 1, 1, light);
+      if (k.n % 2 === 1) P(14, oy + 3, 1, 1, bright);
     } else if (it === 'lanterne') {
       P(13, oy + 11, 3, 1, '#7d7d86');
       P(13, oy + 12, 3, 3, '#f2c230');
@@ -1460,7 +1531,16 @@
    * Panoplies : un ensemble complet porté d'un coup donne un petit bonus visuel (particules).
    * `drill` = nom de la foreuse assortie (voir le fil des foreuses de fête).
    */
+  const GEM_SETS = GEM_IDS.map((id) => ({
+    id,
+    name: `Chercheur ${/^[aeiouyéèêàâ]/i.test(GEM_KITS[id].name) ? "d'" : 'de '}${GEM_KITS[id].name}`,
+    theme: 'filon',
+    drill: `Gemme ${id}`,
+    pieces: { chapeau: `casque-${id}`, tenue: `tunique-${id}`, objet: `pioche-${id}`, aura: `gem-${id}` },
+    fx: { kind: 'scintille', colors: [GEM_KITS[id].c[2], GEM_KITS[id].c[3], '#e8c547'] },
+  }));
   const SETS = [
+    ...GEM_SETS,
     { id: 'chaudron', name: 'Sorcière du chaudron', theme: 'halloween', drill: 'Chaudron', pieces: { chapeau: 'chapeau-sorciere', tenue: 'robe-sorciere', objet: 'balai', compagnon: 'chat-noir' }, fx: { kind: 'monte', colors: ['#ff8a2a', '#b46aff', '#7fff5a'] } },
     { id: 'citrouille', name: 'Gardien citrouille', theme: 'halloween', drill: 'Citrouille', pieces: { espece: 'citrouille', tenue: 'epouvantail', chapeau: 'chapeau-paille', objet: 'torche' }, fx: { kind: 'monte', colors: ['#7fff5a', '#c8ff8a', '#ff8a2a'] } },
     { id: 'pere-noel', name: 'Père Noël', theme: 'noel', drill: 'Père Noël', pieces: { chapeau: 'bonnet-noel', tenue: 'manteau-noel', dos: 'hotte', objet: 'cadeau' }, fx: { kind: 'tombe', colors: ['#ffffff', '#cfe8ff'] } },

@@ -7,6 +7,12 @@
 
 const Gems = require('./gems');
 
+/** Panoplies des pierres du filon (décembre → octobre) : casque, tunique et pioche de chaque pierre, débloqués par son filon. Novembre (émeraude) est dessinée à part. */
+const GEM_PIECES = Gems.LIST.filter((g) => g.id !== 'emeraude').map((g) => {
+  const one = g.one.toLowerCase();
+  return { id: g.id, de: `${/^[aeiouyéèêàâ]/i.test(one) ? "d'" : 'de '}${one}` };
+});
+
 const OPTIONS = {
   espece: [['humain', 'Humain'], ['nain', 'Nain ou naine'], ['robot', 'Robot à vapeur'], ['taupe', 'Taupe ou taupinette'], ['citrouille', 'Citrouille hantée'], ['squelette', 'Squelette fossile'], ['fantome', 'Fantôme de la mine'], ['golem', 'Golem de cristal'],
     ['champignon', 'Champignon lumineux'], ['ver-luisant', 'Ver luisant géant'], ['diablotin', 'Diablotin des profondeurs'], ['grenouille', 'Grenouille des cascades']],
@@ -33,7 +39,7 @@ const OPTIONS = {
     ['aucun', 'Aucun'], ['casque', 'Casque de mineur'], ['haut', 'Haut-de-forme'], ['diademe', 'Diadème'], ['bonnet', 'Bonnet'],
     ['casque-blanc', 'Casque de chef de chantier'], ['casque-or', 'Casque doré'], ['couronne', 'Couronne'],
     ['viking', 'Casque viking'], ['heaume', 'Heaume de chevalier'], ['toque', 'Toque de chef'], ['bandana', 'Bandana de pirate'],
-    ['casque-nain', 'Casque de nain'], ['casque-emeraude', "Casque d'émeraude"], ['chapeau-metal', 'Chapeau de métal'], ['melon', 'Chapeau melon'], ['casquette', 'Casquette'], ['bonnet-noel', 'Bonnet de Noël'], ['mitre', 'Mitre de saint Nicolas'],
+    ['casque-nain', 'Casque de nain'], ['casque-emeraude', "Casque d'émeraude"], ...GEM_PIECES.map((g) => [`casque-${g.id}`, `Casque ${g.de}`]), ['chapeau-metal', 'Chapeau de métal'], ['melon', 'Chapeau melon'], ['casquette', 'Casquette'], ['bonnet-noel', 'Bonnet de Noël'], ['mitre', 'Mitre de saint Nicolas'],
     ['cotillon', 'Chapeau de fête'], ['aureole', 'Auréole de cupidon'], ['chapeau-sorciere', 'Chapeau de sorcière'], ['oreilles-lapin', 'Oreilles de lapin'], ['plumes-gille', 'Plumes d\'autruche'], ['bougies', 'Couronne de bougies'],
     ['chapeau-paille', 'Chapeau de paille'], ['casque-colonial', 'Casque colonial'], ['suroit', 'Suroît jaune'],
   ],
@@ -42,7 +48,7 @@ const OPTIONS = {
     ['scaphandre', 'Combinaison de forage'], ['cape', 'Cape dorée'],
     ['armure', 'Armure de chevalier'], ['pirate', 'Marinière de pirate'], ['cuisinier', 'Veste de cuisinier'], ['blouse', 'Blouse de laboratoire'],
     ['chasuble', 'Chasuble orange fluo'], ['robe-fleurs', 'Robe à fleurs'], ['mineur-nain', 'Tenue de mineur nain'], ['costume-gille', 'Costume de Gille'], ['armure-naine', 'Armure naine'], ['gilet-vapeur', 'Gilet à vapeur'], ['costume-cupidon', 'Toge de cupidon'], ['manteau-noel', 'Manteau du Père Noël'], ['robe-sorciere', 'Robe de sorcière'], ['chape-eveque', "Chape d'évêque"],
-    ['tablier-forge', 'Tablier de forgeron'], ['redingote', 'Redingote de géomètre'], ['epouvantail', "Habit d'épouvantail"], ['explorateur', "Tenue d'explorateur"], ['tunique-emeraude', "Tunique d'émeraude"], ['herboriste', "Tunique d'herboriste"], ['tunique-infernale', 'Tunique infernale'], ['cire-jaune', 'Ciré jaune'], ['poil', 'Juste le poil'],
+    ['tablier-forge', 'Tablier de forgeron'], ['redingote', 'Redingote de géomètre'], ['epouvantail', "Habit d'épouvantail"], ['explorateur', "Tenue d'explorateur"], ['tunique-emeraude', "Tunique d'émeraude"], ...GEM_PIECES.map((g) => [`tunique-${g.id}`, `Tunique ${g.de}`]), ['herboriste', "Tunique d'herboriste"], ['tunique-infernale', 'Tunique infernale'], ['cire-jaune', 'Ciré jaune'], ['poil', 'Juste le poil'],
   ],
   objet: [
     ['aucun', 'Rien'], ['pioche', 'Pioche'], ['lanterne', 'Lanterne'], ['fleur', 'Fleur'], ['canne', 'Canne'], ['ballon', 'Ballon'],
@@ -50,7 +56,7 @@ const OPTIONS = {
     ['epee', 'Épée'], ['bouclier', 'Bouclier'], ['marteau', 'Marteau de forgeron'],
     ['arc-coeur', 'Arc de cupidon'], ['cadeau', 'Cadeau'], ['canne-sucre', 'Sucre d\'orge'], ['balai', 'Balai de sorcière'], ['orange', 'Orange de Gille'], ['gateau', 'Gâteau d\'anniversaire'], ['crosse', 'Crosse'], ['panier-paques', 'Panier de Pâques'],
     ['coupe', 'Coupe de champagne'], ['tarte', 'Tarte'], ['poisson', 'Poisson frais'],
-    ['hache', 'Hache'], ['pioche-emeraude', "Pioche d'émeraude"], ['hache-double', 'Hache à deux tranchants'], ['pipe', 'Pipe'], ['chope', 'Chope de bière'],
+    ['hache', 'Hache'], ['pioche-emeraude', "Pioche d'émeraude"], ...GEM_PIECES.map((g) => [`pioche-${g.id}`, `Pioche ${g.de}`]), ['hache-double', 'Hache à deux tranchants'], ['pipe', 'Pipe'], ['chope', 'Chope de bière'],
   ],
   lieu: [['hublot', 'Au hublot de la foreuse'], ['surface', 'À la surface'], ['aucun', 'Nulle part']],
 };
@@ -97,6 +103,7 @@ const LOCKS = {
   'tenue:armure-naine': ['defenseur-15'],
   'chapeau:casque-nain': ['defenseur-5'],
   'chapeau:casque-emeraude': ['filon-emeraude'], 'tenue:tunique-emeraude': ['filon-emeraude'], 'objet:pioche-emeraude': ['filon-emeraude'],
+  ...Object.fromEntries(GEM_PIECES.flatMap((g) => [[`chapeau:casque-${g.id}`, [`filon-${g.id}`]], [`tenue:tunique-${g.id}`, [`filon-${g.id}`]], [`objet:pioche-${g.id}`, [`filon-${g.id}`]]])),
   // Jours spéciaux (badges du calendrier) et profondeurs.
   'espece:citrouille': ['halloween'],
   'espece:fantome': ['toussaint'],
@@ -214,7 +221,7 @@ const REFONTE_ITEMS = [
   'piercing:nez', 'piercing:sourcil', 'piercing:levre', 'piercing:oreille', 'piercing:multiples',
   'tatouage:ancre', 'tatouage:tribal', 'tatouage:serpent', 'tatouage:larme', 'tatouage:maori',
   'accessoire:noeud-papillon', 'accessoire:noeud-rose', 'accessoire:foulard', 'accessoire:medaille', 'accessoire:perles',
-  'chapeau:casque-nain', 'chapeau:casque-emeraude', 'tenue:tunique-emeraude', 'objet:pioche-emeraude', 'chapeau:chapeau-metal', 'chapeau:melon', 'chapeau:casquette',
+  'chapeau:casque-nain', 'chapeau:casque-emeraude', 'tenue:tunique-emeraude', 'objet:pioche-emeraude', ...GEM_PIECES.flatMap((g) => [`chapeau:casque-${g.id}`, `tenue:tunique-${g.id}`, `objet:pioche-${g.id}`]), 'chapeau:chapeau-metal', 'chapeau:melon', 'chapeau:casquette',
   'tenue:chasuble', 'tenue:robe-fleurs', 'tenue:mineur-nain', 'tenue:armure-naine', 'tenue:gilet-vapeur', 'tenue:poil',
   'objet:hache', 'objet:hache-double', 'objet:pipe', 'objet:chope',
 ];

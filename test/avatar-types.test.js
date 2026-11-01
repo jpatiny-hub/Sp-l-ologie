@@ -37,7 +37,7 @@ test('avatar : nouveaux éléments libres acceptés, armes et armures de duel ve
   for (const slot of ['espece', 'cheveux', 'yeux', 'aura', 'dos', 'bouche', 'compagnon', 'barbe', 'piercing', 'tatouage', 'accessoire', 'chapeau', 'tenue', 'objet']) {
     for (const [id] of Avatar.OPTIONS[slot]) {
       if (['aucun', 'aucune', 'points', 'court', 'humain', 'mineur', 'chauve', 'pull', 'poil', 'defaut', 'aucune', 'normal'].includes(id)) continue;
-      assert.ok(draw.includes(`'${id}'`) || draw.includes(`${id}:`) || (id.startsWith('insigne-') && draw.includes("'insigne-'")), `${slot}:${id} n'a pas de dessin`);
+      assert.ok(draw.includes(`'${id}'`) || draw.includes(`${id}:`) || (id.startsWith('insigne-') && draw.includes("'insigne-'")) || (/^(casque|tunique|pioche)-/.test(id) && draw.includes(`'${id.replace(/^[a-z]+-/, '')}': { name:`) && draw.includes("gemKit(hat, 'casque')")), `${slot}:${id} n'a pas de dessin`);
     }
   }
 });
