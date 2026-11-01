@@ -155,7 +155,7 @@
       node.textContent = galerieOn() ? label : node.dataset.orig;
     }
     // Noms thématiques de la barre du bas et du podium (refonte).
-    for (const [selector, label] of [['[data-nav="home"]', 'Camp'], ['[data-nav="play"]', 'Forer'], ['[data-nav="mine"]', 'Filons'], ['[data-nav="profile"]', 'Mineur'], ['#home-podium-tabs [data-period="day"]', 'Veille'], ['#home-podium-tabs [data-period="week"]', 'Filon de la semaine'], ['#home-podium-tabs [data-period="month"]', 'Grande veine']]) {
+    for (const [selector, label] of [['[data-nav="home"]', 'Camp'], ['[data-nav="play"]', 'Forer'], ['[data-nav="mine"]', 'Filons'], ['[data-nav="profile"]', 'Mineur'], ['#home-podium-tabs [data-period="day"]', 'Aujourd\'hui'], ['#home-podium-tabs [data-period="week"]', 'Filon de la semaine'], ['#home-podium-tabs [data-period="month"]', 'Grande veine']]) {
       const node = document.querySelector(selector);
       if (!node) continue;
       const text = node.querySelector('.nav-lab') || node;
@@ -3383,7 +3383,7 @@
     }
   });
   $('btn-results-home').addEventListener('click', () => goHome());
-  $('btn-results-podium').addEventListener('click', () => openPodium('week', null));
+  $('btn-results-podium').addEventListener('click', () => openPodium('day', null));
 
   // ---------- Carnet : badges et atelier ----------
   const CATEGORIES = [
