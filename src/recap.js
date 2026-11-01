@@ -10,7 +10,13 @@ const { tierFor } = require('./scoring');
 const FIRST_RECAP_WEEK = '2026-10-19';
 // Premières périodes célébrées : le podium du jour, de la semaine et du mois (dans cet ordre quand elles tombent le même jour).
 const KINDS = ['day', 'week', 'month'];
-const FIRST_START = { day: '2026-10-25', week: FIRST_RECAP_WEEK, month: '2026-11-01' };
+// Le mois d'octobre 2026 est le premier podium du mois (montré le 1er novembre).
+const FIRST_START = { day: '2026-10-25', week: FIRST_RECAP_WEEK, month: '2026-10-01' };
+/*
+ * Rejouer une fois des podiums déjà vus. Le 1er novembre 2026, le podium du mois d'octobre manquait : ceux qui ont déjà vu
+ * le podium du 31 octobre le revoient, suivi de celui du mois. Seulement ce jour-là, une seule fois (clé dans settings).
+ */
+const REPLAYS = [{ key: 'replay_podiums_2026-11-01', on: '2026-11-01', kind: 'day', start: '2026-10-31' }];
 
 /** Début et fin de la période terminée la plus récente de ce genre. */
 function lastPeriod(kind, today) {
@@ -54,6 +60,19 @@ function pendingCelebrations(db, userId, today) {
     if (any) out.push({ kind, start });
   }
   return out;
+}
+
+/** Rejeux à faire aujourd'hui (pas encore faits). `beforeWrite` est appelé avant la première écriture (sauvegarde). */
+function replayCelebrations(db, today, beforeWrite = () => {}) {
+  const todo = REPLAYS.filter((r) => r.on === today && !db.prepare('SELECT 1 AS x FROM settings WHERE key = ?').get(r.key));
+  if (!todo.length) return 0;
+  beforeWrite();
+  let n = 0;
+  for (const r of todo) {
+    n += Number(db.prepare('DELETE FROM celebrations_seen WHERE kind = ? AND start = ?').run(r.kind, r.start).changes);
+    db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)').run(r.key, String(n));
+  }
+  return n;
 }
 
 function markCelebrationSeen(db, userId, kind, start) {
@@ -157,4 +176,4 @@ function weeklyRecap(game, week, userId) {
   return periodRecap(game, 'week', week, userId);
 }
 
-module.exports = { pendingRecap, markRecapSeen, weeklyRecap, periodRecap, pendingCelebrations, markCelebrationSeen, lastPeriod, periodStart, periodEnd, KINDS, FIRST_RECAP_WEEK };
+module.exports = { pendingRecap, markRecapSeen, weeklyRecap, periodRecap, pendingCelebrations, markCelebrationSeen, replayCelebrations, lastPeriod, periodStart, periodEnd, KINDS, FIRST_RECAP_WEEK };
