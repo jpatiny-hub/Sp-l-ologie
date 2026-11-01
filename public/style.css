@@ -2033,3 +2033,21 @@ html[data-galerie] .who-text .ptitle { white-space: normal; overflow: visible; t
   .pf-tabs { gap: 4px; padding: 8px 2px; margin: 4px 0; }
   html[data-galerie] .pf-tabs .tab { font-size: calc(7.5px * var(--fs)); padding: 12px 1px; }
 }
+
+/* Forage sans cadre : question bien lisible sur tous les décors, sans encadré.
+   Contour pixel noir (8 directions) + halo sombre, texte crème fixe (même en apparence claire : le décor reste une grotte sombre),
+   et léger voile qui assombrit le bas du décor, là où s'affichent la question, le chrono et la réponse. */
+html[data-frameless]:has(#view-game:not([hidden])) .stage::after {
+  background: linear-gradient(rgba(6, 4, 10, 0.72), rgba(6, 4, 10, 0) 24%, rgba(6, 4, 10, 0) 42%, rgba(6, 4, 10, 0.6) 58%, rgba(6, 4, 10, 0.82));
+}
+html[data-frameless] #pane-prompt .theme-title, html[data-frameless] #prompt-index, html[data-frameless] #pane-prompt .joker-note, html[data-frameless] #pane-prompt .notimer-note {
+  --o: 2px;
+  text-shadow:
+    var(--o) 0 0 #000, calc(-1 * var(--o)) 0 0 #000, 0 var(--o) 0 #000, 0 calc(-1 * var(--o)) 0 #000,
+    var(--o) var(--o) 0 #000, calc(-1 * var(--o)) var(--o) 0 #000, var(--o) calc(-1 * var(--o)) 0 #000, calc(-1 * var(--o)) calc(-1 * var(--o)) 0 #000,
+    0 0 10px rgba(0, 0, 0, 0.95), 0 0 18px rgba(0, 0, 0, 0.7);
+}
+html[data-frameless] #pane-prompt .theme-title { color: #fff6e0; font-size: calc(14px * var(--fs)); line-height: 1.55; letter-spacing: 0.5px; }
+html[data-frameless] #prompt-index, html[data-frameless] #pane-prompt .joker-note, html[data-frameless] #pane-prompt .notimer-note { --o: 1px; color: #e6d8bc; opacity: 1; }
+html[data-frameless] #pane-prompt .game-mole .bubble { color: #fff6e0; background: rgba(10, 8, 16, 0.72); }
+html[data-frameless] #pane-prompt .game-mole .bubble::before { border-right-color: rgba(10, 8, 16, 0.72); }
