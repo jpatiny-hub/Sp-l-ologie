@@ -21,7 +21,7 @@ const { feed, mineToday } = require('./src/feed');
 const { seasonFor } = require('./src/specialdays');
 const { ReverseService } = require('./src/reverse');
 const { MessageService } = require('./src/messages');
-const { pendingRecap, markRecapSeen, weeklyRecap, periodRecap, pendingCelebrations, markCelebrationSeen, lastPeriod, periodStart, periodEnd, KINDS } = require('./src/recap');
+const { pendingRecap, markRecapSeen, weeklyRecap, periodRecap, pendingCelebrations, markCelebrationSeen, replayCelebrations, lastPeriod, periodStart, periodEnd, KINDS } = require('./src/recap');
 const { unseenNews, latestNewsId } = require('./src/news');
 
 const SESSION_MS = config.SESSION_DAYS * 24 * 3600 * 1000;
@@ -107,6 +107,18 @@ function createApp({
       }
     }
     return true;
+  }
+  /** Podiums à rejouer (voir REPLAYS dans src/recap.js) : vérifié une fois par jour de jeu, sauvegarde avant d'écrire. */
+  let replayCheckedOn = null;
+  function replayPodiums() {
+    const today = game.today();
+    if (replayCheckedOn === today) return;
+    replayCheckedOn = today;
+    try {
+      replayCelebrations(db, today, () => backupNow(db, { now }));
+    } catch (err) {
+      errors.record('processus', `Rejeu des podiums impossible : ${err.message}`);
+    }
   }
   /** Vestiaire 16-bit : le responsable pendant la bêta, tout le monde une fois la refonte ouverte. */
   const refonteFor = (user) => isAdmin(user) || refonteLive();
@@ -460,7 +472,7 @@ function createApp({
         streak: game.badges.homeSummary(user.id, game.today()),
         collective: collectiveStatus(db, game.today(), user.id),
         recap: pendingRecap(db, user.id, game.today()),
-        celebrations: pendingCelebrations(db, user.id, game.today()),
+        celebrations: (replayPodiums(), pendingCelebrations(db, user.id, game.today())),
         duels: game.duels.summary(user.id),
         announcements: announcements.unseen(user.id),
         unreadReports: game.myReports(user.id).unread,

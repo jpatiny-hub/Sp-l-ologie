@@ -73,9 +73,10 @@ test('podiums du jour, de la semaine et du mois : dans l\'ordre, une seule fois'
     assert.deepEqual((await adam('/api/me')).data.celebrations, []);
     assert.equal((await eve('/api/me')).data.celebrations.length, 1, 'chacun son tour');
 
-    // Dimanche 1er novembre → lundi 2 : jour, puis semaine ; le mois n'arrive qu'à partir du 1er du mois suivant.
+    // Lundi 2 novembre : la semaine écoulée, et le mois d'octobre (premier podium du mois) pas encore vu.
     app.clock.now = Date.UTC(2026, 10, 2, 10, 0);
-    assert.deepEqual((await adam('/api/me')).data.celebrations.map((c) => c.kind), ['week']);
+    assert.deepEqual((await adam('/api/me')).data.celebrations, [{ kind: 'week', start: '2026-10-26' }, { kind: 'month', start: '2026-10-01' }]);
+    await adam('/api/celebration/seen', { kind: 'month', start: '2026-10-01' });
     app.clock.now = Date.UTC(2026, 10, 30, 10, 0); // lundi 30 novembre : semaine du 23 et rien d'autre
     await adam('/api/celebration/seen', { kind: 'week', start: '2026-10-26' });
     // 1er décembre : le mois de novembre n'a pas de forage, donc pas de podium.
@@ -101,6 +102,36 @@ test('podium du mois : le mois écoulé arrive après la semaine', async () => {
     assert.equal(month.end, '2026-11-30');
     assert.equal(month.daysInPeriod, 30);
     assert.equal(month.me.days, 1);
+  } finally {
+    await app.close();
+  }
+});
+
+test("1er novembre 2026 : podium d'octobre, et le podium du 31 octobre rejoué une fois pour ceux qui l'ont déjà vu", async () => {
+  const app = await startServer();
+  try {
+    app.clock.now = Date.UTC(2026, 9, 31, 10, 0); // samedi 31 octobre
+    const adam = client(app.base);
+    const eve = client(app.base);
+    await adam('/api/signup', { username: 'adam', password: 'secret123' });
+    await eve('/api/signup', { username: 'eve', password: 'secret123' });
+    await playDaily(app, adam, 3);
+    await playDaily(app, eve, 1);
+    // Avant le correctif, adam avait déjà vu le podium du jour ce matin-là.
+    app.db.prepare("INSERT INTO celebrations_seen (user_id, kind, start) SELECT id, 'day', '2026-10-31' FROM users WHERE username = 'adam'").run();
+    app.clock.now = Date.UTC(2026, 10, 1, 9, 0); // dimanche 1er novembre, 10 h à Bruxelles
+    const both = [{ kind: 'day', start: '2026-10-31' }, { kind: 'month', start: '2026-10-01' }];
+    assert.deepEqual((await adam('/api/me')).data.celebrations, both, 'le jour revient, suivi du mois');
+    assert.deepEqual((await eve('/api/me')).data.celebrations, both);
+    const month = (await adam('/api/celebration?kind=month&start=2026-10-01')).data;
+    assert.equal(month.entries[0].username, 'adam');
+    for (const c of both) await adam('/api/celebration/seen', c);
+    assert.deepEqual((await adam('/api/me')).data.celebrations, [], 'une seule fois');
+    // Le rejeu ne se refait pas, même après un redémarrage ou un autre jour.
+    const { replayCelebrations } = require('../src/recap');
+    assert.equal(replayCelebrations(app.db, '2026-11-01'), 0);
+    assert.deepEqual((await adam('/api/me')).data.celebrations, []);
+    assert.deepEqual((await eve('/api/me')).data.celebrations, both, 'eve garde les siens');
   } finally {
     await app.close();
   }
