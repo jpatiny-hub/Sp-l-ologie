@@ -145,6 +145,13 @@
   function setCaves(on) {
     caves = !!on && !!global.Caves;
   }
+  // Vie de mine dans le forage (essai) : les galeries de minelife.js sont creusées dans le décor et réagissent au passage de la foreuse.
+  let mineLife = false;
+  let lifeWorld = null;
+  let lifeRows = null; // lignes des galeries : le puits n'y est pas dessiné (la foreuse les traverse à l'air libre)
+  function setMineLife(on) {
+    mineLife = !!on;
+  }
   /** Bandes du puits et des débris : paliers des grottes ou couches géologiques. */
   const bands = () => (caves ? global.Caves.TIERS : ZONES);
   const bandIndex = (points) => (caves ? global.Caves.tierIndex(points) : zoneIndex(points));
@@ -481,6 +488,8 @@
     caveShaft = null;
     caveBack = null;
     caveFront = null;
+    lifeWorld = null;
+    lifeRows = null;
     for (let y = 0; y < WORLD_H; y++) {
       for (let x = 0; x < W; x++) {
         if (y < SKY) set(x, y, skyColor(x, y));
@@ -612,6 +621,11 @@
       caveShaft = built.shaftOpen;
       for (let i = 0; i < built.alpha.length; i++) img.data[i * 4 + 3] = built.alpha[i];
       const dims = { W, SKY, PPP, WORLD_H };
+      if (mineLife && global.MineLife) {
+        lifeWorld = global.MineLife.build({ ...dims, data: img.data, set, seed: exploreSeed || 7 });
+        lifeRows = new Uint8Array(WORLD_H);
+        for (const tu of lifeWorld.tunnels) for (let y = tu.ty; y < tu.ty + global.MineLife.TH - 1; y++) lifeRows[y] = 1;
+      }
       caveBack = global.Caves.backdrop(dims);
       caveFront = global.Caves.foreground(dims);
     } else decorate(set);
@@ -1171,6 +1185,9 @@
       this.onZone = null;
       this.wasDrilling = false;
       this.zone = 0;
+      this.reactions = []; // galeries traversées qui réagissent (vie de mine)
+      this.lastTip = SKY;
+      this.onGallery = null; // appelé au passage d'une galerie : (réaction, côté -1 | 1)
       this.last = performance.now();
       this.frame = this.frame.bind(this);
       requestAnimationFrame(this.frame);
@@ -1218,6 +1235,7 @@
     /** Reconstruit le décor (changement de saison). */
     rebuild() {
       this.world = buildWorld();
+      this.reactions = [];
     }
 
     /** layers : [{ points, tier }] dans l'ordre des thèmes. */
@@ -1348,6 +1366,20 @@
         this.depth = this.target;
         this.zone = zoneIndex(this.depth);
         this.emitDepth();
+      }
+      if (lifeWorld) {
+        const tip = this.tipY(), now = performance.now() / 1000;
+        if (this.drilling && !reducedMotion()) {
+          lifeWorld.tunnels.forEach((tu, k) => {
+            const y = tu.ty + 6;
+            if (this.lastTip >= y || tip < y) return;
+            const kind = global.MineLife.reactionFor(lifeWorld, k), side = k % 2 ? 1 : -1;
+            this.reactions.push({ ty: tu.ty, tier: tu.tier, kind, side, t0: now });
+            if (this.onGallery) this.onGallery(kind, side);
+          });
+        }
+        this.lastTip = tip;
+        if (this.reactions.length) this.reactions = this.reactions.filter((r) => now - r.t0 < global.MineLife.REACT_DUR);
       }
       if (this.drilling !== this.wasDrilling) {
         this.wasDrilling = this.drilling;
@@ -1542,7 +1574,7 @@
         if (caveShaft) {
           // Grottes : le puits n'est creusé que dans la roche ; dans le vide d'une grotte, la foreuse pend à son câble.
           for (let y = Math.max(y0, cam); y < Math.min(y1, cam + this.h); y++) {
-            if (caveShaft[y]) continue;
+            if (caveShaft[y] || (lifeRows && lifeRows[y])) continue;
             ctx.fillStyle = zones[zi].dark;
             ctx.fillRect(SHAFT_X, y, SHAFT_W, 1);
             ctx.fillStyle = 'rgba(0,0,0,0.45)';
@@ -1558,6 +1590,11 @@
         ctx.fillStyle = 'rgba(0,0,0,0.45)';
         ctx.fillRect(SHAFT_X, y0, 2, y1 - y0);
         ctx.fillRect(SHAFT_X + SHAFT_W - 2, y0, 2, y1 - y0);
+      }
+
+      if (lifeWorld) {
+        global.MineLife.draw(ctx, lifeWorld, time, cam, this.h, reducedMotion());
+        this.reactions.forEach((r) => global.MineLife.react(ctx, r, time - r.t0, time));
       }
 
       // Repères de fin de chaque thème : planche, couleur de la rareté et numéro.
@@ -1636,6 +1673,6 @@
   }
 
   global.Pixel = {
-    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, formatRemaining, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, setSeason, setSkullMode, setCaves, isCaves: () => caves, drawDrill, WIDTH: W, HEIGHT: H, SKY, PPP, WORLD_H,
+    DrillScene, ZONES, MAX_POINTS, depthKm, formatDepth, formatRemaining, zoneName, zoneIndex, TIER_COLORS, TIER_SYMBOLS, setColorblind, setSeason, setSkullMode, setCaves, isCaves: () => caves, setMineLife, hasMineLife: () => mineLife, drawDrill, WIDTH: W, HEIGHT: H, SKY, PPP, WORLD_H,
   };
 })(window);
