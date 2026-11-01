@@ -23,7 +23,7 @@ test('refonte : réservée au responsable avant la date, ouverte à tous ensuite
     app.clock.now += 2 * 24 * 3600 * 1000; // 16 octobre, après 2 h
     const after = (await ada('/api/me')).data;
     assert.equal(after.refonte, true);
-    assert.deepEqual(after.news.map((n) => n.title), ['La mine fait peau neuve'], 'la note de la refonte apparaît à l\'ouverture');
+    assert.deepEqual(after.news.map((n) => n.title), ['La mine fait peau neuve', 'Nouveaux défis : diamants et galeries'], 'les notes de la refonte apparaissent à l\'ouverture');
     assert.equal(after.avatar.couleur, 'brun', "l'ancien avatar est remplacé par le personnage standard");
     assert.equal(app.db.prepare('SELECT COUNT(*) AS n FROM avatar_backup').get().n, 1, "l'ancien avatar est gardé en copie");
     assert.equal((await ada('/api/profile/avatar', { avatar: { ...after.avatar, espece: 'nain' } })).status, 200);

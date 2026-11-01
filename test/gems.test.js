@@ -42,11 +42,11 @@ test('défi du mois : l\'objectif suit le nombre de joueurs actifs du mois préc
     ids.forEach((id, i) => { for (let d = 1; d <= (i === 6 ? 3 : 4); d++) insertGame.run(id, `2026-10-0${d}`, 100); });
     const nov = collectiveStatus(app.db, '2026-11-05', adamId);
     assert.equal(nov.gallery.kind, 'points');
-    assert.equal(nov.gallery.active, 6);
-    assert.equal(nov.goal, 27000);
+    assert.equal(nov.gallery.active, 10, 'novembre 2026 : 10 joueurs au minimum');
+    assert.equal(nov.goal, 45000);
     assert.equal(nov.gallery.gem, 'emeraude');
     assert.equal(nov.gallery.colors.gem.length, 4);
-    assert.equal(nov.duel.goal, 24, '4 duels par joueur actif');
+    assert.equal(nov.duel.goal, 40, '4 duels par joueur actif');
     // Décembre : les réponses valides remplacent les points, l'objectif est 90 par joueur actif (4 joueurs au moins).
     const dec = collectiveStatus(app.db, '2026-12-05', adamId);
     assert.equal(dec.gallery.kind, 'reponses');
@@ -74,15 +74,15 @@ test('filon du mois : récompenses pour qui fore 10 jours quand le groupe attein
     }
     const idOf = (n) => app.db.prepare('SELECT id FROM users WHERE username = ?').get(n).id;
     const insertGame = app.db.prepare("INSERT INTO games (user_id, mode, day, score, created_at, finished_at) VALUES (?, 'daily', ?, ?, 0, 1)");
-    // Octobre : 5 joueurs actifs, donc un objectif de 22 500 points. Novembre : adam et eve 12 jours, louis 5 jours.
+    // Octobre : 5 joueurs actifs, mais novembre 2026 compte 10 joueurs au minimum : objectif de 45 000 points. Novembre : adam et eve 12 jours, louis 5 jours.
     for (const n of names) for (let d = 1; d <= 4; d++) insertGame.run(idOf(n), `2026-10-0${d}`, 100);
     const day = (d) => `2026-11-${String(d).padStart(2, '0')}`;
-    for (let d = 1; d <= 12; d++) { insertGame.run(idOf('adam'), day(d), 1000); insertGame.run(idOf('eve'), day(d), 400); }
+    for (let d = 1; d <= 12; d++) { insertGame.run(idOf('adam'), day(d), 2000); insertGame.run(idOf('eve'), day(d), 1000); }
     for (let d = 1; d <= 5; d++) insertGame.run(idOf('louis'), day(d), 1000);
     let adam = (await calls.adam('/api/profile')).data;
-    assert.equal(badge(adam, 'filon-emeraude').count, 0, 'total 21 800 : le filon n\'est pas atteint');
+    assert.equal(badge(adam, 'filon-emeraude').count, 0, 'total 41 000 : le filon n\'est pas atteint');
     assert.equal(adam.drillCatalog.styles.find((s) => s.id === 'gemme-emeraude').unlocked, false);
-    insertGame.run(idOf('louis'), day(13), 1000); // 22 800 ≥ 22 500
+    insertGame.run(idOf('louis'), day(13), 4000); // 45 000
     adam = (await calls.adam('/api/profile')).data;
     assert.equal(badge(adam, 'filon-emeraude').count, 1);
     assert.equal(adam.drillCatalog.styles.find((s) => s.id === 'gemme-emeraude').unlocked, true, 'carrosserie de la pierre du mois');

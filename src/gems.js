@@ -15,6 +15,8 @@ const MIN_DAYS = 10;
 // Joueur actif : au moins 4 jours de forage le mois précédent. Jamais moins de 4 joueurs pour fixer l'objectif.
 const ACTIVE_DAYS = 4;
 const MIN_PLAYERS = 4;
+// Joueurs actifs comptés au minimum pour certains mois (décision du responsable : novembre 2026 = 10 joueurs, soit 45 000 points).
+const MIN_PLAYERS_BY_MONTH = { '2026-11': 10 };
 
 // Objectifs par joueur actif et nature du défi (tirée à tour de rôle, voir CYCLE).
 const KINDS = {
@@ -59,4 +61,4 @@ const niceGoal = (v) => {
   return Math.round(v / step) * step;
 };
 
-module.exports = { GEMS, LIST, CYCLE, KINDS, FIRST_MONTH, MIN_DAYS, ACTIVE_DAYS, MIN_PLAYERS, gemOf, kindOf, galleryOn, niceGoal, monthNumber };
+module.exports = { MIN_PLAYERS_BY_MONTH, GEMS, LIST, CYCLE, KINDS, FIRST_MONTH, MIN_DAYS, ACTIVE_DAYS, MIN_PLAYERS, gemOf, kindOf, galleryOn, niceGoal, monthNumber };

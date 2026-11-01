@@ -59,7 +59,7 @@ function computeMonth(db, day) {
   const end = monthEnd(day);
   const gallery = Gems.galleryOn(start);
   const kind = gallery ? Gems.kindOf(start) : 'points';
-  const active = gallery ? Math.max(Gems.MIN_PLAYERS, activePlayers(db, start)) : 0;
+  const active = gallery ? Math.max(Gems.MIN_PLAYERS, Gems.MIN_PLAYERS_BY_MONTH[start.slice(0, 7)] || 0, activePlayers(db, start)) : 0;
   const goal = gallery ? Gems.niceGoal(Gems.KINDS[kind].per * active) : GOAL;
   const rows = measures(db, kind, start, end);
   const perUser = new Map();
