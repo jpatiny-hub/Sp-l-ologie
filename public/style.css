@@ -1695,7 +1695,6 @@ html[data-galerie] .icon-btn { border-radius: 50%; background: rgba(0, 0, 0, 0.3
 html[data-galerie] .bottom-nav { background: linear-gradient(transparent, rgba(0, 0, 0, 0.9) 55%); border: 0; box-shadow: none; }
 html[data-galerie] .bottom-nav button { padding-left: 0; padding-right: 0; }
 html[data-galerie] .bottom-nav button.active .nav-lab { color: var(--lamp); }
-html[data-galerie] .nav-lab { font-size: 7px; }
 html[data-galerie] .podium .empty .block { background: rgba(255, 255, 255, 0.08); }
 html:not([data-galerie]) #bottom-nav [data-nav='defis'], html:not([data-galerie]) #home-feed { display: none !important; }
 html[data-galerie] #bottom-nav [data-nav='messages'] { display: none; }
@@ -2063,3 +2062,46 @@ html[data-galerie] .who-text .ptitle { white-space: normal; overflow: visible; t
 .ts-play { background: var(--well); padding: 4px 8px; }
 .ts-play s { color: var(--muted); }
 .ts-ok { color: var(--ok); }
+
+/* ---------- Accessibilité dans la refonte 16-bit (galerie, forage sans cadre) ----------
+   Haut contraste : grotte assombrie derrière, panneaux noirs à bord blanc, boutons jaune vif.
+   Lecture facile : panneaux crème à texte foncé (l'ancien fond crème ne passait pas sous le verre fumé). */
+html[data-galerie] .nav-lab { font-size: calc(8.2px * var(--fs)); }
+html[data-galerie][data-contrast] .nav-lab, html[data-galerie][data-lisible] .nav-lab { font-size: calc(10.5px * var(--fs)); }
+
+html[data-contrast][data-galerie] { --glass: #000; --edge: #fff; --lamp: #ffe14d; --ink: #fff; --muted: #fff; }
+html[data-contrast][data-galerie] #galerie-bg, html[data-contrast][data-frameless] #scene { filter: brightness(0.38) saturate(0.55); }
+html[data-contrast][data-galerie] body::after { background: rgba(0, 0, 0, 0.35); }
+html[data-contrast][data-galerie] .card, html[data-contrast][data-galerie] dialog.card, html[data-contrast][data-galerie] dialog.centre { background: #000 !important; border: 2px solid #fff !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+html[data-contrast][data-galerie] dialog.centre .card { border: 0 !important; }
+html[data-contrast][data-galerie] .card h2, html[data-contrast][data-galerie] .beta-greet, html[data-contrast][data-galerie] .logo { color: #ffe14d; text-shadow: none; }
+html[data-contrast][data-galerie] .card p, html[data-contrast][data-galerie] .beta-sub, html[data-contrast][data-galerie] #next-reset { color: #fff; opacity: 1; text-shadow: 2px 2px 0 #000; }
+html[data-contrast][data-galerie] #view-home > .beta-hello, html[data-contrast][data-galerie] #view-home > .profile-card, html[data-contrast][data-galerie] #view-home > .play-card { background: #000 !important; border: 2px solid #fff !important; border-radius: 12px; padding: 8px !important; }
+html[data-contrast][data-galerie] .btn { background: #ffe14d; color: #000; box-shadow: 0 0 0 2px #000, 0 0 0 4px #fff; }
+html[data-contrast][data-galerie] .btn.secondary, html[data-contrast][data-galerie] .btn.ghost, html[data-contrast][data-galerie] .tab, html[data-contrast][data-galerie] .icon-btn { background: #000; color: #fff; box-shadow: none; border: 2px solid #fff; }
+html[data-contrast][data-galerie] .tab.active { background: #ffe14d; color: #000; }
+html[data-contrast][data-galerie] .bottom-nav { background: #000; border-top: 2px solid #fff; }
+html[data-contrast][data-galerie] .nav-lab { color: #fff; }
+html[data-contrast][data-galerie] .bottom-nav button.active .nav-lab { color: #ffe14d; text-decoration: underline; text-underline-offset: 3px; }
+html[data-contrast][data-frameless] #view-game, html[data-contrast][data-frameless] #view-results { text-shadow: none; }
+html[data-contrast][data-frameless] .stage::after { background: none; }
+html[data-contrast][data-frameless] #view-game #pane-ready:not([hidden]), html[data-contrast][data-frameless] #view-game #pane-prompt:not([hidden]), html[data-contrast][data-frameless] #view-game #pane-feedback:not([hidden]) { background: #000 !important; border: 2px solid #fff !important; border-radius: 12px; padding: 10px !important; }
+html[data-contrast][data-frameless] .hud span, html[data-contrast][data-frameless] #form-answer input { background: #000; border: 2px solid #fff; color: #fff; }
+
+html[data-lisible][data-galerie] .card, html[data-lisible][data-galerie] dialog.card, html[data-lisible][data-galerie] dialog.centre { background: #fffdf6 !important; color: #2b2620; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; border: 2px solid #c9b48a !important; }
+html[data-lisible][data-galerie] dialog.centre .card { border: 0 !important; }
+html[data-lisible][data-galerie] .card h2, html[data-lisible][data-galerie] .beta-greet { color: #7a5600; text-shadow: none; }
+html[data-lisible][data-galerie] .card p, html[data-lisible][data-galerie] .card li, html[data-lisible][data-galerie] .card .muted { color: #2b2620; text-shadow: none; }
+html[data-lisible][data-galerie] .btn.secondary, html[data-lisible][data-galerie] .btn.ghost { color: #2b2620; background: #efe6d2; box-shadow: inset 0 0 0 2px #c9b48a; }
+html[data-lisible][data-galerie] #view-home > .beta-hello, html[data-lisible][data-galerie] #view-home > .profile-card { background: #fffdf6 !important; color: #2b2620; border-radius: 12px; padding: 10px !important; }
+html[data-lisible][data-galerie] .beta-sub, html[data-lisible][data-galerie] .beta-sub * { color: #2b2620 !important; text-shadow: none !important; }
+html[data-lisible][data-frameless] #view-game, html[data-lisible][data-frameless] #view-results { text-shadow: none; }
+html[data-lisible][data-frameless] #view-game #pane-ready:not([hidden]), html[data-lisible][data-frameless] #view-game #pane-prompt:not([hidden]), html[data-lisible][data-frameless] #view-game #pane-feedback:not([hidden]) { background: #fffdf6 !important; color: #2b2620; border-radius: 12px; padding: 10px !important; }
+html[data-lisible][data-frameless] #view-game .card *:not(.btn):not(input) { color: #2b2620; }
+html[data-lisible][data-frameless] .hud span { background: #fffdf6; color: #2b2620; }
+html[data-lisible][data-galerie] .game-head, html[data-lisible][data-galerie] .game-head * { color: #fffdf6 !important; text-shadow: 0 2px 0 #000; }
+html[data-lisible][data-galerie] .btn:not(.secondary):not(.ghost) { color: #231503; }
+html[data-lisible][data-frameless] #form-answer input { background: #fffdf6 !important; color: #2b2620 !important; }
+html[data-lisible][data-frameless] .hud, html[data-contrast][data-frameless] .hud { opacity: 1 !important; z-index: 2; }
+html[data-lisible][data-frameless] .hud span { background: #fffdf6 !important; color: #2b2620 !important; }
+html[data-lisible][data-frameless] #hud-depth { color: #7a5600 !important; }
