@@ -4777,11 +4777,11 @@
   // ---------- Contre maître (responsable du jeu) ----------
   // Administration en trois onglets : contenu (thèmes, réponses), joueurs (suivi, duels, messages) et jeu (santé, annonces).
   // Une pastille sur l'onglet totalise ce qui attend le responsable.
-  const ADMIN_TAB_OF = { reports: 'contenu', suggestions: 'contenu', duels: 'joueurs', msgreports: 'joueurs', suspicions: 'joueurs' };
+  const ADMIN_TAB_OF = { themes: 'themes', reports: 'contenu', suggestions: 'contenu', duels: 'joueurs', msgreports: 'joueurs', suspicions: 'joueurs' };
   app.adminCounts = {};
   function setAdminCount(key, n) {
     app.adminCounts[key] = n;
-    for (const tab of ['contenu', 'joueurs', 'jeu']) {
+    for (const tab of ['contenu', 'themes', 'joueurs', 'jeu']) {
       const total = Object.entries(app.adminCounts).reduce((sum, [k, v]) => sum + (ADMIN_TAB_OF[k] === tab ? v : 0), 0);
       const dot = $(`atab-count-${tab}`);
       dot.hidden = !total;
@@ -4855,6 +4855,188 @@
     if (t) loadSuspicions(Number(t.dataset.susp));
   });
 
+  // ---------- Thèmes joués (responsable du jeu) ----------
+  const TS_MODE = { daily: 'quotidien', duel: 'duel', training: 'illimité' };
+  const TS_OUTCOME = { answer: 'trouvé', skip: 'passé', timeout: 'temps écoulé', joker: 'joker' };
+  app.ts = { days: 30, mode: '', shown: 30, open: null };
+  const pct = (x) => `${Math.round(x * 100)} %`;
+  const secs = (ms) => (ms == null ? '–' : `${Math.round(ms / 1000)} s`);
+
+  async function loadThemeStats() {
+    const card = $('admin-themes');
+    card.hidden = !(app.me && app.me.isAdmin);
+    if (card.hidden) return;
+    $('themes-days').querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', Number(t.dataset.tdays) === app.ts.days));
+    $('themes-modes').querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.dataset.tmode === app.ts.mode));
+    try {
+      const data = await api(`/api/admin/themes/stats?days=${app.ts.days}${app.ts.mode ? `&mode=${app.ts.mode}` : ''}`);
+      app.ts.themes = data.themes;
+      const flou = data.themes.filter((t) => t.flag === 'flou').length;
+      if (app.ts.days === 30 && !app.ts.mode) setAdminCount('themes', flou);
+      $('themes-sub').textContent = flou ? `${plural(flou, 'thème peut-être flou', 'thèmes peut-être flous')}` : 'aucun thème qui coince';
+      renderThemeStats();
+    } catch (err) {
+      $('themes-status').textContent = err.message;
+    }
+  }
+
+  function tsBar(t) {
+    const part = (cls, n) => (n ? el('span', { class: cls, style: { width: `${(n / t.plays) * 100}%` } }) : null);
+    return el('div', { class: 'ts-bar', 'aria-hidden': 'true' }, part('found', t.found), part('skip', t.skipped), part('timeout', t.timeout), part('joker', t.joker));
+  }
+
+  function tsLine(t) {
+    const bits = [plural(t.players, 'joueur', 'joueurs'), `${pct(t.foundRate)} trouvé`];
+    if (t.triesPerPlay != null) bits.push(`${t.triesPerPlay.toLocaleString('fr-BE', { maximumFractionDigits: 1 })} refus / joueur`);
+    if (t.pendingReports) bits.push(plural(t.pendingReports, 'signalement', 'signalements'));
+    return bits.join(' · ');
+  }
+
+  function renderThemeStats() {
+    const q = $('themes-search').value.trim().toLowerCase();
+    const all = (app.ts.themes || []).filter((t) => !q || t.title.toLowerCase().includes(q));
+    const list = all.slice(0, app.ts.shown);
+    $('themes-status').textContent = all.length ? '' : 'Aucun thème joué sur cette période.';
+    $('btn-themes-more').hidden = all.length <= list.length;
+    $('themes-list').replaceChildren(
+      ...list.map((t) => {
+        const head = el(
+          'button',
+          { class: 'ts-head', type: 'button', 'aria-expanded': String(app.ts.open === t.themeId) },
+          el('span', { class: 'ts-title' }, el('strong', {}, t.title), t.flag ? el('span', { class: `ts-tag ${t.flag}` }, t.flag === 'flou' ? 'FLOU ?' : 'DUR') : null),
+          tsBar(t),
+          el('span', { class: 'muted small' }, tsLine(t)),
+        );
+        const item = el('li', { class: `ts-row${t.flag === 'flou' ? ' flou' : ''}` }, head);
+        head.addEventListener('click', () => {
+          app.ts.open = app.ts.open === t.themeId ? null : t.themeId;
+          renderThemeStats();
+        });
+        if (app.ts.open === t.themeId) {
+          const box = el('div', { class: 'ts-detail' }, el('p', { class: 'muted small' }, 'Chargement…'));
+          item.append(box);
+          loadThemeDetail(t.themeId, box);
+        }
+        return item;
+      }),
+    );
+  }
+
+  async function loadThemeDetail(themeId, box) {
+    try {
+      const d = await api(`/api/admin/themes/stats?days=${app.ts.days}&themeId=${encodeURIComponent(themeId)}${app.ts.mode ? `&mode=${app.ts.mode}` : ''}`);
+      box.replaceChildren(...themeDetailNodes(d));
+    } catch (err) {
+      box.replaceChildren(el('p', { class: 'muted small' }, err.message));
+    }
+  }
+
+  function themeDetailNodes(d) {
+    const modes = Object.entries(d.modes).map(([m, n]) => `${n} en ${TS_MODE[m] || m}`).join(' · ');
+    const legend = el(
+      'p',
+      { class: 'ts-legend muted small' },
+      ...[['found', 'trouvé', d.found], ['skip', 'passé', d.skipped], ['timeout', 'temps écoulé', d.timeout], ['joker', 'joker', d.joker]]
+        .filter(([, , n]) => n)
+        .map(([cls, label, n]) => el('span', {}, el('i', { class: `ts-bar-${cls}` }), `${label} ${pct(n / d.plays)}`)),
+    );
+    const nodes = [
+      el('p', { class: 'muted small' }, modes),
+      legend,
+      el(
+        'div',
+        { class: 'ts-boxes' },
+        el('div', {}, el('b', {}, String(d.players)), el('span', { class: 'small muted' }, 'joueurs')),
+        el('div', {}, el('b', {}, d.triesPerPlay == null ? '–' : d.triesPerPlay.toLocaleString('fr-BE', { maximumFractionDigits: 1 })), el('span', { class: 'small muted' }, 'refus / joueur')),
+        el('div', {}, el('b', {}, secs(d.medianMs)), el('span', { class: 'small muted' }, 'pour trouver')),
+      ),
+    ];
+    const refused = d.refused.length ? d.refused : d.olderRefused;
+    nodes.push(el('h3', {}, d.refused.length ? 'Réponses refusées les plus tapées' : 'Réponses refusées (forage du jour, depuis le début)'));
+    nodes.push(
+      refused.length
+        ? el('ul', {}, ...refused.slice(0, 12).map((r) => el('li', {}, `« ${r.input} » `, el('span', { class: 'muted' }, `×${r.count}${r.players > 1 ? ` (${r.players} joueurs)` : ''}`))))
+        : el('p', { class: 'muted small' }, 'Aucune.'),
+    );
+    nodes.push(el('h3', {}, 'Réponses acceptées'));
+    nodes.push(el('p', {}, d.accepted.length ? d.accepted.slice(0, 15).map((a) => `${a.label} ×${a.count}`).join(' · ') : 'Aucune.'));
+    if (d.reports.length) nodes.push(el('p', { class: 'muted small' }, `Signalements en attente : ${d.reports.map((r) => `« ${r.input} »`).join(', ')} (onglet Contenu).`));
+    // Détail par jour : ce que chaque mineur a tenté, dans l'ordre.
+    nodes.push(el('h3', {}, 'Par jour'));
+    const byDay = new Map();
+    for (const p of d.history) {
+      if (!byDay.has(p.day)) byDay.set(p.day, []);
+      byDay.get(p.day).push(p);
+    }
+    for (const [day, plays] of byDay) {
+      nodes.push(
+        el(
+          'details',
+          { class: 'fold-inner' },
+          el('summary', {}, `${formatDay(day, { weekday: 'short', day: 'numeric', month: 'short' })} · ${plural(plays.length, 'manche', 'manches')}`),
+          el(
+            'ul',
+            {},
+            ...plays.map((p) => {
+              const tries = p.tracked ? p.tries.map((x) => el('s', {}, x)) : [];
+              const parts = [];
+              tries.forEach((x) => parts.push(x, ' · '));
+              if (p.answer) parts.push(el('span', { class: 'ts-ok' }, p.answer));
+              else if (!tries.length) parts.push(el('span', { class: 'muted' }, p.tracked ? 'aucune saisie refusée' : 'saisies non suivies'));
+              else parts.pop();
+              return el(
+                'li',
+                { class: 'ts-play' },
+                el('div', {}, el('strong', {}, p.username), el('span', { class: 'muted' }, ` · ${TS_MODE[p.mode] || p.mode} · ${TS_OUTCOME[p.outcome] || p.outcome}${p.outcome === 'answer' ? ` en ${secs(p.ms)}` : ''}`)),
+                el('div', {}, ...parts),
+              );
+            }),
+          ),
+        ),
+      );
+    }
+    const copy = el('button', { class: 'btn secondary', type: 'button' }, 'Copier pour Claude');
+    copy.addEventListener('click', async () => {
+      const text = [
+        `Thème ${d.themeId} (« ${d.title} ») — ${app.ts.days ? `${app.ts.days} derniers jours` : 'depuis le début'}`,
+        `${d.plays} manches, ${d.players} joueurs, ${pct(d.foundRate)} trouvé, ${d.skipped} passés, ${d.timeout} temps écoulés, ${d.joker} jokers`,
+        `Refusées : ${refused.map((r) => `${r.input} ×${r.count}`).join(' ; ') || 'aucune'}`,
+        `Acceptées : ${d.accepted.map((a) => `${a.label} ×${a.count}`).join(' ; ') || 'aucune'}`,
+      ].join('\n');
+      try {
+        await navigator.clipboard.writeText(text);
+        copy.textContent = 'Copié !';
+      } catch {
+        copy.replaceWith(el('pre', { class: 'small' }, text));
+      }
+    });
+    nodes.push(copy);
+    return nodes;
+  }
+
+  $('themes-days').addEventListener('click', (event) => {
+    const t = event.target.closest('.tab');
+    if (!t) return;
+    app.ts.days = Number(t.dataset.tdays);
+    app.ts.open = null;
+    loadThemeStats();
+  });
+  $('themes-modes').addEventListener('click', (event) => {
+    const t = event.target.closest('.tab');
+    if (!t) return;
+    app.ts.mode = t.dataset.tmode;
+    app.ts.open = null;
+    loadThemeStats();
+  });
+  $('themes-search').addEventListener('input', () => {
+    app.ts.shown = 30;
+    renderThemeStats();
+  });
+  $('btn-themes-more').addEventListener('click', () => {
+    app.ts.shown += 30;
+    renderThemeStats();
+  });
+
   async function openAdmin() {
     if (!app.me || !app.me.isAdmin) return;
     stopTimer();
@@ -4867,6 +5049,7 @@
     loadInvite();
     loadUnknownAnswers();
     loadProbe();
+    loadThemeStats();
     loadReverse();
     loadMessageReports();
     loadAdminSuggestions();
@@ -6156,6 +6339,53 @@
     }
   });
 
+  // ---------- Vote de la semaine sur les thèmes proposés ----------
+  // Responsable : propositions au vote, ouverture à tous, décompte.
+  async function loadAdminVote() {
+    try {
+      renderAdminVote(await api('/api/admin/theme-vote'));
+    } catch (err) {
+      $('admin-vote-status').textContent = err.message;
+    }
+  }
+
+  const REACTION_ICONS = { adore: '👍', bof: '👎', difficile: '🤔', facile: '😴', 'deja-vu': '🔁' };
+  const reactionLine = (c) => Object.entries(REACTION_ICONS).map(([k, e]) => `${e} ${c.reactions[k]}`).join('  ');
+
+  function renderAdminVote(board) {
+    app.voteBoard = board;
+    $('admin-vote-open').checked = board.open;
+    const until = new Date(board.closesAt).toLocaleString('fr-BE', { weekday: 'long', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Brussels' });
+    $('admin-vote-sub').textContent = `· ${plural(board.candidates.length, 'thème', 'thèmes')}, ${plural(board.voters, 'votant', 'votants')} · clôture ${until}${board.open ? '' : ' · fermé aux joueurs'}`;
+    $('admin-vote-list').replaceChildren(
+      ...board.candidates.map((c) => {
+        const remove = el('button', { class: 'link', type: 'button' }, 'Retirer du vote');
+        remove.addEventListener('click', () => setVoteCandidate(c.id, false));
+        return el('li', { class: 'report' }, el('span', { class: 'what' }, el('strong', {}, c.title), el('span', { class: 'muted' }, `${reactionLine(c)} · proposé par ${c.author}`)), remove);
+      }),
+    );
+    if (!board.candidates.length) $('admin-vote-list').append(el('li', { class: 'muted' }, 'Aucun thème au vote cette semaine.'));
+    const last = board.lastResult;
+    $('admin-vote-last').replaceChildren(...(last && last.ranking.length ? last.ranking.map((r) => el('li', {}, el('strong', {}, r.title), ` · ${reactionLine(r)}`)) : [el('li', { class: 'muted' }, 'Pas encore de vote terminé.')]));
+    renderSuggestions();
+  }
+
+  async function setVoteCandidate(id, on) {
+    try {
+      renderAdminVote(await api('/api/admin/theme-vote/candidate', { id, on }));
+    } catch (err) {
+      $('admin-vote-status').textContent = err.message;
+    }
+  }
+
+  $('admin-vote-open').addEventListener('change', async () => {
+    try {
+      renderAdminVote(await api('/api/admin/theme-vote/open', { open: $('admin-vote-open').checked }));
+    } catch (err) {
+      $('admin-vote-status').textContent = err.message;
+    }
+  });
+
   // ---------- Thèmes proposés ----------
   async function loadSuggestions() {
     try {
@@ -6175,6 +6405,7 @@
       const { suggestions } = await api('/api/admin/theme-suggestions');
       app.suggestions = suggestions;
       renderSuggestions();
+      loadAdminVote();
     } catch (err) {
       $('suggestions-status').textContent = err.message;
     }
@@ -6267,6 +6498,10 @@
           });
           item.append(done);
         }
+        const onBallot = !!(app.voteBoard && app.voteBoard.candidates.some((c) => c.id === s.id));
+        const ballot = el('button', { class: 'link', type: 'button' }, onBallot ? 'Au vote ✓ (retirer)' : 'Mettre au vote');
+        ballot.addEventListener('click', () => setVoteCandidate(s.id, !onBallot));
+        item.append(ballot);
         return item;
       }),
     );

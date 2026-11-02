@@ -269,6 +269,27 @@ CREATE TABLE IF NOT EXISTS celebrations_seen (
   PRIMARY KEY (user_id, kind, start)
 );
 
+-- Suivi des thèmes pour le responsable : une ligne par manche et par thème (tous modes, illimité compris), avec les saisies refusées.
+-- Sans clé étrangère sur les parties : les parties du mode illimité sont effacées, le suivi reste.
+CREATE TABLE IF NOT EXISTS theme_plays (
+  game_id     INTEGER NOT NULL,
+  slot        INTEGER NOT NULL,
+  theme_id    TEXT NOT NULL,
+  user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  mode        TEXT NOT NULL,
+  day         TEXT NOT NULL,
+  duel_id     INTEGER,
+  outcome     TEXT,
+  points      INTEGER,
+  answer_label TEXT,
+  ms          INTEGER,
+  tries       TEXT NOT NULL DEFAULT '[]',
+  created_at  INTEGER NOT NULL,
+  PRIMARY KEY (game_id, slot, theme_id)
+);
+CREATE INDEX IF NOT EXISTS theme_plays_by_day ON theme_plays(day, mode);
+CREATE INDEX IF NOT EXISTS theme_plays_by_theme ON theme_plays(theme_id, day);
+
 -- Thèmes proposés par les joueurs, à examiner par le responsable du jeu.
 CREATE TABLE IF NOT EXISTS theme_suggestions (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -277,6 +298,22 @@ CREATE TABLE IF NOT EXISTS theme_suggestions (
   details    TEXT NOT NULL DEFAULT '',
   created_at INTEGER NOT NULL,
   handled_at INTEGER
+);
+
+-- Vote de la semaine : propositions mises au vote par le responsable (semaine = lundi) et voix des joueurs.
+CREATE TABLE IF NOT EXISTS theme_ballot (
+  week          TEXT NOT NULL,
+  suggestion_id INTEGER NOT NULL REFERENCES theme_suggestions(id) ON DELETE CASCADE,
+  added_at      INTEGER NOT NULL,
+  PRIMARY KEY (week, suggestion_id)
+);
+CREATE TABLE IF NOT EXISTS theme_reactions (
+  week          TEXT NOT NULL,
+  suggestion_id INTEGER NOT NULL REFERENCES theme_suggestions(id) ON DELETE CASCADE,
+  user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  reaction      TEXT NOT NULL,
+  created_at    INTEGER NOT NULL,
+  PRIMARY KEY (week, user_id, suggestion_id)
 );
 `;
 
