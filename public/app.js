@@ -6069,6 +6069,53 @@
     }
   });
 
+  // ---------- Vote de la semaine sur les thèmes proposés ----------
+  // Responsable : propositions au vote, ouverture à tous, décompte.
+  async function loadAdminVote() {
+    try {
+      renderAdminVote(await api('/api/admin/theme-vote'));
+    } catch (err) {
+      $('admin-vote-status').textContent = err.message;
+    }
+  }
+
+  const REACTION_ICONS = { adore: '👍', bof: '👎', difficile: '🤔', facile: '😴', 'deja-vu': '🔁' };
+  const reactionLine = (c) => Object.entries(REACTION_ICONS).map(([k, e]) => `${e} ${c.reactions[k]}`).join('  ');
+
+  function renderAdminVote(board) {
+    app.voteBoard = board;
+    $('admin-vote-open').checked = board.open;
+    const until = new Date(board.closesAt).toLocaleString('fr-BE', { weekday: 'long', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Brussels' });
+    $('admin-vote-sub').textContent = `· ${plural(board.candidates.length, 'thème', 'thèmes')}, ${plural(board.voters, 'votant', 'votants')} · clôture ${until}${board.open ? '' : ' · fermé aux joueurs'}`;
+    $('admin-vote-list').replaceChildren(
+      ...board.candidates.map((c) => {
+        const remove = el('button', { class: 'link', type: 'button' }, 'Retirer du vote');
+        remove.addEventListener('click', () => setVoteCandidate(c.id, false));
+        return el('li', { class: 'report' }, el('span', { class: 'what' }, el('strong', {}, c.title), el('span', { class: 'muted' }, `${reactionLine(c)} · proposé par ${c.author}`)), remove);
+      }),
+    );
+    if (!board.candidates.length) $('admin-vote-list').append(el('li', { class: 'muted' }, 'Aucun thème au vote cette semaine.'));
+    const last = board.lastResult;
+    $('admin-vote-last').replaceChildren(...(last && last.ranking.length ? last.ranking.map((r) => el('li', {}, el('strong', {}, r.title), ` · ${reactionLine(r)}`)) : [el('li', { class: 'muted' }, 'Pas encore de vote terminé.')]));
+    renderSuggestions();
+  }
+
+  async function setVoteCandidate(id, on) {
+    try {
+      renderAdminVote(await api('/api/admin/theme-vote/candidate', { id, on }));
+    } catch (err) {
+      $('admin-vote-status').textContent = err.message;
+    }
+  }
+
+  $('admin-vote-open').addEventListener('change', async () => {
+    try {
+      renderAdminVote(await api('/api/admin/theme-vote/open', { open: $('admin-vote-open').checked }));
+    } catch (err) {
+      $('admin-vote-status').textContent = err.message;
+    }
+  });
+
   // ---------- Thèmes proposés ----------
   async function loadSuggestions() {
     try {
@@ -6088,6 +6135,7 @@
       const { suggestions } = await api('/api/admin/theme-suggestions');
       app.suggestions = suggestions;
       renderSuggestions();
+      loadAdminVote();
     } catch (err) {
       $('suggestions-status').textContent = err.message;
     }
@@ -6180,6 +6228,10 @@
           });
           item.append(done);
         }
+        const onBallot = !!(app.voteBoard && app.voteBoard.candidates.some((c) => c.id === s.id));
+        const ballot = el('button', { class: 'link', type: 'button' }, onBallot ? 'Au vote ✓ (retirer)' : 'Mettre au vote');
+        ballot.addEventListener('click', () => setVoteCandidate(s.id, !onBallot));
+        item.append(ballot);
         return item;
       }),
     );

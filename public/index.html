@@ -1015,6 +1015,15 @@
             <button class="tab" data-suggestions="done" type="button" role="tab">Traités <span id="count-sug-done"></span></button>
           </div>
           <button class="btn secondary" id="btn-copy-suggestions" type="button">Copier les propositions à traiter</button>
+          <details class="fold-inner" id="admin-vote">
+            <summary>Vote de la semaine <span class="muted small" id="admin-vote-sub"></span></summary>
+            <label class="check"><input type="checkbox" id="admin-vote-open"> Ouvert à tous les joueurs <span class="muted small">(sinon, toi seul le vois)</span></label>
+            <p class="muted small">Ajoute des propositions au vote avec « Mettre au vote » dans la liste ci-dessous. Chaque joueur donne une réaction par thème jusqu'au vendredi 23 h 59 ; seul toi vois les décomptes.</p>
+            <ul class="report-list" id="admin-vote-list"></ul>
+            <h3>Dernier vote terminé</h3>
+            <ol class="vote-ranking" id="admin-vote-last"></ol>
+            <p class="muted small" id="admin-vote-status" role="status"></p>
+          </details>
           <p class="muted small" id="suggestions-status" role="status"></p>
           <ul class="report-list" id="suggestion-list"></ul>
         </details>

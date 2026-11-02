@@ -17,6 +17,7 @@ const { collectiveStatus } = require('./src/collective');
 const { scheduleBackups, snapshotBeforeStart, backupNow } = require('./src/backup');
 const { ErrorLog, healthReport } = require('./src/health');
 const { AnnouncementService } = require('./src/announcements');
+const { ThemeVoteService } = require('./src/votes');
 const { museum } = require('./src/museum');
 const { feed, mineToday } = require('./src/feed');
 const { seasonFor } = require('./src/specialdays');
@@ -93,6 +94,12 @@ function createApp({
   // Validation des duels le lendemain à 2 h 30, rappels et forfaits : vérifiés toutes les 5 minutes, même sans visite.
   if (autoValidateDuels) setInterval(() => { try { game.duels.expire(); } catch (err) { console.error('Suivi des duels impossible :', err.message); } }, 5 * 60 * 1000).unref();
   const announcements = new AnnouncementService(db, now);
+  const votes = new ThemeVoteService(db, () => game.today(), now);
+  /** Vote des thèmes : le responsable pendant la bêta, tout le monde une fois ouvert depuis le Contre maître. */
+  const voteFor = (user) => {
+    votes.ensureFirstWeek();
+    return isAdmin(user) || votes.isOpen();
+  };
   /**
    * Refonte 16-bit ouverte à tous (à partir de `refonteFrom`). Le premier passage après l'ouverture remet les avatars au
    * personnage standard, une seule fois, après une copie de sauvegarde de la base (les anciens restent dans avatar_backup).
@@ -466,6 +473,7 @@ function createApp({
         duels: game.duels.summary(user.id),
         announcements: announcements.unseen(user.id),
         unreadReports: game.myReports(user.id).unread,
+        themeVote: voteFor(user) ? votes.forPlayer(user.id) : null,
         unreadMessages: messages.unread(user.id),
         season: seasonFor(game.today(), seasons),
         skullDay: game.skulls.isSkullDay(game.today()),
@@ -959,6 +967,41 @@ function createApp({
       if (!Number.isInteger(id)) throw new HttpError(400, 'Proposition inconnue.');
       game.markSuggestionHandled(id);
       json(res, 200, { ok: true });
+    },
+
+    // Vote de la semaine sur les thèmes proposés (bêta : le responsable seul tant qu'il n'est pas ouvert).
+    'GET /api/themes/vote': async (req, res) => {
+      const user = requireUser(req, res);
+      if (!voteFor(user)) throw new HttpError(404, 'Pas de vote en cours.');
+      json(res, 200, votes.forPlayer(user.id));
+    },
+
+    'POST /api/themes/vote': async (req, res) => {
+      const user = requireUser(req, res);
+      if (!voteFor(user)) throw new HttpError(404, 'Pas de vote en cours.');
+      const { candidate, reaction } = await readJson(req);
+      if (!Number.isInteger(candidate)) throw new HttpError(400, 'Thème inconnu.');
+      json(res, 200, votes.react(user.id, candidate, reaction == null ? null : String(reaction)));
+    },
+
+    'GET /api/admin/theme-vote': async (req, res) => {
+      requireAdmin(req, res);
+      json(res, 200, votes.forAdmin());
+    },
+
+    'POST /api/admin/theme-vote/candidate': async (req, res) => {
+      requireAdmin(req, res);
+      const { id, on } = await readJson(req);
+      if (!Number.isInteger(id)) throw new HttpError(400, 'Proposition inconnue.');
+      votes.setCandidate(id, on !== false);
+      json(res, 200, votes.forAdmin());
+    },
+
+    'POST /api/admin/theme-vote/open': async (req, res) => {
+      requireAdmin(req, res);
+      const { open } = await readJson(req);
+      votes.setOpen(open === true);
+      json(res, 200, votes.forAdmin());
     },
 
     'GET /api/game/:id/answers': async (req, res, id, url) => {
