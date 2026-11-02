@@ -299,6 +299,22 @@ CREATE TABLE IF NOT EXISTS theme_suggestions (
   created_at INTEGER NOT NULL,
   handled_at INTEGER
 );
+
+-- Vote de la semaine : propositions mises au vote par le responsable (semaine = lundi) et voix des joueurs.
+CREATE TABLE IF NOT EXISTS theme_ballot (
+  week          TEXT NOT NULL,
+  suggestion_id INTEGER NOT NULL REFERENCES theme_suggestions(id) ON DELETE CASCADE,
+  added_at      INTEGER NOT NULL,
+  PRIMARY KEY (week, suggestion_id)
+);
+CREATE TABLE IF NOT EXISTS theme_reactions (
+  week          TEXT NOT NULL,
+  suggestion_id INTEGER NOT NULL REFERENCES theme_suggestions(id) ON DELETE CASCADE,
+  user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  reaction      TEXT NOT NULL,
+  created_at    INTEGER NOT NULL,
+  PRIMARY KEY (week, user_id, suggestion_id)
+);
 `;
 
 // Colonnes ajoutées après la mise en ligne : créées si la base est plus ancienne.
