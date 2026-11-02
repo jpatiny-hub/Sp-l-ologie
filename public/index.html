@@ -950,6 +950,7 @@
         </div>
         <div class="pf-tabs" id="admin-tabs" role="tablist" aria-label="Sections de l'administration">
           <button class="tab active" type="button" role="tab" data-atab-go="contenu" aria-selected="true">Contenu <span class="tab-dot" id="atab-count-contenu" hidden></span></button>
+          <button class="tab" type="button" role="tab" data-atab-go="themes" aria-selected="false">Thèmes <span class="tab-dot" id="atab-count-themes" hidden></span></button>
           <button class="tab" type="button" role="tab" data-atab-go="joueurs" aria-selected="false">Joueurs <span class="tab-dot" id="atab-count-joueurs" hidden></span></button>
           <button class="tab" type="button" role="tab" data-atab-go="jeu" aria-selected="false">Jeu <span class="tab-dot" id="atab-count-jeu" hidden></span></button>
         </div>
@@ -1049,6 +1050,26 @@
           <summary><span class="fold-t"><h2>Mode inversé</h2><span class="sub">ébauche : retrouver le thème à partir de réponses</span></span><span class="pm" aria-hidden="true"></span></summary>
           <p class="muted small">Le jeu montre les réponses d'un thème une par une, de la plus rare à la plus évidente. Donne des mots-clés pour deviner le thème : chaque proposition ratée révèle l'indice suivant et réduit les points. Rien n'est enregistré dans les forages, les badges ni les podiums.</p>
           <div id="reverse-body"></div>
+        </details>
+        <details class="card fold" data-atab="themes" data-fold="themes-joues" id="admin-themes" hidden>
+          <summary><span class="fold-t"><h2>Thèmes joués</h2><span class="sub" id="themes-sub">les thèmes où les mineurs peinent remontent en tête</span></span><span class="pm" aria-hidden="true"></span></summary>
+          <p class="muted small">Réussite, thèmes passés, temps écoulés, joker et réponses refusées, en forage du jour, en duel (une fois validé) et en illimité. Les refus et l'illimité sont suivis depuis la mise en ligne de cet onglet.</p>
+          <div class="tabs" role="tablist" id="themes-days">
+            <button class="tab" data-tdays="7" type="button" role="tab">7 jours</button>
+            <button class="tab active" data-tdays="30" type="button" role="tab">30 jours</button>
+            <button class="tab" data-tdays="0" type="button" role="tab">Tout</button>
+          </div>
+          <div class="tabs" role="tablist" id="themes-modes">
+            <button class="tab active" data-tmode="" type="button" role="tab">Tous</button>
+            <button class="tab" data-tmode="daily" type="button" role="tab">Quotidien</button>
+            <button class="tab" data-tmode="duel" type="button" role="tab">Duels</button>
+            <button class="tab" data-tmode="training" type="button" role="tab">Illimité</button>
+          </div>
+          <label for="themes-search" class="small">Chercher un thème</label>
+          <input id="themes-search" type="search" autocomplete="off" placeholder="un mot du titre…">
+          <p class="muted small" id="themes-status" role="status"></p>
+          <ul class="report-list" id="themes-list"></ul>
+          <button class="btn secondary" id="btn-themes-more" type="button" hidden>Voir plus de thèmes</button>
         </details>
         <details class="card fold" data-atab="joueurs" data-fold="suspicions" id="admin-suspicions" hidden>
           <summary><span class="fold-t"><h2>Suspicions</h2><span class="sub" id="susp-sub">aides extérieures possibles : collage, page quittée, copie</span></span><span class="pm" aria-hidden="true"></span></summary>

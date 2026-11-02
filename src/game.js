@@ -12,6 +12,7 @@ const config = require('./config');
 const { matchAnswer, toKey, editDistance, nearAnswers } = require('./matching');
 const { labelOf } = require('./titles');
 const { PlaySignals } = require('./suspicion');
+const { ThemeStats } = require('./themestats');
 const { scoreAnswer, probabilities, pointsFor, tierFor } = require('./scoring');
 const { BadgeService } = require('./badges');
 const { usernameKey } = require('./auth');
@@ -42,6 +43,7 @@ class GameService {
     this.duels = new DuelService(this);
     this.skulls = new SkullService(db, this);
     this.signals = new PlaySignals(db, now, themes);
+    this.themeStats = new ThemeStats(db, themes, now);
   }
 
   today() {
@@ -200,6 +202,7 @@ class GameService {
       this.db
         .prepare('UPDATE games SET score = score + ?, finished_at = ? WHERE id = ?')
         .run(points, remaining === 0 ? now : null, game.id);
+      this.themeStats.finished(game, round, { outcome, points, answer });
       // Le mode « à l'aise » (sans chrono) ne compte ni pour les badges ni pour les statistiques.
       if (game.mode === 'training' && !game.no_timer && !game.timer_sec) this.recordTraining(game, round, { outcome, points, answer }, remaining === 0);
       return remaining === 0;
@@ -638,6 +641,7 @@ class GameService {
     const match = theme ? matchAnswer(theme, input) : null;
     if (!match || (match.approximate && reject)) {
       if (game.mode === 'daily' && theme) this.recordUnknown(theme.id, input);
+      if (theme) this.themeStats.tried(game, round, input);
       return { result: 'unknown', input, state: this.state(gameId, userId), ...(hints && theme ? { hint: this.hintFor(theme, input) } : {}) };
     }
     if (match.approximate && accept !== match.answer.label) {
@@ -1197,6 +1201,7 @@ class GameService {
         this.db
           .prepare('UPDATE rounds SET swapped_from = theme_id, theme_id = ?, served_at = ? WHERE game_id = ? AND slot = ? AND answered_at IS NULL')
           .run(spare, this.now(), game.id, round.slot);
+        this.themeStats.joker(game, round);
         this.db.prepare('UPDATE games SET joker_used = 1 WHERE id = ?').run(game.id);
       });
       return {

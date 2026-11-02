@@ -920,6 +920,19 @@ function createApp({
       json(res, 200, { answers: theme.answers.map((a) => ({ key: a.key, label: a.label })).sort((a, b) => a.label.localeCompare(b.label, 'fr')) });
     },
 
+    // Onglet « Thèmes » du Contre maître : classement des thèmes joués et détail d'un thème.
+    'GET /api/admin/themes/stats': async (req, res, _id, url) => {
+      requireAdmin(req, res);
+      const days = [7, 30, 0].includes(Number(url.searchParams.get('days'))) ? Number(url.searchParams.get('days')) : 30;
+      const mode = url.searchParams.get('mode') || null;
+      const themeId = url.searchParams.get('themeId');
+      if (themeId) {
+        if (!game.themes.get(themeId)) throw new HttpError(404, 'Thème introuvable.');
+        return json(res, 200, game.themeStats.detail(themeId, { days, mode }));
+      }
+      json(res, 200, game.themeStats.overview({ days, mode }));
+    },
+
     'GET /api/reports/mine': async (req, res) => {
       const user = requireUser(req, res);
       json(res, 200, game.myReports(user.id));
