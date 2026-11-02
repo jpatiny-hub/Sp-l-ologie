@@ -209,6 +209,25 @@ const NEWS = [
       "Tout le jeu passe en 16 bits : nouvelles grottes à chaque forage, nouvelle foreuse, nouveaux sons et nouvelle taupe.",
       "Ton personnage repart du mineur standard : à toi de le rhabiller dans le vestiaire.",
     ],
+  },  {
+    id: 14,
+    date: '2026-11-02',
+    refonte: true,
+    title: 'Nouveaux défis : diamants et galeries',
+    highlights: [
+      { icon: 'diamant', text: 'Défi de la semaine : ton mineur marche dans une caverne jusqu\'aux diamants' },
+      { icon: 'galerie', text: 'Défi du mois : la foreuse perce une galerie jusqu\'à un filon de pierres précieuses, différent chaque mois' },
+      { icon: 'pepite', text: 'Récompenses : foreuses, auras, titres et pin\'s, et la vitrine du minéralogiste dans ton carnet' },
+      { icon: 'etoile-or', text: 'Des badges secrets à découvrir en jouant' },
+    ],
+    items: [
+      "Défi de la semaine : un chemin en lacets traverse une caverne de cristaux et de plantes lumineuses. Ton mineur avance selon ta progression, jusqu'aux diamants qui s'allument quand le défi est réussi. À chaque visite, il repart de l'endroit où tu l'avais laissé.",
+      "Défi du mois : la foreuse perce quatre galeries l'une après l'autre. Ce qu'elle a percé s'éclaire derrière elle, avec des découvertes en chemin, jusqu'au filon final. Il y a une galerie et une pierre précieuse par mois : les émeraudes en novembre, puis les saphirs, les topazes, les rubis, et ainsi de suite.",
+      "Objectif du mois : il dépend du nombre de joueurs actifs (45 000 points en novembre). La nature du défi change d'un mois à l'autre : points, réponses, jours de forage, réponses Rubis ou pépites.",
+      "Récompenses du mois : si tu fores 10 jours du mois et que le groupe atteint le filon, tu gagnes un badge, une carrosserie de foreuse, une aura et un titre à l'effigie de la pierre. La vitrine du minéralogiste, dans le Carnet, garde les pierres trouvées ensemble.",
+      "Défis de la semaine : chaque défi réussi est un diamant. Les foreuses Lampiste (3 diamants) et Cristal (8), un pin's et des titres se débloquent en chemin.",
+      "Badges secrets : certains badges ne se révèlent qu'une fois obtenus, en jouant beaucoup de thèmes d'une même famille (nature, cuisine, cinéma, musique, géographie, sciences, sport). Chacun donne un titre et un pin's.",
+    ],
   },
 ];
 

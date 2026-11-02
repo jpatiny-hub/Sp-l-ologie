@@ -1,5 +1,7 @@
 'use strict';
 
+const Gems = require('./gems');
+
 /*
  * Titres de mineur : une étiquette que le joueur choisit d'afficher à côté de son pseudo (récapitulatifs, classements).
  * Chaque titre se gagne en forant un nombre de jours (titres de rang) ou grâce à un badge (un des badges listés suffit).
@@ -48,6 +50,8 @@ const BADGE_TITLES = [
   ['cauchemar-des-rivaux', 'Cauchemar de ses rivaux', ['souffre-douleur']],
   ['victime-attitree', 'Victime attitrée', ['nemesis']],
   // Défis, entraînement, thèmes, public
+  ['chercheur-de-diamants', 'Chercheur de diamants', ['defi-1']],
+  ['maitre-du-filon', 'Maître du filon', ['defi-10']],
   ['releve-defis', 'Relève-défis', ['defi-5']],
   ['maitre-des-defis', 'Maître des défis', ['defi-15']],
   ['rat-d-entrainement', "Rat d'entraînement", ['entrainement-200']],
@@ -62,6 +66,13 @@ const BADGE_TITLES = [
   ['chasseur-d-oeufs', "Chasseur d'œufs", ['paques']],
   ['porte-malheur', 'Porte-malheur', ['vendredi-13']],
 ];
+
+// Titres des galeries du mois (un par pierre) et des badges secrets par thématique.
+const SECRET_TITLES = {
+  nature: 'Le Naturaliste', cuisine: 'Fin gourmet', cinema: 'Rat de cinéma', musique: "Oreille d'or", geo: 'Globe-trotteur', science: 'Esprit curieux', sport: 'Champion de la mine', 'touche-a-tout': 'Esprit universel',
+};
+Object.entries(SECRET_TITLES).forEach(([cat, label]) => BADGE_TITLES.push([`cat-${cat}`, label, [`cat-${cat}`]]));
+Gems.LIST.forEach((g) => BADGE_TITLES.push([`filon-${g.id}`, `Chercheur ${/^[aeiouyéèêàâ]/i.test(g.name) ? "d'" : 'de '}${g.name}`, [`filon-${g.id}`]]));
 
 const TITLES = [
   ...RANK_TITLES.map(([id, label, days]) => ({ id, label, days, badges: null })),

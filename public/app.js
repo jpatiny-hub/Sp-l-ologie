@@ -2222,10 +2222,30 @@
     }
   }
 
+  /** Avancée des défis vue lors de la dernière visite (la scène y repart pour montrer ce qui s'est passé depuis). */
+  const SEEN_KEY = 'speleologie.defisAvancee';
+  function defisSeen() {
+    try { return JSON.parse(localStorage.getItem(SEEN_KEY)) || {}; } catch { return {}; }
+  }
+  const seenSince = {};
+  /** Mémorise l'avancée une fois la scène restée visible quelques secondes (le temps de voir l'animation). */
+  function rememberSeen(key, value, canvas) {
+    if (!canvas.offsetParent) { seenSince[key] = 0; return; }
+    seenSince[key] = seenSince[key] || performance.now();
+    if (performance.now() - seenSince[key] < 4500) return;
+    const all = defisSeen();
+    if (all[key] === value) return;
+    all[key] = value;
+    try { localStorage.setItem(SEEN_KEY, JSON.stringify(all)); } catch { /* sans stockage */ }
+  }
+
   function renderWeekly() {
     const ch = app.me && app.me.streak && app.me.streak.challenge;
     if (!ch) return;
     const canvas = $('weekly-canvas');
+    // Le mineur repart de l'endroit où tu l'as vu la dernière fois.
+    const seen = defisSeen()[`w:${ch.id}`];
+    ch.from = typeof seen === 'number' && seen < ch.progress ? seen : ch.progress;
     const [cw, chh] = defisOn() ? Defis16.SIZE.weekly : [WW, WH];
     const scale = Math.max(1, Math.min(4, Math.floor((canvas.parentElement.clientWidth || 330) / cw)));
     canvas.style.width = `${cw * scale}px`;
@@ -2293,9 +2313,18 @@
   function renderCollective() {
     const data = app.me && app.me.collective;
     if (!data) return;
-    $('collective-title').textContent = data.reached ? 'Le diamant est atteint, bravo à tous !' : `Creusons ensemble ${data.goal.toLocaleString('fr-BE')} points avant la fin du mois.`;
-    // Objectif dépassé : total et objectif séparés, sans le faux « 50 758 / 10 000 ».
-    $('collective-total').textContent = data.total > data.goal ? `${data.total.toLocaleString('fr-BE')} points (objectif : ${data.goal.toLocaleString('fr-BE')})` : `${data.total.toLocaleString('fr-BE')} / ${data.goal.toLocaleString('fr-BE')} points`;
+    const gal = data.gallery;
+    const nf = (n) => n.toLocaleString('fr-BE');
+    // Le mineur du groupe repart de l'avancée vue la dernière fois.
+    const seen = defisSeen()[`m:${data.month}`];
+    data.from = typeof seen === 'number' && seen < data.total ? seen : data.total;
+    $('collective-gallery').hidden = !gal;
+    if (gal) $('collective-gallery').textContent = `${gal.name} : on perce jusqu'au filon d${/^[aeiouyéèêàâ]/i.test(gal.gemName) ? "'" : 'e '}${gal.gemName}`;
+    $('collective-title').textContent = gal
+      ? (data.reached ? `Le filon ${gal.filon} est atteint, bravo à tous !` : gal.title)
+      : data.reached ? 'Le diamant est atteint, bravo à tous !' : `Creusons ensemble ${nf(data.goal)} points avant la fin du mois.`;
+    const unit = gal ? gal.unit[data.goal > 1 ? 1 : 0] : 'points';
+    $('collective-total').textContent = data.total > data.goal ? `${nf(data.total)} ${unit} (objectif : ${nf(data.goal)})` : `${nf(data.total)} / ${nf(data.goal)} ${unit}`;
     $('collective-left').textContent = data.daysLeft > 0 ? plural(data.daysLeft, 'jour restant', 'jours restants') : '';
     $('collective-legend').replaceChildren(
       ...data.players
@@ -2328,25 +2357,43 @@
       $('collective-duel-bar').setAttribute('aria-valuenow', String(Math.min(duel.goal, duel.total)));
       $('collective-duel-note').textContent = `${duel.total} sur ${duel.goal} duels terminés ce mois-ci, dont ${duel.mine} avec toi.`;
     }
+    const reward = gal ? ` Récompenses de la galerie, pour qui fore ${gal.minDays} jours ce mois-ci (tu en es à ${gal.myDays}) : la foreuse « ${gal.one} », l'aura « Éclat ${/^[aeiouyéèêàâ]/i.test(gal.gemName) ? "d'" : 'de '}${gal.gemName.replace(/s$/, '')} » et un titre.` : '';
     $('collective-note').textContent = data.reached
-      ? `Objectif atteint le ${formatDay(data.reachedOn, { day: 'numeric', month: 'long' })}. Continuez à creuser, le tas de diamants brille pour tout le monde !`
-      : defisOn()
-        ? 'Une seule foreuse pour tout le monde : chaque point de chacun la fait avancer vers les diamants.'
-        : 'Chaque point de ton forage du jour fait avancer la foreuse. Chaque couleur est la part de tunnel creusée par un joueur.';
+      ? `Objectif atteint le ${formatDay(data.reachedOn, { day: 'numeric', month: 'long' })}. Continuez à forer : la salle du filon brille pour tout le monde !${reward}`
+      : gal
+        ? `${gal.note} Le groupe compte ${gal.active} joueurs actifs : l'objectif est fixé avec eux le 1er du mois.${reward}`
+        : defisOn()
+          ? 'Une seule foreuse pour tout le monde : chaque point de chacun la fait avancer vers les diamants.'
+          : 'Chaque point de ton forage du jour fait avancer la foreuse. Chaque couleur est la part de tunnel creusée par un joueur.';
+    const finds = $('collective-finds');
+    finds.hidden = !(gal && defisOn());
+    if (!finds.hidden) {
+      const f = Math.min(1, data.total / Math.max(1, data.goal));
+      const all = Defis16.finds(data);
+      const got = all.filter((d) => f >= d.at - 1e-6);
+      finds.replaceChildren(...got.map((d) => el('li', { class: 'on' }, d.name)), ...(got.length < all.length ? [el('li', {}, got.length ? `… et ${all.length - got.length} à découvrir` : `${all.length} découvertes t'attendent dans la galerie`)] : []));
+    }
     const canvas = $('collective-canvas');
     const [cw, chh] = defisOn() ? Defis16.SIZE.collective : [CW, CH];
     const scale = Math.max(1, Math.min(4, Math.floor((canvas.parentElement.clientWidth || 330) / cw)));
     canvas.style.width = `${cw * scale}px`;
     canvas.style.height = `${chh * scale}px`;
+    canvas.setAttribute('aria-label', gal ? `Galerie « ${gal.name} » : la foreuse est à ${Math.round((data.total / data.goal) * 100)} % du chemin vers le filon` : 'Tunnel creusé ensemble jusqu\'au diamant');
     drawCollective(canvas, data, 0);
   }
   setInterval(() => {
     if (!app.me || $('view-home').hidden || document.hidden) return;
     if (reducedMotion()) return;
     const data = app.me.collective;
-    if (data && !$('challenge-month').hidden) drawCollective($('collective-canvas'), data, performance.now() / 1000);
+    if (data && !$('challenge-month').hidden) {
+      drawCollective($('collective-canvas'), data, performance.now() / 1000);
+      rememberSeen(`m:${data.month}`, data.total, $('collective-canvas'));
+    }
     const ch = app.me.streak && app.me.streak.challenge;
-    if (ch && !$('challenge-week').hidden) drawWeekly($('weekly-canvas'), ch, app.me.avatar, performance.now() / 1000);
+    if (ch && !$('challenge-week').hidden) {
+      drawWeekly($('weekly-canvas'), ch, app.me.avatar, performance.now() / 1000);
+      rememberSeen(`w:${ch.id}`, ch.progress, $('weekly-canvas'));
+    }
   }, 100);
 
   $('freeze-card').addEventListener('click', () => $('freeze-dialog').showModal());
@@ -3387,7 +3434,7 @@
 
   // ---------- Carnet : badges et atelier ----------
   const CATEGORIES = [
-    ['exploit', 'Exploits'], ['serie', 'Séries de forages'], ['profondeur', 'Profondeur'], ['pepites', 'Pépites'], ['themes', 'Thèmes rencontrés'], ['entrainement', 'Entraînement'], ['duel', 'Duels'], ['reactions', 'Réactions'], ['defi', 'Défis de la semaine'], ['podium', 'Podiums'], ['calendrier', 'Jours particuliers'],
+    ['exploit', 'Exploits'], ['serie', 'Séries de forages'], ['profondeur', 'Profondeur'], ['pepites', 'Pépites'], ['themes', 'Thèmes rencontrés'], ['entrainement', 'Entraînement'], ['duel', 'Duels'], ['reactions', 'Réactions'], ['defi', 'Défis de la semaine'], ['filon', 'Filons du mois'], ['thematique', 'Thématiques secrètes'], ['podium', 'Podiums'], ['calendrier', 'Jours particuliers'],
   ];
 
   function longDay(day) {
@@ -5021,6 +5068,26 @@
     }
   }
 
+  /** Vitrine du minéralogiste : une pierre par galerie du mois, celles que le groupe a atteintes brillent. */
+  const MONTH_NAMES = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  function renderShowcase() {
+    const list = (app.me && app.me.showcase) || [];
+    const body = $('showcase-body');
+    if (!body) return;
+    const found = list.filter((g) => g.state === 'found').length;
+    $('showcase-sub').textContent = found ? plural(found, 'pierre trouvée', 'pierres trouvées') : 'les filons trouvés ensemble';
+    body.replaceChildren(
+      el('p', { class: 'muted small' }, 'Chaque mois, le groupe perce une galerie jusqu\'à un filon de pierres précieuses. Une pierre brille ici quand le groupe l\'a trouvée ; un cercle doré marque les mois où tu as foré assez de jours pour recevoir les récompenses.'),
+      el('div', { class: 'showcase-shelf' }, ...list.map((g) => {
+        const month = MONTH_NAMES[Number(g.month.slice(5, 7)) - 1];
+        const cv = el('canvas', { width: '16', height: '16', 'aria-hidden': 'true' });
+        if (window.Defis16 && Defis16.gem) Defis16.gem(cv, g.colors, g.state);
+        const label = g.state === 'future' ? `${month} : à venir` : g.state === 'missed' ? `${month} : filon manqué` : g.state === 'current' ? `${month} : en cours` : `${month} : ${g.name}`;
+        return el('div', { class: `showcase-slot ${g.state}${g.mine ? ' mine' : ''}`, title: g.gallery || '', 'aria-label': label }, cv, el('small', {}, month), el('strong', {}, g.state === 'future' ? '?' : g.state === 'missed' ? '—' : g.state === 'current' ? 'en cours' : g.name));
+      })),
+    );
+  }
+
   function renderProfile(profile) {
     const st = profile.stats;
     const stats = [
@@ -5031,6 +5098,7 @@
       ['Meilleur forage', pts(st.bestScore)],
     ];
     $('profile-stats').replaceChildren(...stats.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]));
+    renderShowcase();
     renderAvatarEditor(profile);
     renderPlayerStats(profile.playerStats);
     renderCharts(profile.playerStats.charts, st.bestScore);
