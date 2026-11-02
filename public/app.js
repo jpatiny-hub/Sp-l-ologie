@@ -42,7 +42,7 @@
   const BETA_FLAGS = ['betaKeys', 'betaHints', 'betaSkin', 'betaMascot', 'betaNav', 'betaFx', 'betaSocial', 'betaWarm', 'betaHome', 'betaProfil'];
   for (const flag of BETA_FLAGS) settings[flag] = true;
   // Refonte 16-bit : réservée au responsable, désactivée au départ. `betaRefonte` active tout d'un coup ; les autres cases, un morceau à la fois pour comparer.
-  const REFONTE_FLAGS = ['betaRefonte', 'betaCaves', 'betaMole16', 'betaGalerie', 'betaSon16', 'betaFetes', 'betaDefis'];
+  const REFONTE_FLAGS = ['betaRefonte', 'betaCaves', 'betaMole16', 'betaGalerie', 'betaSon16', 'betaFetes', 'betaDefis', 'betaAujourdhui', 'simLundi'];
   for (const flag of REFONTE_FLAGS) settings[flag] = false;
   settings.betaDrill16 = ''; // foreuse 16-bit à l'essai (refonte, responsable seulement)
   // Ambiance sonore : coups de pioche, grondement, musiques d'accueil, bruits de boutons et chrono sonore, au choix de chaque joueur : coups de pioche, grondement et musique « Galerie » activés au départ, le reste non.
@@ -107,6 +107,8 @@
   const myDrill16 = () => (app.me && app.me.isAdmin && settings.betaDrill16) || (drill16On() ? app.drill16 || null : null);
   /** Fêtes de podium en 16 bits (semaine, mois) et Gazette sur plan de mine. */
   /** Défis en galeries de mine 16 bits (« Ton filon », « Galerie commune »). */
+  const aujourdhuiOn = () => refonteOn('betaAujourdhui');
+  const simLundi = () => !!(app.me && app.me.isAdmin && settings.simLundi);
   const defisOn = () => !!(refonteOn('betaDefis') && window.Defis16);
   const fetesOn = () => !!(refonteOn('betaFetes') && window.Celebrations16);
   const betaOn = (name) => !!(app.me && (!app.me.isAdmin || settings[name]));
@@ -377,6 +379,7 @@
     saveSettings();
     fitCanvas();
     if (!$('beta-box').hidden) renderVersions();
+    if (app.me && app.view === 'home') renderToday();
     if (colors !== settings.colors) refreshColors();
   });
   // Un clic en dehors de la fenêtre la ferme.
@@ -1126,6 +1129,8 @@
   });
 
   function renderHome() {
+    renderToday();
+    loadThemeVote();
     renderAnnouncements();
     renderInstallNudge();
     renderNews();
@@ -2005,6 +2010,203 @@
       }),
     );
   }
+
+  // ---------- Carte « Aujourd'hui » et enveloppe du lundi ----------
+  // Un petit logo sur l'accueil : la pastille rouge s'éteint quand on a consulté la carte, et revient seulement si quelque chose change.
+  const TODAY_SEEN = 'speleologie.aujourdhui';
+  const ENV_SEEN = 'speleologie.enveloppe';
+  const readLocal = (key) => {
+    try {
+      return localStorage.getItem(key) || '';
+    } catch {
+      return '';
+    }
+  };
+  const writeLocal = (key, value) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      /* la pastille reviendra */
+    }
+  };
+  /** Exemples de la simulation du lundi (rien n'est enregistré) : les vrais thèmes viendront du vote, les vraies pépites du musée. */
+  const ENV_THEMES = ['Un instrument de musique à vent', 'Un personnage de Zelda', 'Une danse traditionnelle', 'Un os du corps humain', 'Un moyen de transport en commun', 'Une spécialité sucrée belge', 'Un animal de la ferme'];
+  const ENV_REACTIONS = [['adore', '👍', "J'adore"], ['bof', '👎', 'Bof'], ['difficile', '🤔', 'Trop difficile'], ['facile', '😴', 'Trop facile'], ['deja-vu', '🔁', 'Déjà vu']];
+  /** Vote réel de la semaine (API du fil « vote des thèmes » : GET/POST /api/themes/vote) ; null tant qu'il n'est pas ouvert. */
+  let themeVote = null;
+  const ENV_PRIZES = [['Bonobo', 'Un primate'], ['Mastaba', 'Une tombe'], ['Pierogi', 'Un plat polonais']];
+  let envStep = 1;
+  function envButton(label, cls, onClick) {
+    const b = el('button', { class: cls, type: 'button' }, label);
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  const envKey = () => (themeVote && !simLundi() ? `vote:${themeVote.closesAt || ''}` : 'sim');
+  async function loadThemeVote() {
+    themeVote = null;
+    if (!app.me || !aujourdhuiOn()) return;
+    try {
+      const data = await api('/api/themes/vote');
+      if (data && data.open && Array.isArray(data.candidates) && data.candidates.length) themeVote = data;
+    } catch {
+      /* pas de vote ouvert ou pas encore disponible */
+    }
+    if (app.view === 'home') renderToday();
+  }
+
+  async function openProposer() {
+    await openProfile();
+    setProfileTab('carnet');
+    const fold = $('fold-proposer');
+    fold.open = true;
+    fold.scrollIntoView();
+  }
+
+  function todayLines() {
+    const me = app.me;
+    const t = me.today;
+    const st = me.streak || {};
+    const lines = [];
+    let main;
+    if (!t.gameId) main = st.current > 0 ? `pas encore fait · série de ${plural(st.current, 'jour', 'jours')} à garder` : 'pas encore fait';
+    else if (!t.finished) main = `en cours, ${t.roundsDone}/${ROUNDS} thèmes`;
+    else main = `terminé, ${pts(t.score)}`;
+    lines.push({ icon: 'pioche', label: 'Forage du jour', text: main, go: !t.finished ? 'daily' : null });
+    const ch = st.challenge;
+    if (ch) lines.push({ icon: 'etoile-or', label: 'Défi de la semaine', text: ch.done ? 'relevé, bravo !' : `${ch.progress} sur ${ch.goal} · ${ch.daysLeft > 1 ? `${ch.daysLeft} jours restants` : 'dernier jour'}` });
+    const c = me.collective;
+    if (c && c.goal) {
+      const share = Math.min(100, Math.round((100 * c.total) / c.goal));
+      lines.push({ icon: 'galerie', label: c.gallery ? c.gallery.name : 'Galerie du mois', text: c.reached ? 'filon atteint !' : `${share} % du chemin` });
+    }
+    const d = me.duels || {};
+    if (d.invites || d.unseen) {
+      const bits = [];
+      if (d.invites) bits.push(`${plural(d.invites, 'duel', 'duels')} à jouer`);
+      if (d.unseen) bits.push(`${plural(d.unseen, 'résultat', 'résultats')} à voir`);
+      lines.push({ icon: 'sabre', label: 'Duels', text: bits.join(' · ') });
+    }
+    return lines;
+  }
+
+  function todaySignature(lines) {
+    return `${app.me.today.day}|${lines.map((l) => l.text).join('|')}`;
+  }
+
+  function renderToday() {
+    const on = !!app.me && aujourdhuiOn();
+    $('today-bar').hidden = !on;
+    if (!on) {
+      $('today-card').hidden = true;
+      $('env-card').hidden = true;
+      return;
+    }
+    const lines = todayLines();
+    $('today-dot').hidden = readLocal(TODAY_SEEN) === todaySignature(lines);
+    Icons.drawIcon($('today-icon'), 'calendrier-plein');
+    // L'enveloppe n'existe que dans la simulation du lundi (responsable) tant que le vote n'est pas ouvert aux joueurs.
+    const env = simLundi() || !!themeVote;
+    $('env-btn').hidden = !env;
+    $('env-dot').hidden = !env || readLocal(ENV_SEEN) === envKey();
+    if (env) Icons.drawIcon($('env-icon'), 'enveloppe');
+    if (!env) $('env-card').hidden = true;
+    if (!$('today-card').hidden) fillTodayCard(lines);
+  }
+
+  function fillTodayCard(lines) {
+    const list = $('today-list');
+    list.replaceChildren(
+      ...lines.map((l) => {
+        const row = el('li', { class: 'today-row' });
+        const icon = el('canvas', { width: '16', height: '16', 'aria-hidden': 'true' });
+        Icons.drawIcon(icon, l.icon);
+        row.append(icon, el('span', { class: 'today-label' }, l.label), el('span', { class: 'today-text' }, l.text));
+        if (l.go === 'daily') {
+          row.classList.add('go');
+          row.addEventListener('click', () => $('btn-daily').click());
+        }
+        return row;
+      }),
+    );
+  }
+
+  $('today-btn').addEventListener('click', () => {
+    const card = $('today-card');
+    card.hidden = !card.hidden;
+    if (card.hidden) return;
+    $('env-card').hidden = true;
+    const lines = todayLines();
+    fillTodayCard(lines);
+    writeLocal(TODAY_SEEN, todaySignature(lines));
+    $('today-dot').hidden = true;
+  });
+  $('today-close').addEventListener('click', () => ($('today-card').hidden = true));
+
+  function renderEnvelope() {
+    const box = $('env-body');
+    box.replaceChildren();
+    $('env-step-1').classList.add('on');
+    $('env-step-2').classList.toggle('on', envStep === 2);
+    if (envStep === 3) {
+      box.append(el('p', { class: 'big' }, 'Merci !'), el('p', { class: 'muted' }, simLundi() ? 'Tes avis sont enregistrés. Le gagnant du prix sera annoncé dans la Gazette.' : 'Tes avis sont enregistrés. Tu peux encore les changer jusqu\'à la clôture.'), envButton('Proposer mon propre thème', 'btn', () => { $('env-card').hidden = true; openProposer(); }), envButton('Fermer', 'btn secondary', () => ($('env-card').hidden = true)));
+      return;
+    }
+    if (envStep === 1) {
+      box.append(el('p', {}, 'Thèmes proposés la semaine passée. Dis ce que tu en penses : les plus aimés pourront entrer dans le jeu.'), el('p', { class: 'muted small' }, ENV_REACTIONS.map(([, emoji, label]) => `${emoji} ${label}`).join(' · ')));
+      const real = themeVote && !simLundi();
+      const themes = real ? themeVote.candidates : ENV_THEMES.map((title, i) => ({ id: `sim-${i}`, title }));
+      for (const theme of themes) {
+        const row = el('div', { class: 'env-theme' }, el('div', { class: 'env-title' }, theme.title));
+        const buttons = el('div', { class: 'env-reacts' });
+        for (const [key, emoji, label] of ENV_REACTIONS) {
+          const mine = real && themeVote.mine && themeVote.mine[theme.id] === key;
+          const b = el('button', { type: 'button', class: 'env-react', 'aria-pressed': mine ? 'true' : 'false', 'aria-label': label, title: label }, emoji);
+          b.addEventListener('click', async () => {
+            const on = b.getAttribute('aria-pressed') !== 'true';
+            buttons.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', 'false'));
+            b.setAttribute('aria-pressed', on ? 'true' : 'false');
+            if (!real || !on) return;
+            themeVote.mine = { ...(themeVote.mine || {}), [theme.id]: key };
+            try {
+              await api('/api/themes/vote', { candidate: theme.id, reaction: key });
+            } catch (err) {
+              b.setAttribute('aria-pressed', 'false');
+              row.append(el('p', { class: 'muted small', role: 'alert' }, (err && err.message) || "Ta réaction n'a pas pu être envoyée."));
+            }
+          });
+          buttons.append(b);
+        }
+        row.append(buttons);
+        box.append(row);
+      }
+      box.append(envButton(simLundi() ? "Suite : le prix de l'improbable" : 'Terminé', 'btn', () => { envStep = simLundi() ? 2 : 3; renderEnvelope(); }));
+    } else {
+      box.append(el('p', {}, "Prix de l'improbable : la réponse la plus audacieuse de la semaine passée. Vote pour celle que tu préfères."));
+      for (const [answer, theme] of ENV_PRIZES) {
+        const b = el('button', { type: 'button', class: 'env-prize', 'aria-pressed': 'false' }, el('b', {}, answer), el('span', {}, ` · « ${theme} » · 100 pts`), el('small', {}, 'trouvée par un seul joueur'));
+        b.addEventListener('click', () => {
+          const on = b.getAttribute('aria-pressed') !== 'true';
+          box.querySelectorAll('.env-prize').forEach((x) => x.setAttribute('aria-pressed', 'false'));
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        box.append(b);
+      }
+      box.append(envButton('Envoyer', 'btn', () => { envStep = 3; renderEnvelope(); }));
+    }
+    box.append(envButton('Plus tard', 'btn ghost', () => ($('env-card').hidden = true)));
+  }
+
+  $('env-btn').addEventListener('click', () => {
+    const card = $('env-card');
+    card.hidden = !card.hidden;
+    if (card.hidden) return;
+    $('today-card').hidden = true;
+    envStep = 1;
+    renderEnvelope();
+    writeLocal(ENV_SEEN, envKey());
+    $('env-dot').hidden = true;
+  });
 
   // Défi collectif réussi : un message à l'ouverture de l'application, une seule fois par mois et par appareil.
   function renderCollectiveBanner() {
